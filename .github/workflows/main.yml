@@ -1,0 +1,77 @@
+name: CI
+
+permissions:
+  contents: write
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install mpfr
+      run: sudo apt-get install gcc-10 libmpfr-dev libmpc-dev
+
+    - name: Build libgccjit
+      run: |
+        cd ..
+        ls
+        mkdir build install
+        cd build
+        ../gcc/configure --enable-host-shared --enable-languages=c,jit,lto --disable-bootstrap --disable-multilib --prefix=$(pwd)/../install/usr --libdir=$(pwd)/../install/usr/lib --libexecdir=$(pwd)/../install/usr/lib
+        make -j4
+        make install
+
+    - name: Build Debian package
+      run: |
+        cd ..
+        mkdir install/DEBIAN
+        cat > install/DEBIAN/control << EOF
+        Package: gcc-13
+        Version: 13
+        Architecture: amd64
+        Maintainer: Antoni Boucher <bouanto@zoho.com>
+        Description: gcc 13 for rustc_codegen_gcc CI
+        EOF
+        dpkg-deb --root-owner-group --build install
+        mv install.deb gcc-13.deb
+
+    - name: Compute tag name
+      id: tag_name
+      run: |
+        git_hash=$(git rev-parse "$GITHUB_SHA")
+        echo "TAG_NAME=$git_hash" >> $GITHUB_OUTPUT
+
+    - name: Create tag
+      if: github.ref == 'refs/heads/master'
+      uses: laputansoft/github-tag-action@v4.6
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        create_annotated_tag: true
+        tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
+
+    - name: Create release
+      if: github.ref == 'refs/heads/master'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: /home/runner/work/gcc/install/usr/lib/libgccjit.so.0.0.1
+        asset_name: libgccjit.so
+        tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
+
+    - name: Create release
+      if: github.ref == 'refs/heads/master'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: /home/runner/work/gcc/gcc-13.deb
+        asset_name: gcc-13.deb
+        tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
