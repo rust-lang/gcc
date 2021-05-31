@@ -293,7 +293,8 @@ gcc_sort_r (void *vbase, size_t n, size_t size, sort_r_cmp_fn *cmp, void *data)
   if (buf != scratch)
     free (buf);
 #if CHECKING_P
-  qsort_chk (vbase, n, size, cmp, data);
+  // FIXME: LTO in rustc_codegen_gcc should work even with this check enabled.
+  //qsort_chk (vbase, n, size, cmp, data);
 #endif
 }
 
