@@ -1263,6 +1263,8 @@ public:
 
   void dump_to_dot (const char *path);
 
+  void set_inline_mode(enum gcc_jit_inline_mode);
+
   rvalue *get_address (location *loc);
 
 private:
@@ -1280,6 +1282,7 @@ private:
   auto_vec<local *> m_locals;
   auto_vec<block *> m_blocks;
   type *m_fn_ptr_type;
+  gcc_jit_inline_mode m_inline_mode;
 };
 
 class block : public memento

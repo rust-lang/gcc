@@ -1745,6 +1745,19 @@ gcc_jit_function_get_param_count (gcc_jit_function *func);
 extern gcc_jit_type *
 gcc_jit_type_is_array (gcc_jit_type *type);
 
+#define LIBGCCJIT_HAVE_gcc_jit_function_set_inline_mode
+
+enum gcc_jit_inline_mode
+{
+    GCC_JIT_INLINE_MODE_DEFAULT,
+    GCC_JIT_INLINE_MODE_ALWAYS_INLINE,
+    GCC_JIT_INLINE_MODE_NO_INLINE,
+    GCC_JIT_INLINE_MODE_INLINE,
+};
+
+extern void
+gcc_jit_function_set_inline_mode(gcc_jit_function *func, enum gcc_jit_inline_mode inline_mode);
+
 /* Return non-zero if the type is a bool.  */
 extern int
 gcc_jit_type_is_bool (gcc_jit_type *type);

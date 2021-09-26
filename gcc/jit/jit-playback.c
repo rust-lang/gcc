@@ -472,7 +472,8 @@ new_function (location *loc,
 	      const char *name,
 	      const auto_vec<param *> *params,
 	      int is_variadic,
-	      enum built_in_function builtin_id)
+	      enum built_in_function builtin_id,
+	      enum gcc_jit_inline_mode inline_mode)
 {
   int i;
   param *param;
@@ -495,6 +496,30 @@ new_function (location *loc,
 
   /* FIXME: this uses input_location: */
   tree fndecl = build_fn_decl (name, fn_type);
+
+  if (inline_mode != GCC_JIT_INLINE_MODE_DEFAULT)
+  {
+    switch (inline_mode)
+    {
+        case GCC_JIT_INLINE_MODE_DEFAULT:
+            break;
+        case GCC_JIT_INLINE_MODE_ALWAYS_INLINE:
+            DECL_DECLARED_INLINE_P (fndecl) = 1;
+            DECL_DISREGARD_INLINE_LIMITS (fndecl) = 1; // FIXME: this line breaks compilation of sysroot, but seems required to make inlining work.
+            // FIXME: could it be because it's calling an external function?
+            DECL_ATTRIBUTES (fndecl) =
+                tree_cons (get_identifier ("always_inline"),
+                        NULL,
+                        DECL_ATTRIBUTES (fndecl));
+            break;
+        case GCC_JIT_INLINE_MODE_NO_INLINE:
+            DECL_UNINLINABLE (fndecl) = 1;
+            break;
+        case GCC_JIT_INLINE_MODE_INLINE:
+            DECL_DECLARED_INLINE_P (fndecl) = 1;
+            break;
+    }
+  }
 
   if (loc)
     set_tree_location (fndecl, loc);

@@ -3957,7 +3957,8 @@ recording::function::function (context *ctxt,
   m_builtin_id (builtin_id),
   m_locals (),
   m_blocks (),
-  m_fn_ptr_type (NULL)
+  m_fn_ptr_type (NULL),
+  m_inline_mode(GCC_JIT_INLINE_MODE_DEFAULT)
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -4016,7 +4017,8 @@ recording::function::replay_into (replayer *r)
 				     m_name->c_str (),
 				     &params,
 				     m_is_variadic,
-				     m_builtin_id));
+				     m_builtin_id,
+				     m_inline_mode));
 }
 
 /* Create a recording::local instance and add it to
@@ -4228,6 +4230,15 @@ recording::function::dump_to_dot (const char *path)
   pp_string (pp, "}\n");
   pp_flush (pp);
   fclose (fp);
+}
+
+/* Implements the post-error-checking part of
+   gcc_jit_function_set_inline_mode.  */
+
+void
+recording::function::set_inline_mode(enum gcc_jit_inline_mode inline_mode)
+{
+  m_inline_mode = inline_mode;
 }
 
 /* Implements the post-error-checking part of

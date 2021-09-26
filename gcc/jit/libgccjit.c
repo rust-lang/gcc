@@ -551,6 +551,20 @@ gcc_jit_type_is_array (gcc_jit_type *type)
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::function::set_inline_mode method, in
+   jit-recording.c.  */
+
+void
+gcc_jit_function_set_inline_mode(gcc_jit_function *func, enum gcc_jit_inline_mode inline_mode)
+{
+  RETURN_IF_FAIL (func, NULL, NULL, "NULL function");
+
+  func->set_inline_mode(inline_mode);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::type::is_bool method, in
    jit-recording.c.  */
 

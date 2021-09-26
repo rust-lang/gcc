@@ -104,7 +104,8 @@ public:
 		const char *name,
 		const auto_vec<param *> *params,
 		int is_variadic,
-		enum built_in_function builtin_id);
+		enum built_in_function builtin_id,
+		enum gcc_jit_inline_mode inline_mode);
 
   lvalue *
   new_global (location *loc,
