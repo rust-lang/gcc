@@ -526,6 +526,19 @@ gcc_jit_type_get_volatile (gcc_jit_type *type)
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::type::get_size method, in
+   jit-recording.c.  */
+
+ssize_t
+gcc_jit_type_get_size (gcc_jit_type *type)
+{
+  RETURN_VAL_IF_FAIL (type->is_int (), -1, NULL, NULL, "only getting the size of an int type is supported for now");
+  return type->get_size ();
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::type::is_array method, in
    jit-recording.c.  */
 
