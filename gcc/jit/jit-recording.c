@@ -6493,11 +6493,17 @@ recording::local::replay_into (replayer *r)
 void
 recording::local::write_to_dump (dump &d)
 {
-  if (d.update_locations ())
-    m_loc = d.make_location ();
-  d.write("  %s %s;\n",
-	  m_type->get_debug_string (),
-	  get_debug_string ());
+	if (d.update_locations ())
+		m_loc = d.make_location ();
+	if (m_reg_name)
+		d.write("  register %s %s asm (\"%s\");\n",
+		  m_type->get_debug_string (),
+		  get_debug_string (),
+		  m_reg_name->c_str());
+	else
+		d.write("  %s %s;\n",
+		  m_type->get_debug_string (),
+		  get_debug_string ());
 }
 
 void
