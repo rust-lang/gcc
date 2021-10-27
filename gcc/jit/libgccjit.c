@@ -356,9 +356,9 @@ jit_error (gcc::jit::recording::context *ctxt,
    gcc::jit::recording::type::accepts_writes_from virtual function on
    LTYPE.  */
 
-static bool
-compatible_types (gcc::jit::recording::type *ltype,
-		  gcc::jit::recording::type *rtype)
+bool
+gcc_jit_compatible_types (gcc_jit_type *ltype,
+			  gcc_jit_type *rtype)
 {
   return ltype->accepts_writes_from (rtype);
 }
@@ -1461,8 +1461,8 @@ gcc_jit_global_set_initializer_value (gcc_jit_lvalue *global,
 			       global->get_debug_string ());
 
       RETURN_IF_FAIL_PRINTF5 (
-	compatible_types (global->get_type (),
-			  value->get_type ()),
+	gcc_jit_compatible_types ((gcc_jit_type*) global->get_type (),
+			  (gcc_jit_type*) value->get_type ()),
 	NULL, NULL,
 	"mismatching types for global \"%s\":"
 	" assignment to global %s (type: %s) from %s (type: %s)",
@@ -1736,8 +1736,8 @@ gcc_jit_context_new_rvalue_from_struct (gcc_jit_context *ctxt,
       gcc::jit::recording::type *field_type
 	= struct_type->get_fields ()->get_field (i)->get_type ();
       RETURN_NULL_IF_FAIL_PRINTF4 (
-	compatible_types (field_type,
-			  fields[i]->get_type ()),
+	gcc_jit_compatible_types ((gcc_jit_type*) field_type,
+			  (gcc_jit_type*) fields[i]->get_type ()),
 	ctxt, loc,
 	"mismatching type for field[%zi] (expected type: %s): %s (type: %s)",
 	i,
@@ -1794,8 +1794,8 @@ gcc_jit_context_new_rvalue_from_array (gcc_jit_context *ctxt,
       RETURN_NULL_IF_FAIL_PRINTF1 (
 	elements[i], ctxt, loc, "NULL elements[%zi]", i);
       RETURN_NULL_IF_FAIL_PRINTF4 (
-	compatible_types (element_type,
-			  elements[i]->get_type ()),
+	gcc_jit_compatible_types ((gcc_jit_type*) element_type,
+			  (gcc_jit_type*) elements[i]->get_type ()),
 	ctxt, loc,
 	"mismatching type for array[%zi] (expected type: %s): %s (type: %s)",
 	i,
@@ -1878,7 +1878,7 @@ gcc_jit_context_new_binary_op (gcc_jit_context *ctxt,
   RETURN_NULL_IF_FAIL (a, ctxt, loc, "NULL a");
   RETURN_NULL_IF_FAIL (b, ctxt, loc, "NULL b");
   RETURN_NULL_IF_FAIL_PRINTF4 (
-    compatible_types (a->get_type (), b->get_type ()),
+    gcc_jit_compatible_types ((gcc_jit_type*) a->get_type (), (gcc_jit_type*) b->get_type ()),
     ctxt, loc,
     "mismatching types for binary op:"
     " a: %s (type: %s) b: %s (type: %s)",
@@ -1987,8 +1987,8 @@ gcc_jit_context_new_call (gcc_jit_context *ctxt,
 	param->get_type ()->get_debug_string ());
 
       RETURN_NULL_IF_FAIL_PRINTF6 (
-	compatible_types (param->get_type (),
-			  arg->get_type ()),
+	gcc_jit_compatible_types ((gcc_jit_type*) param->get_type (),
+			  (gcc_jit_type*) arg->get_type ()),
 	ctxt, loc,
 	"mismatching types for argument %d of function \"%s\":"
 	" assignment to param %s (type: %s) from %s (type: %s)",
@@ -2076,8 +2076,8 @@ gcc_jit_context_new_call_through_ptr (gcc_jit_context *ctxt,
 	param_type->get_debug_string ());
 
       RETURN_NULL_IF_FAIL_PRINTF6 (
-	compatible_types (param_type,
-			  arg->get_type ()),
+	gcc_jit_compatible_types ((gcc_jit_type*) param_type,
+			  (gcc_jit_type*) arg->get_type ()),
 	ctxt, loc,
 	"mismatching types for argument %d of fn_ptr: %s:"
 	" assignment to param %d (type: %s) from %s (type: %s)",
@@ -2528,8 +2528,8 @@ gcc_jit_block_add_assignment (gcc_jit_block *block,
   RETURN_IF_FAIL (lvalue, ctxt, loc, "NULL lvalue");
   RETURN_IF_FAIL (rvalue, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL_PRINTF4 (
-    compatible_types (lvalue->get_type (),
-		      rvalue->get_type ()),
+    gcc_jit_compatible_types ((gcc_jit_type*) lvalue->get_type (),
+		      (gcc_jit_type*) rvalue->get_type ()),
     ctxt, loc,
     "mismatching types:"
     " assignment to %s (type: %s) from %s (type: %s)",
@@ -2574,8 +2574,8 @@ gcc_jit_block_add_assignment_op (gcc_jit_block *block,
     op);
   RETURN_IF_FAIL (rvalue, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL_PRINTF4 (
-    compatible_types (lvalue->get_type (),
-		      rvalue->get_type ()),
+    gcc_jit_compatible_types ((gcc_jit_type*) lvalue->get_type (),
+		      (gcc_jit_type*) rvalue->get_type ()),
     ctxt, loc,
     "mismatching types:"
     " assignment to %s (type: %s) involving %s (type: %s)",
@@ -2731,9 +2731,9 @@ gcc_jit_block_end_with_return (gcc_jit_block *block,
   gcc::jit::recording::function *func = block->get_function ();
   RETURN_IF_FAIL (rvalue, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL_PRINTF4 (
-    compatible_types (
-      func->get_return_type (),
-      rvalue->get_type ()),
+    gcc_jit_compatible_types (
+      (gcc_jit_type*) func->get_return_type (),
+      (gcc_jit_type*) rvalue->get_type ()),
     ctxt, loc,
     "mismatching types:"
     " return of %s (type: %s) in function %s (return type: %s)",
@@ -3731,8 +3731,8 @@ gcc_jit_context_new_rvalue_from_vector (gcc_jit_context *ctxt,
       RETURN_NULL_IF_FAIL_PRINTF1 (
 	elements[i], ctxt, loc, "NULL elements[%zi]", i);
       RETURN_NULL_IF_FAIL_PRINTF4 (
-	compatible_types (element_type,
-			  elements[i]->get_type ()),
+	gcc_jit_compatible_types ((gcc_jit_type*) element_type,
+			  (gcc_jit_type*) elements[i]->get_type ()),
 	ctxt, loc,
 	"mismatching type for element[%zi] (expected type: %s): %s (type: %s)",
 	i,
