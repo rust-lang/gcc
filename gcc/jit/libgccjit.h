@@ -615,6 +615,11 @@ gcc_jit_type_get_const (gcc_jit_type *type);
 extern gcc_jit_type *
 gcc_jit_type_get_volatile (gcc_jit_type *type);
 
+/* Given types LTYPE and RTYPE, return true if they are compatible.  */
+extern bool
+gcc_jit_compatible_types (gcc_jit_type *ltype,
+			  gcc_jit_type *rtype);
+
 /* Given type "T", get type "T[N]" (for a constant N).  */
 extern gcc_jit_type *
 gcc_jit_context_new_array_type (gcc_jit_context *ctxt,
