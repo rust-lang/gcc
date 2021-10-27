@@ -491,7 +491,8 @@ new_function (location *loc,
 	      const char *name,
 	      const auto_vec<param *> *params,
 	      int is_variadic,
-	      enum built_in_function builtin_id)
+	      enum built_in_function builtin_id,
+              function *personality_function)
 {
   int i;
   param *param;
@@ -514,6 +515,11 @@ new_function (location *loc,
 
   /* FIXME: this uses input_location: */
   tree fndecl = build_fn_decl (name, fn_type);
+
+  if (personality_function)
+  {
+    DECL_FUNCTION_PERSONALITY (fndecl) = personality_function->as_fndecl ();
+  }
 
   if (loc)
     set_tree_location (fndecl, loc);
@@ -1742,6 +1748,10 @@ build_stmt_list ()
       int j;
       tree stmt;
 
+      if (b->m_is_try_or_finally) {
+          continue;
+      }
+
       b->m_label_expr = build1 (LABEL_EXPR,
 				void_type_node,
 				b->as_label_decl ());
@@ -1750,6 +1760,42 @@ build_stmt_list ()
       FOR_EACH_VEC_ELT (b->m_stmts, j, stmt)
 	tsi_link_after (&m_stmt_iter, stmt, TSI_CONTINUE_LINKING);
     }
+}
+
+void
+playback::block::
+add_try_finally (location *loc,
+         block *try_block,
+         block *finally_block)
+{
+  gcc_assert (try_block);
+  gcc_assert (finally_block);
+
+  try_block->m_is_try_or_finally = true;
+  finally_block->m_is_try_or_finally = true;
+
+  if (loc)
+  {
+    set_tree_location (try_block->as_label_decl (), loc);
+    set_tree_location (finally_block->as_label_decl (), loc);
+  }
+
+  tree try_body = alloc_stmt_list ();
+  int i;
+  tree stmt;
+  FOR_EACH_VEC_ELT (try_block->m_stmts, i, stmt) {
+    append_to_statement_list (stmt, &try_body);
+  }
+
+  tree finally_body = alloc_stmt_list ();
+  int j;
+  tree finally_stmt;
+  FOR_EACH_VEC_ELT (finally_block->m_stmts, j, finally_stmt) {
+    append_to_statement_list (finally_stmt, &finally_body);
+  }
+
+  add_stmt (build2 (TRY_FINALLY_EXPR, void_type_node,
+            try_body, finally_body));
 }
 
 /* Finish compiling the given function, potentially running the

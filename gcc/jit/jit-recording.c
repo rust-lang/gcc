@@ -4091,7 +4091,8 @@ recording::function::function (context *ctxt,
   m_builtin_id (builtin_id),
   m_locals (),
   m_blocks (),
-  m_fn_ptr_type (NULL)
+  m_fn_ptr_type (NULL),
+  m_personality_function (NULL)
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -4144,13 +4145,20 @@ recording::function::replay_into (replayer *r)
   FOR_EACH_VEC_ELT (m_params, i, param)
     params.safe_push (param->playback_param ());
 
+  playback::function *personality_function = NULL;
+  if (m_personality_function)
+  {
+    personality_function = m_personality_function->playback_function ();
+  }
+
   set_playback_obj (r->new_function (playback_location (r, m_loc),
 				     m_kind,
 				     m_return_type->playback_type (),
 				     m_name->c_str (),
 				     &params,
 				     m_is_variadic,
-				     m_builtin_id));
+				     m_builtin_id,
+				     personality_function));
 }
 
 /* Create a recording::local instance and add it to
@@ -4295,6 +4303,13 @@ recording::function::validate ()
       /* Iteratively walk the graph of blocks, marking their "m_is_reachable"
 	 flag, starting at the initial block.  */
       auto_vec<block *> worklist (m_blocks.length ());
+      int j;
+      block *func_block;
+      /* Push the blocks used in try/finally because they're not successors of
+         other blocks.  */
+      FOR_EACH_VEC_ELT (m_blocks, j, func_block)
+	if (func_block->m_is_reachable)
+      worklist.safe_push (func_block);
       worklist.safe_push (m_blocks[0]);
       while (worklist.length () > 0)
 	{
@@ -4393,6 +4408,12 @@ recording::function::get_address (recording::location *loc)
   return result;
 }
 
+void
+recording::function::set_personality_function (function *function)
+{
+    m_personality_function = function;
+}
+
 /* Implementation of recording::memento::make_debug_string for
    functions.  */
 
@@ -4472,6 +4493,29 @@ recording::block::add_eval (recording::location *loc,
 			    recording::rvalue *rvalue)
 {
   statement *result = new eval (this, loc, rvalue);
+  m_ctxt->record (result);
+  m_statements.safe_push (result);
+  return result;
+}
+
+/* The implementation of class gcc::jit::recording::block.  */
+
+/* Create a recording::try_finally instance and add it to
+   the block's context's list of mementos, and to the block's
+   list of statements.
+
+   Implements the heart of gcc_jit_block_add_try_finally.  */
+
+recording::statement *
+recording::block::add_try_finally (location *loc,
+                   block *try_block,
+                   block *finally_block)
+{
+  statement *result = new try_finally (this, loc, try_block, finally_block);
+  try_block->m_has_been_terminated = true;
+  finally_block->m_has_been_terminated = true;
+  try_block->m_is_reachable = true;
+  finally_block->m_is_reachable = true;
   m_ctxt->record (result);
   m_statements.safe_push (result);
   return result;
@@ -6717,6 +6761,48 @@ recording::eval::write_reproducer (reproducer &r)
 	   r.get_identifier (get_block ()),
 	   r.get_identifier (get_loc ()),
 	   r.get_identifier_as_rvalue (m_rvalue));
+}
+
+/* The implementation of class gcc::jit::recording::try_finally.  */
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::try_finally.  */
+
+void
+recording::try_finally::replay_into (replayer *r)
+{
+  playback_block (get_block ())
+    ->add_try_finally (playback_location (r),
+        m_try_block->playback_block (),
+        m_finally_block->playback_block ());
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   an eval statement.  */
+
+recording::string *
+recording::try_finally::make_debug_string ()
+{
+  return string::from_printf (m_ctxt,
+                  "try { %s } finally { %s };",
+                  m_try_block->get_debug_string (),
+                  m_finally_block->get_debug_string ());
+}
+
+/* Implementation of recording::memento::write_reproducer for
+   eval statements.  */
+
+void
+recording::try_finally::write_reproducer (reproducer &r)
+{
+  r.write ("  gcc_jit_block_add_try_finally (%s, /*gcc_jit_block *block */\n"
+       "                                 %s, /* gcc_jit_location *loc */\n"
+       "                                 %s, /* gcc_jit_block *try_block */\n"
+       "                                 %s); /* gcc_jit_block *finally_block */\n",
+       r.get_identifier (get_block ()),
+       r.get_identifier (get_loc ()),
+       r.get_identifier (m_try_block),
+       r.get_identifier (m_finally_block));
 }
 
 /* The implementation of class gcc::jit::recording::assignment.  */

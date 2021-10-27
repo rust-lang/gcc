@@ -107,7 +107,8 @@ public:
 		const char *name,
 		const auto_vec<param *> *params,
 		int is_variadic,
-		enum built_in_function builtin_id);
+		enum built_in_function builtin_id,
+                function *personality_function);
 
   lvalue *
   new_global (location *loc,
@@ -578,6 +579,11 @@ public:
 	    rvalue *rvalue);
 
   void
+  add_try_finally (location *loc,
+           block *try_block,
+           block *finally_block);
+
+  void
   add_assignment (location *loc,
 		  lvalue *lvalue,
 		  rvalue *rvalue);
@@ -640,6 +646,7 @@ private:
 
 public: // for now
   tree m_label_expr;
+  bool m_is_try_or_finally = false;
 
   friend class function;
 };

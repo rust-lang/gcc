@@ -1206,6 +1206,24 @@ gcc_jit_block_add_eval (gcc_jit_block *block,
 			gcc_jit_location *loc,
 			gcc_jit_rvalue *rvalue);
 
+/* Add a try/finally statement.
+
+   This is equivalent to this C++ code:
+
+     try {
+        try_block
+     }
+     finally {
+        finally_block
+     }
+*/
+
+void
+gcc_jit_block_add_try_finally (gcc_jit_block *block,
+                   gcc_jit_location *loc,
+                   gcc_jit_block *try_block,
+                   gcc_jit_block *finally_block);
+
 /* Add evaluation of an rvalue, assigning the result to the given
    lvalue.
 
@@ -1603,6 +1621,9 @@ extern gcc_jit_rvalue *
 gcc_jit_function_get_address (gcc_jit_function *fn,
 			      gcc_jit_location *loc);
 
+void
+gcc_jit_function_set_personality_function (gcc_jit_function *fn,
+                                           gcc_jit_function *personality_func);
 
 #define LIBGCCJIT_HAVE_gcc_jit_context_new_rvalue_from_vector
 

@@ -1324,6 +1324,7 @@ public:
   void dump_to_dot (const char *path);
 
   rvalue *get_address (location *loc);
+  void set_personality_function (function *function);
 
 private:
   string * make_debug_string () FINAL OVERRIDE;
@@ -1340,6 +1341,7 @@ private:
   auto_vec<local *> m_locals;
   auto_vec<block *> m_blocks;
   type *m_fn_ptr_type;
+  function *m_personality_function;
 };
 
 class block : public memento
@@ -1367,6 +1369,11 @@ public:
   statement *
   add_eval (location *loc,
 	    rvalue *rvalue);
+
+  statement *
+  add_try_finally (location *loc,
+           block *try_block,
+           block *finally_block);
 
   statement *
   add_assignment (location *loc,
@@ -2168,6 +2175,28 @@ protected:
 private:
   block *m_block;
   location *m_loc;
+};
+
+class try_finally : public statement
+{
+public:
+  try_finally (block *b,
+    location *loc,
+    block *try_block,
+    block *finally_block)
+  : statement (b, loc),
+    m_try_block (try_block),
+    m_finally_block (finally_block) {}
+
+  void replay_into (replayer *r) FINAL OVERRIDE;
+
+private:
+  string * make_debug_string () FINAL OVERRIDE;
+  void write_reproducer (reproducer &r) FINAL OVERRIDE;
+
+private:
+  block *m_try_block;
+  block *m_finally_block;
 };
 
 class eval : public statement
