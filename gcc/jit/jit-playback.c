@@ -246,7 +246,7 @@ get_tree_node_for_type (enum gcc_jit_types type_)
     case GCC_JIT_TYPE_UINT64_T:
       return uint64_type_node;
     case GCC_JIT_TYPE_UINT128_T:
-      if (targetm.scalar_mode_supported_p (TImode))
+      /*if (targetm.scalar_mode_supported_p (TImode))*/
         return uint128_type_node;
       break;
     case GCC_JIT_TYPE_INT8_T:
@@ -258,7 +258,7 @@ get_tree_node_for_type (enum gcc_jit_types type_)
     case GCC_JIT_TYPE_INT64_T:
       return intDI_type_node;
     case GCC_JIT_TYPE_INT128_T:
-      if (targetm.scalar_mode_supported_p (TImode))
+      /*if (targetm.scalar_mode_supported_p (TImode))*/
         return intTI_type_node;
       break;
 
