@@ -3200,12 +3200,13 @@ verify_types_in_gimple_reference (tree expr, bool require_lvalue)
 	      return true;
 	    }
 	  else if (TREE_CODE (op) == SSA_NAME
-		   && TYPE_SIZE (TREE_TYPE (expr)) != TYPE_SIZE (TREE_TYPE (op)))
+                   && TYPE_SIZE (TREE_TYPE (expr)) != TYPE_SIZE (TREE_TYPE (op)))
+                   /*&& !operand_equal_p(TYPE_SIZE (TREE_TYPE (expr)), TYPE_SIZE (TREE_TYPE (op))))*/
 	    {
-                debug_tree(expr);
+                /*debug_tree(expr);
                 printf("*** %ld\n", tree_to_shwi(TYPE_SIZE (TREE_TYPE (expr))));
                 debug_tree(op);
-                printf("**** %ld\n", tree_to_shwi(TYPE_SIZE (TREE_TYPE (op))));
+                printf("**** %ld\n", tree_to_shwi(TYPE_SIZE (TREE_TYPE (op))));*/
 	      error ("conversion of register to a different size in %qs",
 		     code_name);
 	      debug_generic_stmt (expr);
