@@ -19,6 +19,7 @@ along with GCC; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  */
 
 #include "config.h"
+#include "jit-common.h"
 #include "system.h"
 #include "coretypes.h"
 #include "tm.h"
@@ -1571,15 +1572,21 @@ recording::context::add_error_va (location *loc, const char *fmt, va_list ap)
   if (!ctxt_progname)
     ctxt_progname = "libgccjit.so";
 
-  if (loc)
-    fprintf (stderr, "%s: %s: error: %s\n",
-	     ctxt_progname,
-	     loc->get_debug_string (),
-	     errmsg);
-  else
-    fprintf (stderr, "%s: error: %s\n",
-	     ctxt_progname,
-	     errmsg);
+  bool print_errors_to_stderr =
+      m_ctxt->get_inner_bool_option (INNER_BOOL_OPTION_PRINT_ERRORS_TO_STDERR);
+
+  if (print_errors_to_stderr)
+  {
+    if (loc)
+      fprintf (stderr, "%s: %s: error: %s\n",
+	       ctxt_progname,
+	       loc->get_debug_string (),
+	       errmsg);
+    else
+      fprintf (stderr, "%s: error: %s\n",
+	       ctxt_progname,
+	       errmsg);
+  }
 
   if (!m_error_count)
     {
