@@ -3912,6 +3912,11 @@ void recording::lvalue::set_register_name (const char *reg_name)
   m_reg_name = new_string (reg_name);
 }
 
+void recording::lvalue::set_alignment (int alignment)
+{
+  m_alignment = alignment;
+}
+
 /* The implementation of class gcc::jit::recording::param.  */
 
 /* Implementation of pure virtual hook recording::memento::replay_into
@@ -4777,6 +4782,9 @@ recording::global::replay_into (replayer *r)
 
   if (m_link_section != NULL)
     global->set_link_section (m_link_section->c_str ());
+
+  if (m_alignment != 0)
+    global->set_alignment (m_alignment);
 
   set_playback_obj (global);
 }
