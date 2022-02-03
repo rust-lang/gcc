@@ -999,6 +999,16 @@ gcc_jit_context_new_array_constructor (gcc_jit_context *ctxt,
 				       size_t num_values,
 				       gcc_jit_rvalue **values);
 
+/* Create a constructor for a vector as an rvalue.
+*/
+
+extern gcc_jit_rvalue *
+gcc_jit_context_new_vector_constructor (gcc_jit_context *ctxt,
+					gcc_jit_location *loc,
+					gcc_jit_type *type,
+					size_t num_values,
+					gcc_jit_rvalue **values);
+
 /* Set the initial value of a global of any type with an rvalue.
 
    The rvalue needs to be a constant expression, e.g. no function calls.
@@ -1020,6 +1030,12 @@ gcc_jit_context_new_array_constructor (gcc_jit_context *ctxt,
 extern gcc_jit_lvalue *
 gcc_jit_global_set_initializer_rvalue (gcc_jit_lvalue *global,
 				       gcc_jit_rvalue *init_value);
+
+/* Create a reference to a machine-specific builtin function (sometimes called
+   intrinsic functions).  */
+extern gcc_jit_function *
+gcc_jit_context_get_target_builtin_function (gcc_jit_context *ctxt,
+                         const char *name);
 
 #define LIBGCCJIT_HAVE_gcc_jit_global_set_initializer
 
@@ -1291,6 +1307,12 @@ gcc_jit_context_new_array_access (gcc_jit_context *ctxt,
 				  gcc_jit_location *loc,
 				  gcc_jit_rvalue *ptr,
 				  gcc_jit_rvalue *index);
+
+extern gcc_jit_lvalue *
+gcc_jit_context_new_vector_access (gcc_jit_context *ctxt,
+				   gcc_jit_location *loc,
+				   gcc_jit_rvalue *vector,
+				   gcc_jit_rvalue *index);
 
 /* Field access is provided separately for both lvalues and rvalues.  */
 
@@ -1805,6 +1827,21 @@ gcc_jit_context_new_rvalue_from_vector (gcc_jit_context *ctxt,
 					gcc_jit_type *vec_type,
 					size_t num_elements,
 					gcc_jit_rvalue **elements);
+
+/* Build a permutation vector rvalue from an 3 arrays of elements.
+
+   "vec_type" should be a vector type, created using gcc_jit_type_get_vector.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_25; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_TARGET_BUILTIN
+*/
+extern gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_vector_perm (gcc_jit_context *ctxt,
+					gcc_jit_location *loc,
+					gcc_jit_rvalue *elements1,
+					gcc_jit_rvalue *elements2,
+					gcc_jit_rvalue *mask);
 
 #define LIBGCCJIT_HAVE_gcc_jit_version
 
