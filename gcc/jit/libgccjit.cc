@@ -1745,6 +1745,50 @@ gcc_jit_context_new_array_constructor (gcc_jit_context *ctxt,
     reinterpret_cast<gcc::jit::recording::rvalue**>(values));
 }
 
+// TODO: do we need this since we have gcc_jit_context_new_rvalue_from_vector?
+gcc_jit_rvalue *
+gcc_jit_context_new_vector_constructor (gcc_jit_context *ctxt,
+					gcc_jit_location *loc,
+					gcc_jit_type *type,
+					size_t num_values,
+					gcc_jit_rvalue **values)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, loc, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_NULL_IF_FAIL (type, ctxt, loc, "NULL type");
+
+  /* "vec_type" must be a vector type.  */
+  gcc::jit::recording::vector_type *as_vec_type
+    = type->dyn_cast_vector_type ();
+  RETURN_NULL_IF_FAIL_PRINTF1 (as_vec_type, ctxt, loc,
+			       "%s is not a vector type",
+			       type->get_debug_string ());
+
+  // TODO: check that the values are constant.
+
+  return (gcc_jit_rvalue *)ctxt->new_vector_constructor (
+    loc,
+    as_vec_type,
+    reinterpret_cast<gcc::jit::recording::rvalue**>(values));
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::context::get_target_builtin_function method, in
+   jit-recording.c.  */
+
+gcc_jit_function *
+gcc_jit_context_get_target_builtin_function (gcc_jit_context *ctxt,
+                         const char *name)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_NULL_IF_FAIL (name, ctxt, NULL, "NULL name");
+
+  return static_cast <gcc_jit_function *> (ctxt->get_target_builtin_function (name));
+}
+
 /* Public entrypoint.  See description in libgccjit.h.  */
 
 extern gcc_jit_lvalue *
@@ -2422,6 +2466,8 @@ gcc_jit_context_new_cast (gcc_jit_context *ctxt,
   /* LOC can be NULL.  */
   RETURN_NULL_IF_FAIL (rvalue, ctxt, loc, "NULL rvalue");
   RETURN_NULL_IF_FAIL (type, ctxt, loc, "NULL type");
+  gcc::jit::recording::vector_type *vector_type = type->dyn_cast_vector_type ();
+  RETURN_NULL_IF_FAIL (vector_type == NULL, ctxt, loc, "cannot cast vector types");
   RETURN_NULL_IF_FAIL_PRINTF3 (
     is_valid_cast (rvalue->get_type (), type),
     ctxt, loc,
@@ -2486,6 +2532,39 @@ gcc_jit_context_new_array_access (gcc_jit_context *ctxt,
     index->get_type ()->get_debug_string ());
 
   return (gcc_jit_lvalue *)ctxt->new_array_access (loc, ptr, index);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::context::new_vector_access method in
+   jit-recording.cc.  */
+
+extern gcc_jit_lvalue *
+gcc_jit_context_new_vector_access (gcc_jit_context *ctxt,
+				   gcc_jit_location *loc,
+				   gcc_jit_rvalue *vector,
+				   gcc_jit_rvalue *index)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, loc, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  /* LOC can be NULL.  */
+  RETURN_NULL_IF_FAIL (vector, ctxt, loc, "NULL vector");
+  RETURN_NULL_IF_FAIL (index, ctxt, loc, "NULL index");
+  RETURN_NULL_IF_FAIL_PRINTF2 (
+    vector->get_type ()->dyn_cast_vector_type (),
+    ctxt, loc,
+    "vector: %s (type: %s) is not a vector",
+    vector->get_debug_string (),
+    vector->get_type ()->get_debug_string ());
+  RETURN_NULL_IF_FAIL_PRINTF2 (
+    index->get_type ()->is_numeric (),
+    ctxt, loc,
+    "index: %s (type: %s) is not of numeric type",
+    index->get_debug_string (),
+    index->get_type ()->get_debug_string ());
+
+  return (gcc_jit_lvalue *)ctxt->new_vector_access (loc, vector, index);
 }
 
 /* Public entrypoint.  See description in libgccjit.h.
@@ -4054,6 +4133,31 @@ gcc_jit_context_new_rvalue_from_vector (gcc_jit_context *ctxt,
     (loc,
      as_vec_type,
      (gcc::jit::recording::rvalue **)elements);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::context::new_rvalue_vector_perm method, in
+   jit-recording.cc.  */
+
+gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_vector_perm (gcc_jit_context *ctxt,
+					gcc_jit_location *loc,
+					gcc_jit_rvalue *elements1,
+					gcc_jit_rvalue *elements2,
+					gcc_jit_rvalue *mask)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, loc, "NULL ctxt");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+
+  /* LOC can be NULL.  */
+
+  // TODO: check that the type of elements1 and elements2 is the same.
+  // TODO: check that the lenth of mask is the same as the input vectors.
+  // TODO: check that mask is a **constant** vector.
+
+  return (gcc_jit_rvalue *)ctxt->new_rvalue_vector_perm(loc, elements1, elements2, mask);
 }
 
 /* A mutex around the cached state in parse_basever.

@@ -104,7 +104,8 @@ public:
 		const char *name,
 		const auto_vec<param *> *params,
 		int is_variadic,
-		enum built_in_function builtin_id);
+		enum built_in_function builtin_id,
+		int is_target_builtin);
 
   lvalue *
   new_global (location *loc,
@@ -145,7 +146,14 @@ public:
   rvalue *
   new_rvalue_from_vector (location *loc,
 			  type *type,
-			  const auto_vec<rvalue *> &elements);
+			  const auto_vec<rvalue *> &elements,
+			  bool constructor);
+
+  rvalue *
+  new_rvalue_vector_perm (location *loc,
+			  rvalue* elements1,
+			  rvalue* elements2,
+			  rvalue* mask);
 
   rvalue *
   new_unary_op (location *loc,
@@ -190,6 +198,11 @@ public:
   new_array_access (location *loc,
 		    rvalue *ptr,
 		    rvalue *index);
+
+  lvalue *
+  new_vector_access (location *loc,
+		     rvalue *vector,
+		     rvalue *index);
 
   void
   set_str_option (enum gcc_jit_str_option opt,
@@ -812,5 +825,7 @@ extern playback::context *active_playback_ctxt;
 } // namespace gcc::jit
 
 } // namespace gcc
+
+extern hash_map<nofree_string_hash, tree> target_builtins;
 
 #endif /* JIT_PLAYBACK_H */
