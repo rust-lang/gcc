@@ -87,7 +87,7 @@ static const struct attribute_spec::exclusions attr_const_pure_exclusions[] =
   ATTR_EXCL (NULL, false, false, false)
 };
 
-hash_map<nofree_string_hash, tree> target_builtins = hash_map<nofree_string_hash, tree>();
+hash_map<nofree_string_hash, tree> target_builtins{};
 
 /* Table of machine-independent attributes supported in libgccjit.  */
 const struct attribute_spec jit_attribute_table[] =
