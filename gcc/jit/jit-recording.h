@@ -1749,8 +1749,8 @@ public:
   {
     type *a_type = a->get_type ();
     // FIXME: dyn_cast_vector_type should work.
-    if (strstr (a_type->get_debug_string (), "vector") != NULL)
-    //if (a_type->dyn_cast_vector_type () != NULL)
+    //if (strstr (a_type->get_debug_string (), "vector") != NULL)
+    if (a_type->dyn_cast_vector_type () != NULL)
     {
       m_type = a_type;
     }
