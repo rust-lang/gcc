@@ -1599,6 +1599,105 @@ new_array_access (location *loc,
     }
 }
 
+/* Like c_mark_addressable but don't check register qualifier.  */
+void
+c_common_mark_addressable_vec (tree t)
+{
+  while (handled_component_p (t) || TREE_CODE (t) == C_MAYBE_CONST_EXPR)
+    {
+      t = TREE_OPERAND (t, 0);
+    }
+  if (!VAR_P (t)
+      && TREE_CODE (t) != PARM_DECL
+      && TREE_CODE (t) != COMPOUND_LITERAL_EXPR
+      && TREE_CODE (t) != TARGET_EXPR)
+    return;
+  if (!VAR_P (t) || !DECL_HARD_REGISTER (t))
+    TREE_ADDRESSABLE (t) = 1;
+  if (TREE_CODE (t) == COMPOUND_LITERAL_EXPR)
+    TREE_ADDRESSABLE (COMPOUND_LITERAL_EXPR_DECL (t)) = 1;
+  else if (TREE_CODE (t) == TARGET_EXPR)
+    TREE_ADDRESSABLE (TARGET_EXPR_SLOT (t)) = 1;
+}
+
+/* Return true if TYPE is a vector type that should be subject to the GNU
+   vector extensions (as opposed to a vector type that is used only for
+   the purposes of defining target-specific built-in functions).  */
+
+inline bool
+gnu_vector_type_p (const_tree type)
+{
+  return TREE_CODE (type) == VECTOR_TYPE && !TYPE_INDIVISIBLE_P (type);
+}
+
+/* Return nonzero if REF is an lvalue valid for this language.
+   Lvalues can be assigned, unless their type has TYPE_READONLY.
+   Lvalues can have their address taken, unless they have C_DECL_REGISTER.  */
+
+bool
+lvalue_p (const_tree ref)
+{
+  const enum tree_code code = TREE_CODE (ref);
+
+  switch (code)
+    {
+    case REALPART_EXPR:
+    case IMAGPART_EXPR:
+    case COMPONENT_REF:
+      return lvalue_p (TREE_OPERAND (ref, 0));
+
+    case C_MAYBE_CONST_EXPR:
+      return lvalue_p (TREE_OPERAND (ref, 1));
+
+    case COMPOUND_LITERAL_EXPR:
+    case STRING_CST:
+      return true;
+
+    case MEM_REF:
+    case TARGET_MEM_REF:
+      /* MEM_REFs can appear from -fgimple parsing or folding, so allow them
+	 here as well.  */
+    case INDIRECT_REF:
+    case ARRAY_REF:
+    case VAR_DECL:
+    case PARM_DECL:
+    case RESULT_DECL:
+    case ERROR_MARK:
+      return (TREE_CODE (TREE_TYPE (ref)) != FUNCTION_TYPE
+	      && TREE_CODE (TREE_TYPE (ref)) != METHOD_TYPE);
+
+    case BIND_EXPR:
+      return TREE_CODE (TREE_TYPE (ref)) == ARRAY_TYPE;
+
+    default:
+      return false;
+    }
+}
+
+bool
+convert_vector_to_array_for_subscript (tree *vecp)
+{
+  bool ret = false;
+  if (gnu_vector_type_p (TREE_TYPE (*vecp)))
+    {
+      tree type = TREE_TYPE (*vecp);
+
+      ret = !lvalue_p (*vecp);
+
+      /* We are building an ARRAY_REF so mark the vector as addressable
+         to not run into the gimplifiers premature setting of DECL_GIMPLE_REG_P
+	 for function parameters.  */
+      // NOTE: that was the missing piece for making vector access work with optimizations enabled.
+      c_common_mark_addressable_vec (*vecp);
+
+      *vecp = build1 (VIEW_CONVERT_EXPR,
+		      build_array_type_nelts (TREE_TYPE (type),
+					      TYPE_VECTOR_SUBPARTS (type)),
+		      *vecp);
+    }
+  return ret;
+}
+
 /* Construct a playback::lvalue instance (wrapping a tree) for a
    vector access.  */
 
@@ -1614,13 +1713,20 @@ new_vector_access (location *loc,
   /* For comparison, see:
        c/c-common.cc: c_build_shufflevector
   */
-  tree t_vector = vector->as_tree ();
+  /*tree t_vector = vector->as_tree ();
   tree t_type_vector = TREE_TYPE (t_vector);
   t_vector = fold_const_var (t_vector);
   tree t_index = index->as_tree ();
   t_index = fold_const_var (t_index);
+  tree size = TYPE_SIZE (t_type_vector);
   tree t_result = build3 (BIT_FIELD_REF,
-		    t_type_vector, t_vector, TYPE_SIZE (t_type_vector), bitsize_zero_node);
+		    t_type_vector, t_vector, size, bitsize_zero_node); // FIXME: it should be index * size instead of zero.
+                    */
+
+  tree t_vector = vector->as_tree ();
+  bool non_lvalue = convert_vector_to_array_for_subscript (&t_vector);
+  tree type = TREE_TYPE (TREE_TYPE (t_vector));
+  tree t_result = build4 (ARRAY_REF, type, t_vector, index->as_tree (), NULL_TREE, NULL_TREE);
 
   if (loc)
     set_tree_location (t_result, loc);

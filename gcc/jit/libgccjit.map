@@ -276,4 +276,5 @@ LIBGCCJIT_ABI_25 {
     gcc_jit_context_get_target_builtin_function;
     gcc_jit_context_new_rvalue_vector_perm;
     gcc_jit_context_new_vector_constructor;
+    gcc_jit_context_new_vector_access;
 } LIBGCCJIT_ABI_24;
