@@ -635,10 +635,7 @@ public:
 
   virtual type* copy(context* ctxt)
   {
-    // TODO: reuse the basic type from the cache if possible.
-    type* result = new memento_of_get_type (ctxt, m_kind);
-    ctxt->record (result);
-    return result;
+    return ctxt->get_type (m_kind);
   }
 
   bool accepts_writes_from (type *rtype) FINAL OVERRIDE
