@@ -689,7 +689,8 @@ jit_langhook_type_for_mode (machine_mode mode, int unsignedp)
   return NULL;
 }
 
-recording::type* tree_type_to_jit_type(tree type) {
+recording::type* tree_type_to_jit_type (tree type)
+{
   if (TREE_CODE (type) == VECTOR_TYPE)
   {
     tree inner_type = TREE_TYPE (type);
@@ -700,6 +701,11 @@ recording::type* tree_type_to_jit_type(tree type) {
       return element_type->get_vector (constant_size);
     return NULL;
   }
+  if (TREE_CODE (type) == REFERENCE_TYPE)
+  {
+    // For __builtin_ms_va_start.
+    return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_VOID); // FIXME: wrong type.
+  }
   if (TREE_CODE (type) == RECORD_TYPE)
   {
     // For __builtin_sysv_va_copy.
@@ -709,7 +715,7 @@ recording::type* tree_type_to_jit_type(tree type) {
   {
     if (type == FLOATN_NX_TYPE_NODE (i))
     {
-      return NULL;
+      return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_VOID); // FIXME: wrong type.
     }
   }
   if (type == void_type_node)
@@ -831,8 +837,8 @@ recording::type* tree_type_to_jit_type(tree type) {
       }
     }
 
-    fprintf(stderr, "Unknown type:\n");
-    debug_tree(type);
+    fprintf (stderr, "Unknown type:\n");
+    debug_tree (type);
     abort ();
   }
 
@@ -860,7 +866,6 @@ jit_langhook_builtin_function (tree decl)
 
       while (arg != void_list_node)
       {
-        arg = TREE_CHAIN (arg);
 	if (arg == NULL)
 	{
 	  is_variadic = true;
@@ -873,6 +878,7 @@ jit_langhook_builtin_function (tree decl)
             return decl;
 	  param_types.safe_push (arg_type);
 	}
+        arg = TREE_CHAIN (arg);
       }
 
       tree result_type = TREE_TYPE (function_type);
