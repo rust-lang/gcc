@@ -1065,7 +1065,7 @@ recording::context::get_target_builtin_function (const char *name)
     return NULL;
   }
 
-  recording::function_type* func_type = target_function_types[name];
+  recording::function_type* func_type = target_function_types[name]->copy (this)->dyn_cast_function_type ();
   const vec<type *>& param_types = func_type->get_param_types ();
   recording::param **params = new recording::param *[param_types.length ()];
 

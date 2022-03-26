@@ -557,6 +557,8 @@ public:
      these types.  */
   virtual size_t get_size () { gcc_unreachable (); }
 
+  virtual type* copy(context* ctxt) = 0;
+
   /* Dynamic casts.  */
   virtual function_type *dyn_cast_function_type () { return NULL; }
   virtual function_type *as_a_function_type() { gcc_unreachable (); return NULL; }
@@ -637,6 +639,13 @@ public:
 
   size_t get_size () FINAL OVERRIDE;
 
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new memento_of_get_type (ctxt, m_kind);
+    ctxt->record (result);
+    return result;
+  }
+
   bool accepts_writes_from (type *rtype) FINAL OVERRIDE
   {
     if (m_kind == GCC_JIT_TYPE_VOID_PTR)
@@ -683,6 +692,13 @@ public:
   memento_of_get_pointer (type *other_type)
   : type (other_type->m_ctxt),
     m_other_type (other_type) {}
+
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new memento_of_get_pointer (m_other_type->copy (ctxt));
+    ctxt->record (result);
+    return result;
+  }
 
   type *dereference () FINAL OVERRIDE { return m_other_type; }
 
@@ -746,6 +762,13 @@ public:
     return false;
   }
 
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new memento_of_get_const (m_other_type->copy (ctxt));
+    ctxt->record (result);
+    return result;
+  }
+
   /* Strip off the "const", giving the underlying type.  */
   type *unqualified () FINAL OVERRIDE { return m_other_type; }
 
@@ -779,6 +802,13 @@ public:
     return m_other_type->is_same_type_as (other->is_volatile ());
   }
 
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new memento_of_get_volatile (m_other_type->copy (ctxt));
+    ctxt->record (result);
+    return result;
+  }
+
   /* Strip off the "volatile", giving the underlying type.  */
   type *unqualified () FINAL OVERRIDE { return m_other_type; }
 
@@ -798,6 +828,13 @@ public:
   memento_of_get_aligned (type *other_type, size_t alignment_in_bytes)
   : decorated_type (other_type),
     m_alignment_in_bytes (alignment_in_bytes) {}
+
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new memento_of_get_aligned (m_other_type->copy (ctxt), m_alignment_in_bytes);
+    ctxt->record (result);
+    return result;
+  }
 
   /* Strip off the alignment, giving the underlying type.  */
   type *unqualified () FINAL OVERRIDE { return m_other_type; }
@@ -822,6 +859,13 @@ public:
   vector_type (type *other_type, size_t num_units)
   : decorated_type (other_type),
     m_num_units (num_units) {}
+
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new vector_type(m_other_type->copy (ctxt), m_num_units);
+    ctxt->record (result);
+    return result;
+  }
 
   size_t get_num_units () const { return m_num_units; }
 
@@ -853,6 +897,13 @@ class array_type : public type
     m_element_type (element_type),
     m_num_elements (num_elements)
   {}
+
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new array_type (ctxt, m_loc, m_element_type->copy (ctxt), m_num_elements);
+    ctxt->record (result);
+    return result;
+  }
 
   type *dereference () FINAL OVERRIDE;
 
@@ -889,6 +940,18 @@ public:
   type *dereference () FINAL OVERRIDE;
   function_type *dyn_cast_function_type () FINAL OVERRIDE { return this; }
   function_type *as_a_function_type () FINAL OVERRIDE { return this; }
+
+  virtual type* copy(context* ctxt)
+  {
+    auto_vec<type *> new_params{};
+    for (size_t i = 0; i < m_param_types.length (); i++)
+      new_params.safe_push (m_param_types[i]->copy (ctxt));
+
+    type* result = new function_type (ctxt, m_return_type->copy (ctxt), m_param_types.length (), new_params.address (),
+      m_is_variadic, m_is_target_builtin);
+    ctxt->record (result);
+    return result;
+  }
 
   bool is_same_type_as (type *other) FINAL OVERRIDE;
 
@@ -1023,9 +1086,11 @@ public:
     return static_cast <playback::compound_type *> (m_playback_obj);
   }
 
-private:
+protected:
   location *m_loc;
   string *m_name;
+
+private:
   fields *m_fields;
 };
 
@@ -1037,6 +1102,13 @@ public:
 	   string *name);
 
   struct_ *dyn_cast_struct () FINAL OVERRIDE { return this; }
+
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new struct_ (ctxt, m_loc, m_name);
+    ctxt->record (result);
+    return result;
+  }
 
   type *
   as_type () { return this; }
@@ -1082,6 +1154,13 @@ public:
   union_ (context *ctxt,
 	  location *loc,
 	  string *name);
+
+  virtual type* copy(context* ctxt)
+  {
+    type* result = new union_ (ctxt, m_loc, m_name);
+    ctxt->record (result);
+    return result;
+  }
 
   void replay_into (replayer *r) FINAL OVERRIDE;
 
