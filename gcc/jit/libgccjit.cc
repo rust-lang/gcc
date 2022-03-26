@@ -1060,7 +1060,7 @@ gcc_jit_context_new_function_ptr_type (gcc_jit_context *ctxt,
     ctxt->new_function_ptr_type (loc, return_type,
 				 num_params,
 				 (gcc::jit::recording::type **)param_types,
-				 is_variadic);
+				 is_variadic, false);
 }
 
 /* Constructing functions.  */

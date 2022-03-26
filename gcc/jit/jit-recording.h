@@ -24,12 +24,16 @@ along with GCC; see the file COPYING3.  If not see
 #include "jit-common.h"
 #include "jit-logging.h"
 
+#include <string>
+#include <unordered_map>
+
 class timer;
+
+extern std::unordered_map<std::string, gcc::jit::recording::function_type*> target_function_types;
 
 namespace gcc {
 
 namespace jit {
-
 extern const char * const unary_op_reproducer_strings[];
 extern const char * const binary_op_reproducer_strings[];
 
@@ -117,14 +121,17 @@ public:
 		     int num_params,
 		     type **param_types,
 		     int is_variadic,
-		     int is_target_builtin);
+		     int is_target_builtin,
+		     int should_record = false);
 
   type *
   new_function_ptr_type (location *loc,
 			 type *return_type,
 			 int num_params,
 			 type **param_types,
-			 int is_variadic);
+			 int is_variadic,
+			 int is_target_builtin,
+			 int should_record = false);
 
   param *
   new_param (location *loc,

@@ -544,6 +544,7 @@ new_function (location *loc,
   DECL_RESULT (fndecl) = resdecl;
   DECL_CONTEXT (resdecl) = fndecl;
 
+  // TODO: remove any delayed type checking done for target builtins.
   if (is_target_builtin)
   {
     tree *decl = target_builtins.get(name);

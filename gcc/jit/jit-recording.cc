@@ -937,7 +937,8 @@ recording::context::new_function_type (recording::type *return_type,
 				       int num_params,
 				       recording::type **param_types,
 				       int is_variadic,
-				       int is_target_builtin)
+				       int is_target_builtin,
+				       int should_record)
 {
   recording::function_type *fn_type
     = new function_type (this,
@@ -946,7 +947,8 @@ recording::context::new_function_type (recording::type *return_type,
 			 param_types,
 			 is_variadic,
 			 is_target_builtin);
-  record (fn_type);
+  if (!is_target_builtin || should_record)
+    record (fn_type);
   return fn_type;
 }
 
@@ -961,14 +963,17 @@ recording::context::new_function_ptr_type (recording::location *, /* unused loc 
 					   recording::type *return_type,
 					   int num_params,
 					   recording::type **param_types,
-					   int is_variadic)
+					   int is_variadic,
+					   int is_target_builtin,
+					   int should_record)
 {
   recording::function_type *fn_type
     = new_function_type (return_type,
 			 num_params,
 			 param_types,
 			 is_variadic,
-			 false);
+			 is_target_builtin,
+			 should_record);
 
   /* Return a pointer-type to the function type.  */
   return fn_type->get_pointer ();
@@ -1059,19 +1064,41 @@ recording::function *
 recording::context::get_target_builtin_function (const char *name)
 {
   const char *asm_name = name; // FIXME: might require adding a suffix. See get_asm_name in jit-builtins.
-  type *return_type = get_type (GCC_JIT_TYPE_VOID);
+  if (target_function_types.count (name) == 0)
+  {
+    fprintf (stderr, "Cannot find target builtin %s\n", name);
+    return NULL;
+  }
+
+  recording::function_type* func_type = target_function_types[name];
+  const vec<type *>& param_types = func_type->get_param_types ();
+  recording::param **params = new recording::param *[param_types.length ()];
+
+  int i;
+  recording::type *param_type;
+  FOR_EACH_VEC_ELT (param_types, i, param_type)
+    {
+      char buf[16];
+      snprintf (buf, 16, "arg%d", i);
+      params[i] = new_param (NULL,
+			     param_type,
+			     buf);
+  }
+
   recording::function *result =
     new recording::function (this,
                  NULL,
                  GCC_JIT_FUNCTION_IMPORTED, // FIXME
-                 return_type,
+                 func_type->get_return_type (),
                  new_string (asm_name),
-                 0, // FIXME: fetch params.
-                 NULL,
-                 false,
+                 param_types.length (),
+                 params,
+                 func_type->is_variadic (),
                  BUILT_IN_NONE,
                  true);
-  record (result);
+  // FIXME: recording the target builtin function will fail because some times were not replayed first.
+  // That is the case because it's using types in the target builtins context.
+  //record (result);
 
   return result;
 }
@@ -2321,6 +2348,8 @@ recording::type::get_pointer ()
 {
   if (!m_pointer_to_this_type)
     {
+      if (strcmp(get_debug_string (), "__builtin_ia32_pmovmskb128") == 0)
+        fprintf(stderr, "1. HERE\n");
       m_pointer_to_this_type = new memento_of_get_pointer (this);
       m_ctxt->record (m_pointer_to_this_type);
     }
@@ -4428,14 +4457,35 @@ recording::function::get_address (recording::location *loc)
 				     param_types.address (),
 				     m_is_variadic,
 				     m_is_target_builtin);
-      m_fn_ptr_type = fn_type->get_pointer ();
+      if (strcmp(m_name->c_str(), "__builtin_ia32_pmovmskb128") == 0)
+      {
+        fprintf(stderr, "2. HERE: %d\n", m_is_target_builtin);
+        //abort();
+      }
+      if (m_is_target_builtin)
+      {
+          if (strcmp(m_name->c_str(), "__builtin_ia32_pmovmskb128") == 0)
+          {
+              fprintf(stderr, "3. HERE\n");
+          }
+        // NOTE: Create a fake function type for target builtins because it doesn't have types that are replayed
+        // in the current context (they come from the dummy frontend) and as such, cannot be replayed.
+        recording::type *return_type = new memento_of_get_type (m_ctxt, GCC_JIT_TYPE_VOID);
+        m_ctxt->record(return_type);
+        m_fn_ptr_type = m_ctxt->new_function_ptr_type (NULL, return_type, 0, NULL, false, true, true);
+      }
+      else
+        m_fn_ptr_type = fn_type->get_pointer ();
     }
   gcc_assert (m_fn_ptr_type);
 
   rvalue *result = new function_pointer (get_context (), loc, this, m_fn_ptr_type);
   if (m_is_target_builtin)
     result->set_delay_type_checking (true);
-  m_ctxt->record (result);
+  // HERE
+  else
+    // FIXME: Seems like we should record it because its called later, but we have a NULL function, so we cannot replay it.
+    m_ctxt->record (result);
   return result;
 }
 
