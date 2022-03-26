@@ -121,17 +121,14 @@ public:
 		     int num_params,
 		     type **param_types,
 		     int is_variadic,
-		     int is_target_builtin,
-		     int should_record = false);
+		     int is_target_builtin);
 
   type *
   new_function_ptr_type (location *loc,
 			 type *return_type,
 			 int num_params,
 			 type **param_types,
-			 int is_variadic,
-			 int is_target_builtin,
-			 int should_record = false);
+			 int is_variadic);
 
   param *
   new_param (location *loc,

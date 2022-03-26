@@ -937,8 +937,7 @@ recording::context::new_function_type (recording::type *return_type,
 				       int num_params,
 				       recording::type **param_types,
 				       int is_variadic,
-				       int is_target_builtin,
-				       int should_record)
+				       int is_target_builtin)
 {
   recording::function_type *fn_type
     = new function_type (this,
@@ -947,8 +946,7 @@ recording::context::new_function_type (recording::type *return_type,
 			 param_types,
 			 is_variadic,
 			 is_target_builtin);
-  if (!is_target_builtin || should_record)
-    record (fn_type);
+  record (fn_type);
   return fn_type;
 }
 
@@ -963,17 +961,14 @@ recording::context::new_function_ptr_type (recording::location *, /* unused loc 
 					   recording::type *return_type,
 					   int num_params,
 					   recording::type **param_types,
-					   int is_variadic,
-					   int is_target_builtin,
-					   int should_record)
+					   int is_variadic)
 {
   recording::function_type *fn_type
     = new_function_type (return_type,
 			 num_params,
 			 param_types,
 			 is_variadic,
-			 is_target_builtin,
-			 should_record);
+			 false);
 
   /* Return a pointer-type to the function type.  */
   return fn_type->get_pointer ();
@@ -1096,9 +1091,9 @@ recording::context::get_target_builtin_function (const char *name)
                  func_type->is_variadic (),
                  BUILT_IN_NONE,
                  true);
-  // FIXME: recording the target builtin function will fail because some times were not replayed first.
+  // FIXME: recording the target builtin function will fail because some types were not replayed first.
   // That is the case because it's using types in the target builtins context.
-  //record (result);
+  record (result);
 
   return result;
 }
@@ -4457,25 +4452,7 @@ recording::function::get_address (recording::location *loc)
 				     param_types.address (),
 				     m_is_variadic,
 				     m_is_target_builtin);
-      if (strcmp(m_name->c_str(), "__builtin_ia32_pmovmskb128") == 0)
-      {
-        fprintf(stderr, "2. HERE: %d\n", m_is_target_builtin);
-        //abort();
-      }
-      if (m_is_target_builtin)
-      {
-          if (strcmp(m_name->c_str(), "__builtin_ia32_pmovmskb128") == 0)
-          {
-              fprintf(stderr, "3. HERE\n");
-          }
-        // NOTE: Create a fake function type for target builtins because it doesn't have types that are replayed
-        // in the current context (they come from the dummy frontend) and as such, cannot be replayed.
-        recording::type *return_type = new memento_of_get_type (m_ctxt, GCC_JIT_TYPE_VOID);
-        m_ctxt->record(return_type);
-        m_fn_ptr_type = m_ctxt->new_function_ptr_type (NULL, return_type, 0, NULL, false, true, true);
-      }
-      else
-        m_fn_ptr_type = fn_type->get_pointer ();
+      m_fn_ptr_type = fn_type->get_pointer ();
     }
   gcc_assert (m_fn_ptr_type);
 
@@ -4483,9 +4460,7 @@ recording::function::get_address (recording::location *loc)
   if (m_is_target_builtin)
     result->set_delay_type_checking (true);
   // HERE
-  else
-    // FIXME: Seems like we should record it because its called later, but we have a NULL function, so we cannot replay it.
-    m_ctxt->record (result);
+  m_ctxt->record (result);
   return result;
 }
 
