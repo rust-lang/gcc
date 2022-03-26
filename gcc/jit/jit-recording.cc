@@ -1091,8 +1091,6 @@ recording::context::get_target_builtin_function (const char *name)
                  func_type->is_variadic (),
                  BUILT_IN_NONE,
                  true);
-  // FIXME: recording the target builtin function will fail because some types were not replayed first.
-  // That is the case because it's using types in the target builtins context.
   record (result);
 
   return result;

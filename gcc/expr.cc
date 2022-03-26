@@ -10328,8 +10328,6 @@ stmt_is_replaceable_p (gimple *stmt)
   return false;
 }
 
-#include "print-tree.h"
-
 rtx
 expand_expr_real_1 (tree exp, rtx target, machine_mode tmode,
 		    enum expand_modifier modifier, rtx *alt_rtl,

@@ -23,14 +23,12 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "target.h"
 #include "tree.h"
-#include "gimple-expr.h"
 #include "stringpool.h"
 #include "cgraph.h"
 #include "dumpfile.h"
 #include "toplev.h"
 #include "tree-cfg.h"
 #include "convert.h"
-#include "vec-perm-indices.h"
 #include "stor-layout.h"
 #include "print-tree.h"
 #include "gimplify.h"
@@ -544,7 +542,6 @@ new_function (location *loc,
   DECL_RESULT (fndecl) = resdecl;
   DECL_CONTEXT (resdecl) = fndecl;
 
-  // TODO: remove any delayed type checking done for target builtins.
   if (is_target_builtin)
   {
     tree *decl = target_builtins.get(name);
@@ -1021,15 +1018,7 @@ playback::context::new_rvalue_from_vector (location *,
   tree t_ctor;
   if (constructor)
   {
-    /*size_t maskl = elements.length ();
-    vec_perm_builder sel (maskl, maskl, 1);
-    sel.quick_push (0);
-    fprintf(stderr, "indices 32\n");
-    vec_perm_indices indices (sel, 2, 32);
-    tree mask_type = build_vector_type (build_nonstandard_integer_type
-		(TREE_INT_CST_LOW (TYPE_SIZE (TREE_TYPE (type->as_tree ()))), 1),
-		maskl);
-    t_ctor = vec_perm_indices_to_tree (mask_type, indices);*/
+    // TODO: document why this is needed.
     t_ctor = build_vector_from_ctor (type->as_tree (), v);
   }
   else
@@ -1666,6 +1655,7 @@ new_vector_access (location *loc,
   /* For comparison, see:
        c/c-common.cc: c_build_shufflevector
   */
+  // TODO: use the commented code when the index is constant.
   /*tree t_vector = vector->as_tree ();
   tree t_type_vector = TREE_TYPE (t_vector);
   t_vector = fold_const_var (t_vector);

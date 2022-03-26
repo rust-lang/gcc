@@ -87,7 +87,6 @@ enum jit_builtin_type
   BT_LAST
 }; /* enum jit_builtin_type */
 
-
 /* Create an enum of the attributes that can be present on builtins.  */
 
 enum built_in_attribute

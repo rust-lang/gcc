@@ -890,7 +890,7 @@ jit_langhook_builtin_function (tree decl)
       recording::function_type* func_type = new recording::function_type (&target_builtins_ctxt, return_type, param_types.length (),
 	param_types.address (), is_variadic, false);
 
-      target_function_types.insert_or_assign (string_name, func_type);
+      target_function_types[string_name] = func_type;
     }
   }
   return decl;

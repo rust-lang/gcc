@@ -2252,53 +2252,50 @@ gcc_jit_context_new_call (gcc_jit_context *ctxt,
   int min_num_params = func->get_params ().length ();
   bool is_variadic = func->is_variadic ();
 
-  // The argument and return types will be checked at playback for target builtins.
-  if (!func->is_target_builtin ()) {
-    RETURN_NULL_IF_FAIL_PRINTF3 (
-      numargs >= min_num_params,
-      ctxt, loc,
-      "not enough arguments to function \"%s\""
-      " (got %i args, expected %i)",
-      func->get_name ()->c_str (),
-      numargs, min_num_params);
+  RETURN_NULL_IF_FAIL_PRINTF3 (
+    numargs >= min_num_params,
+    ctxt, loc,
+    "not enough arguments to function \"%s\""
+    " (got %i args, expected %i)",
+    func->get_name ()->c_str (),
+    numargs, min_num_params);
 
-    RETURN_NULL_IF_FAIL_PRINTF3 (
-      (numargs == min_num_params || is_variadic),
-      ctxt, loc,
-      "too many arguments to function \"%s\""
-      " (got %i args, expected %i)",
-      func->get_name ()->c_str (),
-      numargs, min_num_params);
+  RETURN_NULL_IF_FAIL_PRINTF3 (
+    (numargs == min_num_params || is_variadic),
+    ctxt, loc,
+    "too many arguments to function \"%s\""
+    " (got %i args, expected %i)",
+    func->get_name ()->c_str (),
+    numargs, min_num_params);
 
-    for (int i = 0; i < min_num_params; i++)
-      {
-        gcc::jit::recording::param *param = func->get_param (i);
-        gcc_jit_rvalue *arg = args[i];
+  for (int i = 0; i < min_num_params; i++)
+    {
+      gcc::jit::recording::param *param = func->get_param (i);
+      gcc_jit_rvalue *arg = args[i];
 
-        RETURN_NULL_IF_FAIL_PRINTF4 (
-  	arg,
-  	ctxt, loc,
-  	"NULL argument %i to function \"%s\":"
-  	" param %s (type: %s)",
-  	i + 1,
-  	func->get_name ()->c_str (),
-  	param->get_debug_string (),
-  	param->get_type ()->get_debug_string ());
+      RETURN_NULL_IF_FAIL_PRINTF4 (
+	arg,
+	ctxt, loc,
+	"NULL argument %i to function \"%s\":"
+	" param %s (type: %s)",
+	i + 1,
+	func->get_name ()->c_str (),
+	param->get_debug_string (),
+	param->get_type ()->get_debug_string ());
 
-        RETURN_NULL_IF_FAIL_PRINTF6 (
-  	gcc_jit_compatible_types ((gcc_jit_type*) param->get_type (),
-  			  (gcc_jit_type*) arg->get_type ()),
-  	ctxt, loc,
-  	"mismatching types for argument %d of function \"%s\":"
-  	" assignment to param %s (type: %s) from %s (type: %s)",
-  	i + 1,
-  	func->get_name ()->c_str (),
-  	param->get_debug_string (),
-  	param->get_type ()->get_debug_string (),
-  	arg->get_debug_string (),
-  	arg->get_type ()->get_debug_string ());
-      }
-  }
+      RETURN_NULL_IF_FAIL_PRINTF6 (
+	gcc_jit_compatible_types ((gcc_jit_type*) param->get_type (),
+			  (gcc_jit_type*) arg->get_type ()),
+	ctxt, loc,
+	"mismatching types for argument %d of function \"%s\":"
+	" assignment to param %s (type: %s) from %s (type: %s)",
+	i + 1,
+	func->get_name ()->c_str (),
+	param->get_debug_string (),
+	param->get_type ()->get_debug_string (),
+	arg->get_debug_string (),
+	arg->get_type ()->get_debug_string ());
+    }
 
   return (gcc_jit_rvalue *)ctxt->new_call (loc,
 					   func,
