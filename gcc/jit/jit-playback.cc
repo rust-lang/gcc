@@ -604,7 +604,7 @@ new_function (location *loc,
 		   DECL_ATTRIBUTES (fndecl));
     }
 
-  function *func = new function (this, fndecl, kind, is_target_builtin);
+  function *func = new function (this, fndecl, kind);
   m_functions.safe_push (func);
   return func;
 }
@@ -1330,8 +1330,7 @@ playback::context::
 build_call (location *loc,
 	    tree fn_ptr,
 	    const auto_vec<rvalue *> *args,
-	    bool require_tail_call,
-	    bool is_target_builtin)
+	    bool require_tail_call)
 {
   vec<tree, va_gc> *tree_args;
   vec_alloc (tree_args, args->length ());
@@ -1352,52 +1351,6 @@ build_call (location *loc,
     CALL_EXPR_MUST_TAIL_CALL (call) = 1;
 
   playback::rvalue *result = new rvalue (this, call);
-
-  if (is_target_builtin)
-  {
-    result->set_is_target_builtin (true);
-
-    tree args = TYPE_ARG_TYPES (fn_type);
-    size_t param_count = 0;
-    for (tree current_arg = args ; current_arg; current_arg = TREE_CHAIN (current_arg))
-    {
-      tree arg_type = TREE_VALUE (current_arg);
-      if (arg_type != void_type_node)
-        param_count++;
-    }
-
-    size_t actual_arg_count = 0;
-    if (tree_args)
-      actual_arg_count = tree_args->length ();
-    if (param_count != actual_arg_count)
-    {
-      add_error (loc, "wrong number of arguments, actual: %lu, expected: %lu", actual_arg_count, param_count);
-      debug_tree (fn_ptr);
-      fprintf (stderr, "function:\n");
-      debug_tree (fn_ptr);
-      fprintf (stderr, "arguments:\n");
-      debug (tree_args);
-    }
-    else {
-      tree current_arg = args;
-      for (size_t i = 0 ; i < param_count; current_arg = TREE_CHAIN (current_arg), i++)
-      {
-        tree arg_type = TREE_VALUE (current_arg);
-        tree current_arg = (*tree_args)[i];
-        // To be able to create a vector type different from a target builtin argument's type, we compare the types
-        // using useless_type_conversion_p, since we cannot access the types of target builtin arguments.
-        if (!useless_type_conversion_p(TREE_TYPE(current_arg), arg_type))
-        {
-          add_error (loc, "Wrong type of argument");
-          debug_tree (fn_ptr);
-          fprintf (stderr, "actual:\n");
-          debug_tree (TREE_TYPE (current_arg));
-          fprintf (stderr, "expected:\n");
-          debug_tree (arg_type);
-        }
-      }
-    }
-  }
 
   return result;
 
@@ -1432,7 +1385,7 @@ new_call (location *loc,
 
   tree fn = build1 (ADDR_EXPR, build_pointer_type (fntype), fndecl);
 
-  return build_call (loc, fn, args, require_tail_call, func->is_target_builtin ());
+  return build_call (loc, fn, args, require_tail_call);
 }
 
 /* Construct a playback::rvalue instance (wrapping a tree) for a
@@ -1443,13 +1396,12 @@ playback::context::
 new_call_through_ptr (location *loc,
 		      rvalue *fn_ptr,
 		      const auto_vec<rvalue *> *args,
-		      bool require_tail_call,
-		      bool delay_type_checking)
+		      bool require_tail_call)
 {
   gcc_assert (fn_ptr);
   tree t_fn_ptr = fn_ptr->as_tree ();
 
-  return build_call (loc, t_fn_ptr, args, require_tail_call, delay_type_checking);
+  return build_call (loc, t_fn_ptr, args, require_tail_call);
 }
 
 /* Construct a tree for a cast.  */
@@ -1960,14 +1912,12 @@ operator new (size_t sz)
 playback::function::
 function (context *ctxt,
 	  tree fndecl,
-	  enum gcc_jit_function_kind kind,
-	  int is_target_builtin)
+	  enum gcc_jit_function_kind kind)
 : m_ctxt(ctxt),
   m_inner_fndecl (fndecl),
   m_inner_bind_expr (NULL),
   m_kind (kind),
-  m_blocks (),
-  m_is_target_builtin (is_target_builtin)
+  m_blocks ()
 {
   if (m_kind != GCC_JIT_FUNCTION_IMPORTED)
     {
@@ -2197,15 +2147,6 @@ add_assignment (location *loc,
   tree t_rvalue = rvalue->as_tree ();
   if (TREE_TYPE (t_rvalue) != TREE_TYPE (t_lvalue))
     {
-      if (rvalue->is_target_builtin ())
-      {
-        m_func->m_ctxt->add_error (loc, "mismatched types in assignment");
-        fprintf (stderr, "actual:\n");
-        debug_tree (t_rvalue);
-        fprintf (stderr, "expected:\n");
-        debug_tree (t_lvalue);
-      }
-
       t_rvalue = build1 (CONVERT_EXPR,
 			 TREE_TYPE (t_lvalue),
 			 t_rvalue);

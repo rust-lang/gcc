@@ -1349,7 +1349,6 @@ recording::context::new_call (recording::location *loc,
 			      int numargs , recording::rvalue **args)
 {
   recording::rvalue *result = new call (this, loc, func, numargs, args);
-  result->set_delay_type_checking (func->is_target_builtin());
   record (result);
   return result;
 }
@@ -1367,7 +1366,6 @@ recording::context::new_call_through_ptr (recording::location *loc,
 					  recording::rvalue **args)
   {
   recording::rvalue *result = new call_through_ptr (this, loc, fn_ptr, numargs, args);
-  result->set_delay_type_checking (fn_ptr->delay_type_checking());
   record (result);
   return result;
 }
@@ -4457,9 +4455,6 @@ recording::function::get_address (recording::location *loc)
   gcc_assert (m_fn_ptr_type);
 
   rvalue *result = new function_pointer (get_context (), loc, this, m_fn_ptr_type);
-  if (m_is_target_builtin)
-    result->set_delay_type_checking (true);
-  // HERE
   m_ctxt->record (result);
   return result;
 }
@@ -6316,8 +6311,7 @@ recording::call_through_ptr::replay_into (replayer *r)
   set_playback_obj (r->new_call_through_ptr (playback_location (r, m_loc),
 					     m_fn_ptr->playback_rvalue (),
 					     &playback_args,
-					     m_require_tail_call,
-					     delay_type_checking ()));
+					     m_require_tail_call));
 }
 
 /* Implementation of pure virtual hook recording::rvalue::visit_children

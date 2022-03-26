@@ -182,8 +182,7 @@ public:
   new_call_through_ptr (location *loc,
 			rvalue *fn_ptr,
 			const auto_vec<rvalue *> *args,
-			bool require_tail_call,
-			bool delay_type_checking);
+			bool require_tail_call);
 
   rvalue *
   new_cast (location *loc,
@@ -294,8 +293,7 @@ private:
   build_call (location *loc,
 	      tree fn_ptr,
 	      const auto_vec<rvalue *> *args,
-	      bool require_tail_call,
-	      bool is_target_builtin);
+	      bool require_tail_call);
 
   tree
   build_cast (location *loc,
@@ -495,7 +493,7 @@ class bitfield : public field {};
 class function : public wrapper
 {
 public:
-  function(context *ctxt, tree fndecl, enum gcc_jit_function_kind kind, int is_target_builtin);
+  function(context *ctxt, tree fndecl, enum gcc_jit_function_kind kind);
 
   void gt_ggc_mx ();
   void finalizer () FINAL OVERRIDE;
@@ -523,9 +521,6 @@ public:
   void
   postprocess ();
 
-  int
-  is_target_builtin () const { return m_is_target_builtin; }
-
 public:
   context *m_ctxt;
 
@@ -544,7 +539,6 @@ private:
   tree m_stmt_list;
   tree_stmt_iterator m_stmt_iter;
   vec<block *> m_blocks;
-  int m_is_target_builtin;
 };
 
 struct case_
@@ -663,8 +657,7 @@ class rvalue : public wrapper
 public:
   rvalue (context *ctxt, tree inner)
     : m_ctxt (ctxt),
-      m_inner (inner),
-      m_is_target_builtin (false)
+      m_inner (inner)
   {
     /* Pre-mark tree nodes with TREE_VISITED so that they can be
        deeply unshared during gimplification (including across
@@ -682,9 +675,6 @@ public:
   type *
   get_type () { return new type (TREE_TYPE (m_inner)); }
 
-  bool is_target_builtin () const { return m_is_target_builtin; }
-  void set_is_target_builtin (bool is_target_builtin) { m_is_target_builtin = is_target_builtin; }
-
   rvalue *
   access_field (location *loc,
 		field *field);
@@ -699,7 +689,6 @@ public:
 private:
   context *m_ctxt;
   tree m_inner;
-  int m_is_target_builtin;
 };
 
 class lvalue : public rvalue

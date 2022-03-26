@@ -569,7 +569,7 @@ public:
   virtual bool accepts_writes_from (type *rtype)
   {
     gcc_assert (rtype);
-    return this->m_delay_type_checking || rtype->m_delay_type_checking || this->unqualified ()->is_same_type_as (rtype->unqualified ());
+    return this->unqualified ()->is_same_type_as (rtype->unqualified ());
   }
 
   virtual bool is_same_type_as (type *other)
@@ -610,20 +610,14 @@ public:
 
   virtual const char *access_as_type (reproducer &r);
 
-  bool delay_type_checking () { return m_delay_type_checking; }
-  void set_delay_type_checking (bool delay) { m_delay_type_checking = delay; }
-
 protected:
   type (context *ctxt)
     : memento (ctxt),
-    m_pointer_to_this_type (NULL),
-    m_delay_type_checking (false)
+    m_pointer_to_this_type (NULL)
   {}
 
 private:
   type *m_pointer_to_this_type;
-  // TODO: actually do the delayed type checking in the playback.
-  bool m_delay_type_checking;
 };
 
 /* Result of "gcc_jit_context_get_type".  */
@@ -641,6 +635,7 @@ public:
 
   virtual type* copy(context* ctxt)
   {
+    // TODO: reuse the basic type from the cache if possible.
     type* result = new memento_of_get_type (ctxt, m_kind);
     ctxt->record (result);
     return result;
@@ -1264,9 +1259,6 @@ public:
   virtual bool is_ctor () const { return false; }
   virtual bool is_constant () const { return false; }
   virtual bool get_wide_int (wide_int *) const { return false; }
-
-  bool delay_type_checking () { return m_type->delay_type_checking (); }
-  void set_delay_type_checking (bool delay) { m_type->set_delay_type_checking (delay); }
 
 private:
   virtual enum precedence get_precedence () const = 0;
