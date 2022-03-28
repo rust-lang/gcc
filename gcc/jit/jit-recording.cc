@@ -843,7 +843,7 @@ recording::context::new_array_type (recording::location *loc,
 				    recording::type *element_type,
 				    int num_elements)
 {
-  if (struct_ *s = element_type->dyn_cast_struct ())
+  /*if (struct_ *s = element_type->dyn_cast_struct ())
     if (!s->get_fields ())
       {
 	add_error (NULL,
@@ -851,7 +851,7 @@ recording::context::new_array_type (recording::location *loc,
 		   " until the fields have been set",
 		   s->get_name ()->c_str ());
 	return NULL;
-      }
+      }*/
   recording::type *result =
     new recording::array_type (this, loc, element_type, num_elements);
   record (result);
