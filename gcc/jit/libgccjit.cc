@@ -1010,6 +1010,7 @@ size_t
 gcc_jit_struct_get_field_count (gcc_jit_struct *struct_type)
 {
   RETURN_VAL_IF_FAIL (struct_type, 0, NULL, NULL, "NULL struct type");
+  RETURN_VAL_IF_FAIL (struct_type->get_fields (), 0, NULL, NULL, "NULL fields");
   return struct_type->get_fields ()->length ();
 }
 
