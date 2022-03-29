@@ -99,7 +99,8 @@ public:
   compound_type *
   new_compound_type (location *loc,
 		     const char *name,
-		     bool is_struct); /* else is union */
+		     bool is_struct, /* else is union */
+		     bool is_packed);
 
   type *
   new_function_type (type *return_type,
@@ -518,7 +519,7 @@ public:
     : type (inner)
   {}
 
-  void set_fields (const auto_vec<field *> *fields);
+  void set_fields (const auto_vec<field *> *fields, bool is_packed);
 };
 
 class field : public wrapper
