@@ -2501,6 +2501,12 @@ recording::type::get_aligned (size_t alignment_in_bytes)
   return result;
 }
 
+void
+recording::type::set_packed ()
+{
+  m_packed = true;
+}
+
 /* Given a type, get a vector version of the type.
 
    Implements the post-error-checking part of
@@ -3742,7 +3748,8 @@ recording::struct_::replay_into (replayer *r)
   set_playback_obj (
     r->new_compound_type (playback_location (r, get_loc ()),
 			  get_name ()->c_str (),
-			  true /* is_struct */));
+			  true, /* is_struct */
+			  m_packed));
 }
 
 const char *
@@ -3796,7 +3803,8 @@ recording::union_::replay_into (replayer *r)
   set_playback_obj (
     r->new_compound_type (playback_location (r, get_loc ()),
 			  get_name ()->c_str (),
-			  false /* is_struct */));
+			  false, /* is_struct */
+			  m_packed));
 }
 
 /* Implementation of recording::memento::make_debug_string for
@@ -3867,7 +3875,7 @@ recording::fields::replay_into (replayer *)
   playback_fields.create (m_fields.length ());
   for (unsigned i = 0; i < m_fields.length (); i++)
     playback_fields.safe_push (m_fields[i]->playback_field ());
-  m_struct_or_union->playback_compound_type ()->set_fields (&playback_fields);
+  m_struct_or_union->playback_compound_type ()->set_fields (&playback_fields, m_struct_or_union->m_packed);
 }
 
 /* Override the default implementation of
