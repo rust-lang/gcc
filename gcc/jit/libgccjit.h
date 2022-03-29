@@ -2086,6 +2086,10 @@ gcc_jit_lvalue_add_string_attribute (gcc_jit_lvalue *variable,
 				     enum gcc_jit_variable_attribute attribute,
 				     const char* value);
 
+/* Given type "T", get type "T __attribute__ ((packed))".  */
+extern void
+gcc_jit_type_set_packed (gcc_jit_type *type);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
