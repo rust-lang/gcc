@@ -2159,6 +2159,10 @@ gcc_jit_context_set_output_ident (gcc_jit_context *ctxt,
 
 #define LIBGCCJIT_HAVE_gcc_jit_context_set_output_ident
 
+/* Given type "T", get type "T __attribute__ ((packed))".  */
+extern void
+gcc_jit_type_set_packed (gcc_jit_type *type);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
