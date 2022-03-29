@@ -279,3 +279,8 @@ LIBGCCJIT_ABI_25 {
     gcc_jit_context_new_vector_constructor;
     gcc_jit_context_new_vector_access;
 } LIBGCCJIT_ABI_24;
+
+LIBGCCJIT_ABI_26 {
+  global:
+    gcc_jit_type_set_packed;
+} LIBGCCJIT_ABI_25;
