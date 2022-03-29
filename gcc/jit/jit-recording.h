@@ -622,6 +622,8 @@ public:
   type *get_aligned (size_t alignment_in_bytes);
   type *get_vector (size_t num_units);
 
+  void set_packed ();
+
   /* Get the type obtained when dereferencing this type.
 
      This will return NULL if it's not valid to dereference this type.
@@ -703,8 +705,12 @@ public:
 protected:
   type (context *ctxt)
     : memento (ctxt),
+    m_packed (false),
     m_pointer_to_this_type (NULL)
   {}
+
+public:
+  bool m_packed;
 
 private:
   type *m_pointer_to_this_type;
