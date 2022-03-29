@@ -289,3 +289,7 @@ LIBGCCJIT_ABI_27 {
   global:
     gcc_jit_context_new_sizeof;
 } LIBGCCJIT_ABI_26;
+
+LIBGCCJIT_ABI_28 {
+    gcc_jit_type_set_packed;
+} LIBGCCJIT_ABI_27;
