@@ -610,6 +610,20 @@ gcc_jit_type_is_pointer (gcc_jit_type *type)
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::type::is_const method, in
+   jit-recording.cc.  */
+
+gcc_jit_type *
+gcc_jit_type_is_const (gcc_jit_type *type)
+{
+  RETURN_NULL_IF_FAIL (type, NULL, NULL, "NULL type");
+
+  return (gcc_jit_type *)type->is_const ();
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::type::is_int method, in
    jit-recording.cc.  */
 
