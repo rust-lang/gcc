@@ -293,3 +293,7 @@ LIBGCCJIT_ABI_27 {
 LIBGCCJIT_ABI_28 {
     gcc_jit_type_set_packed;
 } LIBGCCJIT_ABI_27;
+
+LIBGCCJIT_ABI_29 {
+    gcc_jit_type_is_const;
+} LIBGCCJIT_ABI_28;
