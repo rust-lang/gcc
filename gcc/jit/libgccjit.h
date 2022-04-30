@@ -2010,6 +2010,11 @@ gcc_jit_type_is_integral (gcc_jit_type *type);
 extern gcc_jit_type *
 gcc_jit_type_is_pointer (gcc_jit_type *type);
 
+/* Return the type behind const type or NULL if it's not a
+ * const type.  */
+extern gcc_jit_type *
+gcc_jit_type_is_const (gcc_jit_type *type);
+
 /* Given a type, return a dynamic cast to a vector type or NULL.  */
 extern gcc_jit_vector_type *
 gcc_jit_type_dyncast_vector (gcc_jit_type *type);
