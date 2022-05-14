@@ -239,6 +239,11 @@ public:
 		     rvalue *vector,
 		     rvalue *index);
 
+  rvalue *
+  new_convert_vector (location *loc,
+		  rvalue *vector,
+		  type *type);
+
   case_ *
   new_case (rvalue *min_value,
 	    rvalue *max_value,
@@ -2055,6 +2060,35 @@ private:
 private:
   rvalue *m_vector;
   rvalue *m_index;
+};
+
+class convert_vector : public rvalue
+{
+public:
+  convert_vector (context *ctxt,
+		  location *loc,
+		  rvalue *vector,
+		  type *type)
+  : rvalue (ctxt, loc, type),
+    m_vector (vector),
+    m_type (type)
+  {}
+
+  void replay_into (replayer *r) final override;
+
+  void visit_children (rvalue_visitor *v) final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+  enum precedence get_precedence () const final override
+  {
+    return PRECEDENCE_POSTFIX;
+  }
+
+private:
+  rvalue *m_vector;
+  type *m_type;
 };
 
 class access_field_of_lvalue : public lvalue
