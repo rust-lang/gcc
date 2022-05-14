@@ -292,3 +292,8 @@ LIBGCCJIT_ABI_27 {
 LIBGCCJIT_ABI_28 {
     gcc_jit_type_is_const;
 } LIBGCCJIT_ABI_27;
+
+LIBGCCJIT_ABI_29 {
+  global:
+    gcc_jit_context_convert_vector;
+} LIBGCCJIT_ABI_28;
