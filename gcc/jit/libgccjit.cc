@@ -2556,6 +2556,31 @@ gcc_jit_context_new_array_access (gcc_jit_context *ctxt,
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::context::new_convert_vector method in
+   jit-recording.cc.  */
+
+gcc_jit_rvalue *
+gcc_jit_context_convert_vector (gcc_jit_context *ctxt,
+				gcc_jit_location *loc,
+				gcc_jit_rvalue *vector,
+				gcc_jit_type *type)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, loc, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  /* LOC can be NULL.  */
+  RETURN_NULL_IF_FAIL (vector, ctxt, loc, "NULL vector");
+  RETURN_NULL_IF_FAIL (type, ctxt, loc, "NULL type");
+
+  // TODO: check if the value is a vector.
+  // TODO: check if type is a vector type.
+  // TODO: check if the number of elements in vector and type matches.
+
+  return (gcc_jit_rvalue *)ctxt->new_convert_vector (loc, vector, type);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::memento::get_context method in
    jit-recording.h.  */
 
