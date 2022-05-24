@@ -2911,7 +2911,7 @@ gcc_jit_block_add_assignment (gcc_jit_block *block,
   RETURN_IF_FAIL (rvalue, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL_PRINTF4 (
     compatible_types (lvalue->get_type (),
-		      rvalue->get_type ()),
+		      rvalue->get_type ()) || lvalue->get_type ()->is_const () != NULL,
     ctxt, loc,
     "mismatching types:"
     " assignment to %s (type: %s) from %s (type: %s)",
@@ -2957,7 +2957,7 @@ gcc_jit_block_add_assignment_op (gcc_jit_block *block,
   RETURN_IF_FAIL (rvalue, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL_PRINTF4 (
     compatible_types (lvalue->get_type (),
-		      rvalue->get_type ()),
+		      rvalue->get_type ()) || lvalue->get_type ()->is_const () != NULL,
     ctxt, loc,
     "mismatching types:"
     " assignment to %s (type: %s) involving %s (type: %s)",
