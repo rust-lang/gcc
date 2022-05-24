@@ -624,7 +624,8 @@ global_new_decl (location *loc,
 		 enum gcc_jit_global_kind kind,
 		 type *type,
 		 const char *name,
-		 enum global_var_flags flags)
+		 enum global_var_flags flags,
+		 bool readonly)
 {
   gcc_assert (type);
   gcc_assert (name);
@@ -663,7 +664,7 @@ global_new_decl (location *loc,
       break;
     }
 
-  if (TYPE_READONLY (type_tree))
+  if (TYPE_READONLY (type_tree) || readonly)
     TREE_READONLY (inner) = 1;
 
   if (loc)
@@ -691,10 +692,11 @@ new_global (location *loc,
 	    enum gcc_jit_global_kind kind,
 	    type *type,
 	    const char *name,
-	    enum global_var_flags flags)
+	    enum global_var_flags flags,
+	    bool readonly)
 {
   tree inner =
-    global_new_decl (loc, kind, type, name, flags);
+    global_new_decl (loc, kind, type, name, flags, readonly);
 
   return global_finalize_lvalue (inner);
 }
@@ -839,9 +841,10 @@ new_global_initialized (location *loc,
 			size_t initializer_num_elem,
 			const void *initializer,
 			const char *name,
-			enum global_var_flags flags)
+			enum global_var_flags flags,
+			bool readonly)
 {
-  tree inner = global_new_decl (loc, kind, type, name, flags);
+  tree inner = global_new_decl (loc, kind, type, name, flags, readonly);
 
   vec<constructor_elt, va_gc> *constructor_elements = NULL;
 
