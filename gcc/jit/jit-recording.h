@@ -1262,7 +1262,14 @@ public:
 
   const char *access_as_rvalue (reproducer &r) override;
 
+<<<<<<< HEAD
   void add_string_attribute (gcc_jit_variable_attribute attribute, const char* value);
+=======
+  void set_readonly ()
+  {
+    m_readonly = true;
+  }
+>>>>>>> 512521ea356 (Add gcc_jit_global_set_readonly)
 
   virtual const char *access_as_lvalue (reproducer &r);
   virtual bool is_global () const { return false; }
@@ -1278,8 +1285,12 @@ protected:
   string *m_reg_name;
   enum gcc_jit_tls_model m_tls_model;
   unsigned m_alignment;
+<<<<<<< HEAD
   std::vector<std::pair<gcc_jit_variable_attribute,
 	      std::string>> m_string_attributes;
+=======
+  bool m_readonly = false;
+>>>>>>> 512521ea356 (Add gcc_jit_global_set_readonly)
 };
 
 class param : public lvalue
