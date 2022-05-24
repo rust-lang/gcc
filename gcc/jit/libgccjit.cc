@@ -1884,6 +1884,23 @@ gcc_jit_global_set_initializer (gcc_jit_lvalue *global,
 
 /* Public entrypoint.  See description in libgccjit.h.
 
+   After error-checking, the real work is done by the
+   gcc::jit::recording::global::set_readonly method, in
+   jit-recording.cc.  */
+
+extern void
+gcc_jit_global_set_readonly (gcc_jit_lvalue *global)
+{
+  RETURN_IF_FAIL (global, NULL, NULL, "NULL global");
+  RETURN_IF_FAIL_PRINTF1 (global->is_global (), NULL, NULL,
+			       "lvalue \"%s\" not a global",
+			       global->get_debug_string ());
+
+  global->set_readonly ();
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
    After error-checking, this calls the trivial
    gcc::jit::recording::memento::as_object method (an lvalue is a
    memento), in jit-recording.h.  */
