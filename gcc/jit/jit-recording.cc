@@ -4952,12 +4952,14 @@ recording::global::replay_into (replayer *r)
 				 / m_type->dereference ()->get_size (),
 				 m_initializer,
 				 playback_string (m_name),
-				 m_flags)
+				 m_flags,
+				 m_readonly)
     : r->new_global (playback_location (r, m_loc),
 		     m_kind,
 		     m_type->playback_type (),
 		     playback_string (m_name),
-		     m_flags);
+		     m_flags,
+		     m_readonly);
 
   if (m_tls_model != GCC_JIT_TLS_MODEL_NONE)
     global->set_tls_model (recording::tls_models[m_tls_model]);

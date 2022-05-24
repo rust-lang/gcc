@@ -1312,6 +1312,12 @@ public:
   as_rvalue () { return this; }
 
   const char *access_as_rvalue (reproducer &r) override;
+
+  void set_readonly ()
+  {
+    m_readonly = true;
+  }
+
   virtual const char *access_as_lvalue (reproducer &r);
   virtual bool is_global () const { return false; }
   void set_tls_model (enum gcc_jit_tls_model model);
@@ -1325,6 +1331,7 @@ protected:
   string *m_reg_name;
   enum gcc_jit_tls_model m_tls_model;
   unsigned m_alignment;
+  bool m_readonly = false;
 };
 
 class param : public lvalue
