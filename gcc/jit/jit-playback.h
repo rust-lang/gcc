@@ -112,7 +112,8 @@ public:
 	      enum gcc_jit_global_kind kind,
 	      type *type,
 	      const char *name,
-	      enum global_var_flags flags);
+	      enum global_var_flags flags,
+	      bool readonly);
 
   lvalue *
   new_global_initialized (location *loc,
@@ -122,7 +123,8 @@ public:
                           size_t initializer_num_elem,
                           const void *initializer,
 			  const char *name,
-			  enum global_var_flags flags);
+			  enum global_var_flags flags,
+			  bool readonly);
 
   rvalue *
   new_ctor (location *log,
@@ -312,7 +314,8 @@ private:
                    enum gcc_jit_global_kind kind,
                    type *type,
 		   const char *name,
-		   enum global_var_flags flags);
+		   enum global_var_flags flags,
+		   bool readonly);
   lvalue *
   global_finalize_lvalue (tree inner);
 
