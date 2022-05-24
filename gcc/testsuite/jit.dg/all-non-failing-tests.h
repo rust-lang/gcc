@@ -165,6 +165,13 @@
 #undef create_code
 #undef verify_code
 
+/* test-const-pointer-argument.c */
+#define create_code create_code_const_pointer_argument
+#define verify_code verify_code_const_pointer_argument
+#include "test-const-pointer-argument.c"
+#undef create_code
+#undef verify_code
+
 /* test-debug-strings.c */
 #define create_code create_code_debug_strings
 #define verify_code verify_code_debug_strings
@@ -567,6 +574,9 @@ const struct testcase testcases[] = {
   {"convert_vector",
    create_code_convert_vector,
    verify_code_convert_vector},
+  {"const_pointer_argument",
+   create_code_const_pointer_argument,
+   verify_code_const_pointer_argument},
   {"debug_strings",
    create_code_debug_strings,
    verify_code_debug_strings},
