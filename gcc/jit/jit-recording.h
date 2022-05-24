@@ -767,12 +767,6 @@ public:
   memento_of_get_const (type *other_type)
   : decorated_type (other_type) {}
 
-  bool accepts_writes_from (type */*rtype*/) final override
-  {
-    /* Can't write to a "const".  */
-    return false;
-  }
-
   virtual type* copy(context* ctxt)
   {
     type* result = new memento_of_get_const (m_other_type->copy (ctxt));
