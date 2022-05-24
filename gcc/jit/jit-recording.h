@@ -750,6 +750,21 @@ public:
     return type::accepts_writes_from (rtype);
   }
 
+  bool is_same_type_as (type *other) final override
+  {
+    if (m_kind == GCC_JIT_TYPE_VOID_PTR)
+      {
+	if (other->is_pointer ())
+	  {
+	    /* LHS (this) is type (void *), and the RHS is a pointer:
+	       accept it:  */
+	    return true;
+	  }
+      }
+
+    return type::is_same_type_as (other);
+  }
+
   bool is_int () const final override;
   bool is_float () const final override;
   bool is_bool () const final override;
@@ -842,12 +857,6 @@ class memento_of_get_const : public decorated_type
 public:
   memento_of_get_const (type *other_type)
   : decorated_type (other_type) {}
-
-  bool accepts_writes_from (type */*rtype*/) final override
-  {
-    /* Can't write to a "const".  */
-    return false;
-  }
 
   type* copy (context* ctxt) final override
   {
