@@ -1031,6 +1031,7 @@ playback::context::new_rvalue_from_vector (location *,
   tree t_ctor;
   if (constructor)
   {
+    // TODO: check if all values are constant using: if (!CONSTANT_CLASS_P (value))
     // TODO: document why this is needed.
     t_ctor = build_vector_from_ctor (type->as_tree (), v);
   }
