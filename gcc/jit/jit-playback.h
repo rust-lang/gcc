@@ -21,7 +21,9 @@ along with GCC; see the file COPYING3.  If not see
 #ifndef JIT_PLAYBACK_H
 #define JIT_PLAYBACK_H
 
+#include <string>
 #include <utility> // for std::pair
+#include <vector>
 
 #include "timevar.h"
 #include "varasm.h"
@@ -106,7 +108,9 @@ public:
 		const auto_vec<param *> *params,
 		int is_variadic,
 		enum built_in_function builtin_id,
-		int is_target_builtin);
+		int is_target_builtin,
+		const std::vector<gcc_jit_fn_attribute> &attributes,
+		const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes);
 
   lvalue *
   new_global (location *loc,
