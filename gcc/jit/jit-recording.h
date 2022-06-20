@@ -23,6 +23,10 @@ along with GCC; see the file COPYING3.  If not see
 
 #include "jit-common.h"
 #include "jit-logging.h"
+#include "libgccjit.h"
+
+#include <string>
+#include <vector>
 
 class timer;
 
@@ -1326,6 +1330,9 @@ public:
 
   rvalue *get_address (location *loc);
 
+  void add_attribute (gcc_jit_fn_attribute attribute);
+  void add_string_attribute (gcc_jit_fn_attribute attribute, const char* value);
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -1341,6 +1348,8 @@ private:
   auto_vec<local *> m_locals;
   auto_vec<block *> m_blocks;
   type *m_fn_ptr_type;
+  std::vector<gcc_jit_fn_attribute> m_attributes;
+  std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
 };
 
 class block : public memento

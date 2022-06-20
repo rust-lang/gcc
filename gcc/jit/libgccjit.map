@@ -291,3 +291,9 @@ LIBGCCJIT_ABI_28 {
   global:
     gcc_jit_global_set_readonly;
 } LIBGCCJIT_ABI_27;
+
+LIBGCCJIT_ABI_29 {
+  global:
+    gcc_jit_function_add_attribute;
+    gcc_jit_function_add_string_attribute;
+} LIBGCCJIT_ABI_28;

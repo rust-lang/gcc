@@ -4015,6 +4015,22 @@ gcc_jit_type_set_packed (gcc_jit_type *type)
   type->set_packed ();
 }
 
+void
+gcc_jit_function_add_attribute (gcc_jit_function *func, gcc_jit_fn_attribute attribute)
+{
+  RETURN_IF_FAIL (func, NULL, NULL, "NULL func");
+
+  func->add_attribute (attribute);
+}
+
+void
+gcc_jit_function_add_string_attribute (gcc_jit_function *func, gcc_jit_fn_attribute attribute, const char* value)
+{
+  RETURN_IF_FAIL (func, NULL, NULL, "NULL func");
+
+  func->add_string_attribute (attribute, value);
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the

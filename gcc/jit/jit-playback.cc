@@ -20,6 +20,7 @@ along with GCC; see the file COPYING3.  If not see
 
 #include "config.h"
 #define INCLUDE_MUTEX
+#include "libgccjit.h"
 #include "system.h"
 #include "coretypes.h"
 #include "target.h"
@@ -507,6 +508,20 @@ new_param (location *loc,
   return new param (this, inner);
 }
 
+const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
+{
+  switch (attr)
+  {
+    case GCC_JIT_FN_ATTRIBUTE_TARGET:
+      return "target";
+    case GCC_JIT_FN_ATTRIBUTE_USED:
+      return "used";
+    case GCC_JIT_FN_ATTRIBUTE_VISIBILITY:
+      return "visibility";
+  }
+  return NULL;
+}
+
 /* Construct a playback::function instance.  */
 
 playback::function *
@@ -517,7 +532,9 @@ new_function (location *loc,
 	      const char *name,
 	      const auto_vec<param *> *params,
 	      int is_variadic,
-	      enum built_in_function builtin_id)
+	      enum built_in_function builtin_id,
+	      const std::vector<gcc_jit_fn_attribute> &attributes,
+	      const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes)
 {
   int i;
   param *param;
@@ -601,6 +618,38 @@ new_function (location *loc,
 		   NULL,
 		   DECL_ATTRIBUTES (fndecl));
     }
+
+  for (auto attr: attributes)
+  {
+    tree ident = get_identifier (fn_attribute_to_string (attr));
+
+    /* See handle_used_attribute in gcc/c-family/c-attribs.cc.  */
+    if (attr == GCC_JIT_FN_ATTRIBUTE_USED)
+    {
+      TREE_USED (fndecl) = 1;
+      DECL_PRESERVE_P (fndecl) = 1;
+    }
+
+    DECL_ATTRIBUTES (fndecl) =
+      tree_cons (ident, NULL_TREE, DECL_ATTRIBUTES (fndecl));
+  }
+
+  for (auto attr: string_attributes)
+  {
+    gcc_jit_fn_attribute& name = std::get<0>(attr);
+    std::string& value = std::get<1>(attr);
+    tree attribute_value = build_tree_list (NULL_TREE, ::build_string (value.length () + 1, value.c_str ()));
+    tree ident = get_identifier (fn_attribute_to_string (name));
+
+    /* See handle_target_attribute in gcc/c-family/c-attribs.cc.  */
+    if (name == GCC_JIT_FN_ATTRIBUTE_TARGET)
+      /* We need to call valid_attribute_p so that the hook set-up some internal options.  */
+      if (!targetm.target_option.valid_attribute_p (fndecl, ident, attribute_value, 0))
+        continue;
+
+    DECL_ATTRIBUTES (fndecl) =
+      tree_cons (ident, attribute_value, DECL_ATTRIBUTES (fndecl));
+  }
 
   function *func = new function (this, fndecl, kind);
   m_functions.safe_push (func);
