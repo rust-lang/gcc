@@ -2045,6 +2045,22 @@ gcc_jit_type_unqualified (gcc_jit_type *type);
 extern void
 gcc_jit_type_set_packed (gcc_jit_type *type);
 
+/* Function attributes.  */
+enum gcc_jit_fn_attribute
+{
+  GCC_JIT_FN_ATTRIBUTE_TARGET,
+  GCC_JIT_FN_ATTRIBUTE_USED,
+  GCC_JIT_FN_ATTRIBUTE_VISIBILITY,
+};
+
+/* Add an attribute to a function.  */
+// TODO: also support integer values.
+extern void
+gcc_jit_function_add_attribute (gcc_jit_function *func, enum gcc_jit_fn_attribute attribute);
+
+extern void
+gcc_jit_function_add_string_attribute (gcc_jit_function *func, enum gcc_jit_fn_attribute attribute, const char* value);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
