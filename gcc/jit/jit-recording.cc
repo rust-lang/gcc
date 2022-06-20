@@ -4173,7 +4173,9 @@ recording::function::function (context *ctxt,
   m_locals (),
   m_blocks (),
   m_fn_ptr_type (NULL),
-  m_is_target_builtin (is_target_builtin)
+  m_is_target_builtin (is_target_builtin),
+  m_attributes(),
+  m_string_attributes()
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -4233,7 +4235,9 @@ recording::function::replay_into (replayer *r)
 				     &params,
 				     m_is_variadic,
 				     m_builtin_id,
-				     m_is_target_builtin));
+				     m_is_target_builtin,
+				     m_attributes,
+				     m_string_attributes));
 }
 
 /* Create a recording::local instance and add it to
@@ -4475,6 +4479,18 @@ recording::function::get_address (recording::location *loc)
   rvalue *result = new function_pointer (get_context (), loc, this, m_fn_ptr_type);
   m_ctxt->record (result);
   return result;
+}
+
+void
+recording::function::add_attribute (gcc_jit_fn_attribute attribute)
+{
+  m_attributes.push_back (attribute);
+}
+
+void
+recording::function::add_string_attribute (gcc_jit_fn_attribute attribute, const char* value)
+{
+  m_string_attributes.push_back (std::make_pair (attribute, std::string (value)));
 }
 
 /* Implementation of recording::memento::make_debug_string for
