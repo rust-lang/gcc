@@ -1310,7 +1310,7 @@ playback::rvalue *
 playback::context::
 new_comparison (location *loc,
 		enum gcc_jit_comparison op,
-		rvalue *a, rvalue *b)
+		rvalue *a, rvalue *b, type *vec_result_type)
 {
   // FIXME: type-checking, or coercion?
   enum tree_code inner_op;
@@ -1354,11 +1354,12 @@ new_comparison (location *loc,
   if (VECTOR_TYPE_P (a_type))
   {
     // TODO: document where this comes from and what it is doing.
-    tree zero_vec = build_zero_cst (a_type);
-    tree minus_one_vec = build_minus_one_cst (a_type);
+    tree t_vec_result_type = vec_result_type->as_tree ();
+    tree zero_vec = build_zero_cst (t_vec_result_type);
+    tree minus_one_vec = build_minus_one_cst (t_vec_result_type);
     tree cmp_type = truth_type_for (a_type);
     tree cmp = build2 (inner_op, cmp_type, node_a, node_b);
-    inner_expr = build3 (VEC_COND_EXPR, a_type, cmp, minus_one_vec, zero_vec);
+    inner_expr = build3 (VEC_COND_EXPR, t_vec_result_type, cmp, minus_one_vec, zero_vec);
   }
   else
   {
