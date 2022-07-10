@@ -812,12 +812,13 @@ gcc_jit_context_new_field (gcc_jit_context *ctxt,
   /* LOC can be NULL.  */
   RETURN_NULL_IF_FAIL (type, ctxt, loc, "NULL type");
   RETURN_NULL_IF_FAIL (name, ctxt, loc, "NULL name");
-  RETURN_NULL_IF_FAIL_PRINTF2 (
+  // TODO: check at playback if the size is known.
+  /*RETURN_NULL_IF_FAIL_PRINTF2 (
     type->has_known_size (),
     ctxt, loc,
     "unknown size for field \"%s\" (type: %s)",
     name,
-    type->get_debug_string ());
+    type->get_debug_string ());*/
   RETURN_NULL_IF_FAIL_PRINTF1 (
     !type->is_void (),
     ctxt, loc,
