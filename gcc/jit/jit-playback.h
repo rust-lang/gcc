@@ -43,6 +43,9 @@ namespace jit {
 
 namespace playback {
 
+void
+set_variable_attribute(const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes, tree decl);
+
 /* playback::context is an abstract base class.
 
    The two concrete subclasses are:
@@ -117,7 +120,8 @@ public:
 	      type *type,
 	      const char *name,
 	      enum global_var_flags flags,
-	      bool readonly);
+	      bool readonly,
+	      const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes);
 
   lvalue *
   new_global_initialized (location *loc,
@@ -128,7 +132,8 @@ public:
                           const void *initializer,
 			  const char *name,
 			  enum global_var_flags flags,
-			  bool readonly);
+			  bool readonly,
+			  const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes);
 
   rvalue *
   new_ctor (location *log,
@@ -319,7 +324,8 @@ private:
                    type *type,
 		   const char *name,
 		   enum global_var_flags flags,
-		   bool readonly);
+		   bool readonly,
+		   const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes);
   lvalue *
   global_finalize_lvalue (tree inner);
 
@@ -508,7 +514,8 @@ public:
   lvalue *
   new_local (location *loc,
 	     type *type,
-	     const char *name);
+	     const char *name,
+	     const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes);
 
   block*
   new_block (const char *name);

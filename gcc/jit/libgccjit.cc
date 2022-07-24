@@ -4032,6 +4032,14 @@ gcc_jit_function_add_string_attribute (gcc_jit_function *func, gcc_jit_fn_attrib
   func->add_string_attribute (attribute, value);
 }
 
+void
+gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable, gcc_jit_variable_attribute attribute, const char* value)
+{
+  RETURN_IF_FAIL (variable, NULL, NULL, "NULL variable");
+
+  variable->add_attribute (attribute, value);
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
