@@ -522,6 +522,16 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
   return NULL;
 }
 
+const char* variable_attribute_to_string(gcc_jit_variable_attribute attr)
+{
+  switch (attr)
+  {
+    case GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY:
+      return "visibility";
+  }
+  return NULL;
+}
+
 /* Construct a playback::function instance.  */
 
 playback::function *
@@ -674,7 +684,8 @@ global_new_decl (location *loc,
 		 type *type,
 		 const char *name,
 		 enum global_var_flags flags,
-		 bool readonly)
+		 bool readonly,
+		 const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes)
 {
   gcc_assert (type);
   gcc_assert (name);
@@ -719,7 +730,25 @@ global_new_decl (location *loc,
   if (loc)
     set_tree_location (inner, loc);
 
+  set_variable_attribute (attributes, inner);
+
   return inner;
+}
+
+void
+playback::
+set_variable_attribute(const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes, tree decl)
+{
+  for (auto attr: attributes)
+  {
+    gcc_jit_variable_attribute& name = std::get<0>(attr);
+    std::string& value = std::get<1>(attr);
+    tree attribute_value = build_tree_list (NULL_TREE, ::build_string (value.length () + 1, value.c_str ()));
+    tree ident = get_identifier (variable_attribute_to_string (name));
+
+    DECL_ATTRIBUTES (decl) =
+      tree_cons (ident, attribute_value, DECL_ATTRIBUTES (decl));
+  }
 }
 
 /* In use by new_global and new_global_initialized.  */
@@ -742,10 +771,11 @@ new_global (location *loc,
 	    type *type,
 	    const char *name,
 	    enum global_var_flags flags,
-	    bool readonly)
+	    bool readonly,
+	    const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes)
 {
   tree inner =
-    global_new_decl (loc, kind, type, name, flags, readonly);
+    global_new_decl (loc, kind, type, name, flags, readonly, attributes);
 
   return global_finalize_lvalue (inner);
 }
@@ -891,9 +921,10 @@ new_global_initialized (location *loc,
 			const void *initializer,
 			const char *name,
 			enum global_var_flags flags,
-			bool readonly)
+			bool readonly,
+			const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes)
 {
-  tree inner = global_new_decl (loc, kind, type, name, flags, readonly);
+  tree inner = global_new_decl (loc, kind, type, name, flags, readonly, attributes);
 
   vec<constructor_elt, va_gc> *constructor_elements = NULL;
 
@@ -2072,7 +2103,8 @@ playback::lvalue *
 playback::function::
 new_local (location *loc,
 	   type *type,
-	   const char *name)
+	   const char *name,
+	   const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes)
 {
   gcc_assert (type);
   gcc_assert (name);
@@ -2084,6 +2116,8 @@ new_local (location *loc,
   /* Prepend to BIND_EXPR_VARS: */
   DECL_CHAIN (inner) = BIND_EXPR_VARS (m_inner_bind_expr);
   BIND_EXPR_VARS (m_inner_bind_expr) = inner;
+
+  set_variable_attribute (attributes, inner);
 
   if (loc)
     set_tree_location (inner, loc);
