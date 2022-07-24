@@ -1303,7 +1303,8 @@ public:
     m_link_section (NULL),
     m_reg_name (NULL),
     m_tls_model (GCC_JIT_TLS_MODEL_NONE),
-    m_alignment (0)
+    m_alignment (0),
+    m_attributes ()
   {}
 
   playback::lvalue *
@@ -1329,6 +1330,8 @@ public:
     m_readonly = true;
   }
 
+  void add_attribute (gcc_jit_variable_attribute attribute, const char* value);
+
   virtual const char *access_as_lvalue (reproducer &r);
   virtual bool is_global () const { return false; }
   void set_tls_model (enum gcc_jit_tls_model model);
@@ -1343,6 +1346,7 @@ protected:
   enum gcc_jit_tls_model m_tls_model;
   unsigned m_alignment;
   bool m_readonly = false;
+  std::vector<std::pair<gcc_jit_variable_attribute, std::string>> m_attributes;
 };
 
 class param : public lvalue

@@ -4094,6 +4094,11 @@ void recording::lvalue::set_alignment (unsigned bytes)
   m_alignment = bytes;
 }
 
+void recording::lvalue::add_attribute (gcc_jit_variable_attribute attribute, const char* value)
+{
+  m_attributes.push_back (std::make_pair (attribute, std::string (value)));
+}
+
 /* The implementation of class gcc::jit::recording::param.  */
 
 /* Implementation of pure virtual hook recording::memento::replay_into
@@ -4968,13 +4973,15 @@ recording::global::replay_into (replayer *r)
 				 m_initializer,
 				 playback_string (m_name),
 				 m_flags,
-				 m_readonly)
+				 m_readonly,
+				 m_attributes)
     : r->new_global (playback_location (r, m_loc),
 		     m_kind,
 		     m_type->playback_type (),
 		     playback_string (m_name),
 		     m_flags,
-		     m_readonly);
+		     m_readonly,
+		     m_attributes);
 
   if (m_tls_model != GCC_JIT_TLS_MODEL_NONE)
     global->set_tls_model (recording::tls_models[m_tls_model]);
@@ -6915,7 +6922,8 @@ recording::local::replay_into (replayer *r)
   playback::lvalue *obj = m_func->playback_function ()
       ->new_local (playback_location (r, m_loc),
 		   m_type->playback_type (),
-		   playback_string (m_name));
+		   playback_string (m_name),
+		   m_attributes);
 
   if (m_reg_name != NULL)
     obj->set_register_name (m_reg_name->c_str ());
