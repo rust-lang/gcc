@@ -2061,6 +2061,17 @@ gcc_jit_function_add_attribute (gcc_jit_function *func, enum gcc_jit_fn_attribut
 extern void
 gcc_jit_function_add_string_attribute (gcc_jit_function *func, enum gcc_jit_fn_attribute attribute, const char* value);
 
+/* Variable attributes.  */
+enum gcc_jit_variable_attribute
+{
+  GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY,
+};
+
+/* Add an attribute to a variable.  */
+// TODO: also support integer values.
+extern void
+gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable, enum gcc_jit_variable_attribute attribute, const char* value);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
