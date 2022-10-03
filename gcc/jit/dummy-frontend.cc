@@ -603,7 +603,7 @@ jit_langhook_init (void)
   global_dc->begin_diagnostic = jit_begin_diagnostic;
   global_dc->end_diagnostic = jit_end_diagnostic;
 
-  build_common_tree_nodes (false);
+  build_common_tree_nodes (flag_signed_char);
 
   build_common_builtin_nodes ();
 
