@@ -1030,7 +1030,7 @@ jit_langhook_init (void)
   diagnostic_text_starter (global_dc) = jit_begin_diagnostic;
   diagnostic_text_finalizer (global_dc) = jit_end_diagnostic;
 
-  build_common_tree_nodes (false);
+  build_common_tree_nodes (flag_signed_char);
 
   build_common_builtin_nodes ();
 
