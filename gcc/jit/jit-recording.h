@@ -1442,6 +1442,7 @@ public:
   void dump_to_dot (const char *path);
 
   rvalue *get_address (location *loc);
+  void set_personality_function (function *function);
 
   void add_attribute (gcc_jit_fn_attribute attribute);
   void add_string_attribute (gcc_jit_fn_attribute attribute, const char* value);
@@ -1464,6 +1465,7 @@ private:
   int m_is_target_builtin;
   std::vector<gcc_jit_fn_attribute> m_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
+  function *m_personality_function;
 };
 
 class block : public memento

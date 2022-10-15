@@ -4180,7 +4180,8 @@ recording::function::function (context *ctxt,
   m_fn_ptr_type (NULL),
   m_is_target_builtin (is_target_builtin),
   m_attributes(),
-  m_string_attributes()
+  m_string_attributes(),
+  m_personality_function (NULL)
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -4233,6 +4234,12 @@ recording::function::replay_into (replayer *r)
   FOR_EACH_VEC_ELT (m_params, i, param)
     params.safe_push (param->playback_param ());
 
+  playback::function *personality_function = NULL;
+  if (m_personality_function)
+  {
+    personality_function = m_personality_function->playback_function ();
+  }
+
   set_playback_obj (r->new_function (playback_location (r, m_loc),
 				     m_kind,
 				     m_return_type->playback_type (),
@@ -4242,7 +4249,14 @@ recording::function::replay_into (replayer *r)
 				     m_builtin_id,
 				     m_is_target_builtin,
 				     m_attributes,
-				     m_string_attributes));
+				     m_string_attributes,
+				     personality_function));
+}
+
+void
+recording::function::set_personality_function (function *function)
+{
+  m_personality_function = function;
 }
 
 /* Create a recording::local instance and add it to

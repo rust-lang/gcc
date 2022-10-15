@@ -3713,6 +3713,20 @@ gcc_jit_context_add_command_line_option (gcc_jit_context *ctxt,
 }
 
 /* Public entrypoint.  See description in libgccjit.h.
+   After error-checking, the real work is done by the
+   gcc::jit::recording::function::set_personality_function method, in
+   jit-recording.c.  */
+
+void
+gcc_jit_function_set_personality_function (gcc_jit_function *fn,
+                                           gcc_jit_function *personality_func)
+{
+  RETURN_IF_FAIL (fn, NULL, NULL, "NULL function");
+
+  fn->set_personality_function (personality_func);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
 
    The real work is done by the
    gcc::jit::recording::context::add_driver_option method in

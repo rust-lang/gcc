@@ -1819,6 +1819,10 @@ extern gcc_jit_rvalue *
 gcc_jit_function_get_address (gcc_jit_function *fn,
 			      gcc_jit_location *loc);
 
+void
+gcc_jit_function_set_personality_function (gcc_jit_function *fn,
+                                           gcc_jit_function *personality_func);
+
 
 #define LIBGCCJIT_HAVE_gcc_jit_context_new_rvalue_from_vector
 

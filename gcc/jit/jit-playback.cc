@@ -545,7 +545,8 @@ new_function (location *loc,
 	      enum built_in_function builtin_id,
 	      int is_target_builtin,
 	      const std::vector<gcc_jit_fn_attribute> &attributes,
-	      const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes)
+	      const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes,
+	      function *personality_function)
 {
   int i;
   param *param;
@@ -568,6 +569,11 @@ new_function (location *loc,
 
   /* FIXME: this uses input_location: */
   tree fndecl = build_fn_decl (name, fn_type);
+
+  if (personality_function)
+  {
+    DECL_FUNCTION_PERSONALITY (fndecl) = personality_function->as_fndecl ();
+  }
 
   if (loc)
     set_tree_location (fndecl, loc);

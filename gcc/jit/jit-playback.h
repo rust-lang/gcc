@@ -113,7 +113,8 @@ public:
 		enum built_in_function builtin_id,
 		int is_target_builtin,
 		const std::vector<gcc_jit_fn_attribute> &attributes,
-		const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes);
+		const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes,
+		function *personality_function);
 
   lvalue *
   new_global (location *loc,
