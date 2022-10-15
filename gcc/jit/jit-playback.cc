@@ -518,6 +518,8 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
       return "used";
     case GCC_JIT_FN_ATTRIBUTE_VISIBILITY:
       return "visibility";
+    case GCC_JIT_FN_ATTRIBUTE_WEAK:
+      return "weak";
   }
   return NULL;
 }
@@ -649,10 +651,15 @@ new_function (location *loc,
     tree ident = get_identifier (fn_attribute_to_string (attr));
 
     /* See handle_used_attribute in gcc/c-family/c-attribs.cc.  */
-    if (attr == GCC_JIT_FN_ATTRIBUTE_USED)
+    switch (attr)
     {
-      TREE_USED (fndecl) = 1;
-      DECL_PRESERVE_P (fndecl) = 1;
+        case GCC_JIT_FN_ATTRIBUTE_USED:
+          TREE_USED (fndecl) = 1;
+          DECL_PRESERVE_P (fndecl) = 1;
+          break;
+        case GCC_JIT_FN_ATTRIBUTE_WEAK:
+          DECL_WEAK (fndecl) = 1;
+          break;
     }
 
     DECL_ATTRIBUTES (fndecl) =
