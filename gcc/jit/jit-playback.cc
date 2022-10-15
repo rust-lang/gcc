@@ -2175,6 +2175,11 @@ build_stmt_list ()
       int j;
       tree stmt;
 
+      // Do not add try/catch block to the function.
+      // TODO: explain why.
+      if (b->m_is_try_or_catch)
+        continue;
+
       b->m_label_expr = build1 (LABEL_EXPR,
 				void_type_node,
 				b->as_label_decl ());
@@ -2271,6 +2276,43 @@ add_eval (location *loc,
     set_tree_location (rvalue->as_tree (), loc);
 
   add_stmt (rvalue->as_tree ());
+}
+
+
+void
+playback::block::
+add_try_catch (location *loc,
+         block *try_block,
+         block *catch_block)
+{
+  gcc_assert (try_block);
+  gcc_assert (catch_block);
+
+  try_block->m_is_try_or_catch = true;
+  catch_block->m_is_try_or_catch = true;
+
+  if (loc)
+  {
+    set_tree_location (try_block->as_label_decl (), loc);
+    set_tree_location (catch_block->as_label_decl (), loc);
+  }
+
+  tree try_body = alloc_stmt_list ();
+  int i;
+  tree stmt;
+  FOR_EACH_VEC_ELT (try_block->m_stmts, i, stmt) {
+    append_to_statement_list (stmt, &try_body);
+  }
+
+  tree catch_body = alloc_stmt_list ();
+  int j;
+  tree catch_stmt;
+  FOR_EACH_VEC_ELT (catch_block->m_stmts, j, catch_stmt) {
+    append_to_statement_list (catch_stmt, &catch_body);
+  }
+
+  add_stmt (build2 (TRY_CATCH_EXPR, void_type_node,
+            try_body, catch_body));
 }
 
 /* Add an assignment to the function's statement list.  */

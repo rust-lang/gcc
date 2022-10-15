@@ -1422,6 +1422,22 @@ gcc_jit_block_add_eval (gcc_jit_block *block,
 			gcc_jit_location *loc,
 			gcc_jit_rvalue *rvalue);
 
+/* Add a try/catch statement.
+   This is equivalent to this C++ code:
+     try {
+        try_block
+     }
+     catch {
+        catch_block
+     }
+*/
+
+void
+gcc_jit_block_add_try_catch (gcc_jit_block *block,
+			     gcc_jit_location *loc,
+			     gcc_jit_block *try_block,
+			     gcc_jit_block *catch_block);
+
 /* Add evaluation of an rvalue, assigning the result to the given
    lvalue.
 

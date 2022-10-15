@@ -1495,6 +1495,11 @@ public:
 	    rvalue *rvalue);
 
   statement *
+  add_try_catch (location *loc,
+		 block *try_block,
+		 block *catch_block);
+
+  statement *
   add_assignment (location *loc,
 		  lvalue *lvalue,
 		  rvalue *rvalue);
@@ -2344,6 +2349,28 @@ private:
 
 private:
   rvalue *m_rvalue;
+};
+
+class try_catch : public statement
+{
+public:
+  try_catch (block *b,
+    location *loc,
+    block *try_block,
+    block *catch_block)
+  : statement (b, loc),
+    m_try_block (try_block),
+    m_catch_block (catch_block) {}
+
+  void replay_into (replayer *r) final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+
+private:
+  block *m_try_block;
+  block *m_catch_block;
 };
 
 class assignment : public statement

@@ -4401,6 +4401,13 @@ recording::function::validate ()
       /* Iteratively walk the graph of blocks, marking their "m_is_reachable"
 	 flag, starting at the initial block.  */
       auto_vec<block *> worklist (m_blocks.length ());
+      int j;
+      block *func_block;
+      /* Push the blocks used in try/catch because they're not successors of
+         other blocks.  */
+      FOR_EACH_VEC_ELT (m_blocks, j, func_block)
+      if (func_block->m_is_reachable)
+	worklist.safe_push (func_block);
       worklist.safe_push (m_blocks[0]);
       while (worklist.length () > 0)
 	{
@@ -4591,6 +4598,28 @@ recording::block::add_eval (recording::location *loc,
 			    recording::rvalue *rvalue)
 {
   statement *result = new eval (this, loc, rvalue);
+  m_ctxt->record (result);
+  m_statements.safe_push (result);
+  return result;
+}
+
+/* The implementation of class gcc::jit::recording::block.  */
+
+/* Create a recording::try_catch instance and add it to
+   the block's context's list of mementos, and to the block's
+   list of statements.
+   Implements the heart of gcc_jit_block_add_try_catch.  */
+
+recording::statement *
+recording::block::add_try_catch (location *loc,
+                   block *try_block,
+                   block *catch_block)
+{
+  statement *result = new try_catch (this, loc, try_block, catch_block);
+  //try_block->m_has_been_terminated = true;
+  //catch_block->m_has_been_terminated = true;
+  try_block->m_is_reachable = true;
+  catch_block->m_is_reachable = true;
   m_ctxt->record (result);
   m_statements.safe_push (result);
   return result;
@@ -7048,6 +7077,48 @@ recording::eval::write_reproducer (reproducer &r)
 	   r.get_identifier (get_block ()),
 	   r.get_identifier (get_loc ()),
 	   r.get_identifier_as_rvalue (m_rvalue));
+}
+
+/* The implementation of class gcc::jit::recording::try_catch.  */
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::try_catch.  */
+
+void
+recording::try_catch::replay_into (replayer *r)
+{
+  playback_block (get_block ())
+    ->add_try_catch (playback_location (r),
+        m_try_block->playback_block (),
+        m_catch_block->playback_block ());
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   an eval statement.  */
+
+recording::string *
+recording::try_catch::make_debug_string ()
+{
+  return string::from_printf (m_ctxt,
+                  "try { %s } catch { %s };",
+                  m_try_block->get_debug_string (),
+                  m_catch_block->get_debug_string ());
+}
+
+/* Implementation of recording::memento::write_reproducer for
+   eval statements.  */
+
+void
+recording::try_catch::write_reproducer (reproducer &r)
+{
+  r.write ("  gcc_jit_block_add_try_catch (%s, /*gcc_jit_block *block */\n"
+       "                                 %s, /* gcc_jit_location *loc */\n"
+       "                                 %s, /* gcc_jit_block *try_block */\n"
+       "                                 %s); /* gcc_jit_block *catch_block */\n",
+       r.get_identifier (get_block ()),
+       r.get_identifier (get_loc ()),
+       r.get_identifier (m_try_block),
+       r.get_identifier (m_catch_block));
 }
 
 /* The implementation of class gcc::jit::recording::assignment.  */
