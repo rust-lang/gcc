@@ -1093,8 +1093,15 @@ jit_langhook_init (void)
 
   build_common_tree_nodes (flag_signed_char);
 
+  /* I don't know why this has to be done explicitly.  */
+  void_list_node = build_tree_list (NULL_TREE, void_type_node);
+
   target_builtins.empty ();
   build_common_builtin_nodes ();
+
+  /* Initialize EH, if we've been told to do so.  */
+  if (flag_exceptions)
+    using_eh_for_cleanups ();
 
   /* The default precision for floating point numbers.  This is used
      for floating point constants with abstract type.  This may
