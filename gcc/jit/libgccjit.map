@@ -314,3 +314,10 @@ LIBGCCJIT_ABI_32 {
   global:
     gcc_jit_global_set_readonly;
 } LIBGCCJIT_ABI_31;
+
+LIBGCCJIT_ABI_33 {
+  global:
+    gcc_jit_block_add_try_catch;
+    gcc_jit_block_add_try_finally;
+    gcc_jit_function_set_personality_function;
+} LIBGCCJIT_ABI_32;
