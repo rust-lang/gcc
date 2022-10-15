@@ -1174,4 +1174,14 @@ dw2_asm_output_encoded_addr_rtx (int encoding, rtx addr, bool is_public,
   va_end (ap);
 }
 
+void dwarf2asm_cc_finalize (void)
+{
+  if (indirect_pool)
+  {
+    indirect_pool->empty();
+    indirect_pool = NULL;
+  }
+  dw2_const_labelno = 0;
+}
+
 #include "gt-dwarf2asm.h"
