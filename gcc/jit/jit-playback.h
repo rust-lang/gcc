@@ -551,6 +551,9 @@ public:
   get_address (location *loc);
 
   void
+  set_personality_function (function *personality_function);
+
+  void
   build_stmt_list ();
 
   void
@@ -621,6 +624,12 @@ public:
 	    rvalue *rvalue);
 
   void
+  add_try_catch (location *loc,
+		 block *try_block,
+		 block *catch_block,
+		 bool is_finally);
+
+  void
   add_assignment (location *loc,
 		  lvalue *lvalue,
 		  rvalue *rvalue);
@@ -683,6 +692,7 @@ private:
 
 public: // for now
   tree m_label_expr;
+  bool m_is_try_or_catch = false;
 
   friend class function;
 };
