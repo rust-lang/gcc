@@ -678,6 +678,7 @@ new_function (location *loc,
 
   /* FIXME: this uses input_location: */
   tree fndecl = build_fn_decl (name, fn_type);
+  TREE_NOTHROW (fndecl) = 0;
 
   if (loc)
     set_tree_location (fndecl, loc);
@@ -2303,6 +2304,15 @@ playback::function::get_address (location *loc)
   return new rvalue (m_ctxt, t_fnptr);
 }
 
+/* Construct a new local within this playback::function.  */
+
+void
+playback::function::
+set_personality_function (function *personality_function)
+{
+  DECL_FUNCTION_PERSONALITY (m_inner_fndecl) = personality_function->as_fndecl ();
+}
+
 /* Build a statement list for the function as a whole out of the
    lists of statements for the individual blocks, building labels
    for each block.  */
@@ -2320,6 +2330,11 @@ build_stmt_list ()
     {
       int j;
       tree stmt;
+
+      // Do not add try/catch block to the function.
+      // TODO: explain why.
+      if (b->m_is_try_or_catch)
+        continue;
 
       b->m_label_expr = build1 (LABEL_EXPR,
 				void_type_node,
@@ -2420,6 +2435,70 @@ add_eval (location *loc,
     set_tree_location (rvalue->as_tree (), loc);
 
   add_stmt (rvalue->as_tree ());
+}
+
+
+void
+playback::block::
+add_try_catch (location *loc,
+         block *try_block,
+         block *catch_block,
+         bool is_finally)
+{
+  gcc_assert (try_block);
+  gcc_assert (catch_block);
+
+  try_block->m_is_try_or_catch = true;
+  catch_block->m_is_try_or_catch = true;
+
+  if (loc)
+  {
+    set_tree_location (try_block->as_label_decl (), loc);
+    set_tree_location (catch_block->as_label_decl (), loc);
+  }
+
+  tree try_body = alloc_stmt_list ();
+  unsigned int i;
+  tree stmt;
+  FOR_EACH_VEC_ELT (try_block->m_stmts, i, stmt) {
+    append_to_statement_list (stmt, &try_body);
+  }
+
+  tree catch_body = alloc_stmt_list ();
+  unsigned int j;
+  tree catch_stmt;
+  FOR_EACH_VEC_ELT (catch_block->m_stmts, j, catch_stmt) {
+    append_to_statement_list (catch_stmt, &catch_body);
+  }
+
+  if (is_finally)
+  {
+    tree success_body = alloc_stmt_list ();
+
+    // TODO: find a better way to keep the EH_ELSE_EXPR than creating an empty inline asm.
+  tree t_string = build_string ("");
+  tree asm_stmt
+    = build5 (ASM_EXPR, void_type_node, t_string, NULL_TREE, NULL_TREE, NULL_TREE, NULL_TREE);
+
+  // asm statements without outputs, including simple ones, are treated
+  //   as volatile.
+  ASM_VOLATILE_P (asm_stmt) = 1;
+  ASM_BASIC_P (asm_stmt) = 0;
+    append_to_statement_list (asm_stmt, &success_body);
+
+    // TODO: Don't automatically add the `EH_ELSE_EXPR`. Make an API to create such a node and let the user of libgccjit
+    // add it manually.
+    catch_body = build2 (EH_ELSE_EXPR, void_type_node, success_body, catch_body);
+    add_stmt (build2 (TRY_FINALLY_EXPR, void_type_node,
+            try_body, catch_body));
+  }
+  else
+  {
+    catch_body = build2(CATCH_EXPR, void_type_node, NULL, catch_body);
+    tree try_catch = build2 (TRY_CATCH_EXPR, void_type_node,
+            try_body, catch_body);
+    add_stmt (try_catch);
+  }
 }
 
 /* Add an assignment to the function's statement list.  */
