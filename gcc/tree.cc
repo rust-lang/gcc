@@ -15801,6 +15801,7 @@ tree_cc_finalize (void)
 {
   clear_nonstandard_integer_type_cache ();
   vec_free (bitint_type_cache);
+  gcc_eh_personality_decl = NULL;
 }
 
 void

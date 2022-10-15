@@ -1607,6 +1607,7 @@ public:
   void dump_to_dot (const char *path);
 
   rvalue *get_address (location *loc);
+  void set_personality_function (function *function);
 
   void add_attribute (gcc_jit_fn_attribute attribute);
   void add_string_attribute (gcc_jit_fn_attribute attribute, const char* value);
@@ -1658,6 +1659,12 @@ public:
   statement *
   add_eval (location *loc,
 	    rvalue *rvalue);
+
+  statement *
+  add_try_catch (location *loc,
+		 block *try_block,
+		 block *catch_block,
+		 bool is_finally = false);
 
   statement *
   add_assignment (location *loc,
@@ -1900,6 +1907,27 @@ private:
 
 private:
   string *m_value;
+};
+
+class memento_of_set_personality_function : public memento
+{
+public:
+  memento_of_set_personality_function (context *ctx,
+				       function *func,
+				       function *personality_function)
+  : memento(ctx),
+    m_function (func),
+    m_personality_function (personality_function) {}
+
+  void replay_into (replayer *r) final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+
+private:
+  function *m_function;
+  function *m_personality_function;
 };
 
 class memento_of_new_rvalue_from_vector : public rvalue
@@ -2540,6 +2568,31 @@ private:
 
 private:
   rvalue *m_rvalue;
+};
+
+class try_catch : public statement
+{
+public:
+  try_catch (block *b,
+    location *loc,
+    block *try_block,
+    block *catch_block,
+    bool is_finally = false)
+  : statement (b, loc),
+    m_try_block (try_block),
+    m_catch_block (catch_block),
+    m_is_finally (is_finally) {}
+
+  void replay_into (replayer *r) final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+
+private:
+  block *m_try_block;
+  block *m_catch_block;
+  bool m_is_finally;
 };
 
 class assignment : public statement

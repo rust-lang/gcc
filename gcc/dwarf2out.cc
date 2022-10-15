@@ -1007,6 +1007,9 @@ dwarf2out_do_cfi_startproc (bool second)
 	  if (targetm.asm_out.make_eh_symbol_indirect != NULL)
 	    ref = targetm.asm_out.make_eh_symbol_indirect (ref, true);
 	  else
+            // TODO: HERE: should not insert multiple times the same personality function.
+            // If we don't, we segfault later, possibly because we don't generate the info for the duplicates.
+            // I'm not sure why it's attempting to insert multiple times the same personality function.
 	    ref = dw2_force_const_mem (ref, true);
 	}
 

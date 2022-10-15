@@ -86,6 +86,8 @@ extern const char *eh_data_format_name (int);
 extern rtx dw2_force_const_mem (rtx, bool);
 extern void dw2_output_indirect_constants (void);
 
+void dwarf2asm_cc_finalize (void);
+
 /* These are currently unused.  */
 
 #if 0
