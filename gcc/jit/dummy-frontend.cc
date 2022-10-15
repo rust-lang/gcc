@@ -608,6 +608,7 @@ jit_langhook_init (void)
   /* I don't know why this has to be done explicitly.  */
   void_list_node = build_tree_list (NULL_TREE, void_type_node);
 
+  target_builtins.empty ();
   build_common_builtin_nodes ();
 
   /* The default precision for floating point numbers.  This is used
@@ -615,7 +616,6 @@ jit_langhook_init (void)
      eventually be controllable by a command line option.  */
   mpfr_set_default_prec (256);
 
-  target_builtins.empty ();
   targetm.init_builtins ();
 
   return true;
