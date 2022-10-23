@@ -113,8 +113,7 @@ public:
 		enum built_in_function builtin_id,
 		int is_target_builtin,
 		const std::vector<gcc_jit_fn_attribute> &attributes,
-		const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes,
-		function *personality_function);
+		const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes);
 
   lvalue *
   new_global (location *loc,
@@ -537,6 +536,9 @@ public:
   get_address (location *loc);
 
   void
+  set_personality_function (function *personality_function);
+
+  void
   build_stmt_list ();
 
   void
@@ -609,7 +611,8 @@ public:
   void
   add_try_catch (location *loc,
 		 block *try_block,
-		 block *catch_block);
+		 block *catch_block,
+		 bool is_finally);
 
   void
   add_assignment (location *loc,

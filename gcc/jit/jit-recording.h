@@ -1465,7 +1465,6 @@ private:
   int m_is_target_builtin;
   std::vector<gcc_jit_fn_attribute> m_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
-  function *m_personality_function;
 };
 
 class block : public memento
@@ -1497,7 +1496,8 @@ public:
   statement *
   add_try_catch (location *loc,
 		 block *try_block,
-		 block *catch_block);
+		 block *catch_block,
+		 bool is_finally = false);
 
   statement *
   add_assignment (location *loc,
@@ -1712,6 +1712,27 @@ private:
 
 private:
   string *m_value;
+};
+
+class memento_of_set_personality_function : public memento
+{
+public:
+  memento_of_set_personality_function (context *ctx,
+				       function *func,
+				       function *personality_function)
+  : memento(ctx),
+    m_function (func),
+    m_personality_function (personality_function) {}
+
+  void replay_into (replayer *r) final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+
+private:
+  function *m_function;
+  function *m_personality_function;
 };
 
 class memento_of_new_rvalue_from_vector : public rvalue
@@ -2357,10 +2378,12 @@ public:
   try_catch (block *b,
     location *loc,
     block *try_block,
-    block *catch_block)
+    block *catch_block,
+    bool is_finally = false)
   : statement (b, loc),
     m_try_block (try_block),
-    m_catch_block (catch_block) {}
+    m_catch_block (catch_block),
+    m_is_finally (is_finally) {}
 
   void replay_into (replayer *r) final override;
 
@@ -2371,6 +2394,7 @@ private:
 private:
   block *m_try_block;
   block *m_catch_block;
+  bool m_is_finally;
 };
 
 class assignment : public statement

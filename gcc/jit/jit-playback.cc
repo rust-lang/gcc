@@ -547,8 +547,7 @@ new_function (location *loc,
 	      enum built_in_function builtin_id,
 	      int is_target_builtin,
 	      const std::vector<gcc_jit_fn_attribute> &attributes,
-	      const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes,
-	      function *personality_function)
+	      const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes)
 {
   int i;
   param *param;
@@ -571,11 +570,7 @@ new_function (location *loc,
 
   /* FIXME: this uses input_location: */
   tree fndecl = build_fn_decl (name, fn_type);
-
-  if (personality_function)
-  {
-    DECL_FUNCTION_PERSONALITY (fndecl) = personality_function->as_fndecl ();
-  }
+  TREE_NOTHROW (fndecl) = 0;
 
   if (loc)
     set_tree_location (fndecl, loc);
@@ -659,6 +654,9 @@ new_function (location *loc,
           break;
         case GCC_JIT_FN_ATTRIBUTE_WEAK:
           DECL_WEAK (fndecl) = 1;
+          TREE_PUBLIC (fndecl) = 1;
+          //declare_weak (fndecl);
+          //make_decl_one_only(fndecl, DECL_ASSEMBLER_NAME(fndecl));
           break;
     }
 
@@ -2164,6 +2162,16 @@ playback::function::get_address (location *loc)
   return new rvalue (m_ctxt, t_fnptr);
 }
 
+/* Construct a new local within this playback::function.  */
+
+void
+playback::function::
+set_personality_function (function *personality_function)
+{
+  //fprintf (stderr, "************* Setting personality function %s for %s\n", IDENTIFIER_POINTER (DECL_NAME (personality_function->as_fndecl ())), IDENTIFIER_POINTER (DECL_NAME (m_inner_fndecl)));
+  DECL_FUNCTION_PERSONALITY (m_inner_fndecl) = personality_function->as_fndecl ();
+}
+
 /* Build a statement list for the function as a whole out of the
    lists of statements for the individual blocks, building labels
    for each block.  */
@@ -2222,8 +2230,11 @@ postprocess ()
   if (m_kind == GCC_JIT_FUNCTION_INTERNAL
       ||m_kind == GCC_JIT_FUNCTION_ALWAYS_INLINE)
     {
-      DECL_EXTERNAL (m_inner_fndecl) = 0;
-      TREE_PUBLIC (m_inner_fndecl) = 0;
+        if (!DECL_WEAK (m_inner_fndecl))
+        {
+            DECL_EXTERNAL (m_inner_fndecl) = 0;
+            TREE_PUBLIC (m_inner_fndecl) = 0;
+        }
     }
 
   if (m_kind != GCC_JIT_FUNCTION_IMPORTED)
@@ -2290,7 +2301,8 @@ void
 playback::block::
 add_try_catch (location *loc,
          block *try_block,
-         block *catch_block)
+         block *catch_block,
+         bool is_finally)
 {
   gcc_assert (try_block);
   gcc_assert (catch_block);
@@ -2318,8 +2330,38 @@ add_try_catch (location *loc,
     append_to_statement_list (catch_stmt, &catch_body);
   }
 
-  add_stmt (build2 (TRY_CATCH_EXPR, void_type_node,
+  if (is_finally)
+  {
+    tree noop = build_int_cst (integer_type_node, 0);
+    tree stmt = build1 (NOP_EXPR, void_type_node, size_zero_node);
+    tree success_body = alloc_stmt_list ();
+    //append_to_statement_list (stmt, &success_body);
+
+
+  tree t_string = build_string ("nop");
+  tree asm_stmt
+    = build5 (ASM_EXPR, void_type_node, t_string, NULL_TREE, NULL_TREE, NULL_TREE, NULL_TREE);
+
+  // asm statements without outputs, including simple ones, are treated
+  //   as volatile.
+  ASM_VOLATILE_P (asm_stmt) = 1;
+  ASM_INPUT_P (asm_stmt) = 0;
+    append_to_statement_list (asm_stmt, &success_body);
+    //debug_tree (success_body);
+
+    catch_body = build2 (EH_ELSE_EXPR, void_type_node, success_body, catch_body);
+    add_stmt (build2 (TRY_FINALLY_EXPR, void_type_node,
             try_body, catch_body));
+  }
+  else
+  {
+    catch_body = build2(CATCH_EXPR, void_type_node, NULL, catch_body);
+    tree try_catch = build2 (TRY_CATCH_EXPR, void_type_node,
+            try_body, catch_body);
+    //if (is_finally)
+    //  TRY_CATCH_IS_CLEANUP (try_catch) = true;
+    add_stmt (try_catch);
+  }
 }
 
 /* Add an assignment to the function's statement list.  */

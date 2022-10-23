@@ -709,6 +709,15 @@ function_and_variable_visibility (bool whole_program)
 	    }
 	  node->dissolve_same_comdat_group_list ();
 	}
+      if (!((!DECL_WEAK (node->decl)
+		  && !DECL_COMDAT (node->decl))
+      	          || TREE_PUBLIC (node->decl)
+		  || node->weakref
+		  || DECL_EXTERNAL (node->decl)))
+      {
+          fprintf (stderr, "%d, %d, %d, %d, %d\n", DECL_WEAK (node->decl), DECL_COMDAT (node->decl), TREE_PUBLIC (node->decl), node->weakref, DECL_EXTERNAL (node->decl));
+          debug_tree (node->decl);
+      }
       gcc_assert ((!DECL_WEAK (node->decl)
 		  && !DECL_COMDAT (node->decl))
       	          || TREE_PUBLIC (node->decl)

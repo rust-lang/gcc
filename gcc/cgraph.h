@@ -25,6 +25,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "ipa-ref.h"
 #include "plugin-api.h"
 #include "ipa-param-manipulation.h"
+#include "print-tree.h"
 
 extern void debuginfo_early_init (void);
 extern void debuginfo_init (void);

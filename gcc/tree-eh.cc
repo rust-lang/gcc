@@ -4882,7 +4882,11 @@ pass_cleanup_eh::execute (function *fun)
      and avoids references to a never defined personality routine.  */
   if (DECL_FUNCTION_PERSONALITY (current_function_decl)
       && function_needs_eh_personality (fun) != eh_personality_lang)
-    DECL_FUNCTION_PERSONALITY (current_function_decl) = NULL_TREE;
+  {
+      //fprintf(stderr, "Unset personality function for %s\n", IDENTIFIER_POINTER (DECL_NAME (current_function_decl)));
+      // TODO: uncomment:
+    //DECL_FUNCTION_PERSONALITY (current_function_decl) = NULL_TREE;
+  }
 
   return ret;
 }

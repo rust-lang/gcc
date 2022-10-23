@@ -240,9 +240,14 @@ symtab_node::needed_p (void)
   /* Double check that no one output the function into assembly file
      early.  */
   if (!native_rtl_p ())
+  {
+      if (!(!DECL_ASSEMBLER_NAME_SET_P (decl)
+	 || !TREE_SYMBOL_REFERENCED (DECL_ASSEMBLER_NAME (decl))))
+          debug_tree (decl);
       gcc_checking_assert
 	(!DECL_ASSEMBLER_NAME_SET_P (decl)
 	 || !TREE_SYMBOL_REFERENCED (DECL_ASSEMBLER_NAME (decl)));
+  }
 
   if (!definition)
     return false;
@@ -1390,7 +1395,7 @@ analyze_functions (bool first_time)
 		      || cnode->alias
 		      || gimple_has_body_p (decl)
 		      || cnode->native_rtl_p ());
-	  gcc_assert (cnode->analyzed == cnode->definition);
+          gcc_assert (cnode->analyzed == cnode->definition);
 	}
       node->aux = NULL;
     }

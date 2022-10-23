@@ -4180,8 +4180,7 @@ recording::function::function (context *ctxt,
   m_fn_ptr_type (NULL),
   m_is_target_builtin (is_target_builtin),
   m_attributes(),
-  m_string_attributes(),
-  m_personality_function (NULL)
+  m_string_attributes()
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -4234,12 +4233,6 @@ recording::function::replay_into (replayer *r)
   FOR_EACH_VEC_ELT (m_params, i, param)
     params.safe_push (param->playback_param ());
 
-  playback::function *personality_function = NULL;
-  if (m_personality_function)
-  {
-    personality_function = m_personality_function->playback_function ();
-  }
-
   set_playback_obj (r->new_function (playback_location (r, m_loc),
 				     m_kind,
 				     m_return_type->playback_type (),
@@ -4249,14 +4242,37 @@ recording::function::replay_into (replayer *r)
 				     m_builtin_id,
 				     m_is_target_builtin,
 				     m_attributes,
-				     m_string_attributes,
-				     personality_function));
+				     m_string_attributes));
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   setting a personality function.  */
+
+recording::string *
+recording::memento_of_set_personality_function::make_debug_string ()
+{
+  return string::from_printf (m_ctxt,
+			      "%s",
+			      m_personality_function->get_debug_string ());
+}
+
+/* Implementation of recording::memento::write_reproducer for setting the personality function. */
+
+void
+recording::memento_of_set_personality_function::write_reproducer (reproducer &r)
+{
+  r.write ("    gcc_jit_function_set_personality_function (%s,\n"
+	   "                                               %s);\n",
+	   r.get_identifier (m_function),
+	   r.get_identifier (m_personality_function));
 }
 
 void
 recording::function::set_personality_function (function *function)
 {
-  m_personality_function = function;
+  recording::memento_of_set_personality_function *result =
+    new memento_of_set_personality_function (m_ctxt, this, function);
+  m_ctxt->record (result);
 }
 
 /* Create a recording::local instance and add it to
@@ -4613,9 +4629,10 @@ recording::block::add_eval (recording::location *loc,
 recording::statement *
 recording::block::add_try_catch (location *loc,
                    block *try_block,
-                   block *catch_block)
+                   block *catch_block,
+                   bool is_finally)
 {
-  statement *result = new try_catch (this, loc, try_block, catch_block);
+  statement *result = new try_catch (this, loc, try_block, catch_block, is_finally);
   //try_block->m_has_been_terminated = true;
   //catch_block->m_has_been_terminated = true;
   try_block->m_is_reachable = true;
@@ -7041,6 +7058,17 @@ recording::statement::write_to_dump (dump &d)
     m_loc = d.make_location ();
 }
 
+/* The implementation of class gcc::jit::recording::memento_of_set_personality_function.  */
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::memento_of_set_personality_function.  */
+
+void
+recording::memento_of_set_personality_function::replay_into (replayer *r)
+{
+  m_function->playback_function ()->set_personality_function (m_personality_function->playback_function ());
+}
+
 /* The implementation of class gcc::jit::recording::eval.  */
 
 /* Implementation of pure virtual hook recording::memento::replay_into
@@ -7090,7 +7118,8 @@ recording::try_catch::replay_into (replayer *r)
   playback_block (get_block ())
     ->add_try_catch (playback_location (r),
         m_try_block->playback_block (),
-        m_catch_block->playback_block ());
+        m_catch_block->playback_block (),
+        m_is_finally);
 }
 
 /* Implementation of recording::memento::make_debug_string for
@@ -7099,6 +7128,7 @@ recording::try_catch::replay_into (replayer *r)
 recording::string *
 recording::try_catch::make_debug_string ()
 {
+    // TODO: handle m_is_finally.
   return string::from_printf (m_ctxt,
                   "try { %s } catch { %s };",
                   m_try_block->get_debug_string (),
@@ -7111,6 +7141,7 @@ recording::try_catch::make_debug_string ()
 void
 recording::try_catch::write_reproducer (reproducer &r)
 {
+    // TODO: handle m_is_finally.
   r.write ("  gcc_jit_block_add_try_catch (%s, /*gcc_jit_block *block */\n"
        "                                 %s, /* gcc_jit_location *loc */\n"
        "                                 %s, /* gcc_jit_block *try_block */\n"

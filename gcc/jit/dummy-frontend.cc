@@ -611,6 +611,10 @@ jit_langhook_init (void)
   target_builtins.empty ();
   build_common_builtin_nodes ();
 
+  /* Initialize EH, if we've been told to do so.  */
+  if (flag_exceptions)
+    using_eh_for_cleanups ();
+
   /* The default precision for floating point numbers.  This is used
      for floating point constants with abstract type.  This may
      eventually be controllable by a command line option.  */

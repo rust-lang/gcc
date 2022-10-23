@@ -2967,6 +2967,34 @@ gcc_jit_block_add_try_catch (gcc_jit_block *block,
 }
 
 /* Public entrypoint.  See description in libgccjit.h.
+   After error-checking, the real work is done by the
+   gcc::jit::recording::block::add_try_catch method in jit-recording.c.  */
+
+void
+gcc_jit_block_add_try_finally (gcc_jit_block *block,
+			     gcc_jit_location *loc,
+			     gcc_jit_block *try_block,
+			     gcc_jit_block *finally_block)
+{
+  RETURN_IF_NOT_VALID_BLOCK (block, loc);
+  gcc::jit::recording::context *ctxt = block->get_context ();
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  /* LOC can be NULL.  */
+  RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
+  RETURN_IF_FAIL (finally_block, ctxt, loc, "NULL rvalue");
+
+  gcc::jit::recording::statement *stmt = block->add_try_catch (loc, try_block, finally_block, true);
+
+  /* "stmt" should be good enough to be usable in error-messages,
+     but might still not be compilable; perform some more
+     error-checking here.  We do this here so that the error messages
+     can contain a stringified version of "stmt", whilst appearing
+     as close as possible to the point of failure.  */
+  /*try_block->verify_valid_within_stmt (__func__, stmt);
+  catch_block->verify_valid_within_stmt (__func__, stmt);*/
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
    gcc::jit::recording::block::add_assignment method in
