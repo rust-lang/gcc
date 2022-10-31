@@ -56,17 +56,32 @@ static char test[1024];
   do {                                       \
     if ((ACTUAL) == (EXPECTED))              \
       {                                      \
-	pass ("%s: %s: actual: %s == expected: %s", \
-	      test, __func__, #ACTUAL, #EXPECTED);  \
+  pass ("%s: %s: actual: %s == expected: %s", \
+        test, __func__, #ACTUAL, #EXPECTED);  \
       }                                      \
     else                                     \
       {                                        \
-	fail ("%s: %s: actual: %s != expected: %s", \
-	      test, __func__, #ACTUAL, #EXPECTED);  \
-	fprintf (stderr, "incorrect value\n"); \
-	abort ();                              \
+  fail ("%s: %s: actual: %s != expected: %s", \
+        test, __func__, #ACTUAL, #EXPECTED);  \
+  fprintf (stderr, "incorrect value\n"); \
+  abort ();                              \
     }                                        \
   } while (0)
+
+#define CHECK_VECTOR_VALUE(LEN, ACTUAL, EXPECTED) \
+  do {                                       \
+    for (int __check_vector_it = 0; __check_vector_it < LEN; ++__check_vector_it) { \
+      if ((ACTUAL)[__check_vector_it] != (EXPECTED)[__check_vector_it]) { \
+          fail ("%s: %s: actual: %s != expected: %s (position %d)", \
+              test, __func__, #ACTUAL, #EXPECTED, __check_vector_it);  \
+        fprintf (stderr, "incorrect value\n"); \
+        abort ();                              \
+      } \
+    } \
+  pass ("%s: %s: actual: %s == expected: %s", \
+        test, __func__, #ACTUAL, #EXPECTED);  \
+  } while (0)
+
 
 #define CHECK_DOUBLE_VALUE(ACTUAL, EXPECTED) \
   do {                                       \
