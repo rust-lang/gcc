@@ -1683,7 +1683,24 @@ public:
     m_op (op),
     m_a (a),
     m_b (b)
-  {}
+  {
+    type *a_type = a->get_type ();
+    vector_type *vec_type = a_type->dyn_cast_vector_type ();
+    if (vec_type != NULL)
+    {
+      type *element_type = vec_type->get_element_type ();
+      type *inner_type;
+      if (element_type == ctxt->get_type (GCC_JIT_TYPE_FLOAT))
+        /* TODO: choose correct int type by size instead.  */
+        inner_type = ctxt->get_type (GCC_JIT_TYPE_INT);
+      else if (element_type == ctxt->get_type (GCC_JIT_TYPE_DOUBLE))
+        inner_type = ctxt->get_type (GCC_JIT_TYPE_LONG);
+      else
+        inner_type = element_type;
+      m_type = new vector_type (inner_type, vec_type->get_num_units ());
+      ctxt->record (m_type);
+    }
+  }
 
   void replay_into (replayer *r) final override;
 
