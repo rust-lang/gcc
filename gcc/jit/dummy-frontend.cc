@@ -789,6 +789,10 @@ recording::type* tree_type_to_jit_type (tree type)
   {
     return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_LONG_DOUBLE);
   }
+  else if (type == bfloat16_type_node)
+  {
+    return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_VOID); // FIXME: wrong type.
+  }
   else if (type == dfloat128_type_node)
   {
     return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_VOID); // FIXME: wrong type.
@@ -819,6 +823,8 @@ recording::type* tree_type_to_jit_type (tree type)
     {
       if (TYPE_QUALS (tp) == 0)
       {
+        // FIXME: this is extremely error-prone. This can lead to an infinite recursion if a condition is missing
+        // above.
         recording::type* result = tree_type_to_jit_type (tp);
         if (result != NULL)
         {
