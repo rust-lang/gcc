@@ -2076,6 +2076,9 @@ gcc_jit_type_set_packed (gcc_jit_type *type);
 /* Function attributes.  */
 enum gcc_jit_fn_attribute
 {
+  GCC_JIT_FN_ATTRIBUTE_ALWAYS_INLINE,
+  GCC_JIT_FN_ATTRIBUTE_INLINE,
+  GCC_JIT_FN_ATTRIBUTE_NOINLINE,
   GCC_JIT_FN_ATTRIBUTE_TARGET,
   GCC_JIT_FN_ATTRIBUTE_USED,
   GCC_JIT_FN_ATTRIBUTE_VISIBILITY,

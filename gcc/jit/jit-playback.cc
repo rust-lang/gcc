@@ -514,6 +514,12 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
 {
   switch (attr)
   {
+    case GCC_JIT_FN_ATTRIBUTE_ALWAYS_INLINE:
+      return "always_inline";
+    case GCC_JIT_FN_ATTRIBUTE_INLINE:
+      return NULL;
+    case GCC_JIT_FN_ATTRIBUTE_NOINLINE:
+      return "noinline";
     case GCC_JIT_FN_ATTRIBUTE_TARGET:
       return "target";
     case GCC_JIT_FN_ATTRIBUTE_USED:
@@ -643,17 +649,29 @@ new_function (location *loc,
 
   for (auto attr: attributes)
   {
-    tree ident = get_identifier (fn_attribute_to_string (attr));
-
+    if (attr == GCC_JIT_FN_ATTRIBUTE_ALWAYS_INLINE)
+    {
+      DECL_DECLARED_INLINE_P (fndecl) = 1;
+      DECL_DISREGARD_INLINE_LIMITS (fndecl) = 1;
+    }
+    else if (attr == GCC_JIT_FN_ATTRIBUTE_INLINE)
+      DECL_DECLARED_INLINE_P (fndecl) = 1;
+    else if (attr == GCC_JIT_FN_ATTRIBUTE_NOINLINE)
+      DECL_UNINLINABLE (fndecl) = 1;
     /* See handle_used_attribute in gcc/c-family/c-attribs.cc.  */
-    if (attr == GCC_JIT_FN_ATTRIBUTE_USED)
+    else if (attr == GCC_JIT_FN_ATTRIBUTE_USED)
     {
       TREE_USED (fndecl) = 1;
       DECL_PRESERVE_P (fndecl) = 1;
     }
 
-    DECL_ATTRIBUTES (fndecl) =
-      tree_cons (ident, NULL_TREE, DECL_ATTRIBUTES (fndecl));
+    const char* attribute = fn_attribute_to_string (attr);
+    if (attribute)
+    {
+      tree ident = get_identifier (attribute);
+      DECL_ATTRIBUTES (fndecl) =
+	tree_cons (ident, NULL_TREE, DECL_ATTRIBUTES (fndecl));
+    }
   }
 
   for (auto attr: string_attributes)
@@ -661,16 +679,18 @@ new_function (location *loc,
     gcc_jit_fn_attribute& name = std::get<0>(attr);
     std::string& value = std::get<1>(attr);
     tree attribute_value = build_tree_list (NULL_TREE, ::build_string (value.length () + 1, value.c_str ()));
-    tree ident = get_identifier (fn_attribute_to_string (name));
+    const char* attribute = fn_attribute_to_string (name);
+    tree ident = attribute ? get_identifier (attribute) : NULL;
 
     /* See handle_target_attribute in gcc/c-family/c-attribs.cc.  */
     if (name == GCC_JIT_FN_ATTRIBUTE_TARGET)
       /* We need to call valid_attribute_p so that the hook set-up some internal options.  */
-      if (!targetm.target_option.valid_attribute_p (fndecl, ident, attribute_value, 0))
+      if (!ident || !targetm.target_option.valid_attribute_p (fndecl, ident, attribute_value, 0))
         continue;
 
-    DECL_ATTRIBUTES (fndecl) =
-      tree_cons (ident, attribute_value, DECL_ATTRIBUTES (fndecl));
+    if (ident)
+      DECL_ATTRIBUTES (fndecl) =
+	tree_cons (ident, attribute_value, DECL_ATTRIBUTES (fndecl));
   }
 
   function *func = new function (this, fndecl, kind);
