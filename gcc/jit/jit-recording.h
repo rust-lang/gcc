@@ -714,6 +714,7 @@ public:
 
   size_t get_size () final override { return m_other_type->get_size (); };
 
+  // FIXME: this is wrong. A vector is not an int.
   bool is_int () const final override { return m_other_type->is_int (); }
   bool is_float () const final override { return m_other_type->is_float (); }
   bool is_bool () const final override { return m_other_type->is_bool (); }
