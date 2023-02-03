@@ -4737,6 +4737,9 @@ recording::block::add_try_catch (location *loc,
   // TODO: explain why we set the blocks reachable state.
   try_block->m_is_reachable = true;
   catch_block->m_is_reachable = true;
+  /* The finally block can fallthrough, so we don't require the user to terminate it.  */
+  if (is_finally)
+    catch_block->m_has_been_terminated = true;
   m_ctxt->record (result);
   m_statements.safe_push (result);
   return result;

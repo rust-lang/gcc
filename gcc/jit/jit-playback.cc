@@ -2219,14 +2219,14 @@ add_try_catch (location *loc,
   }
 
   tree try_body = alloc_stmt_list ();
-  int i;
+  unsigned int i;
   tree stmt;
   FOR_EACH_VEC_ELT (try_block->m_stmts, i, stmt) {
     append_to_statement_list (stmt, &try_body);
   }
 
   tree catch_body = alloc_stmt_list ();
-  int j;
+  unsigned int j;
   tree catch_stmt;
   FOR_EACH_VEC_ELT (catch_block->m_stmts, j, catch_stmt) {
     append_to_statement_list (catch_stmt, &catch_body);
