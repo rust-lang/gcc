@@ -122,7 +122,8 @@ public:
 					    std::string>> &string_attributes,
 		const std::vector<std::pair<gcc_jit_fn_attribute,
 					    std::vector<int>>>
-					    &int_array_attributes);
+					    &int_array_attributes,
+		int is_target_builtin);
 
   lvalue *
   new_global (location *loc,
@@ -180,6 +181,12 @@ public:
 			  const auto_vec<rvalue *> &elements);
 
   rvalue *
+  new_rvalue_vector_perm (location *loc,
+			  rvalue* elements1,
+			  rvalue* elements2,
+			  rvalue* mask);
+
+  rvalue *
   new_unary_op (location *loc,
 		enum gcc_jit_unary_op op,
 		type *result_type,
@@ -227,6 +234,11 @@ public:
   convert_vector (location *loc,
 		  rvalue *vector,
 		  type *type);
+
+  lvalue *
+  new_vector_access (location *loc,
+		     rvalue *vector,
+		     rvalue *index);
 
   void
   set_str_option (enum gcc_jit_str_option opt,
@@ -869,5 +881,7 @@ extern playback::context *active_playback_ctxt;
 } // namespace gcc::jit
 
 } // namespace gcc
+
+extern hash_map<nofree_string_hash, tree> target_builtins;
 
 #endif /* JIT_PLAYBACK_H */
