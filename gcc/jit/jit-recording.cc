@@ -841,7 +841,7 @@ recording::context::get_int_type (int num_bytes, int is_signed)
 recording::type *
 recording::context::new_array_type (recording::location *loc,
 				    recording::type *element_type,
-				    int num_elements)
+				    unsigned long num_elements)
 {
   if (struct_ *s = element_type->dyn_cast_struct ())
     if (!s->get_fields ())
@@ -3260,7 +3260,7 @@ recording::string *
 recording::array_type::make_debug_string ()
 {
   return string::from_printf (m_ctxt,
-			      "%s[%d]",
+			      "%s[%ld]",
 			      m_element_type->get_debug_string (),
 			      m_num_elements);
 }
@@ -3276,7 +3276,7 @@ recording::array_type::write_reproducer (reproducer &r)
 	   "    gcc_jit_context_new_array_type (%s,\n"
 	   "                                    %s, /* gcc_jit_location *loc */\n"
 	   "                                    %s, /* gcc_jit_type *element_type */\n"
-	   "                                    %i); /* int num_elements */\n",
+	   "                                    %li); /* int num_elements */\n",
 	   id,
 	   r.get_identifier (get_context ()),
 	   r.get_identifier (m_loc),
