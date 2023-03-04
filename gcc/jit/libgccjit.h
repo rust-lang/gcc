@@ -671,7 +671,7 @@ extern gcc_jit_type *
 gcc_jit_context_new_array_type (gcc_jit_context *ctxt,
 				gcc_jit_location *loc,
 				gcc_jit_type *element_type,
-				int num_elements);
+				unsigned long num_elements);
 
 /* Struct-handling.  */
 
