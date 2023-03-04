@@ -83,7 +83,7 @@ public:
   type *
   new_array_type (location *loc,
 		  type *element_type,
-		  int num_elements);
+		  unsigned long num_elements);
 
   field *
   new_field (location *loc,

@@ -343,7 +343,7 @@ playback::type *
 playback::context::
 new_array_type (playback::location *loc,
 		playback::type *element_type,
-		int num_elements)
+		unsigned long num_elements)
 {
   gcc_assert (element_type);
 
