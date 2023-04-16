@@ -5029,10 +5029,9 @@ pass_cleanup_eh::execute (function *fun)
   /* If the function no longer needs an EH personality routine
      clear it.  This exposes cross-language inlining opportunities
      and avoids references to a never defined personality routine.  */
-  // TODO: uncomment and find out why this doesn't work.
-  /*if (DECL_FUNCTION_PERSONALITY (current_function_decl)
+  if (DECL_FUNCTION_PERSONALITY (current_function_decl)
       && function_needs_eh_personality (fun) != eh_personality_lang)
-    DECL_FUNCTION_PERSONALITY (current_function_decl) = NULL_TREE;*/
+    DECL_FUNCTION_PERSONALITY (current_function_decl) = NULL_TREE;
 
   return ret;
 }
