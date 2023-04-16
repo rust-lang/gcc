@@ -245,6 +245,20 @@ static const scoped_attribute_specs *const jit_attribute_table[] =
   &jit_format_attribute_table
 };
 
+char* jit_personality_func_name = NULL;
+static tree personality_decl;
+
+/* FIXME: This is a hack to preserve trees that we create from the
+   garbage collector.  */
+
+static GTY (()) tree jit_gc_root;
+
+void
+jit_preserve_from_gc (tree t)
+{
+  jit_gc_root = tree_cons (NULL_TREE, t, jit_gc_root);
+}
+
 /* Attribute handlers.  */
 
 /* Handle a "noreturn" attribute; arguments as in
@@ -1072,6 +1086,8 @@ jit_end_diagnostic (diagnostics::text_sink &,
 static bool
 jit_langhook_init (void)
 {
+  jit_gc_root = NULL_TREE;
+  personality_decl = NULL_TREE;
   gcc_assert (gcc::jit::active_playback_ctxt);
   JIT_LOG_SCOPE (gcc::jit::active_playback_ctxt->get_logger ());
 
@@ -1444,6 +1460,25 @@ jit_langhook_getdecls (void)
 {
   return NULL;
 }
+
+static tree
+jit_langhook_eh_personality (void)
+{
+  if (personality_decl == NULL_TREE)
+  {
+    if (jit_personality_func_name != NULL) {
+      personality_decl = build_personality_function_with_name (jit_personality_func_name);
+      jit_preserve_from_gc(personality_decl);
+    }
+    else {
+      return lhd_gcc_personality();
+    }
+  }
+  return personality_decl;
+}
+
+#undef LANG_HOOKS_EH_PERSONALITY
+#define LANG_HOOKS_EH_PERSONALITY jit_langhook_eh_personality
 
 #undef LANG_HOOKS_NAME
 #define LANG_HOOKS_NAME		"libgccjit"

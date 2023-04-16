@@ -3882,6 +3882,13 @@ gcc_jit_function_set_personality_function (gcc_jit_function *fn,
   fn->set_personality_function (personality_func);
 }
 
+extern char* jit_personality_func_name;
+
+void
+gcc_jit_set_global_personality_function_name (char* name) {
+  jit_personality_func_name = name;
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    The real work is done by the
