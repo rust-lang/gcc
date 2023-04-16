@@ -14288,6 +14288,7 @@ const_vector_from_tree (tree exp)
 tree
 build_personality_function (const char *lang)
 {
+  // TODO: rewrite by calling build_personality_function_with_name.
   const char *unwind_and_version;
   tree decl, type;
   char *name;
@@ -14311,6 +14312,28 @@ build_personality_function (const char *lang)
     }
 
   name = ACONCAT (("__", lang, "_personality", unwind_and_version, NULL));
+
+  type = build_function_type_list (unsigned_type_node,
+				   integer_type_node, integer_type_node,
+				   long_long_unsigned_type_node,
+				   ptr_type_node, ptr_type_node, NULL_TREE);
+  decl = build_decl (UNKNOWN_LOCATION, FUNCTION_DECL,
+		     get_identifier (name), type);
+  DECL_ARTIFICIAL (decl) = 1;
+  DECL_EXTERNAL (decl) = 1;
+  TREE_PUBLIC (decl) = 1;
+
+  /* Zap the nonsensical SYMBOL_REF_DECL for this.  What we're left with
+     are the flags assigned by targetm.encode_section_info.  */
+  SET_SYMBOL_REF_DECL (XEXP (DECL_RTL (decl), 0), NULL);
+
+  return decl;
+}
+
+tree
+build_personality_function_with_name (const char *name)
+{
+  tree decl, type;
 
   type = build_function_type_list (unsigned_type_node,
 				   integer_type_node, integer_type_node,
