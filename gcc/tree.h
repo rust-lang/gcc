@@ -6479,6 +6479,7 @@ extern tree get_inner_reference (tree, poly_int64_pod *, poly_int64_pod *,
 				 tree *, machine_mode *, int *, int *, int *);
 
 extern tree build_personality_function (const char *);
+extern tree build_personality_function_with_name (const char *);
 
 struct GTY(()) int_n_trees_t {
   /* These parts are initialized at runtime */
