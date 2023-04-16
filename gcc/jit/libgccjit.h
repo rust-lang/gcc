@@ -1954,6 +1954,8 @@ void
 gcc_jit_function_set_personality_function (gcc_jit_function *fn,
                                            gcc_jit_function *personality_func);
 
+extern void
+gcc_jit_set_global_personality_function_name (char* name);
 
 #define LIBGCCJIT_HAVE_gcc_jit_context_new_rvalue_from_vector
 
