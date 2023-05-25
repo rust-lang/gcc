@@ -75,6 +75,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "symbol-summary.h"
 #include "tree-vrp.h"
 #include "ipa-prop.h"
+#include "ipa-utils.h"
 #include "gcse.h"
 #include "omp-offload.h"
 #include "edit-context.h"
@@ -1079,11 +1080,14 @@ general_init (const char *argv0, bool init_signals)
   init_ggc ();
   init_stringpool ();
   input_location = UNKNOWN_LOCATION;
-  line_table = ggc_alloc<line_maps> ();
-  linemap_init (line_table, BUILTINS_LOCATION);
-  line_table->reallocator = realloc_for_line_map;
-  line_table->round_alloc_size = ggc_round_alloc_size;
-  line_table->default_range_bits = 5;
+  if (!line_table)
+  {
+    line_table = ggc_alloc<line_maps> ();
+    linemap_init (line_table, BUILTINS_LOCATION);
+    line_table->reallocator = realloc_for_line_map;
+    line_table->round_alloc_size = ggc_round_alloc_size;
+    line_table->default_range_bits = 5;
+  }
   init_ttree ();
 
   /* Initialize register usage now so switches may override.  */
@@ -2327,7 +2331,11 @@ toplev::finalize (void)
   ipa_fnsummary_cc_finalize ();
   ipa_modref_cc_finalize ();
   ipa_edge_modifications_finalize ();
+  ipa_icf_cc_finalize ();
 
+  ipa_prop_cc_finalize ();
+  ipa_profile_cc_finalize ();
+  ipa_sra_cc_finalize ();
   cgraph_cc_finalize ();
   cgraphunit_cc_finalize ();
   symtab_thunks_cc_finalize ();

@@ -4986,4 +4986,6 @@ void
 ipa_fnsummary_cc_finalize (void)
 {
   ipa_free_fn_summary ();
+  // TODO: this commit contains many fixes that don't necessarily help fixing the bug in the GC. Remove those fixes.
+  ipa_free_size_summary ();
 }
