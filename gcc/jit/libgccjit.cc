@@ -29,6 +29,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "libgccjit.h"
 #include "jit-recording.h"
 #include "jit-result.h"
+#include "jit-target.h"
 
 /* The opaque types used by the public API are actually subclasses
    of the gcc::jit::recording classes.  */
@@ -41,6 +42,10 @@ struct gcc_jit_context : public gcc::jit::recording::context
 };
 
 struct gcc_jit_result : public gcc::jit::result
+{
+};
+
+struct gcc_jit_target_info : public target_info
 {
 };
 
@@ -3898,6 +3903,44 @@ gcc_jit_context_compile_to_file (gcc_jit_context *ctxt,
   ctxt->compile_to_file (output_kind, output_path);
 }
 
+gcc_jit_target_info *
+gcc_jit_context_get_target_info (gcc_jit_context *ctxt)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+
+  ctxt->log ("get_target_info of ctxt: %p", (void *)ctxt);
+
+  ctxt->get_target_info ();
+
+  return (gcc_jit_target_info*) jit_get_target_info ();
+}
+
+void
+gcc_jit_target_info_release (gcc_jit_target_info *info)
+{
+  RETURN_IF_FAIL (info, NULL, NULL, "NULL info");
+  delete info;
+}
+
+int
+gcc_jit_target_info_cpu_supports (gcc_jit_target_info *info,
+				  const char *feature)
+{
+  return info->has_target_value ("target_feature", feature);
+}
+
+const char *
+gcc_jit_target_info_arch (gcc_jit_target_info *info)
+{
+  return info->m_arch.c_str ();
+}
+
+int
+gcc_jit_target_info_supports_128bit_int (gcc_jit_target_info *info)
+{
+  return info->m_supports_128bit_int;
+}
 
 /* Public entrypoint.  See description in libgccjit.h.
 

@@ -27,3 +27,7 @@ linux-d.o: $(srcdir)/config/linux-d.cc
 linux-rust.o: $(srcdir)/config/linux-rust.cc
 	  $(COMPILE) $<
 	  $(POSTCOMPILE)
+
+linux-jit.o: $(srcdir)/config/linux-jit.cc
+	  $(COMPILE) $<
+	  $(POSTCOMPILE)
