@@ -574,6 +574,8 @@ tm_p_file_list=@tm_p_file_list@
 tm_p_include_list=@tm_p_include_list@
 tm_d_file_list=@tm_d_file_list@
 tm_d_include_list=@tm_d_include_list@
+tm_jit_file_list=@tm_jit_file_list@
+tm_jit_include_list=@tm_jit_include_list@
 build_xm_file_list=@build_xm_file_list@
 build_xm_include_list=@build_xm_include_list@
 build_xm_defines=@build_xm_defines@
@@ -868,6 +870,7 @@ CONFIG_H  = config.h  $(host_xm_file_list)
 TCONFIG_H = tconfig.h $(xm_file_list)
 TM_P_H    = tm_p.h    $(tm_p_file_list)
 TM_D_H    = tm_d.h    $(tm_d_file_list)
+TM_JIT_H  = tm_jit.h    $(tm_jit_file_list)
 GTM_H     = tm.h      $(tm_file_list) insn-constants.h
 TM_H      = $(GTM_H) insn-flags.h $(OPTIONS_H)
 
@@ -926,10 +929,12 @@ TARGET_DEF = target.def target-hooks-macros.h target-insns.def
 C_TARGET_DEF = c-family/c-target.def target-hooks-macros.h
 COMMON_TARGET_DEF = common/common-target.def target-hooks-macros.h
 D_TARGET_DEF = d/d-target.def target-hooks-macros.h
+JIT_TARGET_DEF = jit/jit-target.def target-hooks-macros.h
 TARGET_H = $(TM_H) target.h $(TARGET_DEF) insn-modes.h insn-codes.h
 C_TARGET_H = c-family/c-target.h $(C_TARGET_DEF)
 COMMON_TARGET_H = common/common-target.h $(INPUT_H) $(COMMON_TARGET_DEF)
 D_TARGET_H = d/d-target.h $(D_TARGET_DEF)
+JIT_TARGET_H = jit/jit-target.h $(JIT_TARGET_DEF)
 MACHMODE_H = machmode.h mode-classes.def
 HOOKS_H = hooks.h
 HOSTHOOKS_DEF_H = hosthooks-def.h $(HOOKS_H)
@@ -1229,6 +1234,9 @@ CXX_TARGET_OBJS=@cxx_target_objs@
 
 # Target specific, D specific object file
 D_TARGET_OBJS=@d_target_objs@
+
+# Target specific, JIT specific object file
+JIT_TARGET_OBJS=@jit_target_objs@
 
 # Target specific, Fortran specific object file
 FORTRAN_TARGET_OBJS=@fortran_target_objs@
@@ -1947,6 +1955,7 @@ tconfig.h: cs-tconfig.h ; @true
 tm.h: cs-tm.h ; @true
 tm_p.h: cs-tm_p.h ; @true
 tm_d.h: cs-tm_d.h ; @true
+tm_jit.h: cs-tm_jit.h ; @true
 
 cs-config.h: Makefile
 	TARGET_CPU_DEFAULT="" \
@@ -1977,6 +1986,11 @@ cs-tm_d.h: Makefile
 	TARGET_CPU_DEFAULT="" \
 	HEADERS="$(tm_d_include_list)" DEFINES="" \
 	$(SHELL) $(srcdir)/mkconfig.sh tm_d.h
+
+cs-tm_jit.h: Makefile
+	TARGET_CPU_DEFAULT="" \
+	HEADERS="$(tm_jit_include_list)" DEFINES="" \
+	$(SHELL) $(srcdir)/mkconfig.sh tm_jit.h
 
 # Don't automatically run autoconf, since configure.ac might be accidentally
 # newer than configure.  Also, this writes into the source directory which
@@ -2619,6 +2633,15 @@ s-d-target-hooks-def-h: build/genhooks$(build_exeext)
 					     d/d-target-hooks-def.h
 	$(STAMP) s-d-target-hooks-def-h
 
+jit/jit-target-hooks-def.h: s-jit-target-hooks-def-h; @true
+
+s-jit-target-hooks-def-h: build/genhooks$(build_exeext)
+	$(RUN_GEN) build/genhooks$(build_exeext) "JIT Target Hook" \
+					     > tmp-jit-target-hooks-def.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-jit-target-hooks-def.h \
+					     jit/jit-target-hooks-def.h
+	$(STAMP) s-jit-target-hooks-def-h
+
 # check if someone mistakenly only changed tm.texi.
 # We use a different pathname here to avoid a circular dependency.
 s-tm-texi: $(srcdir)/doc/../doc/tm.texi
@@ -2794,7 +2817,7 @@ s-gtype: $(EXTRA_GTYPE_DEPS) build/gengtype$(build_exeext) \
                     -r gtype.state
 	$(STAMP) s-gtype
 
-generated_files = config.h tm.h $(TM_P_H) $(TM_D_H) $(TM_H) multilib.h \
+generated_files = config.h tm.h $(TM_P_H) $(TM_D_H) $(TM_JIT_H) $(TM_H) multilib.h \
        $(simple_generated_h) specs.h \
        tree-check.h genrtl.h insn-modes.h insn-modes-inline.h \
        tm-preds.h tm-constrs.h \
@@ -2803,7 +2826,7 @@ generated_files = config.h tm.h $(TM_P_H) $(TM_D_H) $(TM_H) multilib.h \
        common/common-target-hooks-def.h pass-instances.def \
        gimple-match.cc generic-match.cc \
        c-family/c-target-hooks-def.h d/d-target-hooks-def.h \
-       case-cfn-macros.h \
+       jit/jit-target-hooks-def.h case-cfn-macros.h \
        cfn-operators.pd omp-device-properties.h
 
 #
@@ -2937,7 +2960,7 @@ build/genrecog.o : genrecog.cc $(RTL_BASE_H) $(BCONFIG_H) $(SYSTEM_H)	\
   $(CORETYPES_H) $(GTM_H) errors.h $(READ_MD_H) $(GENSUPPORT_H)		\
   $(HASH_TABLE_H) inchash.h
 build/genhooks.o : genhooks.cc $(TARGET_DEF) $(C_TARGET_DEF)		\
-  $(COMMON_TARGET_DEF) $(D_TARGET_DEF) $(BCONFIG_H) $(SYSTEM_H) errors.h
+  $(COMMON_TARGET_DEF) $(D_TARGET_DEF) $(JIT_TARGET_DEF) $(BCONFIG_H) $(SYSTEM_H) errors.h
 build/genmddump.o : genmddump.cc $(RTL_BASE_H) $(BCONFIG_H) $(SYSTEM_H)	\
   $(CORETYPES_H) $(GTM_H) errors.h $(READ_MD_H) $(GENSUPPORT_H)
 build/genmatch.o : genmatch.cc $(BCONFIG_H) $(SYSTEM_H) \
