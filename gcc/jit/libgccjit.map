@@ -320,7 +320,6 @@ LIBGCCJIT_ABI_33 {
     gcc_jit_block_add_try_catch;
     gcc_jit_block_add_try_finally;
     gcc_jit_function_set_personality_function;
-    gcc_jit_set_global_personality_function_name;
 } LIBGCCJIT_ABI_32;
 
 LIBGCCJIT_ABI_34 {
@@ -329,3 +328,17 @@ LIBGCCJIT_ABI_34 {
     gcc_jit_context_new_rvalue_vector_perm;
     gcc_jit_context_new_vector_access;
 } LIBGCCJIT_ABI_33;
+
+LIBGCCJIT_ABI_35 {
+  global:
+    gcc_jit_set_global_personality_function_name;
+} LIBGCCJIT_ABI_34;
+
+LIBGCCJIT_ABI_36 {
+  global:
+    gcc_jit_context_get_target_info;
+    gcc_jit_target_info_release;
+    gcc_jit_target_info_cpu_supports;
+    gcc_jit_target_info_arch;
+    gcc_jit_target_info_supports_target_dependent_type;
+} LIBGCCJIT_ABI_35;
