@@ -323,6 +323,9 @@ public:
 		   const char *output_path);
 
   void
+  get_target_info ();
+
+  void
   add_error (location *loc, const char *fmt, ...)
       GNU_PRINTF(3, 4);
 
