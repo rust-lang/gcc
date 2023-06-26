@@ -1650,6 +1650,25 @@ recording::context::compile_to_file (enum gcc_jit_output_kind output_kind,
   replayer.compile ();
 }
 
+void
+recording::context::get_target_info ()
+{
+  JIT_LOG_SCOPE (get_logger ());
+
+  log_all_options ();
+
+  if (errors_occurred ())
+    return;
+
+  add_driver_option ("-fsyntax-only");
+
+  /* Set up a get_target_info playback context.  */
+  ::gcc::jit::playback::get_target_info replayer (this);
+
+  /* Use it.  */
+  replayer.compile ();
+}
+
 /* Format the given error using printf's conventions, print
    it to stderr, and add it to the context.  */
 

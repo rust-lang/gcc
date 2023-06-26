@@ -54,9 +54,10 @@ set_variable_string_attribute (
 
 /* playback::context is an abstract base class.
 
-   The two concrete subclasses are:
+   The three concrete subclasses are:
    - playback::compile_to_memory
-   - playback::compile_to_file.  */
+   - playback::compile_to_file.
+   - playback::get_target_info  */
 
 class context : public log_user
 {
@@ -455,6 +456,18 @@ class compile_to_file : public context
  private:
   enum gcc_jit_output_kind m_output_kind;
   const char *m_output_path;
+};
+
+class get_target_info : public context
+{
+ public:
+  get_target_info (recording::context *ctxt) : context (ctxt)
+  {
+  }
+
+  void postprocess (const char *) final override
+  {
+  }
 };
 
 
