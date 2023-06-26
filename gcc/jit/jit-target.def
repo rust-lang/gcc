@@ -1,0 +1,70 @@
+/* jit-target.def -- Target hook definitions for the jit front end.
+   Copyright (C) 2023 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the
+   Free Software Foundation; either version 3, or (at your option) any
+   later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; see the file COPYING3.  If not see
+   <http://www.gnu.org/licenses/>.  */
+
+/* See target-hooks-macros.h for details of macros that should be
+   provided by the including file, and how to use them here.  */
+
+#include "target-hooks-macros.h"
+
+#undef HOOK_TYPE
+#define HOOK_TYPE "JIT Target Hook"
+
+HOOK_VECTOR (TARGETJITM_INITIALIZER, gcc_targetjitm)
+
+#undef HOOK_PREFIX
+#define HOOK_PREFIX "TARGET_"
+
+/* Environmental version identifiers relating to the target CPU.  */
+DEFHOOK
+(jit_cpu_versions,
+ "Declare all environmental version identifiers relating to the target CPU\n\
+using the function @code{builtin_version}, which takes a string representing\n\
+the name of the version.  Version identifiers predefined by this hook apply\n\
+to all modules that are being compiled and imported.",
+ void, (void),
+ hook_void_void)
+
+/* Environmental version identifiers relating to the target OS.  */
+DEFHOOK
+(jit_os_versions,
+ "Similarly to @code{TARGET_JIT_CPU_VERSIONS}, but is used for versions\n\
+relating to the target operating system.",
+ void, (void),
+ hook_void_void)
+
+/* getTargetInfo keys relating to the target CPU.  */
+DEFHOOK
+(jit_register_cpu_target_info,
+ "Register all target information keys relating to the target CPU using the\n\
+function @code{jit_add_target_info_handlers}, which takes a\n\
+@samp{struct jit_target_info_spec} (defined in @file{jit/jit-target.h}).  The keys\n\
+added by this hook are made available at compile time by the\n\
+@code{__traits(getTargetInfo)} extension, the result is an expression\n\
+describing the requested target information.",
+ void, (void),
+ hook_void_void)
+
+/* getTargetInfo keys relating to the target OS.  */
+DEFHOOK
+(jit_register_os_target_info,
+ "Same as @code{TARGET_JIT_CPU_TARGET_INFO}, but is used for keys relating to\n\
+the target operating system.",
+ void, (void),
+ hook_void_void)
+
+/* Close the 'struct gcc_targetdm' definition.  */
+HOOK_VECTOR_END (C90_EMPTY_HACK)

@@ -329,7 +329,16 @@ LIBGCCJIT_ABI_34 {
     gcc_jit_context_new_vector_access;
 } LIBGCCJIT_ABI_33;
 
-LIBGCCJIT_ABI_34 {
+LIBGCCJIT_ABI_35 {
   global:
     gcc_jit_set_global_personality_function_name;
 } LIBGCCJIT_ABI_34;
+
+LIBGCCJIT_ABI_36 {
+  global:
+    gcc_jit_context_get_target_info;
+    gcc_jit_target_info_release;
+    gcc_jit_target_info_cpu_supports;
+    gcc_jit_target_info_arch;
+    gcc_jit_target_info_supports_128bit_int;
+} LIBGCCJIT_ABI_35;
