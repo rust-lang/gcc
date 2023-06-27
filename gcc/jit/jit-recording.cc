@@ -2472,8 +2472,10 @@ recording::memento_of_get_type::get_size ()
     case GCC_JIT_TYPE_FLOAT:
       size = FLOAT_TYPE_SIZE;
       break;
+    #ifdef HAVE_BFmode
     case GCC_JIT_TYPE_BFLOAT16:
       return GET_MODE_UNIT_SIZE (BFmode);
+    #endif
     case GCC_JIT_TYPE_DOUBLE:
       size = DOUBLE_TYPE_SIZE;
       break;
