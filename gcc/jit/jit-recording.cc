@@ -2518,10 +2518,10 @@ recording::memento_of_get_type::get_size ()
       m = targetm.c.mode_for_floating_type (TI_FLOAT_TYPE);
       size = GET_MODE_PRECISION (m).to_constant ();
       break;
-#ifdef HAVE_BFmode
+    #ifdef HAVE_BFmode
     case GCC_JIT_TYPE_BFLOAT16:
       return GET_MODE_UNIT_SIZE (BFmode);
-#endif
+    #endif
     case GCC_JIT_TYPE_DOUBLE:
       m = targetm.c.mode_for_floating_type (TI_DOUBLE_TYPE);
       size = GET_MODE_PRECISION (m).to_constant ();
