@@ -526,6 +526,8 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
       return "used";
     case GCC_JIT_FN_ATTRIBUTE_VISIBILITY:
       return "visibility";
+    case GCC_JIT_FN_ATTRIBUTE_COLD:
+      return "cold";
   }
   return NULL;
 }
