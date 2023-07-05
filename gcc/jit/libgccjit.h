@@ -52,6 +52,9 @@ typedef struct gcc_jit_context gcc_jit_context;
 /* A gcc_jit_result encapsulates the result of an in-memory compilation.  */
 typedef struct gcc_jit_result gcc_jit_result;
 
+/* A gcc_jit_target_info encapsulates the target info.  */
+typedef struct gcc_jit_target_info gcc_jit_target_info;
+
 /* An object created within a context.  Such objects are automatically
    cleaned up when the context is released.
 
@@ -2070,6 +2073,22 @@ gcc_jit_vector_type_get_element_type (gcc_jit_vector_type *vector_type);
  * and alignment qualifiers.  */
 extern gcc_jit_type *
 gcc_jit_type_unqualified (gcc_jit_type *type);
+
+extern gcc_jit_target_info *
+gcc_jit_context_get_target_info (gcc_jit_context *ctxt);
+
+extern void
+gcc_jit_target_info_release (gcc_jit_target_info *info);
+
+extern bool
+gcc_jit_target_info_cpu_supports (gcc_jit_target_info *info,
+				  const char *feature);
+
+extern const char *
+gcc_jit_target_info_arch (gcc_jit_target_info *info);
+
+extern bool
+gcc_jit_target_info_supports_128bit_int (gcc_jit_target_info *info);
 
 /* Given type "T", get type "T __attribute__ ((packed))".  */
 extern void

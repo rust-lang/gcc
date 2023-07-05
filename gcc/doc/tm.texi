@@ -115,6 +115,14 @@ initialize @code{targetdm} themselves, they should set
 @code{target_has_targetdm=yes} in @file{config.gcc}; otherwise a default
 definition is used.
 
+Similarly, there is a @code{targetjitm} variable for hooks that are
+specific to the jit front end, documented as ``JIT Target Hook''.
+This is declared in @file{jit/jit-target.h}, the initializer
+@code{TARGETJITM_INITIALIZER} in @file{jit/jit-target-def.h}.  If targets
+initialize @code{targetjitm} themselves, they should set
+@code{target_has_targetjitm=yes} in @file{config.gcc}; otherwise a default
+definition is used.
+
 @node Driver
 @section Controlling the Compilation Driver, @file{gcc}
 @cindex driver
@@ -10901,6 +10909,36 @@ This flag is true if instantiated functions and variables are always COMDAT
 if they have external linkage.  If this flag is false, then instantiated
 decls will be emitted as weak symbols.  The default is @code{false}.
 @end deftypevr
+
+@node JIT Language and ABI
+@section JIT ABI parameters
+@cindex parameters, jit abi
+
+@deftypefn {JIT Target Hook} void TARGET_JIT_CPU_VERSIONS (void)
+Declare all environmental version identifiers relating to the target CPU
+using the function @code{builtin_version}, which takes a string representing
+the name of the version.  Version identifiers predefined by this hook apply
+to all modules that are being compiled and imported.
+@end deftypefn
+
+@deftypefn {JIT Target Hook} void TARGET_JIT_OS_VERSIONS (void)
+Similarly to @code{TARGET_JIT_CPU_VERSIONS}, but is used for versions
+relating to the target operating system.
+@end deftypefn
+
+@deftypefn {JIT Target Hook} void TARGET_JIT_REGISTER_CPU_TARGET_INFO (void)
+Register all target information keys relating to the target CPU using the
+function @code{jit_add_target_info_handlers}, which takes a
+@samp{struct jit_target_info_spec} (defined in @file{jit/jit-target.h}).  The keys
+added by this hook are made available at compile time by the
+@code{__traits(getTargetInfo)} extension, the result is an expression
+describing the requested target information.
+@end deftypefn
+
+@deftypefn {JIT Target Hook} void TARGET_JIT_REGISTER_OS_TARGET_INFO (void)
+Same as @code{TARGET_JIT_CPU_TARGET_INFO}, but is used for keys relating to
+the target operating system.
+@end deftypefn
 
 @node Named Address Spaces
 @section Adding support for named address spaces
