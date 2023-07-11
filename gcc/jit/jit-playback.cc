@@ -529,6 +529,8 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
       return "visibility";
     case GCC_JIT_FN_ATTRIBUTE_COLD:
       return "cold";
+    case GCC_JIT_FN_ATTRIBUTE_RETURNS_TWICE:
+      return "returns_twice";
   }
   return NULL;
 }
@@ -667,6 +669,9 @@ new_function (location *loc,
       TREE_USED (fndecl) = 1;
       DECL_PRESERVE_P (fndecl) = 1;
     }
+    /* See handle_returns_twice_attribute in gcc/c-family/c-attribs.cc. */
+    else if (attr == GCC_JIT_FN_ATTRIBUTE_RETURNS_TWICE)
+      DECL_IS_RETURNS_TWICE (fndecl) = 1;
 
     const char* attribute = fn_attribute_to_string (attr);
     if (attribute)
