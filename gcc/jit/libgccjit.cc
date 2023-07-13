@@ -3874,7 +3874,7 @@ gcc_jit_target_info_release (gcc_jit_target_info *info)
   delete info;
 }
 
-bool
+int
 gcc_jit_target_info_cpu_supports (gcc_jit_target_info *info,
 				  const char *feature)
 {
@@ -3887,7 +3887,7 @@ gcc_jit_target_info_arch (gcc_jit_target_info *info)
   return info->m_arch;
 }
 
-bool
+int
 gcc_jit_target_info_supports_128bit_int (gcc_jit_target_info *info)
 {
   return info->m_supports_128bit_int;
