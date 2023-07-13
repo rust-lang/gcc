@@ -2174,14 +2174,14 @@ gcc_jit_context_get_target_info (gcc_jit_context *ctxt);
 extern void
 gcc_jit_target_info_release (gcc_jit_target_info *info);
 
-extern bool
+extern int
 gcc_jit_target_info_cpu_supports (gcc_jit_target_info *info,
 				  const char *feature);
 
 extern const char *
 gcc_jit_target_info_arch (gcc_jit_target_info *info);
 
-extern bool
+extern int
 gcc_jit_target_info_supports_128bit_int (gcc_jit_target_info *info);
 
 /* Given type "T", get type "T __attribute__ ((packed))".  */
