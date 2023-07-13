@@ -672,6 +672,9 @@ new_function (location *loc,
     /* See handle_returns_twice_attribute in gcc/c-family/c-attribs.cc. */
     else if (attr == GCC_JIT_FN_ATTRIBUTE_RETURNS_TWICE)
       DECL_IS_RETURNS_TWICE (fndecl) = 1;
+    /* See handle_pure_attribute in gcc/c-family/c-attribs.cc. */
+    else if (attr == GCC_JIT_FN_ATTRIBUTE_PURE)
+      DECL_PURE_P (fndecl) = 1;
 
     const char* attribute = fn_attribute_to_string (attr);
     if (attribute)
