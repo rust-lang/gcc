@@ -2080,14 +2080,14 @@ gcc_jit_context_get_target_info (gcc_jit_context *ctxt);
 extern void
 gcc_jit_target_info_release (gcc_jit_target_info *info);
 
-extern bool
+extern int
 gcc_jit_target_info_cpu_supports (gcc_jit_target_info *info,
 				  const char *feature);
 
 extern const char *
 gcc_jit_target_info_arch (gcc_jit_target_info *info);
 
-extern bool
+extern int
 gcc_jit_target_info_supports_128bit_int (gcc_jit_target_info *info);
 
 /* Given type "T", get type "T __attribute__ ((packed))".  */
@@ -2105,6 +2105,7 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_VISIBILITY,
   GCC_JIT_FN_ATTRIBUTE_COLD,
   GCC_JIT_FN_ATTRIBUTE_RETURNS_TWICE,
+  GCC_JIT_FN_ATTRIBUTE_PURE,
 };
 
 /* Add an attribute to a function.  */
