@@ -5,7 +5,7 @@
 
 #include "libgccjit.h"
 
-/* We don't want set_options() in harness.h to set -O3 to see that the cold
+/* We don't want set_options() in harness.h to set -O3 to see that the pure
    attribute affects the optimizations. */
 #define TEST_ESCHEWS_SET_OPTIONS
 static void set_options (gcc_jit_context *ctxt, const char *argv0)

@@ -531,6 +531,8 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
       return "cold";
     case GCC_JIT_FN_ATTRIBUTE_RETURNS_TWICE:
       return "returns_twice";
+    case GCC_JIT_FN_ATTRIBUTE_PURE:
+      return "pure";
     case GCC_JIT_FN_ATTRIBUTE_CONST:
       return "const";
   }
