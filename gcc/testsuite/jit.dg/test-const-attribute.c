@@ -5,7 +5,7 @@
 
 #include "libgccjit.h"
 
-/* We don't want set_options() in harness.h to set -O3 to see that the pure
+/* We don't want set_options() in harness.h to set -O3 to see that the const
    attribute affects the optimizations. */
 #define TEST_ESCHEWS_SET_OPTIONS
 static void set_options (gcc_jit_context *ctxt, const char *argv0)
@@ -16,14 +16,14 @@ static void set_options (gcc_jit_context *ctxt, const char *argv0)
 
 #define TEST_COMPILING_TO_FILE
 #define OUTPUT_KIND      GCC_JIT_OUTPUT_KIND_ASSEMBLER
-#define OUTPUT_FILENAME  "output-of-test-pure-attribute.c.s"
+#define OUTPUT_FILENAME  "output-of-test-const-attribute.c.s"
 #include "harness.h"
 
 void
 create_code (gcc_jit_context *ctxt, void *user_data)
 {
   /* Let's try to inject the equivalent of:
-__attribute__ ((pure))
+__attribute__ ((const))
 int foo (int x);
 int xxx(void)
 {
@@ -49,7 +49,7 @@ int xxx(void)
           "foo",
           1, params,
           0);
-  gcc_jit_function_add_attribute(foo_func, GCC_JIT_FN_ATTRIBUTE_PURE);
+  gcc_jit_function_add_attribute(foo_func, GCC_JIT_FN_ATTRIBUTE_CONST);
 
   /* Creating the `xxx` function. */
   gcc_jit_function *xxx_func =
