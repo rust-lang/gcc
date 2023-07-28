@@ -6001,5 +6001,23 @@ ipcp_transform_function (struct cgraph_node *node)
   return modified_mem_access ? TODO_update_ssa_only_virtuals : 0;
 }
 
+/* Reset all state within ipa-prop.cc so that we can rerun the compiler
+   within the same process.  For use by toplev::finalize.  */
+
+void
+ipa_prop_cc_finalize (void)
+{
+  if (function_insertion_hook_holder)
+    symtab->remove_cgraph_insertion_hook (function_insertion_hook_holder);
+  function_insertion_hook_holder = NULL;
+
+  if (ipa_edge_args_sum)
+    ggc_delete (ipa_edge_args_sum);
+  ipa_edge_args_sum = NULL;
+
+  if (ipa_node_params_sum)
+    ggc_delete (ipa_node_params_sum);
+  ipa_node_params_sum = NULL;
+}
 
 #include "gt-ipa-prop.h"
