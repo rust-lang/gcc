@@ -515,6 +515,8 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
 {
   switch (attr)
   {
+    case GCC_JIT_FN_ATTRIBUTE_ALIAS:
+      return "alias";
     case GCC_JIT_FN_ATTRIBUTE_ALWAYS_INLINE:
       return "always_inline";
     case GCC_JIT_FN_ATTRIBUTE_INLINE:
@@ -535,6 +537,8 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
       return "pure";
     case GCC_JIT_FN_ATTRIBUTE_CONST:
       return "const";
+    case GCC_JIT_FN_ATTRIBUTE_WEAK:
+      return "weak";
   }
   return NULL;
 }
@@ -682,6 +686,9 @@ new_function (location *loc,
     /* See handle_const_attribute in gcc/c-family/c-attribs.cc. */
     else if (attr == GCC_JIT_FN_ATTRIBUTE_CONST)
       TREE_READONLY (fndecl) = 1;
+    /* See handle_weak_attribute in gcc/c-family/c-attribs.cc.  */
+    else if (attr == GCC_JIT_FN_ATTRIBUTE_WEAK)
+      declare_weak (fndecl);
 
     const char* attribute = fn_attribute_to_string (attr);
     if (attribute)
@@ -705,6 +712,15 @@ new_function (location *loc,
       /* We need to call valid_attribute_p so that the hook set-up some internal options.  */
       if (!ident || !targetm.target_option.valid_attribute_p (fndecl, ident, attribute_value, 0))
         continue;
+
+    /* See handle_alias_ifunc_attribute in gcc/c-family/c-attribs.cc.  */
+    if (name == GCC_JIT_FN_ATTRIBUTE_ALIAS)
+    {
+      tree id = get_identifier (value.c_str ());
+      /* This counts as a use of the object pointed to.  */
+      TREE_USED (id) = 1;
+      DECL_INITIAL (fndecl) = error_mark_node;
+    }
 
     if (ident)
       DECL_ATTRIBUTES (fndecl) =
@@ -2282,6 +2298,9 @@ postprocess ()
 
       current_function_decl = NULL;
     }
+    else
+      /* Add to cgraph to output aliases: */
+      rest_of_decl_compilation (m_inner_fndecl, true, 0);
 }
 
 /* Don't leak vec's internal buffer (in non-GC heap) when we are

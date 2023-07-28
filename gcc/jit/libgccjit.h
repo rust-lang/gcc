@@ -2097,6 +2097,7 @@ gcc_jit_type_set_packed (gcc_jit_type *type);
 /* Function attributes.  */
 enum gcc_jit_fn_attribute
 {
+  GCC_JIT_FN_ATTRIBUTE_ALIAS,
   GCC_JIT_FN_ATTRIBUTE_ALWAYS_INLINE,
   GCC_JIT_FN_ATTRIBUTE_INLINE,
   GCC_JIT_FN_ATTRIBUTE_NOINLINE,
@@ -2107,6 +2108,7 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_RETURNS_TWICE,
   GCC_JIT_FN_ATTRIBUTE_PURE,
   GCC_JIT_FN_ATTRIBUTE_CONST,
+  GCC_JIT_FN_ATTRIBUTE_WEAK,
 };
 
 /* Add an attribute to a function.  */
