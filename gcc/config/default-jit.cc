@@ -25,4 +25,4 @@ along with GCC; see the file COPYING3.  If not see
 /* Do not include tm.h or tm_p.h here; definitions needed by the target
    architecture to initialize targetjitm should instead be added to tm_jit.h.  */
 
-struct gcc_targetdm targetjitm = TARGETJITM_INITIALIZER;
+struct gcc_targetjitm targetjitm = TARGETJITM_INITIALIZER;
