@@ -635,6 +635,10 @@ gcc_jit_type_get_const (gcc_jit_type *type);
 extern gcc_jit_type *
 gcc_jit_type_get_volatile (gcc_jit_type *type);
 
+/* Given type "T", get type "restrict T".  */
+extern gcc_jit_type *
+gcc_jit_type_get_restrict (gcc_jit_type *type);
+
 #define LIBGCCJIT_HAVE_SIZED_INTEGERS
 
 /* Given types LTYPE and RTYPE, return non-zero if they are compatible.
