@@ -23,10 +23,17 @@ jobs:
         ls
         mkdir build install
         cd build
-        ../gcc/configure --enable-host-shared --enable-languages=jit,c++ --disable-bootstrap --disable-multilib --prefix=$(pwd)/../install
+        ../gcc/configure --enable-host-shared --enable-languages=jit,c++,lto --disable-bootstrap --disable-multilib --prefix=$(pwd)/../install
         make -j4
+        ls -R
+        echo "*************************"
+        tree
 
     - uses: actions/upload-artifact@v2
       with:
           name: libgccjit.so
-          path: /home/runner/work/gcc/build/gcc/libgccjit.so
+          path: |
+            /home/runner/work/gcc/build/gcc/libgccjit.so
+            /home/runner/work/gcc/build/gcc/lto1
+            /home/runner/work/gcc/build/gcc/liblto_plugin.so
+            /home/runner/work/gcc/build/gcc/lto-wrapper
