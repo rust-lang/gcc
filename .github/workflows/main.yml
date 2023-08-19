@@ -37,3 +37,5 @@ jobs:
             /home/runner/work/gcc/build/gcc/lto1
             /home/runner/work/gcc/build/gcc/liblto_plugin.so
             /home/runner/work/gcc/build/gcc/lto-wrapper
+            /home/runner/work/gcc/build/gcc/crtbeginS.o
+            /home/runner/work/gcc/build/gcc/crtendS.o
