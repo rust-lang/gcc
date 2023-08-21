@@ -23,11 +23,29 @@ jobs:
         ls
         mkdir build install
         cd build
-        ../gcc/configure --enable-host-shared --enable-languages=jit,c++,lto --disable-bootstrap --disable-multilib --prefix=$(pwd)/../install
+        ../gcc/configure --enable-host-shared --enable-languages=c,jit,c++,lto --disable-bootstrap --disable-multilib --prefix=$(pwd)/../install/usr --libdir=$(pwd)/../install/usr/lib --libexecdir=$(pwd)/../install/usr/lib
         make -j4
-        ls -R
-        echo "*************************"
-        tree
+        make install
+
+    - name: Build Debian package
+      run: |
+        cd ..
+        mkdir install/DEBIAN
+        cat > install/DEBIAN/control << EOF
+        Package: gcc-13
+        Version: 13
+        Architecture: amd64
+        Maintainer: Antoni Boucher <bouanto@zoho.com>
+        Description: gcc 13 for rustc_codegen_gcc CI
+        EOF
+        dpkg-deb --root-owner-group --build install
+        mv install.deb gcc-13.deb
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: gcc-13
+        path: /home/runner/work/gcc/gcc-13.deb
+        if-no-files-found: error
 
     - uses: actions/upload-artifact@v2
       with:
