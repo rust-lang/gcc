@@ -23,7 +23,7 @@ jobs:
         ls
         mkdir build install
         cd build
-        ../gcc/configure --enable-host-shared --enable-languages=c,jit,c++,lto --disable-bootstrap --disable-multilib --prefix=$(pwd)/../install/usr --libdir=$(pwd)/../install/usr/lib --libexecdir=$(pwd)/../install/usr/lib
+        ../gcc/configure --enable-host-shared --enable-languages=c,jit,lto --disable-bootstrap --disable-multilib --prefix=$(pwd)/../install/usr --libdir=$(pwd)/../install/usr/lib --libexecdir=$(pwd)/../install/usr/lib
         make -j4
         make install
 
