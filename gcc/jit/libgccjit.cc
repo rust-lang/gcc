@@ -549,6 +549,7 @@ gcc_jit_type *
 gcc_jit_type_get_restrict (gcc_jit_type *type)
 {
   RETURN_NULL_IF_FAIL (type, NULL, NULL, "NULL type");
+  RETURN_NULL_IF_FAIL (type->is_pointer (), NULL, NULL, "not a pointer type");
 
   return (gcc_jit_type *)type->get_restrict ();
 }
