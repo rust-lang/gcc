@@ -1483,6 +1483,7 @@ public:
 
   void add_attribute (gcc_jit_fn_attribute attribute);
   void add_string_attribute (gcc_jit_fn_attribute attribute, const char* value);
+  void add_integer_array_attribute (gcc_jit_fn_attribute attribute, const int* value, size_t length);
 
 private:
   string * make_debug_string () final override;
@@ -1501,6 +1502,7 @@ private:
   type *m_fn_ptr_type;
   std::vector<gcc_jit_fn_attribute> m_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
+  std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> m_int_array_attributes;
   int m_is_target_builtin;
 };
 

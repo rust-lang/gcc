@@ -4260,6 +4260,7 @@ recording::function::function (context *ctxt,
   m_fn_ptr_type (NULL),
   m_attributes(),
   m_string_attributes(),
+  m_int_array_attributes(),
   m_is_target_builtin (is_target_builtin)
 {
   for (int i = 0; i< num_params; i++)
@@ -4322,6 +4323,7 @@ recording::function::replay_into (replayer *r)
 				     m_builtin_id,
 				     m_attributes,
 				     m_string_attributes,
+				     m_int_array_attributes,
 				     m_is_target_builtin));
 }
 
@@ -4401,6 +4403,40 @@ recording::function::new_block (const char *name)
 void
 recording::function::write_to_dump (dump &d)
 {
+  for (auto attr: m_attributes)
+  {
+    const char* attribute = fn_attribute_to_string (attr);
+    if (attribute)
+      d.write("__attribute(%s)__\n", attribute);
+  }
+  for (auto attr: m_string_attributes)
+  {
+    gcc_jit_fn_attribute& name = std::get<0>(attr);
+    std::string& value = std::get<1>(attr);
+    const char* attribute = fn_attribute_to_string (name);
+
+    if (attribute)
+      d.write("__attribute(%s(\"%s\"))__\n", attribute, value.c_str());
+  }
+  for (auto attr: m_int_array_attributes)
+  {
+    gcc_jit_fn_attribute& name = std::get<0>(attr);
+    std::vector<int>& values = std::get<1>(attr);
+    const char* attribute = fn_attribute_to_string (name);
+    if (attribute)
+    {
+      d.write("__attribute(%s(", attribute);
+      for (int i = 0; i < values.size(); ++i)
+      {
+	if (i > 0)
+	  d.write(", %d", values[i]);
+	else
+	  d.write("%d", values[i]);
+      }
+      d.write("))__\n");
+    }
+  }
+
   switch (m_kind)
     {
     default: gcc_unreachable ();
@@ -4613,6 +4649,12 @@ void
 recording::function::add_string_attribute (gcc_jit_fn_attribute attribute, const char* value)
 {
   m_string_attributes.push_back (std::make_pair (attribute, std::string (value)));
+}
+
+void
+recording::function::add_integer_array_attribute (gcc_jit_fn_attribute attribute, const int* value, size_t length)
+{
+  m_int_array_attributes.push_back (std::make_pair (attribute, std::vector<int> (value, value + length)));
 }
 
 /* Implementation of recording::memento::make_debug_string for

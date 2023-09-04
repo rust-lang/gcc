@@ -37,6 +37,8 @@ namespace gcc {
 
 namespace jit {
 
+const char* fn_attribute_to_string(gcc_jit_fn_attribute attr);
+
 /**********************************************************************
  Playback.
  **********************************************************************/
@@ -114,6 +116,7 @@ public:
 		enum built_in_function builtin_id,
 		const std::vector<gcc_jit_fn_attribute> &attributes,
 		const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes,
+		const std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> &int_array_attributes,
 		int is_target_builtin);
 
   lvalue *
