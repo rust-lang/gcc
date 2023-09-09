@@ -59,15 +59,20 @@ ix86_jit_register_target_info (void)
   const char *params[] = {"arch", x86_bits};
   const char *arch = host_detect_local_cpu (2, params);
 
+  fprintf (stderr, "***************************** Arch: %s\n**********************************", arch);
+
   const char* arg = "-march=";
   const char* arg_pos = strstr(arch, arg);
+  fprintf (stderr, "***************************** arg_pos: %s\n**********************************", arg_pos);
   const char* arg_value = arg_pos + strlen(arg);
+  fprintf (stderr, "***************************** arg_value: %s\n**********************************", arg_value);
   const char* arg_value_end = strchr(arg_value, ' ');
 
   size_t len = arg_value_end - arg_value;
   char *cpu = new char[len];
   strncpy(cpu, arg_value, len);
   cpu[len] = '\0';
+  fprintf (stderr, "***************************** cpu: %s\n**********************************", cpu);
   jit_target_set_arch (cpu);
 
   jit_target_set_128bit_int_support (targetm.scalar_mode_supported_p (TImode));
