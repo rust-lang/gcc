@@ -59,7 +59,7 @@ jit_add_target_info (const char *key, const char *value)
 }
 
 void
-jit_target_set_arch (const char* arch)
+jit_target_set_arch (std::string const& arch)
 {
   jit_target_info.m_arch = arch;
 }
@@ -70,15 +70,10 @@ jit_target_set_128bit_int_support (bool support)
   jit_target_info.m_supports_128bit_int = support;
 }
 
-target_info::~target_info()
-{
-  free (const_cast<void *> ((const void *) m_arch));
-}
-
 target_info *
 jit_get_target_info ()
 {
-  target_info *info = new target_info {std::move(jit_target_info)};
+  target_info *info = new target_info {jit_target_info};
   jit_target_info = target_info{};
   return info;
 }

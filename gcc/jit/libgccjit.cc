@@ -3933,7 +3933,7 @@ gcc_jit_target_info_cpu_supports (gcc_jit_target_info *info,
 const char *
 gcc_jit_target_info_arch (gcc_jit_target_info *info)
 {
-  return info->m_arch;
+  return info->m_arch.c_str ();
 }
 
 int
