@@ -25,6 +25,7 @@
 
 #include "jit-target.def"
 
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -49,12 +50,10 @@ struct CStringEqual {
 
 struct target_info {
   public:
-    ~target_info();
-
     bool has_target_value (const char *key, const char *value);
 
     std::unordered_map<const char *, std::unordered_set<const char *, CStringHash, CStringEqual>, CStringHash, CStringEqual> m_info;
-    const char *m_arch = nullptr;
+    std::string m_arch;
     bool m_supports_128bit_int = false;
 };
 
@@ -62,7 +61,7 @@ struct target_info {
 extern struct gcc_targetjitm targetjitm;
 
 extern void jit_target_init ();
-extern void jit_target_set_arch (const char* arch);
+extern void jit_target_set_arch (std::string const& arch);
 extern void jit_target_set_128bit_int_support (bool support);
 extern void jit_add_target_info (const char *key, const char *value);
 extern target_info * jit_get_target_info ();
