@@ -178,6 +178,9 @@ public:
 			 HOST_TYPE value);
 
   rvalue *
+  new_sizeof (type *type);
+
+  rvalue *
   new_string_literal (const char *value);
 
   rvalue *
@@ -1721,6 +1724,31 @@ private:
 
 private:
   HOST_TYPE m_value;
+};
+
+class memento_of_new_sizeof : public rvalue
+{
+public:
+  memento_of_new_sizeof (context *ctxt,
+			 location *loc,
+			 type *type)
+  : rvalue (ctxt, loc, ctxt->get_type (GCC_JIT_TYPE_INT)),
+    m_type (type) {}
+
+  void replay_into (replayer *r) final override;
+
+  void visit_children (rvalue_visitor *) final override {}
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+  enum precedence get_precedence () const final override
+  {
+    return PRECEDENCE_PRIMARY;
+  }
+
+private:
+  type *m_type;
 };
 
 class memento_of_new_string_literal : public rvalue
