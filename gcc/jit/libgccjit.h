@@ -1102,6 +1102,10 @@ extern gcc_jit_rvalue *
 gcc_jit_context_null (gcc_jit_context *ctxt,
 		      gcc_jit_type *pointer_type);
 
+extern gcc_jit_rvalue *
+gcc_jit_context_new_sizeof (gcc_jit_context *ctxt,
+			    gcc_jit_type *type);
+
 /* String literals. */
 extern gcc_jit_rvalue *
 gcc_jit_context_new_string_literal (gcc_jit_context *ctxt,

@@ -154,6 +154,9 @@ public:
 			 HOST_TYPE value);
 
   rvalue *
+  new_sizeof (type *type);
+
+  rvalue *
   new_string_literal (const char *value);
 
   rvalue *

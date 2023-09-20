@@ -331,3 +331,8 @@ LIBGCCJIT_ABI_34 {
   global:
     gcc_jit_type_get_restrict;
 } LIBGCCJIT_ABI_33;
+
+LIBGCCJIT_ABI_35 {
+  global:
+    gcc_jit_context_new_sizeof;
+} LIBGCCJIT_ABI_34;
