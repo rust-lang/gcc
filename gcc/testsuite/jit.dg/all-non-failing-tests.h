@@ -359,6 +359,13 @@
 /* test-temp.c: This can't be in the testcases array as it
    is target-specific.  */
 
+/* test-sizeof.c */
+#define create_code create_code_sizeof
+#define verify_code verify_code_sizeof
+#include "test-sizeof.c"
+#undef create_code
+#undef verify_code
+
 /* test-string-literal.c */
 #define create_code create_code_string_literal
 #define verify_code verify_code_string_literal
@@ -559,6 +566,9 @@ const struct testcase testcases[] = {
   {"reflection",
    create_code_reflection ,
    verify_code_reflection },
+  {"sizeof",
+   create_code_sizeof,
+   verify_code_sizeof},
   {"string_literal",
    create_code_string_literal,
    verify_code_string_literal},
