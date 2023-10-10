@@ -2117,15 +2117,18 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_PURE,
   GCC_JIT_FN_ATTRIBUTE_CONST,
   GCC_JIT_FN_ATTRIBUTE_WEAK,
+  GCC_JIT_FN_ATTRIBUTE_NONNULL,
 };
 
 /* Add an attribute to a function.  */
-// TODO: also support integer values.
 extern void
 gcc_jit_function_add_attribute (gcc_jit_function *func, enum gcc_jit_fn_attribute attribute);
 
 extern void
 gcc_jit_function_add_string_attribute (gcc_jit_function *func, enum gcc_jit_fn_attribute attribute, const char* value);
+
+extern void
+gcc_jit_function_add_integer_array_attribute (gcc_jit_function *func, enum gcc_jit_fn_attribute attribute, const int* value, size_t length);
 
 /* Variable attributes.  */
 enum gcc_jit_variable_attribute

@@ -335,4 +335,5 @@ LIBGCCJIT_ABI_34 {
 LIBGCCJIT_ABI_35 {
   global:
     gcc_jit_context_new_sizeof;
+    gcc_jit_function_add_integer_array_attribute;
 } LIBGCCJIT_ABI_34;

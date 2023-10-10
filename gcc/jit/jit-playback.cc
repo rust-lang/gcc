@@ -539,6 +539,8 @@ const char* fn_attribute_to_string(gcc_jit_fn_attribute attr)
       return "const";
     case GCC_JIT_FN_ATTRIBUTE_WEAK:
       return "weak";
+    case GCC_JIT_FN_ATTRIBUTE_NONNULL:
+      return "nonnull";
   }
   return NULL;
 }
@@ -566,6 +568,7 @@ new_function (location *loc,
 	      enum built_in_function builtin_id,
 	      const std::vector<gcc_jit_fn_attribute> &attributes,
 	      const std::vector<std::pair<gcc_jit_fn_attribute, std::string>> &string_attributes,
+	      const std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> &int_array_attributes,
 	      int is_target_builtin)
 {
   int i;
@@ -600,6 +603,8 @@ new_function (location *loc,
   DECL_IGNORED_P (resdecl) = 1;
   DECL_RESULT (fndecl) = resdecl;
   DECL_CONTEXT (resdecl) = fndecl;
+
+  tree fn_attributes = NULL_TREE;
 
   if (is_target_builtin)
   {
@@ -654,48 +659,24 @@ new_function (location *loc,
       DECL_DECLARED_INLINE_P (fndecl) = 1;
 
       /* Add attribute "always_inline": */
-      DECL_ATTRIBUTES (fndecl) =
+      fn_attributes =
 	tree_cons (get_identifier ("always_inline"),
 		   NULL,
-		   DECL_ATTRIBUTES (fndecl));
+		   fn_attributes);
     }
 
+  /* All attributes need to be declared in `dummy-frontend.cc` and more
+     specifically in `jit_attribute_table`. */
   for (auto attr: attributes)
   {
-    if (attr == GCC_JIT_FN_ATTRIBUTE_ALWAYS_INLINE)
-    {
+    if (attr == GCC_JIT_FN_ATTRIBUTE_INLINE)
       DECL_DECLARED_INLINE_P (fndecl) = 1;
-      DECL_DISREGARD_INLINE_LIMITS (fndecl) = 1;
-    }
-    else if (attr == GCC_JIT_FN_ATTRIBUTE_INLINE)
-      DECL_DECLARED_INLINE_P (fndecl) = 1;
-    else if (attr == GCC_JIT_FN_ATTRIBUTE_NOINLINE)
-      DECL_UNINLINABLE (fndecl) = 1;
-    /* See handle_used_attribute in gcc/c-family/c-attribs.cc.  */
-    else if (attr == GCC_JIT_FN_ATTRIBUTE_USED)
-    {
-      TREE_USED (fndecl) = 1;
-      DECL_PRESERVE_P (fndecl) = 1;
-    }
-    /* See handle_returns_twice_attribute in gcc/c-family/c-attribs.cc. */
-    else if (attr == GCC_JIT_FN_ATTRIBUTE_RETURNS_TWICE)
-      DECL_IS_RETURNS_TWICE (fndecl) = 1;
-    /* See handle_pure_attribute in gcc/c-family/c-attribs.cc. */
-    else if (attr == GCC_JIT_FN_ATTRIBUTE_PURE)
-      DECL_PURE_P (fndecl) = 1;
-    /* See handle_const_attribute in gcc/c-family/c-attribs.cc. */
-    else if (attr == GCC_JIT_FN_ATTRIBUTE_CONST)
-      TREE_READONLY (fndecl) = 1;
-    /* See handle_weak_attribute in gcc/c-family/c-attribs.cc.  */
-    else if (attr == GCC_JIT_FN_ATTRIBUTE_WEAK)
-      declare_weak (fndecl);
 
     const char* attribute = fn_attribute_to_string (attr);
     if (attribute)
     {
       tree ident = get_identifier (attribute);
-      DECL_ATTRIBUTES (fndecl) =
-	tree_cons (ident, NULL_TREE, DECL_ATTRIBUTES (fndecl));
+      fn_attributes = tree_cons (ident, NULL_TREE, fn_attributes);
     }
   }
 
@@ -713,20 +694,33 @@ new_function (location *loc,
       if (!ident || !targetm.target_option.valid_attribute_p (fndecl, ident, attribute_value, 0))
         continue;
 
-    /* See handle_alias_ifunc_attribute in gcc/c-family/c-attribs.cc.  */
-    if (name == GCC_JIT_FN_ATTRIBUTE_ALIAS)
-    {
-      tree id = get_identifier (value.c_str ());
-      /* This counts as a use of the object pointed to.  */
-      TREE_USED (id) = 1;
-      DECL_INITIAL (fndecl) = error_mark_node;
-    }
-
     if (ident)
-      DECL_ATTRIBUTES (fndecl) =
-	tree_cons (ident, attribute_value, DECL_ATTRIBUTES (fndecl));
+      fn_attributes = tree_cons (ident, attribute_value, fn_attributes);
   }
 
+  for (auto attr: int_array_attributes)
+  {
+    gcc_jit_fn_attribute& name = std::get<0>(attr);
+    std::vector<int>& values = std::get<1>(attr);
+
+    const char* attribute = fn_attribute_to_string (name);
+    tree ident = attribute ? get_identifier (attribute) : NULL;
+
+    if (!ident)
+      continue;
+
+    tree tree_list = NULL_TREE;
+    tree *p_tree_list = &tree_list;
+    for (auto value : values)
+    {
+      tree int_value = build_int_cst (integer_type_node, value);
+      *p_tree_list = build_tree_list (NULL, int_value);
+      p_tree_list = &TREE_CHAIN (*p_tree_list);
+    }
+    fn_attributes = tree_cons (ident, tree_list, fn_attributes);
+  }
+
+  decl_attributes (&fndecl, fn_attributes, 0);
   function *func = new function (this, fndecl, kind);
   m_functions.safe_push (func);
   return func;
@@ -2396,7 +2390,7 @@ add_try_catch (location *loc,
   {
     catch_body = build2(CATCH_EXPR, void_type_node, NULL, catch_body);
     tree try_catch = build2 (TRY_CATCH_EXPR, void_type_node,
-            try_body, catch_body);
+	    try_body, catch_body);
     add_stmt (try_catch);
   }
 }
@@ -3794,7 +3788,7 @@ void
 playback::context::
 init_types ()
 {
-  /* See lto_init() in lto-lang.cc or void visit (TypeBasic *t) in D's types.cc 
+  /* See lto_init() in lto-lang.cc or void visit (TypeBasic *t) in D's types.cc
      for reference. If TYPE_NAME is not set, debug info will not contain types */
 #define NAME_TYPE(t,n) \
 if (t) \
