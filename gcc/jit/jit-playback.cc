@@ -670,7 +670,10 @@ new_function (location *loc,
   for (auto attr: attributes)
   {
     if (attr == GCC_JIT_FN_ATTRIBUTE_INLINE)
+    {
       DECL_DECLARED_INLINE_P (fndecl) = 1;
+      continue;
+    }
 
     const char* attribute = fn_attribute_to_string (attr);
     if (attribute)
