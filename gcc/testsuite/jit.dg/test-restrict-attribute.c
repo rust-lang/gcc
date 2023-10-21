@@ -73,5 +73,5 @@ void t(int *__restrict__ a, int *__restrict__ b, char *__restrict__ c) {
 }
 
 /* { dg-final { jit-verify-output-file-was-created "" } } */
-/* { dg-final { jit-verify-assembler-output "addl	%eax, (%rdi)
-	addl	%eax, (%rsi)" } } */
+/* { dg-final { jit-verify-assembler-output "addl\\s+%eax,\\s+(%rdi)
+\\s+addl\\s+%eax,\\s+(%rsi)" } } */
