@@ -613,6 +613,7 @@ public:
   virtual bool is_int () const = 0;
   virtual bool is_float () const = 0;
   virtual bool is_bool () const = 0;
+  virtual bool is_numeric_vector () const { return false; }
   virtual type *is_pointer () = 0;
   virtual type *is_volatile () { return NULL; }
   virtual type *is_restrict () { return NULL; }
@@ -757,10 +758,10 @@ public:
 
   size_t get_size () final override { return m_other_type->get_size (); };
 
-  // FIXME: this is wrong. A vector is not an int.
-  bool is_int () const final override { return m_other_type->is_int (); }
+  bool is_int () const override { return m_other_type->is_int (); }
   bool is_float () const final override { return m_other_type->is_float (); }
   bool is_bool () const final override { return m_other_type->is_bool (); }
+  bool is_numeric_vector () const override { return m_other_type->is_numeric_vector (); }
   type *is_pointer () final override { return m_other_type->is_pointer (); }
   type *is_array () final override { return m_other_type->is_array (); }
   struct_ *is_struct () final override { return m_other_type->is_struct (); }
@@ -924,6 +925,14 @@ public:
     type* result = new vector_type(m_other_type->copy (ctxt), m_num_units);
     ctxt->record (result);
     return result;
+  }
+
+  bool is_int () const final override {
+    return false;
+  }
+
+  bool is_numeric_vector () const final override {
+    return true;
   }
 
   size_t get_num_units () const { return m_num_units; }
