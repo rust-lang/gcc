@@ -3936,6 +3936,21 @@ gcc_jit_context_get_target_info (gcc_jit_context *ctxt)
   return (gcc_jit_target_info*) jit_get_target_info ();
 }
 
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::context::set_str_option method in
+   jit-recording.cc.  */
+
+void
+gcc_jit_context_set_output_ident (gcc_jit_context *ctxt, const char* output_ident)
+{
+  RETURN_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+
+  ctxt->set_output_ident (output_ident);
+}
+
 void
 gcc_jit_target_info_release (gcc_jit_target_info *info)
 {

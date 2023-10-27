@@ -342,3 +342,8 @@ LIBGCCJIT_ABI_36 {
     gcc_jit_target_info_arch;
     gcc_jit_target_info_supports_128bit_int;
 } LIBGCCJIT_ABI_35;
+
+LIBGCCJIT_ABI_37 {
+  global:
+    gcc_jit_context_set_output_ident;
+} LIBGCCJIT_ABI_36;
