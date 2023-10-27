@@ -2172,6 +2172,9 @@ extern gcc_jit_target_info *
 gcc_jit_context_get_target_info (gcc_jit_context *ctxt);
 
 extern void
+gcc_jit_context_set_output_ident (gcc_jit_context *ctxt, const char* output_ident);
+
+extern void
 gcc_jit_target_info_release (gcc_jit_target_info *info);
 
 extern int
