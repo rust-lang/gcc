@@ -1084,16 +1084,30 @@ new_rvalue_from_const <double> (type *type,
   // FIXME: type-checking, or coercion?
   tree inner_type = type->as_tree ();
 
-  mpfr_t mpf_value;
+  /*mpfr_t mpf_value;
 
   mpfr_init2 (mpf_value, 64);
-  mpfr_set_d (mpf_value, value, MPFR_RNDN);
+  mpfr_set_d (mpf_value, value, MPFR_RNDN);*/
 
   /* We have a "double", we want a REAL_VALUE_TYPE.
 
      realmpfr.cc:real_from_mpfr.  */
   REAL_VALUE_TYPE real_value;
-  real_from_mpfr (&real_value, mpf_value, inner_type, MPFR_RNDN);
+  //ieee_double_format.decode(&ieee_double_format, &real_value, (const long int*)&value);
+  //real_from_mpfr (&real_value, mpf_value, inner_type, MPFR_RNDN);
+  union
+  {
+      double as_double;
+      uint32_t as_uint32s[2];
+  } u;
+  u.as_double = value;
+  long int as_long_ints[2];
+  as_long_ints[0] = u.as_uint32s[0];
+  as_long_ints[1] = u.as_uint32s[1];
+  // TODO: Detect the host format instead of hard-coding ieee_double_format.
+  (ieee_double_format.decode) (&ieee_double_format, &real_value, as_long_ints);
+   //real_from_target (&real_value, as_long_ints, );
+
   tree inner = build_real (inner_type, real_value);
   return new rvalue (this, inner);
 }
