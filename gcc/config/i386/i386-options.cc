@@ -3230,6 +3230,11 @@ ix86_option_override_internal (bool main_args_p,
 	= opts->x_flag_unsafe_math_optimizations;
       target_option_default_node = target_option_current_node
         = build_target_option_node (opts, opts_set);
+      // TODO: check if this is the correct location. It should probably be in some finalizer function, but I don't
+      // know if there's one.
+      target_attribute_cache[0] = NULL;
+      target_attribute_cache[1] = NULL;
+      target_attribute_cache[2] = NULL;
     }
 
   const bool cf_okay_p = (TARGET_64BIT || TARGET_CMOV);
