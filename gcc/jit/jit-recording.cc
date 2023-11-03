@@ -2681,7 +2681,34 @@ recording::memento_of_get_type::get_size ()
       size = 128;
       break;
     case GCC_JIT_TYPE_SIZE_T:
-      size = MAX_BITS_PER_WORD;
+      /* Compare with tree.cc's build_common_tree_nodes.  */
+      if (strcmp (SIZE_TYPE, "unsigned int") == 0)
+        size = INT_TYPE_SIZE;
+      else if (strcmp (SIZE_TYPE, "long unsigned int") == 0)
+        size = LONG_TYPE_SIZE;
+      else if (strcmp (SIZE_TYPE, "long long unsigned int") == 0)
+        size = LONG_LONG_TYPE_SIZE;
+      else if (strcmp (SIZE_TYPE, "short unsigned int") == 0)
+        size = SHORT_TYPE_SIZE;
+      else
+      {
+        int i;
+
+        for (i = 0; i < NUM_INT_N_ENTS; i++)
+          if (int_n_enabled_p[i])
+          {
+            fprintf (stderr, "%d\n", i);
+            char name[50], altname[50];
+            sprintf (name, "__int%d unsigned", int_n_data[i].bitsize);
+            sprintf (altname, "__int%d__ unsigned", int_n_data[i].bitsize);
+
+            if (strcmp (name, SIZE_TYPE) == 0 || strcmp (altname, SIZE_TYPE) == 0)
+            {
+              return int_n_data[i].bitsize / BITS_PER_UNIT;
+            }
+          }
+        gcc_unreachable ();
+      }
       break;
     default:
       /* As this function is called by
