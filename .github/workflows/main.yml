@@ -47,13 +47,13 @@ jobs:
         path: /home/runner/work/gcc/gcc-13.deb
         if-no-files-found: error
 
-    - uses: actions/upload-artifact@v2
-      with:
-          name: libgccjit.so
-          path: |
-            /home/runner/work/gcc/build/gcc/libgccjit.so
-            /home/runner/work/gcc/build/gcc/lto1
-            /home/runner/work/gcc/build/gcc/liblto_plugin.so
-            /home/runner/work/gcc/build/gcc/lto-wrapper
-            /home/runner/work/gcc/build/gcc/crtbeginS.o
-            /home/runner/work/gcc/build/gcc/crtendS.o
+    - name: Create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create master \
+            /home/runner/work/gcc/gcc-13.deb \
+            --prerelease \
+            --repo="$GITHUB_REPOSITORY" \
+            --title="${GITHUB_REPOSITORY#*/} $(git rev-parse --short "$GITHUB_SHA")" \
+            --generate-notes
