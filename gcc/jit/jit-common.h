@@ -132,6 +132,7 @@ namespace recording {
         class struct_;
 	class union_;
       class vector_type;
+      class array_type;
     class field;
       class bitfield;
     class fields;
