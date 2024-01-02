@@ -832,6 +832,11 @@ public:
 
   void replay_into (replayer *) final override;
 
+  array_type *dyn_cast_array_type () final override
+  {
+    return m_other_type->dyn_cast_array_type ();
+  }
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
