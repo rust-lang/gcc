@@ -863,6 +863,13 @@ global_new_decl (location *loc,
   if (TYPE_READONLY (type_tree) || readonly)
     TREE_READONLY (inner) = 1;
 
+  if (TYPE_VOLATILE (type_tree))
+  {
+    TREE_THIS_VOLATILE (inner) = 1;
+    TREE_SIDE_EFFECTS (inner) = 1;
+  }
+
+
   if (loc)
     set_tree_location (inner, loc);
 
@@ -1998,8 +2005,16 @@ new_field_access (location *loc,
   gcc_assert (TREE_CODE (type) != POINTER_TYPE);
 
  tree t_field = field->as_tree ();
- tree ref = build3 (COMPONENT_REF, TREE_TYPE (t_field), datum,
+ tree field_type = TREE_TYPE (t_field);
+ tree ref = build3 (COMPONENT_REF, field_type, datum,
 		     t_field, NULL_TREE);
+
+  if (TYPE_VOLATILE (field_type))
+  {
+    TREE_THIS_VOLATILE (datum) = 1;
+    TREE_SIDE_EFFECTS (datum) = 1;
+  }
+
   if (loc)
     set_tree_location (ref, loc);
   return ref;
@@ -2018,6 +2033,11 @@ new_dereference (tree ptr,
   tree datum = fold_build1 (INDIRECT_REF, type, ptr);
   if (loc)
     set_tree_location (datum, loc);
+  if (TYPE_VOLATILE (type))
+  {
+    TREE_THIS_VOLATILE (datum) = 1;
+    TREE_SIDE_EFFECTS (datum) = 1;
+  }
   return datum;
 }
 
@@ -2285,6 +2305,12 @@ new_local (location *loc,
     DECL_NAMELESS (inner) = 1;
   }
   DECL_CONTEXT (inner) = this->m_inner_fndecl;
+
+  if (TYPE_VOLATILE (type->as_tree ()))
+  {
+    TREE_THIS_VOLATILE (inner) = 1;
+    TREE_SIDE_EFFECTS (inner) = 1;
+  }
 
   /* Prepend to BIND_EXPR_VARS: */
   DECL_CHAIN (inner) = BIND_EXPR_VARS (m_inner_bind_expr);
