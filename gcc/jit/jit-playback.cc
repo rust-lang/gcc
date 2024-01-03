@@ -1981,6 +1981,10 @@ new_dereference (tree ptr,
   tree datum = fold_build1 (INDIRECT_REF, type, ptr);
   if (loc)
     set_tree_location (datum, loc);
+  if (TYPE_VOLATILE (type)) {
+    TREE_THIS_VOLATILE (datum) = 1;
+    TREE_SIDE_EFFECTS (datum) = 1;
+  }
   return datum;
 }
 
