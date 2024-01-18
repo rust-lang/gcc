@@ -1414,6 +1414,13 @@ gcc_jit_function_new_local (gcc_jit_function *func,
 			    gcc_jit_type *type,
 			    const char *name);
 
+extern gcc_jit_lvalue *
+gcc_jit_function_new_temp (gcc_jit_function *func,
+			   gcc_jit_location *loc,
+			   gcc_jit_type *type);
+
+#define LIBGCCJIT_HAVE_gcc_jit_function_new_temp
+
 /**********************************************************************
  Statement-creation.
  **********************************************************************/

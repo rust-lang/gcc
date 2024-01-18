@@ -390,3 +390,12 @@ on functions and variables:
   * :func:`gcc_jit_function_add_string_attribute`
   * :func:`gcc_jit_function_add_integer_array_attribute`
   * :func:`gcc_jit_lvalue_add_string_attribute`
+
+.. _LIBGCCJIT_ABI_27:
+
+``LIBGCCJIT_ABI_27``
+--------------------
+``LIBGCCJIT_ABI_27`` covers the addition of a functions to create a new
+temporary variable:
+
+  * :func:`gcc_jit_function_new_temp`
