@@ -371,3 +371,12 @@ alignment of a variable:
 
   * :func:`gcc_jit_lvalue_set_alignment`
   * :func:`gcc_jit_lvalue_get_alignment`
+
+.. _LIBGCCJIT_ABI_26:
+
+``LIBGCCJIT_ABI_26``
+--------------------
+``LIBGCCJIT_ABI_26`` covers the addition of a functions to create a new
+temporary variable:
+
+  * :func:`gcc_jit_function_new_temp`

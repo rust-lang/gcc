@@ -554,7 +554,8 @@ public:
   new_local (location *loc,
 	     type *type,
 	     const char *name,
-	     const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes);
+	     const std::vector<std::pair<gcc_jit_variable_attribute, std::string>> &attributes,
+	     bool is_temp);
 
   block*
   new_block (const char *name);
