@@ -397,3 +397,12 @@ on functions and variables:
 --------------------
 ``LIBGCCJIT_ABI_27`` covers the addition of
 :func:`gcc_jit_context_new_sizeof`
+
+.. _LIBGCCJIT_ABI_28:
+
+``LIBGCCJIT_ABI_28``
+--------------------
+``LIBGCCJIT_ABI_28`` covers the addition of a functions to create a new
+temporary variable:
+
+  * :func:`gcc_jit_function_new_temp`
