@@ -1529,6 +1529,10 @@ public:
 	     type *type,
 	     const char *name);
 
+  lvalue *
+  new_temp (location *loc,
+	    type *type);
+
   block*
   new_block (const char *name);
 
@@ -2435,10 +2439,11 @@ private:
 class local : public lvalue
 {
 public:
-  local (function *func, location *loc, type *type_, string *name)
+  local (function *func, location *loc, type *type_, string *name, bool is_temp)
     : lvalue (func->m_ctxt, loc, type_),
     m_func (func),
-    m_name (name)
+    m_name (name),
+    m_is_temp (is_temp)
   {
     set_scope (func);
   }
@@ -2452,7 +2457,12 @@ public:
   void write_to_dump (dump &d) final override;
 
 private:
-  string * make_debug_string () final override { return m_name; }
+  string * make_debug_string () final override {
+    if (m_is_temp)
+      return m_ctxt->new_string ("temp");
+    else
+      return m_name;
+  }
   void write_reproducer (reproducer &r) final override;
   enum precedence get_precedence () const final override
   {
@@ -2462,6 +2472,7 @@ private:
 private:
   function *m_func;
   string *m_name;
+  bool m_is_temp;
 };
 
 class statement : public memento
