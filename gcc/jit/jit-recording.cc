@@ -4470,7 +4470,24 @@ recording::function::new_local (recording::location *loc,
 				type *type,
 				const char *name)
 {
-  local *result = new local (this, loc, type, new_string (name));
+  local *result = new local (this, loc, type, new_string (name), false);
+  m_ctxt->record (result);
+  m_locals.safe_push (result);
+  return result;
+}
+
+/* Create a recording::local instance and add it to
+   the functions's context's list of mementos, and to the function's
+   list of locals.
+
+   Implements the post-error-checking part of
+   gcc_jit_function_new_temp.  */
+
+recording::lvalue *
+recording::function::new_temp (recording::location *loc,
+			       type *type)
+{
+  local *result = new local (this, loc, type, NULL, true);
   m_ctxt->record (result);
   m_locals.safe_push (result);
   return result;
@@ -7345,7 +7362,8 @@ recording::local::replay_into (replayer *r)
       ->new_local (playback_location (r, m_loc),
 		   m_type->playback_type (),
 		   playback_string (m_name),
-		   m_string_attributes);
+		   m_string_attributes,
+		   m_is_temp);
 
   if (m_reg_name != NULL)
     obj->set_register_name (m_reg_name->c_str ());
@@ -7376,16 +7394,26 @@ void
 recording::local::write_reproducer (reproducer &r)
 {
   const char *id = r.make_identifier (this, "local");
-  r.write ("  gcc_jit_lvalue *%s =\n"
-	   "    gcc_jit_function_new_local (%s, /* gcc_jit_function *func */\n"
-	   "                                %s, /* gcc_jit_location *loc */\n"
-	   "                                %s, /* gcc_jit_type *type */\n"
-	   "                                %s); /* const char *name */\n",
-	   id,
-	   r.get_identifier (m_func),
-	   r.get_identifier (m_loc),
-	   r.get_identifier_as_type (m_type),
-	   m_name->get_debug_string ());
+  if (m_is_temp)
+    r.write ("  gcc_jit_lvalue *%s =\n"
+	     "    gcc_jit_function_new_temp (%s, /* gcc_jit_function *func */\n"
+	     "                               %s, /* gcc_jit_location *loc */\n"
+	     "                               %s); /* gcc_jit_type *type */\n",
+	     id,
+	     r.get_identifier (m_func),
+	     r.get_identifier (m_loc),
+	     r.get_identifier_as_type (m_type));
+  else
+    r.write ("  gcc_jit_lvalue *%s =\n"
+	     "    gcc_jit_function_new_local (%s, /* gcc_jit_function *func */\n"
+	     "                                %s, /* gcc_jit_location *loc */\n"
+	     "                                %s, /* gcc_jit_type *type */\n"
+	     "                                %s); /* const char *name */\n",
+	     id,
+	     r.get_identifier (m_func),
+	     r.get_identifier (m_loc),
+	     r.get_identifier_as_type (m_type),
+	     m_name->get_debug_string ());
 }
 
 /* The implementation of class gcc::jit::recording::statement.  */
