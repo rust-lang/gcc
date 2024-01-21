@@ -51,9 +51,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create master \
+        git_hash=$(git rev-parse --short "$GITHUB_SHA")
+        gh release create master-$git_hash \
             /home/runner/work/gcc/gcc-13.deb \
             --prerelease \
             --repo="$GITHUB_REPOSITORY" \
-            --title="${GITHUB_REPOSITORY#*/} $(git rev-parse --short "$GITHUB_SHA")" \
+            --title="${GITHUB_REPOSITORY#*/} $git_hash" \
             --generate-notes
