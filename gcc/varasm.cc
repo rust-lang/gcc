@@ -8834,4 +8834,12 @@ handle_vtv_comdat_section (section *sect, const_tree decl ATTRIBUTE_UNUSED)
   switch_to_comdat_section(sect, DECL_NAME (decl));
 }
 
+void
+varasm_cc_finalize (void)
+{
+#ifdef ASM_OUTPUT_EXTERNAL
+  pending_assemble_externals_processed = false;
+#endif
+}
+
 #include "gt-varasm.h"
