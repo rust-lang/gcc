@@ -6357,13 +6357,8 @@ init_emit_once (void)
   /* Don't use gen_rtx_CONST_INT here since gen_rtx_CONST_INT in this case
      tries to use these variables.  */
   for (i = - MAX_SAVED_CONST_INT; i <= MAX_SAVED_CONST_INT; i++)
-  {
-    // Do not initialize twice the constants because there are used elsewhere
-    // and libgccjit execute this function twice.
-    if (const_int_rtx[i + MAX_SAVED_CONST_INT] == NULL)
-      const_int_rtx[i + MAX_SAVED_CONST_INT] =
-        gen_rtx_raw_CONST_INT (VOIDmode, (HOST_WIDE_INT) i);
-  }
+    const_int_rtx[i + MAX_SAVED_CONST_INT] =
+      gen_rtx_raw_CONST_INT (VOIDmode, (HOST_WIDE_INT) i);
 
   if (STORE_FLAG_VALUE >= - MAX_SAVED_CONST_INT
       && STORE_FLAG_VALUE <= MAX_SAVED_CONST_INT)
