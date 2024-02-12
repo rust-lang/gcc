@@ -3958,7 +3958,7 @@ add_error (location *loc, const char *fmt, ...)
   va_list ap;
   va_start (ap, fmt);
   m_recording_ctxt->add_error_va (loc ? loc->get_recording_loc () : NULL,
-				  fmt, ap);
+				  DK_ERROR, fmt, ap);
   va_end (ap);
 }
 
@@ -3970,13 +3970,12 @@ playback::context::
 add_error_va (location *loc, const char *fmt, va_list ap)
 {
   m_recording_ctxt->add_error_va (loc ? loc->get_recording_loc () : NULL,
-				  fmt, ap);
+				  DK_ERROR, fmt, ap);
 }
 
-/* Report a diagnostic up to the jit context as an error,
-   so that the compilation is treated as a failure.
-   For now, any kind of diagnostic is treated as an error by the jit
-   API.  */
+/* Report a diagnostic up to the jit context, so that the
+   compilation is treated as a failure if the diagnostic
+   is an error.  */
 
 void
 playback::context::
@@ -4001,7 +4000,7 @@ add_diagnostic (const char *text,
 						  false);
     }
 
-  m_recording_ctxt->add_error (rec_loc, "%s", text);
+  m_recording_ctxt->add_diagnostic (rec_loc, diagnostic.kind, "%s", text);
 }
 
 /* Dealing with the linemap API.  */
