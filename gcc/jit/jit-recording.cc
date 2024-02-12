@@ -1717,11 +1717,21 @@ recording::context::populate_target_info ()
    it to stderr, and add it to the context.  */
 
 void
+recording::context::add_diagnostic (location *loc, diagnostics::kind diagnostic_kind,
+				    const char *fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  add_error_va (loc, diagnostic_kind, fmt, ap);
+  va_end (ap);
+}
+
+void
 recording::context::add_error (location *loc, const char *fmt, ...)
 {
   va_list ap;
   va_start (ap, fmt);
-  add_error_va (loc, fmt, ap);
+  add_error_va (loc, diagnostics::kind::error, fmt, ap);
   va_end (ap);
 }
 
@@ -1729,7 +1739,8 @@ recording::context::add_error (location *loc, const char *fmt, ...)
    it to stderr, and add it to the context.  */
 
 void
-recording::context::add_error_va (location *loc, const char *fmt, va_list ap)
+recording::context::add_error_va (location *loc, diagnostics::kind diagnostic_kind,
+				  const char *fmt, va_list ap)
 {
   int len;
   char *malloced_msg;
@@ -1750,7 +1761,8 @@ recording::context::add_error_va (location *loc, const char *fmt, va_list ap)
       has_ownership = true;
     }
   if (get_logger ())
-    get_logger ()->log ("error %i: %s", m_error_count, errmsg);
+    get_logger ()->log ("%s %i: %s", diagnostics::get_text_for_kind (diagnostic_kind),
+			m_error_count, errmsg);
 
   const char *ctxt_progname =
     get_str_option (GCC_JIT_STR_OPTION_PROGNAME);
@@ -1762,13 +1774,15 @@ recording::context::add_error_va (location *loc, const char *fmt, va_list ap)
   if (print_errors_to_stderr)
   {
     if (loc)
-      fprintf (stderr, "%s: %s: error: %s\n",
+      fprintf (stderr, "%s: %s: %s: %s\n",
 	       ctxt_progname,
 	       loc->get_debug_string (),
+	       diagnostics::get_text_for_kind (diagnostic_kind),
 	       errmsg);
     else
-      fprintf (stderr, "%s: error: %s\n",
+      fprintf (stderr, "%s: %s: %s\n",
 	       ctxt_progname,
+	       diagnostics::get_text_for_kind (diagnostic_kind),
 	       errmsg);
   }
 
@@ -1784,7 +1798,8 @@ recording::context::add_error_va (location *loc, const char *fmt, va_list ap)
   m_last_error_str = const_cast <char *> (errmsg);
   m_owns_last_error_str = has_ownership;
 
-  m_error_count++;
+  if (diagnostic_kind == diagnostics::kind::error)
+    m_error_count++;
 }
 
 /* Get the message for the first error that occurred on this context, or
