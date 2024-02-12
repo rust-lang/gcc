@@ -341,7 +341,7 @@ jit_error (gcc::jit::recording::context *ctxt,
   va_start (ap, fmt);
 
   if (ctxt)
-    ctxt->add_error_va (loc, fmt, ap);
+    ctxt->add_error_va (loc, DK_ERROR, fmt, ap);
   else
     {
       /* No context?  Send to stderr.  */
