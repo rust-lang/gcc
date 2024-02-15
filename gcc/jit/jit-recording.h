@@ -264,6 +264,9 @@ public:
   set_str_option (enum gcc_jit_str_option opt,
 		  const char *value);
 
+  const char*
+  get_str_option (enum gcc_jit_str_option opt);
+
   void
   set_output_ident (const char *output_ident);
 
