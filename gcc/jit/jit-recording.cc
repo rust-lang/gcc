@@ -1511,6 +1511,18 @@ recording::context::set_bool_option (enum gcc_jit_bool_option opt,
   log_bool_option (opt);
 }
 
+int
+recording::context::get_bool_option (enum gcc_jit_bool_option opt)
+{
+  if (opt < 0 || opt >= GCC_JIT_NUM_BOOL_OPTIONS)
+    {
+      add_error (NULL,
+		 "unrecognized (enum gcc_jit_bool_option) value: %i", opt);
+      return 0;
+    }
+  return m_bool_options[opt];
+}
+
 void
 recording::context::set_inner_bool_option (enum inner_bool_option inner_opt,
 					   int value)
@@ -1863,7 +1875,8 @@ static const char * const
   "GCC_JIT_BOOL_OPTION_DUMP_SUMMARY",
   "GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING",
   "GCC_JIT_BOOL_OPTION_SELFCHECK_GC",
-  "GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES"
+  "GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES",
+  "GCC_JIT_BOOL_OPTION_SPECIAL_CHARS_IN_FUNC_NAMES",
 };
 
 static const char * const

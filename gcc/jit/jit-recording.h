@@ -267,6 +267,9 @@ public:
   set_bool_option (enum gcc_jit_bool_option opt,
 		   int value);
 
+  int
+  get_bool_option (enum gcc_jit_bool_option opt);
+
   void
   set_inner_bool_option (enum inner_bool_option inner_opt,
 			 int value);
