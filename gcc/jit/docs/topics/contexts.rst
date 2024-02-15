@@ -317,12 +317,16 @@ String Options
    copy of the underlying string, so it is valid to pass in a pointer to
    an on-stack buffer.
 
-   There is just one string option specified this way:
-
    .. macro:: GCC_JIT_STR_OPTION_PROGNAME
 
       The name of the program, for use as a prefix when printing error
       messages to stderr.  If `NULL`, or default, "libgccjit.so" is used.
+
+  .. macro:: GCC_JIT_STR_OPTION_SPECIAL_CHARS_IN_FUNC_NAMES
+
+      Special characters to allow in function names.
+      This string contains all characters that should not be rejected by
+      libgccjit. Ex.: ".$"
 
 Boolean options
 ***************
