@@ -1222,10 +1222,13 @@ gcc_jit_context_new_function (gcc_jit_context *ctxt,
      Eventually we'll need some way to interact with e.g. C++ name
      mangling.  */
   {
+    int special_chars_allowed
+      = ctxt->get_bool_option (GCC_JIT_BOOL_OPTION_SPECIAL_CHARS_IN_FUNC_NAMES);
     /* Leading char: */
     char ch = *name;
     RETURN_NULL_IF_FAIL_PRINTF2 (
-	ISALPHA (ch) || ch == '_',
+	ISALPHA (ch) || ch == '_' || (special_chars_allowed
+	  && (ch == '.' || ch == '$' || ch == '*')),
 	ctxt, loc,
 	"name \"%s\" contains invalid character: '%c'",
 	name, ch);
@@ -1233,7 +1236,8 @@ gcc_jit_context_new_function (gcc_jit_context *ctxt,
     for (const char *ptr = name + 1; (ch = *ptr); ptr++)
       {
 	RETURN_NULL_IF_FAIL_PRINTF2 (
-	  ISALNUM (ch) || ch == '_',
+	  ISALNUM (ch) || ch == '_' || (special_chars_allowed
+	    && (ch == '.' || ch == '$' || ch == '*')),
 	  ctxt, loc,
 	  "name \"%s\" contains invalid character: '%c'",
 	  name, ch);

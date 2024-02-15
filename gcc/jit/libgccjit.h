@@ -244,6 +244,9 @@ enum gcc_jit_bool_option
      their location on stderr.  */
   GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
 
+  /* If true, allow special characters like . and $ in function names.  */
+  GCC_JIT_BOOL_OPTION_SPECIAL_CHARS_IN_FUNC_NAMES,
+
   GCC_JIT_NUM_BOOL_OPTIONS
 };
 
