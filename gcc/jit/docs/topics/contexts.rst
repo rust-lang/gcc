@@ -453,6 +453,10 @@ Boolean options
      If true, the :type:`gcc_jit_context` will not clean up intermediate files
      written to the filesystem, and will display their location on stderr.
 
+  .. macro:: GCC_JIT_BOOL_OPTION_SPECIAL_CHARS_IN_FUNC_NAMES
+
+     If true, allow special characters like . and $ in function names.
+
 .. function:: void \
               gcc_jit_context_set_bool_allow_unreachable_blocks (gcc_jit_context *ctxt, \
                                                                  int bool_value)
