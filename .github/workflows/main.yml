@@ -24,6 +24,10 @@ jobs:
     - name: Install mpfr
       run: sudo apt-get install gcc-10 libmpfr-dev libmpc-dev
 
+    - name: Apply patch to disable 128-bit integers
+      if: matrix.version.use_patch
+      run: git apply patches/0001-Disable-128-bit-integers-for-testing-purposes.patch
+
     - name: Build libgccjit
       run: |
         cd ..
@@ -56,6 +60,7 @@ jobs:
 
     - name: Create tag
       if: github.ref == 'refs/heads/master'
+      continue-on-error: true
       uses: laputansoft/github-tag-action@v4.6
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -63,7 +68,7 @@ jobs:
         tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
 
     - name: Create release
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master' && !matrix.version.use_patch
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
