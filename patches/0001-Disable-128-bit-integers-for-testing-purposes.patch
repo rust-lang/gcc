@@ -1,0 +1,85 @@
+diff --git a/gcc/jit/dummy-frontend.cc b/gcc/jit/dummy-frontend.cc
+index 67785724f24..e7f5525aae4 100644
+--- a/gcc/jit/dummy-frontend.cc
++++ b/gcc/jit/dummy-frontend.cc
+@@ -1335,10 +1335,13 @@ recording::type* tree_type_to_jit_type (tree type)
+   }
+   else if (type == unsigned_intTI_type_node)
+     return new recording::memento_of_get_type (&target_builtins_ctxt,
+-      GCC_JIT_TYPE_UINT128_T);
++      GCC_JIT_TIPE_VOID);
+   else if (INTEGRAL_TYPE_P (type))
+   {
+     unsigned int size = tree_to_uhwi (TYPE_SIZE_UNIT (type));
++    if (size == 16)
++      return new recording::memento_of_get_type (&target_builtins_ctxt,
++						 GCC_JIT_TYPE_VOID);
+     return target_builtins_ctxt.get_int_type (size, TYPE_UNSIGNED (type));
+   }
+   else if (SCALAR_FLOAT_TYPE_P (type))
+diff --git a/gcc/jit/jit-builtins.cc b/gcc/jit/jit-builtins.cc
+index 539ee132393..01ce44ca142 100644
+--- a/gcc/jit/jit-builtins.cc
++++ b/gcc/jit/jit-builtins.cc
+@@ -482,7 +482,7 @@ builtins_manager::make_primitive_type (enum jit_builtin_type type_id)
+     case BT_UINT16: return m_ctxt->get_int_type (2, false);
+     case BT_UINT32: return m_ctxt->get_int_type (4, false);
+     case BT_UINT64: return m_ctxt->get_int_type (8, false);
+-    case BT_UINT128: return m_ctxt->get_int_type (16, false);
++    case BT_UINT128: return m_ctxt->get_int_type (8, false);
+     // case BT_WORD:
+     // case BT_UNWINDWORD:
+     case BT_FLOAT: return m_ctxt->get_type (GCC_JIT_TYPE_FLOAT);
+@@ -545,7 +545,7 @@ builtins_manager::make_primitive_type (enum jit_builtin_type type_id)
+     case BT_I2: return m_ctxt->get_int_type (2, true);
+     case BT_I4: return m_ctxt->get_int_type (4, true);
+     case BT_I8: return m_ctxt->get_int_type (8, true);
+-    case BT_I16: return m_ctxt->get_int_type (16, true);
++    case BT_I16: return m_ctxt->get_int_type (8, true);
+     // case BT_PTR_CONST_STRING:
+     }
+ }
+diff --git a/gcc/jit/jit-playback.cc b/gcc/jit/jit-playback.cc
+index 0d576f4c76e..adac487cf80 100644
+--- a/gcc/jit/jit-playback.cc
++++ b/gcc/jit/jit-playback.cc
+@@ -250,8 +250,8 @@ get_tree_node_for_type (enum gcc_jit_types type_)
+     case GCC_JIT_TYPE_UINT64_T:
+       return uint64_type_node;
+     case GCC_JIT_TYPE_UINT128_T:
+-      if (targetm.scalar_mode_supported_p (TImode))
+-	return uint128_type_node;
++      /*if (targetm.scalar_mode_supported_p (TImode))
++	return uint128_type_node;*/
+ 
+       add_error (NULL, "gcc_jit_types value unsupported on this target: %i",
+ 		 type_);
+@@ -266,8 +266,8 @@ get_tree_node_for_type (enum gcc_jit_types type_)
+     case GCC_JIT_TYPE_INT64_T:
+       return intDI_type_node;
+     case GCC_JIT_TYPE_INT128_T:
+-      if (targetm.scalar_mode_supported_p (TImode))
+-	return intTI_type_node;
++      /*if (targetm.scalar_mode_supported_p (TImode))
++	return intTI_type_node;*/
+ 
+       add_error (NULL, "gcc_jit_types value unsupported on this target: %i",
+ 		 type_);
+diff --git a/gcc/jit/jit-target.cc b/gcc/jit/jit-target.cc
+index 4aaa464c314..1e4ded75c5b 100644
+--- a/gcc/jit/jit-target.cc
++++ b/gcc/jit/jit-target.cc
+@@ -41,11 +41,11 @@ along with GCC; see the file COPYING3.  If not see
+ void
+ jit_target_dependent_types_init ()
+ {
+-  if (targetm.scalar_mode_supported_p (TImode))
++  /*if (targetm.scalar_mode_supported_p (TImode))
+   {
+     jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_UINT128_T);
+     jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_INT128_T);
+-  }
++  }*/
+ 
+   if (float16_type_node != NULL && TYPE_PRECISION (float16_type_node) == 16)
+     jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_FLOAT16);
