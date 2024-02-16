@@ -68,7 +68,7 @@ ix86_jit_register_target_info (void)
   std::string cpu = arch.substr (arg_pos, end_pos - arg_pos);
   jit_target_set_arch (cpu);
 
-  jit_target_set_128bit_int_support (targetm.scalar_mode_supported_p (TImode));
+  //jit_target_set_128bit_int_support (targetm.scalar_mode_supported_p (TImode));
 
   if (TARGET_MMX)
     jit_add_target_info ("target_feature", "mmx");

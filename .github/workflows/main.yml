@@ -64,7 +64,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: /home/runner/work/gcc/install/usr/lib/libgccjit.so.0.0.1
-        asset_name: libgccjit.so
+        asset_name: libgccjit-without-int128.so
         tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
 
     - name: Create release
@@ -73,5 +73,5 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: /home/runner/work/gcc/gcc-13.deb
-        asset_name: gcc-13.deb
+        asset_name: gcc-without-int128-13.deb
         tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
