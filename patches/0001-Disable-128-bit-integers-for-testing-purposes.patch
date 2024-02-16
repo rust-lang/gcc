@@ -1,0 +1,57 @@
+From b0854c3c6c3749c14582d89f706d5686be7ec977 Mon Sep 17 00:00:00 2001
+From: Antoni Boucher <bouanto@zoho.com>
+Date: Thu, 17 Oct 2024 10:19:46 -0400
+Subject: [PATCH] Disable 128 bit integers for testing purposes
+
+---
+ gcc/config/i386/i386-jit.cc | 4 ++--
+ gcc/jit/jit-playback.cc     | 8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/gcc/config/i386/i386-jit.cc b/gcc/config/i386/i386-jit.cc
+index 8e085ff4526..f839201c084 100644
+--- a/gcc/config/i386/i386-jit.cc
++++ b/gcc/config/i386/i386-jit.cc
+@@ -52,11 +52,11 @@ ix86_jit_register_target_info (void)
+   std::string cpu = arch.substr (arg_pos, end_pos - arg_pos);
+   jit_target_set_arch (cpu);
+ 
+-  if (targetm.scalar_mode_supported_p (TImode))
++  /*if (targetm.scalar_mode_supported_p (TImode))
+   {
+     jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_UINT128_T);
+     jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_INT128_T);
+-  }
++  }*/
+ 
+   if (float16_type_node != NULL && TYPE_PRECISION(float16_type_node) == 16)
+     jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT16);
+diff --git a/gcc/jit/jit-playback.cc b/gcc/jit/jit-playback.cc
+index 773ecebe68d..0006da73413 100644
+--- a/gcc/jit/jit-playback.cc
++++ b/gcc/jit/jit-playback.cc
+@@ -249,8 +249,8 @@ get_tree_node_for_type (enum gcc_jit_types type_)
+     case GCC_JIT_TYPE_UINT64_T:
+       return uint64_type_node;
+     case GCC_JIT_TYPE_UINT128_T:
+-      if (targetm.scalar_mode_supported_p (TImode))
+-	return uint128_type_node;
++      /*if (targetm.scalar_mode_supported_p (TImode))
++	return uint128_type_node;*/
+ 
+       add_error (NULL, "gcc_jit_types value unsupported on this target: %i",
+ 		 type_);
+@@ -265,8 +265,8 @@ get_tree_node_for_type (enum gcc_jit_types type_)
+     case GCC_JIT_TYPE_INT64_T:
+       return intDI_type_node;
+     case GCC_JIT_TYPE_INT128_T:
+-      if (targetm.scalar_mode_supported_p (TImode))
+-	return intTI_type_node;
++      /*if (targetm.scalar_mode_supported_p (TImode))
++	return intTI_type_node;*/
+ 
+       add_error (NULL, "gcc_jit_types value unsupported on this target: %i",
+ 		 type_);
+-- 
+2.47.0
+
