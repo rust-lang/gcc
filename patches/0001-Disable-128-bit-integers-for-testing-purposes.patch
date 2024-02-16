@@ -1,0 +1,76 @@
+From d2e88f702bd04cdfc0e63941c2d831adb5a4bf42 Mon Sep 17 00:00:00 2001
+From: Antoni Boucher <bouanto@zoho.com>
+Date: Wed, 8 Oct 2025 13:51:23 -0400
+Subject: [PATCH] Disable 128-bit integers for testing purposes
+
+---
+ gcc/config/aarch64/aarch64-jit.cc | 4 ++--
+ gcc/config/i386/i386-jit.cc       | 4 ++--
+ gcc/jit/jit-playback.cc           | 8 ++++----
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/gcc/config/aarch64/aarch64-jit.cc b/gcc/config/aarch64/aarch64-jit.cc
+index 26ed3ea485a..64efae92c3a 100644
+--- a/gcc/config/aarch64/aarch64-jit.cc
++++ b/gcc/config/aarch64/aarch64-jit.cc
+@@ -58,11 +58,11 @@ aarch64_jit_register_target_info (void)
+   }
+ #endif
+ 
+-  if (targetm.scalar_mode_supported_p (TImode))
++  /*if (targetm.scalar_mode_supported_p (TImode))
+   {
+     jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_UINT128_T);
+     jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_INT128_T);
+-  }
++  }*/
+ 
+   if (float16_type_node != NULL && TYPE_PRECISION(float16_type_node) == 16)
+     jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT16);
+diff --git a/gcc/config/i386/i386-jit.cc b/gcc/config/i386/i386-jit.cc
+index 3f14c29372e..23861d470d9 100644
+--- a/gcc/config/i386/i386-jit.cc
++++ b/gcc/config/i386/i386-jit.cc
+@@ -59,11 +59,11 @@ ix86_jit_register_target_info (void)
+   }
+ #endif
+ 
+-  if (targetm.scalar_mode_supported_p (TImode))
++  /*if (targetm.scalar_mode_supported_p (TImode))
+   {
+     jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_UINT128_T);
+     jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_INT128_T);
+-  }
++  }*/
+ 
+   if (float16_type_node != NULL && TYPE_PRECISION(float16_type_node) == 16)
+     jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT16);
+diff --git a/gcc/jit/jit-playback.cc b/gcc/jit/jit-playback.cc
+index 4da3156af74..2593288c5ee 100644
+--- a/gcc/jit/jit-playback.cc
++++ b/gcc/jit/jit-playback.cc
+@@ -250,8 +250,8 @@ get_tree_node_for_type (enum gcc_jit_types type_)
+     case GCC_JIT_TYPE_UINT64_T:
+       return uint64_type_node;
+     case GCC_JIT_TYPE_UINT128_T:
+-      if (targetm.scalar_mode_supported_p (TImode))
+-	return uint128_type_node;
++      /*if (targetm.scalar_mode_supported_p (TImode))
++	return uint128_type_node;*/
+ 
+       add_error (NULL, "gcc_jit_types value unsupported on this target: %i",
+ 		 type_);
+@@ -266,8 +266,8 @@ get_tree_node_for_type (enum gcc_jit_types type_)
+     case GCC_JIT_TYPE_INT64_T:
+       return intDI_type_node;
+     case GCC_JIT_TYPE_INT128_T:
+-      if (targetm.scalar_mode_supported_p (TImode))
+-	return intTI_type_node;
++      /*if (targetm.scalar_mode_supported_p (TImode))
++	return intTI_type_node;*/
+ 
+       add_error (NULL, "gcc_jit_types value unsupported on this target: %i",
+ 		 type_);
+-- 
+2.51.0
+
