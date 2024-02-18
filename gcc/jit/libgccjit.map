@@ -340,3 +340,10 @@ LIBGCCJIT_ABI_36 {
   global:
     gcc_jit_function_new_temp;
 } LIBGCCJIT_ABI_35;
+
+LIBGCCJIT_ABI_37 {
+   global:
+    gcc_jit_field_set_location;
+    gcc_jit_function_set_location;
+    gcc_jit_rvalue_set_location;
+} LIBGCCJIT_ABI_36;
