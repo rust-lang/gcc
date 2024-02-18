@@ -2312,6 +2312,16 @@ gcc_jit_context_set_abort_on_unsupported_target_builtin (gcc_jit_context *ctxt);
 extern void
 gcc_jit_type_set_packed (gcc_jit_type *type);
 
+extern void
+gcc_jit_field_set_location (gcc_jit_field *field,
+			    gcc_jit_location *loc);
+extern void
+gcc_jit_function_set_location (gcc_jit_function *func,
+			       gcc_jit_location *loc);
+extern void
+gcc_jit_rvalue_set_location (gcc_jit_rvalue *rvalue,
+			     gcc_jit_location *loc);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

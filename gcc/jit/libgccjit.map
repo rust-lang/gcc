@@ -361,3 +361,10 @@ LIBGCCJIT_ABI_40 {
   global:
     gcc_jit_set_global_personality_function_name;
 } LIBGCCJIT_ABI_39;
+
+LIBGCCJIT_ABI_41 {
+   global:
+    gcc_jit_field_set_location;
+    gcc_jit_function_set_location;
+    gcc_jit_rvalue_set_location;
+} LIBGCCJIT_ABI_40;
