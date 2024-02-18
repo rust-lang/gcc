@@ -1088,6 +1088,7 @@ class array_type : public type
   bool is_signed () const final override { return false; }
 
   void replay_into (replayer *) final override;
+  void set_loc(location * loc) { m_loc = loc; }
 
  private:
   string * make_debug_string () final override;
@@ -1178,6 +1179,7 @@ public:
 
   compound_type * get_container () const { return m_container; }
   void set_container (compound_type *c) { m_container = c; }
+  void set_loc (location * loc) { m_loc = loc; }
 
   void replay_into (replayer *) override;
 
@@ -1252,6 +1254,7 @@ public:
   bool is_signed () const final override { return false; }
 
   bool has_known_size () const final override { return m_fields != NULL; }
+  void set_loc (location * loc) { m_loc = loc; }
 
   playback::compound_type *
   playback_compound_type ()
@@ -1393,6 +1396,7 @@ public:
   }
 
   location * get_loc () const { return m_loc; }
+  void set_loc (location * loc) { m_loc = loc; }
 
   /* Get the recording::type of this rvalue.
 
@@ -1589,6 +1593,7 @@ public:
   new_block (const char *name);
 
   location *get_loc () const { return m_loc; }
+  void set_loc (location * loc) { m_loc = loc; }
   type *get_return_type () const { return m_return_type; }
   string * get_name () const { return m_name; }
   const vec<param *> &get_params () const { return m_params; }
@@ -1724,6 +1729,7 @@ public:
   bool validate ();
 
   location *get_loc () const;
+  void set_loc (location * loc);
 
   statement *get_first_statement () const;
   statement *get_last_statement () const;
@@ -2533,6 +2539,7 @@ public:
 
   block *get_block () const { return m_block; }
   location *get_loc () const { return m_loc; }
+  void set_loc (location * loc) { m_loc = loc; }
 
 protected:
   statement (block *b, location *loc)
