@@ -4811,3 +4811,46 @@ gcc_jit_context_add_top_level_asm (gcc_jit_context *ctxt,
   RETURN_IF_FAIL (asm_stmts, ctxt, NULL, "NULL asm_stmts");
   ctxt->add_top_level_asm (loc, asm_stmts);
 }
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, this calls the trivial
+   gcc::jit::recording::field::set_loc method, in jit-recording.h.  */
+
+void
+gcc_jit_field_set_location (gcc_jit_field *field,
+                            gcc_jit_location *loc)
+{
+  RETURN_IF_FAIL (field, NULL, NULL, "NULL field");
+
+  field->set_loc (loc);
+}
+
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, this calls the trivial
+   gcc::jit::recording::rvalue::set_loc method , in jit-recording.h.  */
+
+void
+gcc_jit_rvalue_set_location (gcc_jit_rvalue *rvalue,
+			     gcc_jit_location *loc)
+{
+  RETURN_IF_FAIL (rvalue, NULL, NULL, "NULL rvalue");
+
+  rvalue->set_loc (loc);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, this calls the trivial
+   gcc::jit::recording::function::set_loc method, in jit-recording.h.  */
+
+void
+gcc_jit_function_set_location (gcc_jit_function *func,
+                               gcc_jit_location *loc)
+{
+  RETURN_IF_FAIL (func, NULL, NULL, "NULL func");
+
+  func->set_loc (loc);
+}
