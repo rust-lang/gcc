@@ -1755,8 +1755,9 @@ convert_vector (location *loc,
   tree t_vector = vector->as_tree ();
 
   /* It seems IFN_VEC_CONVERT only work on registers, not on memory.  */
-  if (TREE_CODE (t_vector) == VAR_DECL)
-    DECL_REGISTER (t_vector) = 1;
+  // TODO: remove this commented code as it doesn't seem necessary anymore.
+  /*if (TREE_CODE (t_vector) == VAR_DECL)
+    DECL_REGISTER (t_vector) = 1;*/
   tree t_result = build_call_expr_internal_loc (UNKNOWN_LOCATION, IFN_VEC_CONVERT, type->as_tree (), 1, t_vector);
 
   if (loc)
