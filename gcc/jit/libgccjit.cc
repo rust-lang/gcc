@@ -3349,14 +3349,16 @@ gcc_jit_context_new_case (gcc_jit_context *ctxt,
   RETURN_NULL_IF_FAIL_PRINTF1 (max_value->is_constant (), ctxt, NULL,
 			       "max_value is not a constant: %s",
 			       max_value->get_debug_string ());
+  gcc::jit::recording::type *max_value_type = max_value->get_type ();
+  gcc::jit::recording::type *min_value_type = min_value->get_type ();
   RETURN_NULL_IF_FAIL_PRINTF2 (
-    min_value->get_type ()->is_int (),
+    min_value_type->is_int () || min_value_type->is_bool (),
     ctxt, NULL,
     "min_value: %s (type: %s) is not of integer type",
     min_value->get_debug_string (),
     min_value->get_type ()->get_debug_string ());
   RETURN_NULL_IF_FAIL_PRINTF2 (
-    max_value->get_type ()->is_int (),
+    max_value_type->is_int () || max_value_type->is_bool (),
     ctxt, NULL,
     "max_value: %s (type: %s) is not of integer type",
     max_value->get_debug_string (),
@@ -3666,7 +3668,7 @@ gcc_jit_block_end_with_switch (gcc_jit_block *block,
 		  "NULL expr");
   gcc::jit::recording::type *expr_type = expr->get_type ();
   RETURN_IF_FAIL_PRINTF2 (
-    expr_type->is_int (),
+    expr_type->is_int () || expr_type->is_bool (),
     ctxt, loc,
     "expr: %s (type: %s) is not of integer type",
     expr->get_debug_string (),
