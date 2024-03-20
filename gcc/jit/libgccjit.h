@@ -247,7 +247,16 @@ enum gcc_jit_bool_option
      their location on stderr.  */
   GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
 
-  GCC_JIT_NUM_BOOL_OPTIONS
+  /* If true, gcc_jit_context will treat the function names
+     as mangled by default, setting the linking name trough
+     SET_DECL_ASSEMBLER_NAME, unless the function is of
+     GCC_JIT_FN_ATTRIBUTE_NO_MANGLE attribute.
+     NOTE:
+     1. This option is ignored if GCC_JIT_DEBUGINFO is false.
+     2. This option must be set before the GIMPLE tree is built.*/
+  GCC_JIT_BOOL_OPTION_MANGLED_FUNCTION_NAME,
+
+  GCC_JIT_NUM_BOOL_OPTIONS,
 };
 
 /* Set a string option on the given context.
@@ -2123,6 +2132,7 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_CONST,
   GCC_JIT_FN_ATTRIBUTE_WEAK,
   GCC_JIT_FN_ATTRIBUTE_NONNULL,
+  GCC_JIT_FN_ATTRIBUTE_NOMANGLE,
 
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_FN_ATTRIBUTE_MAX,
