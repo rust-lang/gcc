@@ -550,6 +550,8 @@ const char* fn_attribute_to_string (gcc_jit_fn_attribute attr)
       return "weak";
     case GCC_JIT_FN_ATTRIBUTE_NONNULL:
       return "nonnull";
+    case GCC_JIT_FN_ATTRIBUTE_SHORT_NAME:
+      return "short_name";
     case GCC_JIT_FN_ATTRIBUTE_MAX:
       return NULL;
   }
