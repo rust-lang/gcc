@@ -195,7 +195,7 @@ static const attribute_spec jit_gnu_attributes[] =
 			      attr_returns_twice_exclusions },
   { "sentinel",		      0, 1, false, true, true, false,
 			      handle_sentinel_attribute, NULL },
-  { "short_name",	      0, 0, false,  false, false, false,
+  { "short_name",	      0, 1, false,  false, false, false,
 			      NULL, NULL },
   { "target",		      1, -1, true, false, false, false,
 			      handle_target_attribute, attr_target_exclusions },
