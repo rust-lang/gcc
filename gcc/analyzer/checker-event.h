@@ -680,6 +680,8 @@ public:
     m_apparent_callee_fndecl (apparent_callee_fndecl),
     m_apparent_caller_fndecl (apparent_caller_fndecl)
   {
+    gcc_assert (apparent_callee_fndecl != NULL);
+    gcc_assert (apparent_caller_fndecl != NULL);
     gcc_assert (LOCATION_BLOCK (loc) == NULL);
   }
 
