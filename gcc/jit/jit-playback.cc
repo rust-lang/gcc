@@ -2239,6 +2239,7 @@ function (context *ctxt,
       m_stmt_list = alloc_stmt_list ();
       m_stmt_iter = tsi_start (m_stmt_list);
       m_inner_block = make_node (BLOCK);
+      BLOCK_SUPERCONTEXT (m_inner_block) = m_inner_fndecl;
       m_inner_bind_expr =
 	build3 (BIND_EXPR, void_type_node, NULL, m_stmt_list, m_inner_block);
     }
