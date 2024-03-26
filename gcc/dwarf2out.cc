@@ -3781,6 +3781,8 @@ static bool is_cxx (void);
 static bool is_cxx (const_tree);
 static bool is_fortran (void);
 static bool is_ada (void);
+static bool is_gccjit (void);
+static bool is_gccjit (const_tree);
 static bool remove_AT (dw_die_ref, enum dwarf_attribute);
 static void remove_child_TAG (dw_die_ref, enum dwarf_tag);
 static void add_child_die (dw_die_ref, dw_die_ref);
@@ -3985,6 +3987,7 @@ static void gen_type_die_with_usage (tree, dw_die_ref, enum debug_info_usage,
 				     bool = false);
 static void splice_child_die (dw_die_ref, dw_die_ref);
 static int file_info_cmp (const void *, const void *);
+static bool find_short_name_attr (tree);
 static dw_loc_list_ref new_loc_list (dw_loc_descr_ref, const char *, var_loc_view,
 				     const char *, var_loc_view, const char *);
 static void output_loc_list (dw_loc_list_ref);
@@ -5587,6 +5590,27 @@ is_cxx (const_tree decl)
 	return startswith (TRANSLATION_UNIT_LANGUAGE (context), "GNU C++");
     }
   return is_cxx ();
+}
+
+/* Return TRUE if libgccjit frontend is in use.  */
+static inline bool
+is_gccjit (void)
+{
+    return startswith (lang_hooks.name, "libgccjit");
+}
+
+/* Return TRUE if DECL was created by the libgccjit frontend.  */
+
+static inline bool
+is_gccjit (const_tree decl)
+{
+  if (in_lto_p)
+    {
+      const_tree context = get_ultimate_context (decl);
+      if (context && TRANSLATION_UNIT_LANGUAGE (context))
+	return startswith (TRANSLATION_UNIT_LANGUAGE (context), "libgccjit");
+    }
+  return is_gccjit ();
 }
 
 /* Return TRUE if the language is Fortran.  */
@@ -22106,7 +22130,8 @@ add_linkage_name_raw (dw_die_ref die, tree decl)
       asm_name->next = deferred_asm_name;
       deferred_asm_name = asm_name;
     }
-  else if (DECL_ASSEMBLER_NAME (decl) != DECL_NAME (decl))
+  else if (DECL_ASSEMBLER_NAME (decl) != DECL_NAME (decl)
+           || (TREE_CODE(decl) == FUNCTION_DECL && is_gccjit() && find_short_name_attr(decl)))
     add_linkage_attr (die, decl);
 }
 
@@ -23510,6 +23535,25 @@ gen_call_site_die (tree decl, dw_die_ref subr_die,
 		     false);
     }
   return die;
+}
+
+/* Check whether the `decl` node has a short_name` attribute
+   */
+static bool
+find_short_name_attr (tree decl)
+{
+  bool found_name_attr = false;
+  tree short_name_id = get_identifier("short_name");
+
+  for(tree attr_li = DECL_ATTRIBUTES(decl);attr_li;attr_li = TREE_CHAIN(attr_li))
+  {
+    if (TREE_PURPOSE(attr_li) == short_name_id)
+    {
+      found_name_attr = true;
+      break;
+    }
+  }
+  return found_name_attr;
 }
 
 /* Generate a DIE to represent a declared function (either file-scope or
