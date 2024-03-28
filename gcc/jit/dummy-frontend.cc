@@ -34,6 +34,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "target.h"
 #include "jit-recording.h"
 #include "print-tree.h"
+#include "langhooks.h"
 
 #include <mpfr.h>
 #include <unordered_map>
@@ -195,7 +196,7 @@ static const attribute_spec jit_gnu_attributes[] =
 			      attr_returns_twice_exclusions },
   { "sentinel",		      0, 1, false, true, true, false,
 			      handle_sentinel_attribute, NULL },
-  { "short_name",	      0, 1, false,  false, false, false,
+  { "jit_dwarf_short_name",   1, 1, false,  false, false, false,
 			      NULL, NULL },
   { "target",		      1, -1, true, false, false, false,
 			      handle_target_attribute, attr_target_exclusions },
@@ -1375,6 +1376,21 @@ jit_langhook_getdecls (void)
   return NULL;
 }
 
+const char *
+jit_langhook_dwarf_name (tree decl, int verbosity)
+{
+  tree attr = NULL;
+  const char* name = NULL;
+  if (false
+      || !(decl
+           && FUNCTION_DECL == TREE_CODE(decl)
+           && (attr = lookup_attribute("jit_dwarf_short_name", DECL_ATTRIBUTES(decl)))
+           && (name = TREE_STRING_POINTER (TREE_VALUE (attr)))))
+    return lhd_dwarf_name (decl, verbosity);
+  else
+    return name;
+}
+
 static tree
 jit_langhook_eh_personality (void)
 {
@@ -1417,6 +1433,9 @@ jit_langhook_eh_personality (void)
 
 #undef LANG_HOOKS_GETDECLS
 #define LANG_HOOKS_GETDECLS		jit_langhook_getdecls
+
+#undef LANG_HOOKS_DWARF_NAME
+#define LANG_HOOKS_DWARF_NAME           jit_langhook_dwarf_name
 
 /* Attribute hooks.  */
 #undef LANG_HOOKS_ATTRIBUTE_TABLE

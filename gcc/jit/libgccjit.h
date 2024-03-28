@@ -250,7 +250,7 @@ enum gcc_jit_bool_option
   /* If true, gcc_jit_context will treat the function names
      as mangled by default, setting the linking name trough
      SET_DECL_ASSEMBLER_NAME, unless the function is of a
-     GCC_JIT_FN_ATTRIBUTE_SHORT_NAME attribute without any argument.
+     GCC_JIT_FN_ATTRIBUTE_JIT_DWARF_SHORT_NAME attribute without any argument.
      NOTE:
      1. This option is ignored if GCC_JIT_DEBUGINFO is false.
      2. This option must be set before the GIMPLE tree is built.*/
@@ -2132,7 +2132,7 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_CONST,
   GCC_JIT_FN_ATTRIBUTE_WEAK,
   GCC_JIT_FN_ATTRIBUTE_NONNULL,
-  GCC_JIT_FN_ATTRIBUTE_SHORT_NAME,
+  GCC_JIT_FN_ATTRIBUTE_JIT_DWARF_SHORT_NAME,
 
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_FN_ATTRIBUTE_MAX,

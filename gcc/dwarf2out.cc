@@ -22132,7 +22132,7 @@ add_linkage_name_raw (dw_die_ref die, tree decl)
   else if (DECL_ASSEMBLER_NAME (decl) != DECL_NAME (decl)
            || (TREE_CODE(decl) == FUNCTION_DECL
                && is_gccjit()
-               && lookup_attribute ("short_name", DECL_ATTRIBUTES (decl))))
+               && lookup_attribute ("jit_dwarf_short_name", DECL_ATTRIBUTES (decl))))
     add_linkage_attr (die, decl);
 }
 

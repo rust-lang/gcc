@@ -550,8 +550,8 @@ const char* fn_attribute_to_string (gcc_jit_fn_attribute attr)
       return "weak";
     case GCC_JIT_FN_ATTRIBUTE_NONNULL:
       return "nonnull";
-    case GCC_JIT_FN_ATTRIBUTE_SHORT_NAME:
-      return "short_name";
+    case GCC_JIT_FN_ATTRIBUTE_JIT_DWARF_SHORT_NAME:
+      return "jit_dwarf_short_name";
     case GCC_JIT_FN_ATTRIBUTE_MAX:
       return NULL;
   }
@@ -711,7 +711,7 @@ new_function (location *loc,
     const char* attribute = fn_attribute_to_string (name);
     tree ident = attribute ? get_identifier (attribute) : NULL;
 
-    if (should_test_short_name && GCC_JIT_FN_ATTRIBUTE_SHORT_NAME == name) {
+    if (should_test_short_name && GCC_JIT_FN_ATTRIBUTE_JIT_DWARF_SHORT_NAME == name) {
         short_name_found = true;
         should_test_short_name = false;
     }
