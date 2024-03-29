@@ -1385,7 +1385,7 @@ jit_langhook_dwarf_name (tree decl, int verbosity)
       || !(decl
            && FUNCTION_DECL == TREE_CODE(decl)
            && (attr = lookup_attribute("jit_dwarf_short_name", DECL_ATTRIBUTES(decl)))
-           && (name = TREE_STRING_POINTER (TREE_VALUE (attr)))))
+           && (name = TREE_STRING_POINTER (TREE_VALUE(TREE_VALUE (attr))))))
     return lhd_dwarf_name (decl, verbosity);
   else
     return name;
