@@ -1434,9 +1434,6 @@ jit_langhook_eh_personality (void)
 #undef LANG_HOOKS_GETDECLS
 #define LANG_HOOKS_GETDECLS		jit_langhook_getdecls
 
-#undef LANG_HOOKS_DWARF_NAME
-#define LANG_HOOKS_DWARF_NAME           jit_langhook_dwarf_name
-
 /* Attribute hooks.  */
 #undef LANG_HOOKS_ATTRIBUTE_TABLE
 #define LANG_HOOKS_ATTRIBUTE_TABLE jit_attribute_table

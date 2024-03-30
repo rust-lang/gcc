@@ -29,6 +29,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "jit-builtins.h"
 #include "jit-recording.h"
 #include "jit-playback.h"
+#include "langhooks.h"
 #include <sstream>
 
 /* This comes from diagnostic.cc.  */
@@ -38,6 +39,10 @@ static const char *const diagnostic_kind_text[] = {
 #undef DEFINE_DIAGNOSTIC_KIND
   "must-not-happen"
 };
+
+extern struct lang_hooks lang_hooks;
+extern const char * jit_langhook_dwarf_name (tree decl, int verbosity);
+extern const char * lhd_dwarf_name (tree decl, int verbosity);
 
 namespace gcc {
 namespace jit {
@@ -1520,6 +1525,8 @@ recording::context::set_bool_option (enum gcc_jit_bool_option opt,
       return;
     }
   m_bool_options[opt] = value ? true : false;
+  if (GCC_JIT_BOOL_OPTION_MANGLED_FUNCTION_NAME == opt)
+    lang_hooks.dwarf_name = m_bool_options[opt] ? jit_langhook_dwarf_name : lhd_dwarf_name;
   log_bool_option (opt);
 }
 
@@ -1877,6 +1884,7 @@ static const char * const
   "GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING",
   "GCC_JIT_BOOL_OPTION_SELFCHECK_GC",
   "GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES",
+  "GCC_JIT_BOOL_OPTION_MANGLED_FUNCTION_NAME"
 };
 
 static const char * const
