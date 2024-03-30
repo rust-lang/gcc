@@ -3781,8 +3781,6 @@ static bool is_cxx (void);
 static bool is_cxx (const_tree);
 static bool is_fortran (void);
 static bool is_ada (void);
-static bool is_gccjit (void);
-static bool is_gccjit (const_tree);
 static bool remove_AT (dw_die_ref, enum dwarf_attribute);
 static void remove_child_TAG (dw_die_ref, enum dwarf_tag);
 static void add_child_die (dw_die_ref, dw_die_ref);
@@ -5589,27 +5587,6 @@ is_cxx (const_tree decl)
 	return startswith (TRANSLATION_UNIT_LANGUAGE (context), "GNU C++");
     }
   return is_cxx ();
-}
-
-/* Return TRUE if libgccjit frontend is in use.  */
-static inline bool
-is_gccjit (void)
-{
-    return startswith (lang_hooks.name, "libgccjit");
-}
-
-/* Return TRUE if DECL was created by the libgccjit frontend.  */
-
-static inline bool
-is_gccjit (const_tree decl)
-{
-  if (in_lto_p)
-    {
-      const_tree context = get_ultimate_context (decl);
-      if (context && TRANSLATION_UNIT_LANGUAGE (context))
-	return startswith (TRANSLATION_UNIT_LANGUAGE (context), "libgccjit");
-    }
-  return is_gccjit ();
 }
 
 /* Return TRUE if the language is Fortran.  */
@@ -22129,10 +22106,7 @@ add_linkage_name_raw (dw_die_ref die, tree decl)
       asm_name->next = deferred_asm_name;
       deferred_asm_name = asm_name;
     }
-  else if (DECL_ASSEMBLER_NAME (decl) != DECL_NAME (decl)
-           || (TREE_CODE(decl) == FUNCTION_DECL
-               && is_gccjit()
-               && lookup_attribute ("jit_dwarf_short_name", DECL_ATTRIBUTES (decl))))
+  else if (DECL_ASSEMBLER_NAME (decl) != DECL_NAME (decl))
     add_linkage_attr (die, decl);
 }
 
