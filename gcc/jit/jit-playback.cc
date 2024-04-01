@@ -698,6 +698,10 @@ new_function (location *loc,
     }
   }
 
+  bool short_name_found = false;
+  bool should_test_short_name = get_bool_option(GCC_JIT_BOOL_OPTION_DEBUGINFO)
+      && get_bool_option(GCC_JIT_BOOL_OPTION_MANGLED_FUNCTION_NAME);
+
   for (auto attr: string_attributes)
   {
     gcc_jit_fn_attribute& name = std::get<0>(attr);
@@ -707,8 +711,19 @@ new_function (location *loc,
     const char* attribute = fn_attribute_to_string (name);
     tree ident = attribute ? get_identifier (attribute) : NULL;
 
+    if (should_test_short_name && GCC_JIT_FN_ATTRIBUTE_JIT_DWARF_SHORT_NAME == name) {
+        short_name_found = true;
+        should_test_short_name = false;
+    }
+
     if (ident)
       fn_attributes = tree_cons (ident, attribute_value, fn_attributes);
+  }
+
+  if (short_name_found)
+  {
+    SET_DECL_ASSEMBLER_NAME(fndecl, get_identifier(name));
+    TREE_PUBLIC(fndecl) = 1;
   }
 
   for (auto attr: int_array_attributes)
