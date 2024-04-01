@@ -2193,6 +2193,8 @@ extern void
 gcc_jit_rvalue_set_location (gcc_jit_rvalue *rvalue,
 			     gcc_jit_location *loc);
 
+extern void
+gcc_jit_set_language (char const* name);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

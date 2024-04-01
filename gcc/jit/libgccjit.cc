@@ -30,6 +30,10 @@ along with GCC; see the file COPYING3.  If not see
 #include "jit-recording.h"
 #include "jit-result.h"
 #include "jit-target.h"
+#include "stringpool.h"
+#include "langhooks.h"
+
+extern struct lang_hooks lang_hooks;
 
 /* The opaque types used by the public API are actually subclasses
    of the gcc::jit::recording classes.  */
@@ -3005,7 +3009,7 @@ gcc_jit_block_add_try_catch (gcc_jit_block *block,
   RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL (catch_block, ctxt, loc, "NULL rvalue");
 
-  gcc::jit::recording::statement *stmt = block->add_try_catch (loc, try_block, catch_block);
+  block->add_try_catch (loc, try_block, catch_block);
 
   // TODO: remove this or use it.
   /* "stmt" should be good enough to be usable in error-messages,
@@ -3034,7 +3038,7 @@ gcc_jit_block_add_try_finally (gcc_jit_block *block,
   RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL (finally_block, ctxt, loc, "NULL rvalue");
 
-  gcc::jit::recording::statement *stmt = block->add_try_catch (loc, try_block, finally_block, true);
+  block->add_try_catch (loc, try_block, finally_block, true);
 
   // TODO: remove this or use it.
   /* "stmt" should be good enough to be usable in error-messages,
@@ -4791,4 +4795,12 @@ gcc_jit_function_set_location (gcc_jit_function *func,
   RETURN_IF_FAIL (func, NULL, NULL, "NULL func");
 
   func->set_loc (loc);
+}
+
+void
+gcc_jit_set_language (char const *name)
+{
+    tree lang_name = get_identifier(name);
+
+    lang_hooks.name = IDENTIFIER_POINTER(lang_name);
 }
