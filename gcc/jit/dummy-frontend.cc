@@ -1285,6 +1285,22 @@ recording::type* tree_type_to_jit_type (tree type)
   else if (type == bfloat16_type_node)
     return new recording::memento_of_get_type (&target_builtins_ctxt,
 					       GCC_JIT_TYPE_BFLOAT16);
+  else if (type == float16_type_node)
+  {
+    return new recording::memento_of_get_type(&target_builtins_ctxt, GCC_JIT_TYPE_FLOAT16);
+  }
+  else if (type == float32_type_node)
+  {
+    return new recording::memento_of_get_type(&target_builtins_ctxt, GCC_JIT_TYPE_FLOAT32);
+  }
+  else if (type == float64_type_node)
+  {
+    return new recording::memento_of_get_type(&target_builtins_ctxt, GCC_JIT_TYPE_FLOAT64);
+  }
+  else if (type == float128_type_node)
+  {
+    return new recording::memento_of_get_type(&target_builtins_ctxt, GCC_JIT_TYPE_FLOAT128);
+  }
   else if (type == dfloat128_type_node)
     // FIXME: wrong type.
     return new recording::memento_of_get_type (&target_builtins_ctxt,
