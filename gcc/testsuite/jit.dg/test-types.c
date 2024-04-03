@@ -50,6 +50,10 @@ struct zoo
   float m_float;
   double m_double;
   long double m_long_double;
+  _Float16 m_float16;
+  _Float32 m_float32;
+  _Float64 m_float64;
+  __float128 m_float128;
 
   const char *m_const_char_ptr;
 
@@ -156,6 +160,11 @@ create_code (gcc_jit_context *ctxt, void *user_data)
   gcc_jit_field *field_m_long_double =
     CREATE_FIELD (GCC_JIT_TYPE_LONG_DOUBLE, "m_long_double");
 
+  gcc_jit_field *field_m_float16 = CREATE_FIELD(GCC_JIT_TYPE_FLOAT16, "m_float16");
+  gcc_jit_field *field_m_float32 = CREATE_FIELD(GCC_JIT_TYPE_FLOAT32, "m_float32");
+  gcc_jit_field *field_m_float64 = CREATE_FIELD(GCC_JIT_TYPE_FLOAT64, "m_float64");
+  gcc_jit_field *field_m_float128 = CREATE_FIELD(GCC_JIT_TYPE_FLOAT128, "m_float128");
+
   gcc_jit_field *field_m_const_char_ptr =
     CREATE_FIELD (GCC_JIT_TYPE_CONST_CHAR_PTR, "m_const_char_ptr");
 
@@ -208,6 +217,11 @@ create_code (gcc_jit_context *ctxt, void *user_data)
     field_m_float,
     field_m_double,
     field_m_long_double,
+
+    field_m_float16,
+    field_m_float32,
+    field_m_float64,
+    field_m_float128,
 
     field_m_const_char_ptr,
 
@@ -398,6 +412,27 @@ create_code (gcc_jit_context *ctxt, void *user_data)
       gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_LONG_DOUBLE),
       3.141))
 
+  ASSIGN(field_m_float16,
+    gcc_jit_context_new_rvalue_from_double (
+      ctxt,
+      gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT16),
+      3.141))
+  ASSIGN(field_m_float32,
+    gcc_jit_context_new_rvalue_from_double (
+      ctxt,
+      gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT32),
+      3.141))
+  ASSIGN(field_m_float64,
+    gcc_jit_context_new_rvalue_from_double (
+      ctxt,
+      gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT64),
+      3.141))
+  ASSIGN(field_m_float128,
+    gcc_jit_context_new_rvalue_from_double (
+      ctxt,
+      gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT128),
+      3.141))
+
   ASSIGN(field_m_const_char_ptr,
     gcc_jit_context_new_rvalue_from_ptr (
       ctxt,
@@ -479,6 +514,11 @@ verify_code (gcc_jit_context *ctxt, gcc_jit_result *result)
   CHECK_VALUE (z.m_double, 3.141);
   CHECK_VALUE (z.m_long_double, 3.141);
 
+  CHECK_VALUE (z.m_float16, (_Float16)3.141);
+  CHECK_VALUE (z.m_float32, (_Float32)3.141);
+  CHECK_VALUE (z.m_float64, (_Float64)3.141);
+  CHECK_VALUE (z.m_float128, (__float128)3.141);
+
   CHECK_VALUE (z.m_const_char_ptr, test_string);
 
   CHECK_VALUE (z.m_size_t, sizeof (struct zoo));
@@ -492,6 +532,11 @@ verify_code (gcc_jit_context *ctxt, gcc_jit_result *result)
 
   CHECK_VALUE (gcc_jit_type_get_size (gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT)), sizeof (float));
   CHECK_VALUE (gcc_jit_type_get_size (gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_DOUBLE)), sizeof (double));
+
+  CHECK_VALUE (gcc_jit_type_get_size (gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT16)), sizeof(_Float16));
+  CHECK_VALUE (gcc_jit_type_get_size (gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT32)), sizeof(_Float32));
+  CHECK_VALUE (gcc_jit_type_get_size (gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT64)), sizeof(_Float64));
+  CHECK_VALUE (gcc_jit_type_get_size (gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_FLOAT128)), sizeof(__float128));
 
   gcc_jit_type *int_type = gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_INT);
   gcc_jit_type *array_type1 = gcc_jit_context_new_array_type (ctxt, NULL, int_type, 2);
