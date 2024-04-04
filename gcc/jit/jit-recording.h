@@ -52,6 +52,11 @@ class reproducer;
 
 namespace recording {
 
+enum type_info_type {
+    TYPE_INFO_ALIGN_OF,
+    TYPE_INFO_SIZE_OF,
+};
+
 playback::location *
 playback_location (replayer *r, location *loc);
 
@@ -180,6 +185,9 @@ public:
 
   rvalue *
   new_sizeof (type *type);
+
+  rvalue *
+  new_alignof (type *type);
 
   rvalue *
   new_string_literal (const char *value);
@@ -1814,14 +1822,16 @@ private:
   HOST_TYPE m_value;
 };
 
-class memento_of_sizeof : public rvalue
+class memento_of_typeinfo : public rvalue
 {
 public:
-  memento_of_sizeof (context *ctxt,
+  memento_of_typeinfo (context *ctxt,
 			 location *loc,
-			 type *type)
+			 type *type,
+			 type_info_type type_info)
   : rvalue (ctxt, loc, ctxt->get_type (GCC_JIT_TYPE_INT)),
-    m_type (type) {}
+    m_type (type),
+    m_info_type (type_info) {}
 
   void replay_into (replayer *r) final override;
 
@@ -1837,6 +1847,7 @@ private:
 
 private:
   type *m_type;
+  type_info_type m_info_type;
 };
 
 class memento_of_new_string_literal : public rvalue
