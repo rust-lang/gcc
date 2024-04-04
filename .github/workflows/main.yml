@@ -30,12 +30,13 @@ jobs:
 
     - name: Build libgccjit
       run: |
+        echo $(nproc)
         cd ..
         ls
         mkdir build install
         cd build
         ../gcc/configure --enable-host-shared --enable-languages=c,jit,lto --disable-bootstrap --disable-multilib --prefix=$(pwd)/../install/usr --libdir=$(pwd)/../install/usr/lib --libexecdir=$(pwd)/../install/usr/lib
-        make -j4
+        make -j$(nproc)
         make install
 
     - name: Build Debian package
