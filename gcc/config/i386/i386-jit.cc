@@ -23,6 +23,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "target.h"
 #include "tm.h"
 #include "tm_jit.h"
+#include "tree.h"
 #include "jit/jit-target.h"
 #include "jit/jit-target-def.h"
 
