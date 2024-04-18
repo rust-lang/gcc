@@ -4012,6 +4012,12 @@ gcc_jit_target_info_supports_128bit_int (gcc_jit_target_info *info)
   return info->m_supports_128bit_int;
 }
 
+int
+gcc_jit_target_info_supports_target_dependent_type(gcc_jit_target_info *info, enum gcc_jit_types type)
+{
+  return info->m_supported_target_dependent_types.find(type) != info->m_supported_target_dependent_types.end();
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
