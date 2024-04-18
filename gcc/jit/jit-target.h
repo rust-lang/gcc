@@ -24,6 +24,7 @@
 #define HOOKSTRUCT(FRAGMENT) FRAGMENT
 
 #include "jit-target.def"
+#include "libgccjit.h"
 
 #include <string>
 #include <unordered_map>
@@ -55,6 +56,7 @@ struct target_info {
     std::unordered_map<const char *, std::unordered_set<const char *, CStringHash, CStringEqual>, CStringHash, CStringEqual> m_info;
     std::string m_arch;
     bool m_supports_128bit_int = false;
+    std::unordered_set<enum gcc_jit_types> m_supported_target_dependent_types;
 };
 
 /* Each target can provide their own.  */
@@ -63,6 +65,7 @@ extern struct gcc_targetjitm targetjitm;
 extern void jit_target_init ();
 extern void jit_target_set_arch (std::string const& arch);
 extern void jit_target_set_128bit_int_support (bool support);
+extern void jit_target_add_supported_target_dependent_type(enum gcc_jit_types type_);
 extern void jit_add_target_info (const char *key, const char *value);
 extern target_info * jit_get_target_info ();
 
