@@ -456,6 +456,11 @@ Reflection API
 
      Return non-zero if the type is an integral.
 
+.. function::  int\
+               gcc_jit_type_is_floating_point (gcc_jit_type *type)
+
+     Return non-zero if the type is floating point.
+
 .. function::  gcc_jit_type *\
                gcc_jit_type_is_pointer (gcc_jit_type *type)
 
