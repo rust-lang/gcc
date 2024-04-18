@@ -2201,6 +2201,9 @@ gcc_jit_target_info_arch (gcc_jit_target_info *info);
 extern int
 gcc_jit_target_info_supports_128bit_int (gcc_jit_target_info *info);
 
+extern int
+gcc_jit_target_info_supports_target_dependent_type(gcc_jit_target_info *info, enum gcc_jit_types type);
+
 /* Given type "T", get type "T __attribute__ ((packed))".  */
 extern void
 gcc_jit_type_set_packed (gcc_jit_type *type);

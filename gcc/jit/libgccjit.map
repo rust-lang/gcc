@@ -359,3 +359,8 @@ LIBGCCJIT_ABI_39 {
     gcc_jit_function_set_location;
     gcc_jit_rvalue_set_location;
 } LIBGCCJIT_ABI_38;
+
+LIBGCCJIT_ABI_40 {
+  global:
+    gcc_jit_target_info_supports_target_dependent_type;
+} LIBGCCJIT_ABI_39;
