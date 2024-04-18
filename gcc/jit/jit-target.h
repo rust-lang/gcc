@@ -24,6 +24,7 @@
 #define HOOKSTRUCT(FRAGMENT) FRAGMENT
 
 #include "jit-target.def"
+#include "libgccjit.h"
 
 #include <string>
 #include <unordered_map>
