@@ -368,3 +368,8 @@ LIBGCCJIT_ABI_41 {
     gcc_jit_function_set_location;
     gcc_jit_rvalue_set_location;
 } LIBGCCJIT_ABI_40;
+
+LIBGCCJIT_ABI_42 {
+  global:
+    gcc_jit_type_is_floating_point;
+} LIBGCCJIT_ABI_41;
