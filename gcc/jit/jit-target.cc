@@ -70,6 +70,12 @@ jit_target_set_128bit_int_support (bool support)
   jit_target_info.m_supports_128bit_int = support;
 }
 
+void
+jit_target_add_supported_target_dependent_type(enum gcc_jit_types type_)
+{
+  jit_target_info.m_supported_target_dependent_types.insert(type_);
+}
+
 target_info *
 jit_get_target_info ()
 {
