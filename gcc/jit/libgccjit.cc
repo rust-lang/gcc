@@ -2005,6 +2005,20 @@ gcc_jit_rvalue_get_type (gcc_jit_rvalue *rvalue)
   return static_cast <gcc_jit_type *> (rvalue->get_type ());
 }
 
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::rvalue::set_type method, in
+   jit-recording.h.  */
+
+void
+gcc_jit_rvalue_set_type (gcc_jit_rvalue *rvalue, gcc_jit_type *new_type)
+{
+  RETURN_IF_FAIL (rvalue, NULL, NULL, "NULL rvalue");
+
+  rvalue->set_type (new_type);
+}
+
 /* Verify that NUMERIC_TYPE is non-NULL, and that it is a "numeric"
    type i.e. it satisfies gcc::jit::type::is_numeric (), such as the
    result of gcc_jit_context_get_type (GCC_JIT_TYPE_INT).  */
