@@ -35,13 +35,22 @@ create_code (gcc_jit_context *ctxt, void *user_data)
   */
   gcc_jit_type *int_type =
     gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_INT);
+  gcc_jit_type *float_type = gcc_jit_context_get_type (ctxt,
+    GCC_JIT_TYPE_FLOAT);
 
   gcc_jit_lvalue *exported_global =
     gcc_jit_context_new_global (ctxt,
 				NULL,
 				GCC_JIT_GLOBAL_EXPORTED,
-				int_type,
+				float_type,
 				"exported_global");
+
+  gcc_jit_rvalue *r_exported_global =
+    gcc_jit_lvalue_as_rvalue (exported_global);
+  CHECK_VALUE (gcc_jit_rvalue_get_type (r_exported_global), float_type);
+  gcc_jit_rvalue_set_type (r_exported_global, int_type);
+  CHECK_VALUE (gcc_jit_rvalue_get_type (r_exported_global), int_type);
+
   gcc_jit_lvalue *imported_global =
     gcc_jit_context_new_global (ctxt,
 				NULL,
