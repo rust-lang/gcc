@@ -85,6 +85,7 @@ public:
   get_builtins_manager ();
 
   void record (memento *m);
+  void record_type (memento *m);
   void replay_into (replayer *r);
   void disassociate_from_playback ();
 
@@ -420,6 +421,7 @@ private:
 
   /* Recorded API usage.  */
   auto_vec<memento *> m_mementos;
+  auto_vec<memento *> m_type_mementos;
 
   /* Specific recordings, for use by dump_to_file.  */
   auto_vec<compound_type *> m_compound_types;
@@ -772,7 +774,7 @@ public:
   type* copy (context* ctxt) final override
   {
     type* result = new memento_of_get_pointer (m_other_type->copy (ctxt));
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -842,7 +844,7 @@ public:
   type* copy (context* ctxt) final override
   {
     type* result = new memento_of_get_const (m_other_type->copy (ctxt));
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -882,7 +884,7 @@ public:
   type* copy (context* ctxt) final override
   {
     type* result = new memento_of_get_volatile (m_other_type->copy (ctxt));
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -915,7 +917,7 @@ public:
   type* copy (context* ctxt) final override
   {
     type* result = new memento_of_get_restrict (m_other_type->copy (ctxt));
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -956,7 +958,7 @@ public:
   {
     type* result = new memento_of_get_aligned (m_other_type->copy (ctxt),
 					       m_alignment_in_bytes);
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -1005,7 +1007,7 @@ public:
   type* copy (context* ctxt) final override
   {
     type* result = new vector_type (m_other_type->copy (ctxt), m_num_units);
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -1066,7 +1068,7 @@ class array_type : public type
   {
     type* result = new array_type (ctxt, m_loc, m_element_type->copy (ctxt),
 				   m_num_elements);
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -1117,7 +1119,7 @@ public:
 				      m_param_types.length (),
 				      new_params.address (),
 				      m_is_variadic, m_is_target_builtin);
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -1273,7 +1275,7 @@ public:
   type* copy (context* ctxt) final override
   {
     type* result = new struct_ (ctxt, m_loc, m_name);
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -1327,7 +1329,7 @@ public:
   type* copy (context* ctxt) final override
   {
     type* result = new union_ (ctxt, m_loc, m_name);
-    ctxt->record (result);
+    ctxt->record_type (result);
     return result;
   }
 
@@ -1394,6 +1396,7 @@ public:
      Implements the post-error-checking part of
      gcc_jit_rvalue_get_type.  */
   type * get_type () const { return m_type; }
+  void set_type (type * new_type);
 
   playback::rvalue *
   playback_rvalue () const
@@ -2088,7 +2091,7 @@ public:
       else
 	inner_type = element_type;
       m_type = new vector_type (inner_type, vec_type->get_num_units ());
-      ctxt->record (m_type);
+      ctxt->record_type (m_type);
     }
   }
 
