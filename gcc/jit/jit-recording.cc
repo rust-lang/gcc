@@ -565,6 +565,7 @@ recording::context::context (context *parent_ctxt)
     m_last_error_str (NULL),
     m_owns_last_error_str (false),
     m_mementos (),
+    m_type_mementos (),
     m_compound_types (),
     m_globals (),
     m_functions (),
@@ -614,6 +615,10 @@ recording::context::~context ()
     {
       delete m;
     }
+  FOR_EACH_VEC_ELT (m_type_mementos, i, m)
+    {
+      delete m;
+    }
 
   for (i = 0; i < GCC_JIT_NUM_STR_OPTIONS; ++i)
     free (m_str_options[i]);
@@ -647,6 +652,14 @@ recording::context::record (memento *m)
   m_mementos.safe_push (m);
 }
 
+void
+recording::context::record_type (memento *m)
+{
+  gcc_assert (m);
+
+  m_type_mementos.safe_push (m);
+}
+
 /* Replay this context (and any parents) into the given replayer.  */
 
 void
@@ -678,6 +691,25 @@ recording::context::replay_into (replayer *r)
     return;
 
   /* Replay this context's saved operations into r.  */
+
+  FOR_EACH_VEC_ELT (m_type_mementos, i, m)
+    {
+      /* Disabled low-level debugging, here if we need it: print what
+	 we're replaying.
+	 Note that the calls to get_debug_string might lead to more
+	 mementos being created for the strings.
+	 This can also be used to exercise the debug_string
+	 machinery.  */
+      if (0)
+	printf ("context %p replaying (%p): %s\n",
+		(void *)this, (void *)m, m->get_debug_string ());
+
+      m->replay_into (r);
+
+      if (r->errors_occurred ())
+	return;
+    }
+
   FOR_EACH_VEC_ELT (m_mementos, i, m)
     {
       /* Disabled low-level debugging, here if we need it: print what
@@ -716,6 +748,11 @@ recording::context::disassociate_from_playback ()
 
   if (m_parent_ctxt)
     m_parent_ctxt->disassociate_from_playback ();
+
+  FOR_EACH_VEC_ELT (m_type_mementos, i, m)
+    {
+      m->set_playback_obj (NULL);
+    }
 
   FOR_EACH_VEC_ELT (m_mementos, i, m)
     {
@@ -782,7 +819,7 @@ recording::context::get_type (enum gcc_jit_types kind)
       else
 	{
 	  recording::type *result = new memento_of_get_type (this, kind);
-	  record (result);
+	  record_type (result);
 	  m_basic_types[kind] = result;
 	}
     }
@@ -860,7 +897,7 @@ recording::context::new_array_type (recording::location *loc,
       }
   recording::type *result =
     new recording::array_type (this, loc, element_type, num_elements);
-  record (result);
+  record_type (result);
   return result;
 }
 
@@ -877,7 +914,7 @@ recording::context::new_field (recording::location *loc,
 {
   recording::field *result =
     new recording::field (this, loc, type, new_string (name));
-  record (result);
+  record_type (result);
   return result;
 }
 
@@ -910,7 +947,7 @@ recording::context::new_struct_type (recording::location *loc,
 				     const char *name)
 {
   recording::struct_ *result = new struct_ (this, loc, new_string (name));
-  record (result);
+  record_type (result);
   m_compound_types.safe_push (result);
   return result;
 }
@@ -926,7 +963,7 @@ recording::context::new_union_type (recording::location *loc,
 				    const char *name)
 {
   recording::union_ *result = new union_ (this, loc, new_string (name));
-  record (result);
+  record_type (result);
   m_compound_types.safe_push (result);
   return result;
 }
@@ -950,7 +987,7 @@ recording::context::new_function_type (recording::type *return_type,
 			 param_types,
 			 is_variadic,
 			 is_target_builtin);
-  record (fn_type);
+  record_type (fn_type);
   return fn_type;
 }
 
@@ -2208,6 +2245,8 @@ recording::context::dump_reproducer_to_file (const char *path)
 
       r.write ("  /* Replay of API calls for %s.  */\n",
 	       r.get_identifier (contexts[ctxt_idx]));
+      FOR_EACH_VEC_ELT (contexts[ctxt_idx]->m_type_mementos, i, m)
+	m->write_reproducer (r);
       FOR_EACH_VEC_ELT (contexts[ctxt_idx]->m_mementos, i, m)
 	m->write_reproducer (r);
     }
@@ -2512,7 +2551,7 @@ recording::type::get_pointer ()
   if (!m_pointer_to_this_type)
     {
       m_pointer_to_this_type = new memento_of_get_pointer (this);
-      m_ctxt->record (m_pointer_to_this_type);
+      m_ctxt->record_type (m_pointer_to_this_type);
     }
   return m_pointer_to_this_type;
 }
@@ -2526,7 +2565,7 @@ recording::type *
 recording::type::get_const ()
 {
   recording::type *result = new memento_of_get_const (this);
-  m_ctxt->record (result);
+  m_ctxt->record_type (result);
   return result;
 }
 
@@ -2539,7 +2578,7 @@ recording::type *
 recording::type::get_restrict ()
 {
   recording::type *result = new memento_of_get_restrict (this);
-  m_ctxt->record (result);
+  m_ctxt->record_type (result);
   return result;
 }
 
@@ -2552,7 +2591,7 @@ recording::type *
 recording::type::get_volatile ()
 {
   recording::type *result = new memento_of_get_volatile (this);
-  m_ctxt->record (result);
+  m_ctxt->record_type (result);
   return result;
 }
 
@@ -2566,7 +2605,7 @@ recording::type::get_aligned (size_t alignment_in_bytes)
 {
   recording::type *result
     = new memento_of_get_aligned (this, alignment_in_bytes);
-  m_ctxt->record (result);
+  m_ctxt->record_type (result);
   return result;
 }
 
@@ -2586,7 +2625,7 @@ recording::type::get_vector (size_t num_units)
 {
   recording::type *result
     = new vector_type (this, num_units);
-  m_ctxt->record (result);
+  m_ctxt->record_type (result);
   return result;
 }
 
@@ -3851,7 +3890,7 @@ recording::compound_type::set_fields (location *loc,
   gcc_assert (m_fields == NULL);
 
   m_fields = new fields (this, num_fields, field_array);
-  m_ctxt->record (m_fields);
+  m_ctxt->record_type (m_fields);
 }
 
 /* Implementation of pure virtual hook recording::type::dereference for
@@ -4096,6 +4135,13 @@ recording::rvalue::access_field (recording::location *loc,
     new access_field_rvalue (m_ctxt, loc, this, field);
   m_ctxt->record (result);
   return result;
+}
+
+void
+recording::rvalue::set_type (type *new_type)
+{
+  gcc_assert (new_type);
+  m_type = new_type;
 }
 
 /* Create a recording::dereference_field_rvalue instance and add it to
