@@ -1768,6 +1768,12 @@ rvalue::get_type ()
   return type (gcc_jit_rvalue_get_type (get_inner_rvalue ()));
 }
 
+inline void
+rvalue::set_type (type *new_type)
+{
+  gcc_jit_rvalue_set_type (get_inner_rvalue (), new_type);
+}
+
 inline rvalue
 rvalue::access_field (field field,
 		      location loc)
