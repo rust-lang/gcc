@@ -374,3 +374,12 @@ LIBGCCJIT_ABI_42 {
    global:
     gcc_jit_lvalue_remove;
 } LIBGCCJIT_ABI_41;
+
+LIBGCCJIT_ABI_43 {
+   global:
+    gcc_jit_rvalue_set_type;
+} LIBGCCJIT_ABI_42;
+
+LIBGCCJIT_ABI_44 {
+    gcc_jit_lvalue_add_attribute;
+} LIBGCCJIT_ABI_43;
