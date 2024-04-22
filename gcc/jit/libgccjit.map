@@ -357,3 +357,8 @@ LIBGCCJIT_ABI_39 {
   global:
     gcc_jit_target_info_supports_target_dependent_type;
 } LIBGCCJIT_ABI_38;
+
+LIBGCCJIT_ABI_40 {
+  global:
+    gcc_jit_type_is_floating_point;
+} LIBGCCJIT_ABI_39;
