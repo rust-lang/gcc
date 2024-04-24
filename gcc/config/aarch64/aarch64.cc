@@ -15789,11 +15789,19 @@ aarch64_insn_cost (rtx_insn *insn, bool speed)
 static void
 aarch64_init_builtins ()
 {
+  // TODO: find a better fix than this to avoid the failure:
+  // SET_TYPE_VECTOR_SUBPARTS, in tree.h:4258
+  static bool builtins_initialized = false;
+  if (builtins_initialized)
+    return;
+
   aarch64_general_init_builtins ();
   aarch64_sve::init_builtins ();
 #ifdef SUBTARGET_INIT_BUILTINS
   SUBTARGET_INIT_BUILTINS;
 #endif
+
+  builtins_initialized = true;
 }
 
 /* Implement TARGET_FOLD_BUILTIN.  */
