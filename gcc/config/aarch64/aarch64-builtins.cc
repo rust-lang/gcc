@@ -1238,6 +1238,8 @@ aarch64_init_simd_builtin_types (void)
 
       if (aarch64_simd_types[i].itype == NULL)
 	{
+          // FIXME: problem happens when we execute this a second time.
+          // Currently fixed by not initializing builtins more than once in dummy-frontend.cc.
 	  tree type = build_vector_type (eltype, GET_MODE_NUNITS (mode));
 	  type = build_distinct_type_copy (type);
 	  SET_TYPE_STRUCTURAL_EQUALITY (type);
