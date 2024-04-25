@@ -1036,8 +1036,6 @@ jit_end_diagnostic (diagnostic_text_output_format &text_output,
   gcc::jit::active_playback_ctxt->add_diagnostic (&text_output.get_context (), *diagnostic); // FIXME
 }
 
-static bool builtins_initialized = false;
-
 /* Language hooks.  */
 
 static bool
@@ -1076,12 +1074,16 @@ jit_langhook_init (void)
      eventually be controllable by a command line option.  */
   mpfr_set_default_prec (256);
 
-  // TODO: check if this is a good fix.
-  if (!builtins_initialized)
-  {
-    targetm.init_builtins ();
-    builtins_initialized = true;
-  }
+  // FIXME: This code doesn't work as it erases the `target_builtins` map
+  // without checking if it's already filled before. A better check would be
+  // `if target_builtins.len() == 0` (or whatever this `hash_map` type method
+  // name is).
+   //static bool builtins_initialized = false;
+   //if (!builtins_initialized)
+   //{
+  targetm.init_builtins ();
+     //builtins_initialized = true;
+   //}
 
   return true;
 }
