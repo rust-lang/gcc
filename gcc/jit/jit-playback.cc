@@ -776,7 +776,8 @@ global_new_decl (location *loc,
 		 enum global_var_flags flags,
 		 const std::vector<std::pair<gcc_jit_variable_attribute,
 					     std::string>> &attributes,
-		 bool readonly)
+		 bool readonly,
+                 bool removed)
 {
   gcc_assert (type);
   gcc_assert (name);
@@ -788,6 +789,8 @@ global_new_decl (location *loc,
 			   type_tree);
 
   TREE_PUBLIC (inner) = (kind != GCC_JIT_GLOBAL_INTERNAL);
+  if (removed)
+    TREE_ASM_WRITTEN (inner) = 1;
 
 
   int will_be_init = flags & (GLOBAL_VAR_FLAGS_WILL_BE_RVAL_INIT |
@@ -869,10 +872,11 @@ new_global (location *loc,
 	    enum global_var_flags flags,
 	    const std::vector<std::pair<gcc_jit_variable_attribute,
 					std::string>> &attributes,
-	    bool readonly)
+	    bool readonly,
+            bool removed)
 {
   tree inner =
-    global_new_decl (loc, kind, type, name, flags, attributes, readonly);
+    global_new_decl (loc, kind, type, name, flags, attributes, readonly, removed);
 
   return global_finalize_lvalue (inner);
 }
@@ -1020,9 +1024,10 @@ new_global_initialized (location *loc,
 			enum global_var_flags flags,
 			const std::vector<std::pair<gcc_jit_variable_attribute,
 						    std::string>> &attributes,
-			bool readonly)
+			bool readonly,
+                        bool removed)
 {
-  tree inner = global_new_decl (loc, kind, type, name, flags, attributes, readonly);
+  tree inner = global_new_decl (loc, kind, type, name, flags, attributes, readonly, removed);
 
   vec<constructor_elt, va_gc> *constructor_elements = NULL;
 

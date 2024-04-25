@@ -1079,6 +1079,9 @@ gcc_jit_rvalue_as_object (gcc_jit_rvalue *rvalue);
 extern gcc_jit_type *
 gcc_jit_rvalue_get_type (gcc_jit_rvalue *rvalue);
 
+extern void
+gcc_jit_lvalue_remove (gcc_jit_lvalue *lvalue);
+
 /* Integer constants. */
 extern gcc_jit_rvalue *
 gcc_jit_context_new_rvalue_from_int (gcc_jit_context *ctxt,
