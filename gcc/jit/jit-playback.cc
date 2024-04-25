@@ -780,19 +780,29 @@ global_new_decl (location *loc,
 		 enum global_var_flags flags,
 		 const std::vector<std::pair<gcc_jit_variable_attribute,
 					     std::string>> &attributes,
-		 bool readonly)
+		 bool readonly,
+                 bool removed)
 {
   gcc_assert (type);
   gcc_assert (name);
 
   tree type_tree = type->as_tree ();
 
+  if (removed)
+  {
+    tree inner = build_decl (UNKNOWN_LOCATION, VAR_DECL,
+			   get_identifier (name),
+			   type_tree);
+    // TODO: make it weak?
+    DECL_EXTERNAL (inner) = 1;
+    return inner;
+  }
+
   tree inner = build_decl (UNKNOWN_LOCATION, VAR_DECL,
 			   get_identifier (name),
 			   type_tree);
 
   TREE_PUBLIC (inner) = (kind != GCC_JIT_GLOBAL_INTERNAL);
-
 
   int will_be_init = flags & (GLOBAL_VAR_FLAGS_WILL_BE_RVAL_INIT |
 			      GLOBAL_VAR_FLAGS_WILL_BE_BLOB_INIT);
@@ -855,9 +865,10 @@ set_variable_string_attribute (
 
 playback::lvalue *
 playback::context::
-global_finalize_lvalue (tree inner)
+global_finalize_lvalue (tree inner, bool removed)
 {
-  m_globals.safe_push (inner);
+  if (!removed)
+    m_globals.safe_push (inner);
 
   return new lvalue (this, inner);
 }
@@ -873,12 +884,13 @@ new_global (location *loc,
 	    enum global_var_flags flags,
 	    const std::vector<std::pair<gcc_jit_variable_attribute,
 					std::string>> &attributes,
-	    bool readonly)
+	    bool readonly,
+            bool removed)
 {
   tree inner =
-    global_new_decl (loc, kind, type, name, flags, attributes, readonly);
+    global_new_decl (loc, kind, type, name, flags, attributes, readonly, removed);
 
-  return global_finalize_lvalue (inner);
+  return global_finalize_lvalue (inner, removed);
 }
 
 void
@@ -1024,9 +1036,10 @@ new_global_initialized (location *loc,
 			enum global_var_flags flags,
 			const std::vector<std::pair<gcc_jit_variable_attribute,
 						    std::string>> &attributes,
-			bool readonly)
+			bool readonly,
+                        bool removed)
 {
-  tree inner = global_new_decl (loc, kind, type, name, flags, attributes, readonly);
+  tree inner = global_new_decl (loc, kind, type, name, flags, attributes, readonly, removed);
 
   vec<constructor_elt, va_gc> *constructor_elements = NULL;
 
@@ -1060,7 +1073,7 @@ new_global_initialized (location *loc,
   /* Compare with 'store_init_value' c-typeck.cc:7555.  */
   DECL_INITIAL (inner) = ctor;
 
-  return global_finalize_lvalue (inner);
+  return global_finalize_lvalue (inner, removed);
 }
 
 /* Implementation of the various
