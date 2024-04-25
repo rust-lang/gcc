@@ -137,7 +137,8 @@ public:
 	      enum global_var_flags flags,
 	      const std::vector<std::pair<gcc_jit_variable_attribute,
 					  std::string>> &attributes,
-	      bool readonly);
+	      bool readonly,
+              bool removed);
 
   lvalue *
   new_global_initialized (location *loc,
@@ -152,7 +153,8 @@ public:
 					    gcc_jit_variable_attribute,
 					    std::string>>
 					    &attributes,
-			  bool readonly);
+			  bool readonly,
+                          bool removed);
 
   rvalue *
   new_ctor (location *log,
@@ -362,9 +364,10 @@ private:
 		   enum global_var_flags flags,
 		   const std::vector<std::pair<gcc_jit_variable_attribute,
 					       std::string>> &attributes,
-		   bool readonly);
+		   bool readonly,
+                   bool removed);
   lvalue *
-  global_finalize_lvalue (tree inner);
+  global_finalize_lvalue (tree inner, bool removed);
 
 private:
 
