@@ -1460,6 +1460,11 @@ public:
     m_readonly = true;
   }
 
+  void remove ()
+  {
+    m_removed = true;
+  }
+
   virtual const char *access_as_lvalue (reproducer &r);
   virtual bool is_global () const { return false; }
   virtual bool is_local () const { return false; }
@@ -1477,6 +1482,7 @@ protected:
   std::vector<std::pair<gcc_jit_variable_attribute,
 	      std::string>> m_string_attributes;
   bool m_readonly = false;
+  bool m_removed = false;
 };
 
 class param : public lvalue

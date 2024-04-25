@@ -2007,6 +2007,12 @@ gcc_jit_rvalue_get_type (gcc_jit_rvalue *rvalue)
   return static_cast <gcc_jit_type *> (rvalue->get_type ());
 }
 
+void
+gcc_jit_lvalue_remove (gcc_jit_lvalue *lvalue)
+{
+  lvalue->remove ();
+}
+
 /* Verify that NUMERIC_TYPE is non-NULL, and that it is a "numeric"
    type i.e. it satisfies gcc::jit::type::is_numeric (), such as the
    result of gcc_jit_context_get_type (GCC_JIT_TYPE_INT).  */
