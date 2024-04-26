@@ -37,11 +37,34 @@ along with GCC; see the file COPYING3.  If not see
 /* Initialize all variables of the Target structure.  */
 
 void
+jit_target_dependent_types_init()
+{
+	if (targetm.scalar_mode_supported_p (TImode))
+  {
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_UINT128_T);
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_INT128_T);
+  }
+
+  if (float16_type_node != NULL && TYPE_PRECISION(float16_type_node) == 16)
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT16);
+
+  if (float32_type_node != NULL && TYPE_PRECISION(float32_type_node) == 32)
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT32);
+
+  if (float64_type_node != NULL && TYPE_PRECISION(float64_type_node) == 64)
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT64);
+
+  if (float128_type_node != NULL && TYPE_PRECISION(float128_type_node) == 128)
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT128);
+}
+
+void
 jit_target_init ()
 {
   /* Initialize target info tables, the keys required by the language are added
      last, so that the CPU handler can override.  */
   targetjitm.jit_register_cpu_target_info ();
+  jit_target_dependent_types_init();
 }
 
 /* Add a target info key:value to JIT_TARGET_INFO for use by
