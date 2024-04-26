@@ -1077,12 +1077,12 @@ jit_langhook_init (void)
   // without checking if it's already filled before. A better check would be
   // `if target_builtins.len() == 0` (or whatever this `hash_map` type method
   // name is).
-  // static bool builtins_initialized = false;
-  // if (!builtins_initialized)
-  // {
+   static bool builtins_initialized = false;
+   if (!builtins_initialized)
+   {
   targetm.init_builtins ();
-  //   builtins_initialized = true;
-  // }
+     builtins_initialized = true;
+   }
 
   return true;
 }
