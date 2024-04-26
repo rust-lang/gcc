@@ -34,6 +34,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "target.h"
 #include "jit-recording.h"
 #include "print-tree.h"
+#include "langhooks.h"
 
 #include <mpfr.h>
 #include <unordered_map>
@@ -195,6 +196,8 @@ static const attribute_spec jit_gnu_attributes[] =
 			      attr_returns_twice_exclusions },
   { "sentinel",		      0, 1, false, true, true, false,
 			      handle_sentinel_attribute, NULL },
+  { "jit_dwarf_short_name",   1, 1, false,  false, false, false,
+			      NULL, NULL },
   { "target",		      1, -1, true, false, false, false,
 			      handle_target_attribute, attr_target_exclusions },
   { "type generic",	      0, 0, false, true, true, false,
@@ -1430,6 +1433,21 @@ static tree
 jit_langhook_getdecls (void)
 {
   return NULL;
+}
+
+const char *
+jit_langhook_dwarf_name (tree decl, int verbosity)
+{
+  tree attr = NULL;
+  const char* name = NULL;
+  if (false
+      || !(decl
+           && FUNCTION_DECL == TREE_CODE(decl)
+           && (attr = lookup_attribute("jit_dwarf_short_name", DECL_ATTRIBUTES(decl)))
+           && (name = TREE_STRING_POINTER (TREE_VALUE(TREE_VALUE (attr))))))
+    return lhd_dwarf_name (decl, verbosity);
+  else
+    return name;
 }
 
 static tree
