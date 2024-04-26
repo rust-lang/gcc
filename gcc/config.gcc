@@ -349,6 +349,7 @@ aarch64*-*-*)
 	cxx_target_objs="aarch64-c.o"
 	d_target_objs="aarch64-d.o"
 
+	jit_target_objs="aarch64-jit.o"
 	extra_objs="${extra_objs} aarch64-builtins.o"
 	extra_objs="${extra_objs} aarch-common.o"
 	extra_objs="${extra_objs} aarch64-elf-metadata.o"
