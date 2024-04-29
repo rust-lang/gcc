@@ -367,7 +367,7 @@ private:
 		   bool readonly,
                    bool removed);
   lvalue *
-  global_finalize_lvalue (tree inner);
+  global_finalize_lvalue (tree inner, bool removed);
 
 private:
 

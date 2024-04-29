@@ -793,9 +793,6 @@ global_new_decl (location *loc,
 			   type_tree);
 
   TREE_PUBLIC (inner) = (kind != GCC_JIT_GLOBAL_INTERNAL);
-  if (removed)
-    TREE_ASM_WRITTEN (inner) = 1;
-
 
   int will_be_init = flags & (GLOBAL_VAR_FLAGS_WILL_BE_RVAL_INIT |
 			      GLOBAL_VAR_FLAGS_WILL_BE_BLOB_INIT);
@@ -858,9 +855,10 @@ set_variable_string_attribute (
 
 playback::lvalue *
 playback::context::
-global_finalize_lvalue (tree inner)
+global_finalize_lvalue (tree inner, bool removed)
 {
-  m_globals.safe_push (inner);
+  if (!removed)
+    m_globals.safe_push (inner);
 
   return new lvalue (this, inner);
 }
@@ -882,7 +880,7 @@ new_global (location *loc,
   tree inner =
     global_new_decl (loc, kind, type, name, flags, attributes, readonly, removed);
 
-  return global_finalize_lvalue (inner);
+  return global_finalize_lvalue (inner, removed);
 }
 
 void
@@ -1065,7 +1063,7 @@ new_global_initialized (location *loc,
   /* Compare with 'store_init_value' c-typeck.cc:7555.  */
   DECL_INITIAL (inner) = ctor;
 
-  return global_finalize_lvalue (inner);
+  return global_finalize_lvalue (inner, removed);
 }
 
 /* Implementation of the various
