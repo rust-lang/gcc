@@ -148,6 +148,7 @@ namespace recording {
     class statement;
       class extended_asm;
     class case_;
+    class debug_namespace;
   class top_level_asm;
 
   /* End of recording types. */
@@ -171,6 +172,7 @@ namespace playback {
     class source_line;
     class location;
     class case_;
+    class debug_namespace;
 
   /* End of playback types. */
 }

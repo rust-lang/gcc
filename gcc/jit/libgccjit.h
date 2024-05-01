@@ -156,6 +156,15 @@ typedef struct gcc_jit_case gcc_jit_case;
    outputs.  */
 typedef struct gcc_jit_extended_asm gcc_jit_extended_asm;
 
+
+/* A gcc_jit_namespace represents a bare namespace that is to be exported as
+   a namespace in dwarf debug info. The reason for such a structure is that
+   a context may bring the same effect but it requires a strict order of
+   compilation. By constrast, this struct does not impose such a requirement
+   to compilation.
+ */
+typedef struct gcc_jit_debug_namespace gcc_jit_debug_namespace;
+
 /* Acquire a JIT-compilation context.  */
 extern gcc_jit_context *
 gcc_jit_context_acquire (void);
@@ -2202,6 +2211,18 @@ gcc_jit_function_set_location (gcc_jit_function *func,
 extern void
 gcc_jit_rvalue_set_location (gcc_jit_rvalue *rvalue,
 			     gcc_jit_location *loc);
+
+
+/*
+   Build a debug namespace from its name, associating it with its parent.*/
+extern gcc_jit_debug_namespace *
+gcc_jit_context_new_debug_namespace (gcc_jit_context *ctxt,
+				     const char *name,
+				     gcc_jit_debug_namespace *parent);
+
+extern void
+gcc_jit_function_set_parent_debug_namespace(gcc_jit_function *func,
+					    gcc_jit_debug_namespace *dbg_namespace);
 
 #ifdef __cplusplus
 }

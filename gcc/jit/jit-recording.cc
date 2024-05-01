@@ -1448,6 +1448,15 @@ recording::context::new_case (recording::rvalue *min_value,
   return result;
 }
 
+recording::debug_namespace *
+recording::context::new_debug_namespace (const char *name,
+                                         debug_namespace *parent)
+{
+  recording::debug_namespace *result = new debug_namespace (this, new_string (name), parent);
+  record (result);
+  return result;
+}
+
 /* Set the given string option for this context, or add an error if
    it's not recognized.
 
@@ -2453,6 +2462,48 @@ recording::location::write_reproducer (reproducer &r)
 	   r.get_identifier (get_context ()),
 	   m_filename->get_debug_string (),
 	   m_line, m_column);
+}
+
+/* The implementation of class gcc::jit::recording::debug_namespace.  */
+
+/* Implementation of recording::memento::replay_into for debug_namespace.
+
+   Create a new playback::debug_namespace and store it into the
+   recording::debug_namespace's m_playback_obj field.  */
+
+void
+recording::debug_namespace::replay_into (replayer *r)
+{
+  m_playback_obj = r->new_debug_namespace (this);
+}
+
+/* Implementation of recording::memento::make_debug_string for debug_namespace,
+   turning them into the usual form:
+     FILENAME:LINE:COLUMN
+   like we do when emitting diagnostics.  */
+
+recording::string *
+recording::debug_namespace::make_debug_string ()
+{
+  return string::from_printf (m_ctxt,
+			      "%s",
+			      m_name->c_str ());
+}
+
+/* Implementation of recording::memento::write_reproducer for debug_namespace. */
+
+void
+recording::debug_namespace::write_reproducer (reproducer &r)
+{
+  const char *id = r.make_identifier (this, "loc");
+  r.write ("  gcc_jit_debug_namespace *%s =\n"
+	   "    gcc_jit_context_new_debug_namespace (%s, /* gcc_jit_context *ctxt */\n"
+	   "    %s, /* const char *name */\n"
+	   "    %s, /* debug_namespace *parent */\n",
+	   id,
+	   r.get_identifier (get_context ()),
+	   m_name->c_str (),
+	   m_parent->get_debug_string());
 }
 
 /* The implementation of class gcc::jit::recording::type.  */
@@ -4423,6 +4474,7 @@ recording::function::function (context *ctxt,
 
       m_params.safe_push (param);
     }
+  m_parent_dbg_namespace = NULL;
 }
 
 /* Implementation of pure virtual hook recording::memento::replay_into
@@ -4439,17 +4491,22 @@ recording::function::replay_into (replayer *r)
   FOR_EACH_VEC_ELT (m_params, i, param)
     params.safe_push (param->playback_param ());
 
-  set_playback_obj (r->new_function (playback_location (r, m_loc),
-				     m_kind,
-				     m_return_type->playback_type (),
-				     m_name->c_str (),
-				     &params,
-				     m_is_variadic,
-				     m_builtin_id,
-				     m_attributes,
-				     m_string_attributes,
-				     m_int_array_attributes,
-				     m_is_target_builtin));
+  playback::function* new_func = r->new_function (playback_location (r, m_loc),
+                                                  m_kind,
+                                                  m_return_type->playback_type (),
+                                                  m_name->c_str (),
+                                                  &params,
+                                                  m_is_variadic,
+                                                  m_builtin_id,
+                                                  m_attributes,
+                                                  m_string_attributes,
+                                                  m_int_array_attributes,
+                                                  m_is_target_builtin);
+  if (m_parent_dbg_namespace
+      && m_parent_dbg_namespace->get_playback_obj())
+  new_func->set_parent_debug_namespace(m_parent_dbg_namespace->get_playback_obj()->as_tree());
+
+  set_playback_obj (new_func);
 }
 
 /* Implementation of recording::memento::make_debug_string for
@@ -4804,6 +4861,13 @@ recording::function::add_integer_array_attribute (
   m_int_array_attributes.push_back (std::make_pair (
     attribute,
     std::vector<int> (value, value + length)));
+}
+
+void
+recording::function::set_parent_debug_namespace (
+	recording::debug_namespace* dbg_namespace)
+{
+  this->m_parent_dbg_namespace = dbg_namespace;
 }
 
 /* Implementation of recording::memento::make_debug_string for

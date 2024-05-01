@@ -2253,6 +2253,13 @@ set_personality_function (function *personality_function)
   DECL_FUNCTION_PERSONALITY (m_inner_fndecl) = personality_function->as_fndecl ();
 }
 
+
+void
+playback::function::set_parent_debug_namespace(tree parent_dbg_ns)
+{
+  DECL_CONTEXT(this->m_inner_fndecl) = parent_dbg_ns;
+}
+
 /* Build a statement list for the function as a whole out of the
    lists of statements for the individual blocks, building labels
    for each block.  */
@@ -4159,6 +4166,27 @@ playback::location::location (recording::location *loc,
   m_line (line),
   m_column_num(column_num)
 {
+}
+
+/* Construct a playback::field instance (wrapping a tree).  */
+
+playback::debug_namespace *
+playback::context::
+new_debug_namespace (recording::debug_namespace *dbg_ns)
+{
+  gcc_assert(dbg_ns->get_name());
+
+  tree decl = build_decl (UNKNOWN_LOCATION, NAMESPACE_DECL,
+			  get_identifier (dbg_ns->get_name()), void_type_node);
+
+  if (dbg_ns->get_parent())
+    DECL_CONTEXT(decl) =
+      dbg_ns
+      ->get_parent()
+      ->get_playback_obj()
+      ->as_tree();
+
+  return new debug_namespace (decl);
 }
 
 /* The active gcc::jit::playback::context instance.  This is a singleton,

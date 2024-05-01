@@ -25,6 +25,7 @@ along with GCC; see the file COPYING3.  If not see
 #include <utility> // for std::pair
 #include <vector>
 
+#include "jit-common.h"
 #include "timevar.h"
 #include "varasm.h"
 
@@ -252,6 +253,9 @@ public:
   void
   set_bool_option (enum gcc_jit_bool_option opt,
 		   int value);
+
+  debug_namespace *
+  new_debug_namespace (recording::debug_namespace *dbg_ns);
 
   const char *
   get_str_option (enum gcc_jit_str_option opt) const
@@ -523,6 +527,19 @@ private:
   tree m_inner;
 };
 
+class debug_namespace : public wrapper
+{
+public:
+  debug_namespace (tree inner)
+    : m_inner(inner)
+  {}
+
+  tree as_tree () const { return m_inner; }
+
+private:
+  tree m_inner;
+};
+
 class compound_type : public type
 {
 public:
@@ -581,6 +598,9 @@ public:
 
   void
   build_stmt_list ();
+
+  void
+  set_parent_debug_namespace(tree parent_dbg_ns);
 
   void
   postprocess ();

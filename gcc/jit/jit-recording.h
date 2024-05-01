@@ -252,6 +252,9 @@ public:
 	    rvalue *max_value,
 	    block *block);
 
+  debug_namespace *
+  new_debug_namespace (const char *name, debug_namespace* parent);
+
   void
   set_str_option (enum gcc_jit_str_option opt,
 		  const char *value);
@@ -527,6 +530,29 @@ private:
 
 private:
   const char *m_ident;
+};
+
+class debug_namespace: public memento
+{
+public:
+  debug_namespace (context* ctxt, string *name, debug_namespace *parent) :
+    memento (ctxt), m_parent(parent) ,m_name(name) {};
+
+  void replay_into(replayer *r) final override;
+
+  const char * get_name() { return this->m_name->c_str(); }
+
+  debug_namespace *get_parent() { return m_parent; }
+
+  playback::debug_namespace* get_playback_obj() { return static_cast<playback::debug_namespace*>(this->m_playback_obj); }
+
+private:
+  string * make_debug_string () override;
+  void write_reproducer (reproducer &r) override;
+
+private:
+  debug_namespace *m_parent;
+  string *m_name;
 };
 
 class location : public memento
@@ -1569,6 +1595,7 @@ public:
   void add_attribute (gcc_jit_fn_attribute attribute);
   void add_string_attribute (gcc_jit_fn_attribute attribute, const char* value);
   void add_integer_array_attribute (gcc_jit_fn_attribute attribute, const int* value, size_t length);
+  void set_parent_debug_namespace (debug_namespace* dbg_namespace);
 
 private:
   string * make_debug_string () final override;
@@ -1581,6 +1608,7 @@ private:
   string *m_name;
   auto_vec<param *> m_params;
   int m_is_variadic;
+  debug_namespace* m_parent_dbg_namespace;
   enum built_in_function m_builtin_id;
   auto_vec<local *> m_locals;
   auto_vec<block *> m_blocks;
@@ -2961,6 +2989,7 @@ private:
 };
 
 } // namespace gcc::jit::recording
+
 
 /* Create a recording::memento_of_new_rvalue_from_const instance and add
    it to this context's list of mementos.

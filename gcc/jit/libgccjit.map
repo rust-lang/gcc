@@ -347,3 +347,9 @@ LIBGCCJIT_ABI_37 {
     gcc_jit_function_set_location;
     gcc_jit_rvalue_set_location;
 } LIBGCCJIT_ABI_36;
+
+LIBGCCJIT_ABI_38 {
+   global:
+    gcc_jit_context_new_debug_namespace;
+    gcc_jit_function_set_parent_debug_namespace;
+} LIBGCCJIT_ABI_37;

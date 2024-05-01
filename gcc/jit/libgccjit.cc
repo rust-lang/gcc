@@ -113,6 +113,9 @@ struct gcc_jit_extended_asm : public gcc::jit::recording::extended_asm
 {
 };
 
+struct gcc_jit_debug_namespace : public gcc::jit::recording::debug_namespace
+{
+};
 
 /**********************************************************************
  Error-handling.
@@ -1791,6 +1794,15 @@ gcc_jit_context_new_array_constructor (gcc_jit_context *ctxt,
     num_values,
     NULL,
     reinterpret_cast<gcc::jit::recording::rvalue**>(values));
+}
+
+
+gcc_jit_debug_namespace *
+gcc_jit_context_new_debug_namespace (gcc_jit_context *ctxt, const char *name, gcc_jit_debug_namespace *parent)
+{
+  return (gcc_jit_debug_namespace*)ctxt->new_debug_namespace (
+    name,
+    (gcc::jit::recording::debug_namespace*) parent);
 }
 
 /* Public entrypoint.  See description in libgccjit.h.
@@ -4791,4 +4803,12 @@ gcc_jit_function_set_location (gcc_jit_function *func,
   RETURN_IF_FAIL (func, NULL, NULL, "NULL func");
 
   func->set_loc (loc);
+}
+
+void
+gcc_jit_function_set_parent_debug_namespace(gcc_jit_function *func,
+                                            gcc_jit_debug_namespace *dbg_namespace)
+{
+  RETURN_IF_FAIL (func, NULL, NULL, "NULL func");
+  func->set_parent_debug_namespace(dbg_namespace);
 }
