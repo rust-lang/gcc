@@ -2422,6 +2422,12 @@ default-d.o: config/default-d.cc
 	$(COMPILE) $<
 	$(POSTCOMPILE)
 
+# Files used by the JIT language front end.
+
+default-jit.o: config/default-jit.cc
+	$(COMPILE) $<
+	$(POSTCOMPILE)
+
 # Files used by the Rust language front end.
 
 default-rust.o: config/default-rust.cc
