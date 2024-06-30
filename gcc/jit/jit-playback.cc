@@ -788,6 +788,16 @@ global_new_decl (location *loc,
 
   tree type_tree = type->as_tree ();
 
+  if (removed)
+  {
+    tree inner = build_decl (UNKNOWN_LOCATION, VAR_DECL,
+			   get_identifier (name),
+			   type_tree);
+    // TODO: make it weak?
+    DECL_EXTERNAL (inner) = 1;
+    return inner;
+  }
+
   tree inner = build_decl (UNKNOWN_LOCATION, VAR_DECL,
 			   get_identifier (name),
 			   type_tree);
