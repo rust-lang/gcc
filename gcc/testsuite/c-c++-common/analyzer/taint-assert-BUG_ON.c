@@ -3,7 +3,7 @@
 /* { dg-additional-options " -ftrack-macro-expansion=0" } */
 
 /* Adapted from code in the Linux kernel, which has this: */
-/* SPDX-License-Identifier: GPL-2.0 */
+/* SPDX-License-Identifier: GPL-2.0-only */
 
 #define __noreturn __attribute__ ((__noreturn__))
 
