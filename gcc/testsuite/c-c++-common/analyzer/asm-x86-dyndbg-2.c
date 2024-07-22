@@ -6,7 +6,7 @@
 /* { dg-additional-options "-fdump-analyzer-untracked" } */
 
 /* Adapted from various files in the Linux kernel, all of which have:  */
-/* SPDX-License-Identifier: GPL-2.0 */
+/* SPDX-License-Identifier: GPL-2.0-only */
 
 #ifndef __cplusplus 
   typedef _Bool bool;
