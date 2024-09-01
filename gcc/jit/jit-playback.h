@@ -136,7 +136,8 @@ public:
 	      const char *name,
 	      enum global_var_flags flags,
 	      const std::vector<std::pair<gcc_jit_variable_attribute,
-					  std::string>> &attributes,
+					  std::string>> &string_attributes,
+	      const std::vector<gcc_jit_variable_attribute> &attributes,
 	      bool readonly,
               bool removed);
 
@@ -152,6 +153,8 @@ public:
 			  const std::vector<std::pair<
 					    gcc_jit_variable_attribute,
 					    std::string>>
+					    &string_attributes,
+			  const std::vector<gcc_jit_variable_attribute>
 					    &attributes,
 			  bool readonly,
                           bool removed);
@@ -363,7 +366,8 @@ private:
 		   const char *name,
 		   enum global_var_flags flags,
 		   const std::vector<std::pair<gcc_jit_variable_attribute,
-					       std::string>> &attributes,
+					       std::string>> &string_attributes,
+		   const std::vector<gcc_jit_variable_attribute> &attributes,
 		   bool readonly,
                    bool removed);
   lvalue *

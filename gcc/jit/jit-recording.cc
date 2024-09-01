@@ -4398,6 +4398,12 @@ void recording::lvalue::add_string_attribute (
   m_string_attributes.push_back (std::make_pair (attribute, std::string (value)));
 }
 
+void recording::lvalue::add_attribute (
+	gcc_jit_variable_attribute attribute)
+{
+  m_attributes.push_back (attribute);
+}
+
 /* The implementation of class gcc::jit::recording::param.  */
 
 /* Implementation of pure virtual hook recording::memento::replay_into
@@ -5453,6 +5459,7 @@ recording::global::replay_into (replayer *r)
 				 playback_string (m_name),
 				 m_flags,
 				 m_string_attributes,
+				 m_attributes,
 				 m_readonly,
                                  m_removed)
     : r->new_global (playback_location (r, m_loc),
@@ -5461,6 +5468,7 @@ recording::global::replay_into (replayer *r)
 		     playback_string (m_name),
 		     m_flags,
 		     m_string_attributes,
+		     m_attributes,
 		     m_readonly,
                      m_removed);
 
@@ -5530,6 +5538,7 @@ recording::global::write_to_dump (dump &d)
     if (attribute)
       d.write ("__attribute(%s(\"%s\"))__\n", attribute, value.c_str());
   }
+  // TODO: handle m_attributes.
   d.write ("%s %s",
 	   m_type->get_debug_string (),
 	   get_debug_string ());
@@ -5602,6 +5611,7 @@ static const char * const tls_model_enum_strings[] = {
 
 static const char * const gcc_jit_variable_attribute_enum_strings[] = {
   "GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY",
+  "GCC_JIT_VARIABLE_ATTRIBUTE_WEAK",
 };
 
 void
@@ -5638,6 +5648,7 @@ recording::global::write_reproducer (reproducer &r)
 	    id,
 	    gcc_jit_variable_attribute_enum_strings[std::get<0>(attribute)],
 	    std::get<1>(attribute).c_str());
+  // TODO: handle m_attributes.
 
 
   if (m_initializer)
