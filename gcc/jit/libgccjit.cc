@@ -4432,6 +4432,23 @@ gcc_jit_lvalue_add_string_attribute (gcc_jit_lvalue *variable,
 }
 
 void
+gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable,
+			      gcc_jit_variable_attribute attribute)
+{
+  RETURN_IF_FAIL (variable, NULL, NULL, "NULL variable");
+  RETURN_IF_FAIL (variable->is_global () || variable->is_local (),
+		  NULL,
+		  NULL,
+		  "variable should be a variable");
+  RETURN_IF_FAIL ((attribute >= 0 && attribute < GCC_JIT_VARIABLE_ATTRIBUTE_MAX),
+		  NULL,
+		  NULL,
+		  "attribute should be a `gcc_jit_variable_attribute` enum value");
+
+  variable->add_attribute (attribute);
+}
+
+void
 gcc_jit_type_set_packed (gcc_jit_type *type)
 {
   RETURN_IF_FAIL (type, NULL, NULL, "NULL type");

@@ -2293,6 +2293,7 @@ gcc_jit_function_add_integer_array_attribute (
 enum gcc_jit_variable_attribute
 {
   GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY,
+  GCC_JIT_VARIABLE_ATTRIBUTE_WEAK,
 
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_VARIABLE_ATTRIBUTE_MAX,
@@ -2314,6 +2315,11 @@ extern void
 gcc_jit_context_set_abort_on_unsupported_target_builtin (gcc_jit_context *ctxt);
 
 #define LIBGCCJIT_HAVE_gcc_jit_context_set_abort_on_unsupported_target_builtin
+
+/* Add an attribute to a variable.  */
+extern void
+gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable,
+			      enum gcc_jit_variable_attribute attribute);
 
 /* Given type "T", get type "T __attribute__ ((packed))".  */
 extern void
