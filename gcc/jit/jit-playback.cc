@@ -594,6 +594,8 @@ const char* variable_attribute_to_string (gcc_jit_variable_attribute attr)
   {
     case GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY:
       return "visibility";
+    case GCC_JIT_VARIABLE_ATTRIBUTE_WEAK:
+      return "weak";
     case GCC_JIT_VARIABLE_ATTRIBUTE_MAX:
       return NULL;
   }
@@ -779,7 +781,8 @@ global_new_decl (location *loc,
 		 const char *name,
 		 enum global_var_flags flags,
 		 const std::vector<std::pair<gcc_jit_variable_attribute,
-					     std::string>> &attributes,
+					     std::string>> &string_attributes,
+		 const std::vector<gcc_jit_variable_attribute> &attributes,
 		 bool readonly,
                  bool removed)
 {
@@ -835,7 +838,19 @@ global_new_decl (location *loc,
   if (loc)
     set_tree_location (inner, loc);
 
-  set_variable_string_attribute (attributes, inner);
+  set_variable_string_attribute (string_attributes, inner);
+
+  tree var_attributes = NULL_TREE;
+  for (auto attr: attributes)
+  {
+    const char* attribute = variable_attribute_to_string (attr);
+    if (attribute)
+    {
+      tree ident = get_identifier (attribute);
+      var_attributes = tree_cons (ident, NULL_TREE, var_attributes);
+    }
+  }
+  decl_attributes (&inner, var_attributes, 0);
 
   return inner;
 }
@@ -883,12 +898,14 @@ new_global (location *loc,
 	    const char *name,
 	    enum global_var_flags flags,
 	    const std::vector<std::pair<gcc_jit_variable_attribute,
-					std::string>> &attributes,
+					std::string>> &string_attributes,
+	    const std::vector<gcc_jit_variable_attribute> &attributes,
 	    bool readonly,
             bool removed)
 {
   tree inner =
-    global_new_decl (loc, kind, type, name, flags, attributes, readonly, removed);
+    global_new_decl (loc, kind, type, name, flags, string_attributes,
+        attributes, readonly, removed);
 
   return global_finalize_lvalue (inner, removed);
 }
@@ -1035,11 +1052,14 @@ new_global_initialized (location *loc,
 			const char *name,
 			enum global_var_flags flags,
 			const std::vector<std::pair<gcc_jit_variable_attribute,
-						    std::string>> &attributes,
+						    std::string>> &string_attributes,
+			const std::vector<gcc_jit_variable_attribute>
+					  &attributes,
 			bool readonly,
                         bool removed)
 {
-  tree inner = global_new_decl (loc, kind, type, name, flags, attributes, readonly, removed);
+  tree inner = global_new_decl (loc, kind, type, name, flags,
+        string_attributes, attributes, readonly, removed);
 
   vec<constructor_elt, va_gc> *constructor_elements = NULL;
 
