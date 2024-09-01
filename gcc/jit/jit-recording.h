@@ -1467,7 +1467,8 @@ public:
     m_reg_name (NULL),
     m_tls_model (GCC_JIT_TLS_MODEL_NONE),
     m_alignment (0),
-    m_string_attributes ()
+    m_string_attributes (),
+    m_attributes ()
   {}
 
   playback::lvalue *
@@ -1489,6 +1490,7 @@ public:
   const char *access_as_rvalue (reproducer &r) override;
 
   void add_string_attribute (gcc_jit_variable_attribute attribute, const char* value);
+  void add_attribute (gcc_jit_variable_attribute attribute);
 
   bool get_readonly () const
   {
@@ -1516,6 +1518,7 @@ protected:
   unsigned m_alignment;
   std::vector<std::pair<gcc_jit_variable_attribute,
 	      std::string>> m_string_attributes;
+  std::vector<gcc_jit_variable_attribute> m_attributes;
   bool m_readonly = false;
 };
 
