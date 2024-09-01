@@ -136,7 +136,8 @@ public:
 	      const char *name,
 	      enum global_var_flags flags,
 	      const std::vector<std::pair<gcc_jit_variable_attribute,
-					  std::string>> &attributes,
+					  std::string>> &string_attributes,
+	      const std::vector<gcc_jit_variable_attribute> &attributes,
 	      bool readonly);
 
   lvalue *
@@ -151,6 +152,8 @@ public:
 			  const std::vector<std::pair<
 					    gcc_jit_variable_attribute,
 					    std::string>>
+					    &string_attributes,
+			  const std::vector<gcc_jit_variable_attribute>
 					    &attributes,
 			  bool readonly);
 
@@ -360,7 +363,8 @@ private:
 		   const char *name,
 		   enum global_var_flags flags,
 		   const std::vector<std::pair<gcc_jit_variable_attribute,
-					       std::string>> &attributes,
+					       std::string>> &string_attributes,
+		   const std::vector<gcc_jit_variable_attribute> &attributes,
 		   bool readonly);
   lvalue *
   global_finalize_lvalue (tree inner);
