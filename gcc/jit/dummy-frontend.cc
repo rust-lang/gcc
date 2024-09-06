@@ -1174,13 +1174,6 @@ recording::type* tree_type_to_jit_type (tree type)
     // For __builtin_sysv_va_copy.
     return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_VOID); // FIXME: wrong type.
   }
-  for (int i = 0; i < NUM_FLOATN_NX_TYPES; i++)
-  {
-    if (type == FLOATN_NX_TYPE_NODE (i))
-    {
-      return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_VOID); // FIXME: wrong type.
-    }
-  }
   if (type == void_type_node)
   {
     return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_VOID);
@@ -1336,6 +1329,15 @@ recording::type* tree_type_to_jit_type (tree type)
   }
   else
   {
+    // TODO: remove if not needed anymore.
+    /*for (int i = 0; i < NUM_FLOATN_NX_TYPES; i++)
+    {
+      if (type == FLOATN_NX_TYPE_NODE (i))
+      {
+        return new recording::memento_of_get_type (&target_builtins_ctxt, GCC_JIT_TYPE_VOID); // FIXME: wrong type.
+      }
+    }*/
+
     // Attempt to find an unqualified type when the current type has qualifiers.
     tree tp = TYPE_MAIN_VARIANT (type);
     for ( ; tp != NULL ; tp = TYPE_NEXT_VARIANT (tp))
