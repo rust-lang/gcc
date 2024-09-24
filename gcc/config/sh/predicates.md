@@ -804,3 +804,36 @@
 
   return false;
 })
+
+;; Predicates for pinning operands to hard-regs.
+(define_predicate "hard_reg_r0"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == R0_REG")))
+
+(define_predicate "hard_reg_r1"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == R1_REG")))
+
+(define_predicate "hard_reg_r2"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == R2_REG")))
+
+(define_predicate "hard_reg_r3"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == R3_REG")))
+
+(define_predicate "hard_reg_r4"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == R4_REG")))
+
+(define_predicate "hard_reg_r5"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == R5_REG")))
+
+(define_predicate "hard_reg_r6"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == R6_REG")))
+
+(define_predicate "hard_reg_r7"
+  (and (match_code "reg")
+       (match_test "REGNO (op) == R7_REG")))
