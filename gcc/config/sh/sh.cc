@@ -593,9 +593,6 @@ TARGET_GNU_ATTRIBUTES (sh_attribute_table,
 #undef  TARGET_ENCODE_SECTION_INFO
 #define TARGET_ENCODE_SECTION_INFO	sh_encode_section_info
 
-#undef TARGET_LRA_P
-#define TARGET_LRA_P sh_lra_p
-
 #undef TARGET_SECONDARY_RELOAD
 #define TARGET_SECONDARY_RELOAD sh_secondary_reload
 
@@ -12652,13 +12649,6 @@ sh_mode_priority (int entity ATTRIBUTE_UNUSED, int n)
 /*------------------------------------------------------------------------------
   Misc
 */
-
-/* Return true if we use LRA instead of reload pass.  */
-bool
-sh_lra_p (void)
-{
-  return sh_lra_flag;
-}
 
 /* Implement TARGET_USE_BY_PIECES_INFRASTRUCTURE_P.  */
 

@@ -40,7 +40,12 @@ extern rtx sh_fsca_sf2int (void);
 extern rtx sh_fsca_int2sf (void);
 
 /* Declare functions defined in sh.cc and used in templates.  */
-extern bool sh_lra_p (void);
+
+/* FIXME: sh_lra_p is for transional purposes only.  Remove it eventually.  */
+inline bool sh_lra_p (void)
+{
+  return true;
+}
 
 extern const char *output_branch (int, rtx_insn *, rtx *);
 extern const char *output_ieee_ccmpeq (rtx_insn *, rtx *);

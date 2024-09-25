@@ -1465,7 +1465,7 @@ See RS/6000 and PowerPC Options.
 -mbranch-cost=@var{num}  -mzdcbranch
 -mcbranch-force-delay-slot
 -mfsca  -mfsrra
--mpretend-cmove  -mfdpic  -mtas  -mlra}
+-mpretend-cmove  -mfdpic  -mtas}
 
 @emph{Solaris 2 Options} (@ref{Solaris 2 Options})
 @gccoptlist{-mclear-hwcap  -mno-clear-hwcap  -mimpure-text  -mno-impure-text
@@ -33988,13 +33988,6 @@ This can result in faster code on the SH4 processor.
 @item -mfdpic
 @itemx -mno-fdpic
 Generate code using the FDPIC ABI.
-
-@opindex mlra
-@opindex mno-lra
-@item -mlra
-@itemx -mno-lra
-Use the new LRA register allocator.  By default, the old ``reload''
-allocator is used.
 
 @end table
 
