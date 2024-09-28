@@ -191,6 +191,14 @@ ix86_jit_register_target_info (void)
     jit_add_target_info("target_feature", "fma4");
   if (TARGET_XOP)
     jit_add_target_info("target_feature", "xop");
+  if (TARGET_AVXIFMA)
+    jit_add_target_info("target_feature", "avxifma");
+  if (TARGET_AVXNECONVERT)
+    jit_add_target_info("target_feature", "avxneconvert");
+  if (TARGET_AVXVNNIINT8)
+    jit_add_target_info("target_feature", "avxvnniint8");
+  if (TARGET_AVXVNNIINT16)
+    jit_add_target_info("target_feature", "avxvnniint16");
 
   // this is only enabled by choice in llvm, never by default - TODO determine if gcc enables it
   // jit_add_target_info("target_feature", "sse-unaligned-mem");
