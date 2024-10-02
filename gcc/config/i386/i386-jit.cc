@@ -107,12 +107,14 @@ ix86_jit_register_target_info (void)
     jit_add_target_info("target_feature", "avx2");
   if (TARGET_AVX512F)
     jit_add_target_info("target_feature", "avx512f");
-  if (TARGET_AVX512ER)
-    jit_add_target_info("target_feature", "avx512er");
+  // TODO: update the name:
+  /*if (TARGET_AVX512ER)
+    jit_add_target_info("target_feature", "avx512er");*/
   if (TARGET_AVX512CD)
     jit_add_target_info("target_feature", "avx512cd");
-  if (TARGET_AVX512PF)
-    jit_add_target_info("target_feature", "avx512pf");
+  // TODO: update the name:
+  /*if (TARGET_AVX512PF)
+    jit_add_target_info("target_feature", "avx512pf");*/
   if (TARGET_AVX512DQ)
     jit_add_target_info("target_feature", "avx512dq");
   if (TARGET_AVX512BW)
