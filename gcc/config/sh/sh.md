@@ -4827,14 +4827,39 @@
 ;; Sign extension instructions
 ;; -------------------------------------------------------------------------
 
-;; ??? This should be a define expand.
-;; ??? Or perhaps it should be dropped?
-
-;; convert_move generates good code for SH[1-4].
-
 (define_expand "extend<mode>si2"
   [(set (match_operand:SI 0 "arith_reg_dest")
-	(sign_extend:SI (match_operand:QIHI 1 "general_extend_operand")))])
+	(sign_extend:SI (match_operand:QIHI 1 "general_extend_operand")))]
+  ""
+{
+  /* When displacement addressing is used RA will assign r0 to the pseudo
+     register operand for the QI/HImode load.
+     See the comment in sh.cc:prepare_move_operand and PR target/55212.  */
+  if (! lra_in_progress && ! reload_completed
+      && sh_lra_p ()
+      && ! TARGET_SH2A
+      && arith_reg_dest (operands[0], <MODE>mode)
+      && short_displacement_mem_operand (operands[1], <MODE>mode))
+    {
+      emit_insn (gen_extend<mode>si2_short_mem_disp_z (operands[0], operands[1]));
+      DONE;
+    }
+})
+
+(define_insn_and_split "extend<mode>si2_short_mem_disp_z"
+  [(set (match_operand:SI 0 "arith_reg_dest" "=r")
+	(sign_extend:SI
+	    (match_operand:QIHI 1 "short_displacement_mem_operand" "m")))
+   (clobber (reg:SI R0_REG))]
+  "TARGET_SH1 && ! TARGET_SH2A && sh_lra_p ()"
+  "#"
+  "&& 1"
+  [(set (match_dup 2) (sign_extend:SI (match_dup  1)))
+   (set (match_dup 0) (match_dup 2))]
+{
+  operands[2] = gen_rtx_REG (SImode, R0_REG);
+}
+  [(set_attr "type" "load")])
 
 (define_insn_and_split "*extend<mode>si2_compact_reg"
   [(set (match_operand:SI 0 "arith_reg_dest" "=r")
@@ -5376,8 +5401,48 @@
         operands[1] = gen_lowpart (<MODE>mode, reg);
     }
 
+  if (! lra_in_progress && ! reload_completed
+      && sh_lra_p ()
+      && ! TARGET_SH2A
+      && arith_reg_operand (operands[1], <MODE>mode)
+      && satisfies_constraint_Sid (operands[0]))
+    {
+      rtx adr = XEXP (operands[0], 0);
+      rtx base = XEXP (adr, 0);
+      rtx idx = XEXP (adr, 1);
+      emit_insn (gen_mov<mode>_store_mem_index (base, idx,operands[1]));
+      DONE;
+    }
+
   prepare_move_operands (operands, <MODE>mode);
 })
+
+;; The "*mov<mode>_store_mem_index" pattern must come before the
+;; "mov<mode>_store_mem_index" pattern.  Matching order is important because
+;; the "hard_reg_r0" operand will match in both, but we want to prioritize
+;; the former.
+(define_insn "*mov<mode>_store_mem_index"
+  [(set (mem:QIHI (plus:SI (match_operand:SI 0 "arith_reg_operand" "%r")
+			   (match_operand:SI 1 "hard_reg_r0" "z")))
+	(match_operand:QIHI 2 "arith_reg_operand" "r"))]
+  "TARGET_SH1 && ! TARGET_SH2A && sh_lra_p ()"
+  "mov.<bw>	%2,@(%1,%0)"
+  [(set_attr "type" "store")])
+
+(define_insn_and_split "mov<mode>_store_mem_index"
+  [(set (mem:QIHI (plus:SI (match_operand:SI 0 "arith_reg_operand" "%r")
+			   (match_operand:SI 1 "arith_reg_operand" "^zr")))
+	(match_operand:QIHI 2 "arith_reg_operand" "r"))
+   (clobber (reg:SI R0_REG))]
+  "TARGET_SH1 && ! TARGET_SH2A && sh_lra_p ()"
+  "#"
+  "&& 1"
+  [(set (match_dup 3) (match_dup 1))
+    (set (mem:QIHI (plus:SI (match_dup 0) (match_dup 3))) (match_dup 2))]
+{
+  operands[3] = gen_rtx_REG (SImode, R0_REG);
+}
+  [(set_attr "type" "store")])
 
 ;; The pre-dec and post-inc mems must be captured by the '<' and '>'
 ;; constraints, otherwise wrong code might get generated.
@@ -6359,6 +6424,66 @@
 	      (clobber (scratch:SI))])]
   "")
 
+;; The "*movsf_ie_store_mem_index" pattern must come before the
+;; "movsf_ie_store_mem_index" pattern.  Matching order is important because
+;; the "hard_reg_r0" operand will match in both, but we want to prioritize
+;; the former.
+(define_insn "*movsf_ie_store_mem_index"
+  [(set (mem:SF (plus:SI (match_operand:SI 0 "arith_reg_operand" "%r")
+			 (match_operand:SI 1 "hard_reg_r0" "z")))
+	(match_operand:SF 2 "fp_arith_reg_operand" "f"))
+    (use (reg:SI FPSCR_MODES_REG))]
+  "TARGET_SH2E && sh_lra_p ()"
+  "fmov.s    %2,@(%1,%0)"
+  [(set_attr "type" "store")])
+
+(define_insn_and_split "movsf_ie_store_mem_index"
+  [(set (mem:SF (plus:SI (match_operand:SI 0 "arith_reg_operand" "%r")
+			 (match_operand:SI 1 "arith_reg_operand" "^zr")))
+	(match_operand:SF 2 "fp_arith_reg_operand" "f"))
+   (use (reg:SI FPSCR_MODES_REG))
+   (clobber (reg:SI R0_REG))]
+  "TARGET_SH2E && sh_lra_p ()"
+  "#"
+  "&& 1"
+  [(set (match_dup 3) (match_dup 1))
+   (parallel [(set (mem:SF (plus:SI (match_dup 0) (match_dup 3))) (match_dup 2))
+		(use (reg:SI FPSCR_MODES_REG))])]
+{
+  operands[3] = gen_rtx_REG (SImode, R0_REG);
+}
+  [(set_attr "type" "store")])
+
+;; The "*movsf_ie_load_mem_index" pattern must come before the
+;; "movsf_ie_load_mem_index" pattern.  Matching order is important because
+;; the "hard_reg_r0" operand will match in both, but we want to prioritize
+;; the former.
+(define_insn "*movsf_ie_load_mem_index"
+  [(set (match_operand:SF 0 "fp_arith_reg_operand" "=f")
+	(mem:SF (plus:SI (match_operand:SI 1 "arith_reg_operand" "%r")
+			 (match_operand:SI 2 "hard_reg_r0" "z"))))
+   (use (reg:SI FPSCR_MODES_REG))]
+  "TARGET_SH2E && sh_lra_p ()"
+  "fmov.s    @(%2,%1),%0"
+  [(set_attr "type" "load")])
+
+(define_insn_and_split "movsf_ie_load_mem_index"
+  [(set (match_operand:SF 0 "fp_arith_reg_operand" "=f")
+	(mem:SF (plus:SI (match_operand:SI 1 "arith_reg_operand" "%r")
+			 (match_operand:SI 2 "arith_reg_operand" "^zr"))))
+   (use (reg:SI FPSCR_MODES_REG))
+   (clobber (reg:SI R0_REG))]
+  "TARGET_SH2E && sh_lra_p ()"
+  "#"
+  "&& 1"
+  [(set (match_dup 3) (match_dup 2))
+   (parallel [(set (match_dup 0) (mem:SF (plus:SI (match_dup 1) (match_dup 3))))
+		(use (reg:SI FPSCR_MODES_REG))])]
+{
+  operands[3] = gen_rtx_REG (SImode, R0_REG);
+}
+  [(set_attr "type" "load")])
+
 (define_expand "movsf"
   [(set (match_operand:SF 0 "general_movdst_operand" "")
         (match_operand:SF 1 "general_movsrc_operand" ""))]
@@ -6371,6 +6496,26 @@
 	{
 	  if (GET_CODE (operands[0]) == SCRATCH)
 	    DONE;
+	  if (! lra_in_progress && ! reload_completed
+	      && fp_arith_reg_operand (operands[1], SFmode)
+	      && satisfies_constraint_Sid (operands[0]))
+	    {
+	      rtx adr = XEXP (operands[0], 0);
+	      rtx base = XEXP (adr, 0);
+	      rtx idx = XEXP (adr, 1);
+	      emit_insn (gen_movsf_ie_store_mem_index (base, idx, operands[1]));
+	      DONE;
+	    }
+	  if (! lra_in_progress && ! reload_completed
+	      && fp_arith_reg_operand (operands[0], SFmode)
+	      && satisfies_constraint_Sid (operands[1]))
+	    {
+	      rtx adr = XEXP (operands[1], 0);
+	      rtx base = XEXP (adr, 0);
+	      rtx idx = XEXP (adr, 1);
+	      emit_insn (gen_movsf_ie_load_mem_index (operands[0], base, idx));
+	      DONE;
+	    }
 	  /* reg from/to multiword subreg may be splitted to several reg from/to
 	     subreg of SImode by subreg1 pass.  This confuses our splitted
 	     movsf logic for LRA and will end up in bad code or ICE.  Use a special
