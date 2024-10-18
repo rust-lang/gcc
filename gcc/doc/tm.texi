@@ -3122,9 +3122,20 @@ A target hook which returns @code{true} if @var{subst} can't
 substitute safely pseudos with equivalent memory values during
 register allocation.
 The default version of this target hook returns @code{false}.
-On most machines, this default should be used.  For generally
-machines with non orthogonal register usage for addressing, such
-as SH, this hook can be used to avoid excessive spilling.
+On most machines, this default should be used.  For machines with
+non-orthogonal register usage for addressing, such as SH,
+this hook can be used to avoid excessive spilling.
+@end deftypefn
+
+@deftypefn {Target Hook} bool TARGET_CANNOT_SUBSTITUTE_CONST_EQUIV_P (rtx @var{subst})
+A target hook which returns @code{true} if @var{subst} can't
+substitute safely pseudos with equivalent constant values during
+register allocation.
+The default version of this target hook returns @code{false}.
+On most machines, this default should be used.  For machines with
+special constant load instructions that have additional constraints
+or being dependent on mode-switching, such as SH, this hook can be
+used to avoid unsafe substitution.
 @end deftypefn
 
 @deftypefn {Target Hook} bool TARGET_LEGITIMIZE_ADDRESS_DISPLACEMENT (rtx *@var{offset1}, rtx *@var{offset2}, poly_int64 @var{orig_offset}, machine_mode @var{mode})

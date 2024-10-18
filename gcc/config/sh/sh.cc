@@ -271,6 +271,7 @@ static bool sh_legitimate_address_p (machine_mode, rtx, bool,
 static rtx sh_legitimize_address (rtx, rtx, machine_mode);
 static rtx sh_delegitimize_address (rtx);
 static bool sh_cannot_substitute_mem_equiv_p (rtx);
+static bool sh_cannot_substitute_const_equiv_p (rtx);
 static bool sh_legitimize_address_displacement (rtx *, rtx *,
 						poly_int64, machine_mode);
 static int scavenge_reg (HARD_REG_SET *s);
@@ -609,6 +610,9 @@ TARGET_GNU_ATTRIBUTES (sh_attribute_table,
 
 #undef TARGET_CANNOT_SUBSTITUTE_MEM_EQUIV_P
 #define TARGET_CANNOT_SUBSTITUTE_MEM_EQUIV_P sh_cannot_substitute_mem_equiv_p
+
+#undef TARGET_CANNOT_SUBSTITUTE_CONST_EQUIV_P
+#define TARGET_CANNOT_SUBSTITUTE_CONST_EQUIV_P sh_cannot_substitute_const_equiv_p
 
 #undef TARGET_LEGITIMIZE_ADDRESS_DISPLACEMENT
 #define TARGET_LEGITIMIZE_ADDRESS_DISPLACEMENT \
@@ -11428,6 +11432,23 @@ sh_cannot_substitute_mem_equiv_p (rtx)
      hold the equiv values can't get good hard registers for bad cases
      and end up memory save/restore insns which make the code worse.  */
   return true;
+}
+
+static bool
+sh_cannot_substitute_const_equiv_p (rtx subst)
+{
+  /* If SUBST is SFmode const_double 0 or 1, the move insn may be
+     transformed into fldi0/1.  This is potentially unsafe for fp mode
+     switching because fldi0/1 are single mode only instructions.
+     LRA could then insert an fldi0/1 while the fp mode = double is selected.
+     Currently there is no other way to check this or prevent this from
+     happening.  See also PR 117182.  */
+
+  if (GET_MODE (subst) == SFmode
+      && (real_equal (CONST_DOUBLE_REAL_VALUE (subst), &dconst1)
+	  || real_equal (CONST_DOUBLE_REAL_VALUE (subst), &dconst0)))
+    return true;
+  return false;
 }
 
 /* Implement TARGET_LEGITIMIZE_ADDRESS_DISPLACEMENT.  */

@@ -581,7 +581,11 @@ get_equiv (rtx x)
       return res;
     }
   if ((res = ira_reg_equiv[regno].constant) != NULL_RTX)
-    return res;
+    {
+      if (targetm.cannot_substitute_const_equiv_p (res))
+	return x;
+      return res;
+    }
   if ((res = ira_reg_equiv[regno].invariant) != NULL_RTX)
     return res;
   gcc_unreachable ();
