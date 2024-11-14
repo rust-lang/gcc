@@ -2450,6 +2450,16 @@ only language front ends that use those two functions will call\n\
  void, (void),
  hook_void_void)
 
+/* Clean up target-specific built-in functions.  */
+DEFHOOK
+(cleanup_builtins,
+ "Define this hook if you have any machine-specific built-in functions\n\
+that need to be cleaned up.  It should be a function that performs the\n\
+necessary cleanup so that a second compilation in the same process via\n\
+the jit frontend will not fail.",
+ void, (void),
+ hook_void_void)
+
 /* Initialize (if INITIALIZE_P is true) and return the target-specific
    built-in function decl for CODE.
    Return NULL if that is not possible.  Return error_mark_node if CODE
