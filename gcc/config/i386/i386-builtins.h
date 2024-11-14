@@ -318,6 +318,7 @@ extern builtin_isa ix86_builtins_isa[(int) IX86_BUILTIN_MAX];
 tree ix86_builtin_vectorized_function (unsigned int fn, tree type_out,
 					      tree type_in);
 void ix86_init_builtins (void);
+void ix86_cleanup_builtins (void);
 tree ix86_vectorize_builtin_gather (const_tree mem_vectype,
 					   const_tree index_type, int scale);
 tree ix86_builtin_decl (unsigned code, bool);

@@ -1088,6 +1088,12 @@ jit_langhook_init (void)
   return true;
 }
 
+void
+jit_langhook_finish (void)
+{
+  //targetm.cleanup_builtins ();
+}
+
 static void
 jit_langhook_parse_file (void)
 {
@@ -1454,6 +1460,9 @@ jit_langhook_eh_personality (void)
 
 #undef LANG_HOOKS_INIT
 #define LANG_HOOKS_INIT		jit_langhook_init
+
+#undef LANG_HOOKS_FINISH
+#define LANG_HOOKS_FINISH		jit_langhook_finish
 
 #undef LANG_HOOKS_PARSE_FILE
 #define LANG_HOOKS_PARSE_FILE		jit_langhook_parse_file
