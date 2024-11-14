@@ -26538,8 +26538,6 @@ static const scoped_attribute_specs *const ix86_attribute_table[] =
 
 #undef TARGET_INIT_BUILTINS
 #define TARGET_INIT_BUILTINS ix86_init_builtins
-#undef TARGET_CLEANUP_BUILTINS
-#define TARGET_CLEANUP_BUILTINS ix86_cleanup_builtins
 #undef TARGET_BUILTIN_DECL
 #define TARGET_BUILTIN_DECL ix86_builtin_decl
 #undef TARGET_EXPAND_BUILTIN

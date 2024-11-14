@@ -12112,13 +12112,6 @@ only language front ends that use those two functions will call
 @samp{TARGET_INIT_BUILTINS}.
 @end deftypefn
 
-@deftypefn {Target Hook} void TARGET_CLEANUP_BUILTINS (void)
-Define this hook if you have any machine-specific built-in functions
-that need to be cleaned up.  It should be a function that performs the
-necessary cleanup so that a second compilation in the same process via
-the jit frontend will not fail.
-@end deftypefn
-
 @deftypefn {Target Hook} tree TARGET_BUILTIN_DECL (unsigned @var{code}, bool @var{initialize_p})
 Define this hook if you have any machine-specific built-in functions
 that need to be defined.  It should be a function that returns the

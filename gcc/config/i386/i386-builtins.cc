@@ -227,22 +227,6 @@ static GTY(()) tree ix86_builtins[(int) IX86_BUILTIN_MAX + 1];
 
 struct builtin_isa ix86_builtins_isa[(int) IX86_BUILTIN_MAX];
 
-void
-ix86_cleanup_builtins (void)
-{
-  for (int i = 0 ; i < IX86_BT_LAST_CPTR + 1 ; i++)
-    ix86_builtin_type_tab[i] = NULL;
-
-  for (int i = 0 ; i < IX86_BUILTIN_MAX ; i++)
-  {
-    ix86_builtins[i] = NULL;
-    ix86_builtins_isa[i].set_and_not_built_p = true;
-  }
-
-  for (int i = 0 ; i < IX86_BT_LAST_ALIAS + 1 ; i++)
-    ix86_builtin_func_type_tab[i] = NULL;
-}
-
 tree get_ix86_builtin (enum ix86_builtins c)
 {
   return ix86_builtins[c];
