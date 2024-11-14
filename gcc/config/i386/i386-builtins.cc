@@ -227,8 +227,8 @@ static GTY(()) tree ix86_builtins[(int) IX86_BUILTIN_MAX + 1];
 
 struct builtin_isa ix86_builtins_isa[(int) IX86_BUILTIN_MAX];
 
-static void
-clear_builtin_types (void)
+void
+ix86_cleanup_builtins (void)
 {
   for (int i = 0 ; i < IX86_BT_LAST_CPTR + 1 ; i++)
     ix86_builtin_type_tab[i] = NULL;
@@ -1489,8 +1489,6 @@ void
 ix86_init_builtins (void)
 {
   tree ftype, decl;
-
-  clear_builtin_types ();
 
   ix86_init_builtin_types ();
 
