@@ -47,12 +47,12 @@ along with GCC; see the file COPYING3.  If not see
 #undef  TARGET_ASM_UNWIND_EMIT_BEFORE_INSN
 #define TARGET_ASM_UNWIND_EMIT_BEFORE_INSN  false
 #undef  TARGET_ASM_FUNCTION_END_PROLOGUE
-#define TARGET_ASM_FUNCTION_END_PROLOGUE  i386_pe_seh_end_prologue
+#define TARGET_ASM_FUNCTION_END_PROLOGUE  mingw_pe_seh_end_prologue
 #undef  TARGET_ASM_EMIT_EXCEPT_PERSONALITY
-#define TARGET_ASM_EMIT_EXCEPT_PERSONALITY i386_pe_seh_emit_except_personality
+#define TARGET_ASM_EMIT_EXCEPT_PERSONALITY mingw_pe_seh_emit_except_personality
 #undef  TARGET_ASM_INIT_SECTIONS
-#define TARGET_ASM_INIT_SECTIONS  i386_pe_seh_init_sections
-#define SUBTARGET_ASM_UNWIND_INIT  i386_pe_seh_init
+#define TARGET_ASM_INIT_SECTIONS  mingw_pe_seh_init_sections
+#define SUBTARGET_ASM_UNWIND_INIT  mingw_pe_seh_init
 
 #undef DEFAULT_ABI
 #define DEFAULT_ABI (TARGET_64BIT ? MS_ABI : SYSV_ABI)
@@ -314,18 +314,18 @@ do {						\
   do								\
     {								\
       mingw_pe_declare_type (FILE, NAME, 0, 1);		\
-      i386_pe_seh_cold_init (FILE, NAME);			\
+      mingw_pe_seh_cold_init (FILE, NAME);			\
       ASM_OUTPUT_LABEL (FILE, NAME);				\
     }								\
   while (0)
 
 #undef ASM_DECLARE_FUNCTION_SIZE
 #define ASM_DECLARE_FUNCTION_SIZE(FILE,NAME,DECL) \
-  i386_pe_end_function (FILE, NAME, DECL)
+  mingw_pe_end_function (FILE, NAME, DECL)
 
 #undef ASM_DECLARE_COLD_FUNCTION_SIZE
 #define ASM_DECLARE_COLD_FUNCTION_SIZE(FILE,NAME,DECL) \
-  i386_pe_end_cold_function (FILE, NAME, DECL)
+  mingw_pe_end_cold_function (FILE, NAME, DECL)
 
 /* Add an external function to the list of functions to be declared at
    the end of the file.  */

@@ -169,6 +169,8 @@ mingw_pe_valid_dllimport_attribute_p (const_tree decl)
    return true;
 }
 
+#if !defined (TARGET_AARCH64_MS_ABI)
+
 /* Return string which is the function name, identified by ID, modified
    with a suffix consisting of an atsign (@) followed by the number of
    bytes of arguments.  If ID is NULL use the DECL_NAME as base. If
@@ -223,8 +225,6 @@ gen_stdcall_or_fastcall_suffix (tree decl, tree id, bool fastcall)
 
   return get_identifier (new_str);
 }
-
-#if !defined (TARGET_AARCH64_MS_ABI)
 
 /* Maybe decorate and get a new identifier for the DECL of a stdcall or
    fastcall function. The original identifier is supplied in ID. */
@@ -884,45 +884,10 @@ mingw_pe_asm_lto_end (void)
   debug_info_level = saved_debug_info_level;
 }
 
-
-/* x64 Structured Exception Handling unwind info.  */
-
-struct seh_frame_state
-{
-  /* SEH records offsets relative to the lowest address of the fixed stack
-     allocation.  If there is no frame pointer, these offsets are from the
-     stack pointer; if there is a frame pointer, these offsets are from the
-     value of the stack pointer when the frame pointer was established, i.e.
-     the frame pointer minus the offset in the .seh_setframe directive.
-
-     We do not distinguish these two cases, i.e. we consider that the offsets
-     are always relative to the "current" stack pointer.  This means that we
-     need to perform the fixed stack allocation before establishing the frame
-     pointer whenever there are registers to be saved, and this is guaranteed
-     by the prologue provided that we force the frame pointer to point at or
-     below the lowest used register save area, see ix86_compute_frame_layout.
-
-     This tracks the current stack pointer offset from the CFA.  */
-  HOST_WIDE_INT sp_offset;
-
-  /* The CFA is located at CFA_REG + CFA_OFFSET.  */
-  HOST_WIDE_INT cfa_offset;
-  rtx cfa_reg;
-
-  /* The offset wrt the CFA where register N has been saved.  */
-  HOST_WIDE_INT reg_offset[FIRST_PSEUDO_REGISTER];
-
-  /* True if we are past the end of the epilogue.  */
-  bool after_prologue;
-
-  /* True if we are in the cold section.  */
-  bool in_cold_section;
-};
-
 /* Set up data structures beginning output for SEH.  */
 
 void
-i386_pe_seh_init (FILE *f)
+mingw_pe_seh_init (FILE *f)
 {
   struct seh_frame_state *seh;
 
@@ -950,7 +915,7 @@ i386_pe_seh_init (FILE *f)
 /* Emit an assembler directive for the end of the prologue.  */
 
 void
-i386_pe_seh_end_prologue (FILE *f)
+mingw_pe_seh_end_prologue (FILE *f)
 {
   if (!TARGET_SEH)
     return;
@@ -963,7 +928,7 @@ i386_pe_seh_end_prologue (FILE *f)
 /* Emit assembler directives to reconstruct the SEH state.  */
 
 void
-i386_pe_seh_cold_init (FILE *f, const char *name)
+mingw_pe_seh_cold_init (FILE *f, const char *name)
 {
   struct seh_frame_state *seh;
   HOST_WIDE_INT alloc_offset, offset;
@@ -1046,7 +1011,7 @@ i386_pe_seh_cold_init (FILE *f, const char *name)
 /* Emit an assembler directive for the end of the function.  */
 
 static void
-i386_pe_seh_fini (FILE *f, bool cold)
+mingw_pe_seh_fini (FILE *f, bool cold)
 {
   struct seh_frame_state *seh;
 
@@ -1106,8 +1071,8 @@ seh_emit_save (FILE *f, struct seh_frame_state *seh,
 
 /* Emit an assembler directive to adjust RSP by OFFSET.  */
 
-static void
-seh_emit_stackalloc (FILE *f, struct seh_frame_state *seh,
+void
+mingw_pe_seh_emit_stackalloc (FILE *f, struct seh_frame_state *seh,
 		     HOST_WIDE_INT offset)
 {
   /* We're only concerned with prologue stack allocations, which all
@@ -1152,7 +1117,7 @@ seh_cfa_adjust_cfa (FILE *f, struct seh_frame_state *seh, rtx pat)
   dest_regno = REGNO (dest);
 
   if (dest_regno == STACK_POINTER_REGNUM)
-    seh_emit_stackalloc (f, seh, reg_offset);
+    mingw_pe_seh_emit_stackalloc (f, seh, reg_offset);
   else if (dest_regno == HARD_FRAME_POINTER_REGNUM)
     {
       HOST_WIDE_INT offset;
@@ -1258,7 +1223,7 @@ seh_frame_related_expr (FILE *f, struct seh_frame_state *seh, rtx pat)
 	  else if (dest == stack_pointer_rtx)
 	    {
 	      gcc_assert (src == stack_pointer_rtx);
-	      seh_emit_stackalloc (f, seh, addend);
+	      mingw_pe_seh_emit_stackalloc (f, seh, addend);
 	    }
 	  else
 	    gcc_unreachable ();
@@ -1370,7 +1335,7 @@ i386_pe_seh_unwind_emit (FILE *out_file, rtx_insn *insn)
 }
 
 void
-i386_pe_seh_emit_except_personality (rtx personality)
+mingw_pe_seh_emit_except_personality (rtx personality)
 {
   int flags = 0;
 
@@ -1404,7 +1369,7 @@ i386_pe_seh_emit_except_personality (rtx personality)
 }
 
 void
-i386_pe_seh_init_sections (void)
+mingw_pe_seh_init_sections (void)
 {
   if (TARGET_SEH)
     exception_section = get_unnamed_section (0, output_section_asm_op,
@@ -1423,15 +1388,15 @@ i386_pe_start_function (FILE *f, const char *name, tree decl)
 }
 
 void
-i386_pe_end_function (FILE *f, const char *, tree)
+mingw_pe_end_function (FILE *f, const char *, tree)
 {
-  i386_pe_seh_fini (f, false);
+  mingw_pe_seh_fini (f, false);
 }
-
+
 void
-i386_pe_end_cold_function (FILE *f, const char *, tree)
+mingw_pe_end_cold_function (FILE *f, const char *, tree)
 {
-  i386_pe_seh_fini (f, true);
+  mingw_pe_seh_fini (f, true);
 }
 
 #include "gt-winnt.h"
