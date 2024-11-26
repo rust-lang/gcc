@@ -1226,12 +1226,6 @@ recording::type* tree_type_to_jit_type (tree type)
     // FIXME: wrong type.
     return new recording::memento_of_get_type (&target_builtins_ctxt,
 					       GCC_JIT_TYPE_VOID);
-  /* TODO: Remove when we add support for sized floating-point types.  */
-  for (int i = 0; i < NUM_FLOATN_NX_TYPES; i++)
-    if (type == FLOATN_NX_TYPE_NODE (i))
-      // FIXME: wrong type.
-      return new recording::memento_of_get_type (&target_builtins_ctxt,
-						 GCC_JIT_TYPE_VOID);
   if (type == void_type_node)
     return new recording::memento_of_get_type (&target_builtins_ctxt,
 					       GCC_JIT_TYPE_VOID);
