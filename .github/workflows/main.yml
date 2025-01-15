@@ -15,8 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - { use_patch: true, asset_name: "gcc-13-without-int128.deb" }
-          - { use_path: false, asset_name: "gcc-13.deb" }
+          - { use_patch: true, asset_name: "gcc-15-without-int128.deb" }
+          - { use_path: false, asset_name: "gcc-15.deb" }
 
     steps:
     - uses: actions/checkout@v2
@@ -43,14 +43,14 @@ jobs:
         cd ..
         mkdir install/DEBIAN
         cat > install/DEBIAN/control << EOF
-        Package: gcc-13
-        Version: 13
+        Package: gcc-15
+        Version: 15
         Architecture: amd64
         Maintainer: Antoni Boucher <bouanto@zoho.com>
-        Description: gcc 13 for rustc_codegen_gcc CI
+        Description: gcc 15 for rustc_codegen_gcc CI
         EOF
         dpkg-deb --root-owner-group --build install
-        mv install.deb gcc-13.deb
+        mv install.deb gcc-15.deb
 
     - name: Compute tag name
       id: tag_name
@@ -81,6 +81,6 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: /home/runner/work/gcc/gcc-13.deb
+        file: /home/runner/work/gcc/gcc-15.deb
         asset_name: ${{ matrix.version.asset_name }}
         tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
