@@ -583,6 +583,10 @@ const char* fn_attribute_to_string (gcc_jit_fn_attribute attr)
       return "weak";
     case GCC_JIT_FN_ATTRIBUTE_NONNULL:
       return "nonnull";
+    case GCC_JIT_FN_ATTRIBUTE_MS_ABI:
+      return "ms_abi";
+    case GCC_JIT_FN_ATTRIBUTE_SYSV_ABI:
+      return "sysv_abi";
     case GCC_JIT_FN_ATTRIBUTE_MAX:
       return NULL;
   }
