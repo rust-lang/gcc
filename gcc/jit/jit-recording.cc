@@ -4954,6 +4954,8 @@ static const char * const fn_attribute_reproducer_strings[] =
   "GCC_JIT_FN_ATTRIBUTE_CONST",
   "GCC_JIT_FN_ATTRIBUTE_WEAK",
   "GCC_JIT_FN_ATTRIBUTE_NONNULL",
+  "GCC_JIT_FN_ATTRIBUTE_MS_ABI",
+  "GCC_JIT_FN_ATTRIBUTE_SYSV_ABI",
 };
 
 std::string

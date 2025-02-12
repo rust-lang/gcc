@@ -2169,6 +2169,10 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_WEAK,
   GCC_JIT_FN_ATTRIBUTE_NONNULL,
 
+  // x86 attributes.
+  GCC_JIT_FN_ATTRIBUTE_MS_ABI,
+  GCC_JIT_FN_ATTRIBUTE_SYSV_ABI,
+
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_FN_ATTRIBUTE_MAX,
 };
