@@ -91,3 +91,5 @@ if (TARGET_CMPXCHG16B)
   ADD_TARGET_INFO ("target_feature", "cmpxchg16b");
 if (TARGET_MOVBE)
   ADD_TARGET_INFO ("target_feature", "movbe");
+if (TARGET_80387)
+  ADD_TARGET_INFO ("target_feature", "x87");
