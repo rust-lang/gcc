@@ -4373,18 +4373,44 @@ gcc_jit_function_add_string_attribute (gcc_jit_function *func,
    and `2` in `values` (and set `length` to `2`). */
 void
 gcc_jit_function_add_integer_array_attribute (gcc_jit_function *func,
-					      gcc_jit_fn_attribute attribute,
-					      const int* values,
-					      size_t length)
+                gcc_jit_fn_attribute attribute,
+                const int* values,
+                size_t length)
 {
   RETURN_IF_FAIL (func, NULL, NULL, "NULL func");
   RETURN_IF_FAIL (values, NULL, NULL, "NULL values");
   RETURN_IF_FAIL ((attribute >= 0 && attribute < GCC_JIT_FN_ATTRIBUTE_MAX),
-		  NULL,
-		  NULL,
-		  "attribute should be a `gcc_jit_fn_attribute` enum value");
+      NULL,
+      NULL,
+      "attribute should be a `gcc_jit_fn_attribute` enum value");
 
   func->add_integer_array_attribute (attribute, values, length);
+}
+
+/* This function adds an attribute with a sub attribute name followed bu
+   multiple integer values.  For example
+   `access(read_only, 1, 2)`.  The numbers in `values` are supposed to map how they
+   should be written in C code.  So for `nonnull(1, 2)`, you should pass `1`
+   and `2` in `values` (and set `length` to `2`). */
+void
+gcc_jit_function_add_sub_attribute_integer_array_attribute (gcc_jit_function *func,
+							    gcc_jit_fn_attribute attribute,
+							    gcc_jit_fn_attribute sub_attribute,
+							    const int* values,
+							    size_t length)
+{
+  RETURN_IF_FAIL (func, NULL, NULL, "NULL func");
+  RETURN_IF_FAIL (values, NULL, NULL, "NULL values");
+  RETURN_IF_FAIL ((attribute >= 0 && attribute < GCC_JIT_FN_ATTRIBUTE_MAX),
+      NULL,
+      NULL,
+      "attribute should be a `gcc_jit_fn_attribute` enum value");
+  RETURN_IF_FAIL ((sub_attribute >= 0 && sub_attribute < GCC_JIT_FN_ATTRIBUTE_MAX),
+      NULL,
+      NULL,
+      "sub_attribute should be a `gcc_jit_fn_attribute` enum value");
+
+  func->add_sub_attribute_integer_array_attribute (attribute, sub_attribute, values, length);
 }
 
 void

@@ -21,6 +21,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "c-family/c-common.h"
 #include "target.h"
 #include "jit-playback.h"
 #include "stor-layout.h"
@@ -50,13 +51,10 @@ static tree handle_always_inline_attribute (tree *, tree, tree, int,
 static tree handle_cold_attribute (tree *, tree, tree, int, bool *);
 static tree handle_const_attribute (tree *, tree, tree, int, bool *);
 static tree handle_fnspec_attribute (tree *, tree, tree, int, bool *);
-static tree handle_format_arg_attribute (tree *, tree, tree, int, bool *);
-static tree handle_format_attribute (tree *, tree, tree, int, bool *);
 static tree handle_leaf_attribute (tree *, tree, tree, int, bool *);
 static tree handle_malloc_attribute (tree *, tree, tree, int, bool *);
 static tree handle_noinline_attribute (tree *, tree, tree, int, bool *);
 static tree handle_nonnull_attribute (tree *, tree, tree, int, bool *);
-static tree handle_noreturn_attribute (tree *, tree, tree, int, bool *);
 static tree handle_nothrow_attribute (tree *, tree, tree, int, bool *);
 static tree handle_novops_attribute (tree *, tree, tree, int, bool *);
 static tree handle_patchable_function_entry_attribute (tree *, tree, tree,
@@ -77,19 +75,6 @@ static tree ignore_attribute (tree *, tree, tree, int, bool *);
 /* Helper to define attribute exclusions.  */
 #define ATTR_EXCL(name, function, type, variable)	\
   { name, function, type, variable }
-
-/* Define attributes that are mutually exclusive with one another.  */
-static const struct attribute_spec::exclusions attr_noreturn_exclusions[] =
-{
-  ATTR_EXCL ("alloc_align", true, true, true),
-  ATTR_EXCL ("alloc_size", true, true, true),
-  ATTR_EXCL ("const", true, true, true),
-  ATTR_EXCL ("malloc", true, true, true),
-  ATTR_EXCL ("pure", true, true, true),
-  ATTR_EXCL ("returns_twice", true, true, true),
-  ATTR_EXCL ("warn_unused_result", true, true, true),
-  ATTR_EXCL (NULL, false, false, false),
-};
 
 static const struct attribute_spec::exclusions attr_returns_twice_exclusions[] =
 {
@@ -158,6 +143,8 @@ static const attribute_spec jit_gnu_attributes[] =
 {
   /* { name, min_len, max_len, decl_req, type_req, fn_type_req,
        affects_type_identity, handler, exclude } */
+  { "access",		      1, 3, false, true, true, false,
+			      handle_access_attribute, NULL },
   { "alias",		      1, 1, true,  false, false, false,
 			      handle_alias_attribute, NULL },
   { "always_inline",	      0, 0, true,  false, false, false,
@@ -262,30 +249,6 @@ jit_preserve_from_gc (tree t)
 }
 
 /* Attribute handlers.  */
-
-/* Handle a "noreturn" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-static tree
-handle_noreturn_attribute (tree *node, tree ARG_UNUSED (name),
-			   tree ARG_UNUSED (args), int ARG_UNUSED (flags),
-			   bool * ARG_UNUSED (no_add_attrs))
-{
-  tree type = TREE_TYPE (*node);
-
-  if (TREE_CODE (*node) == FUNCTION_DECL)
-    TREE_THIS_VOLATILE (*node) = 1;
-  else if (TREE_CODE (type) == POINTER_TYPE
-	   && TREE_CODE (TREE_TYPE (type)) == FUNCTION_TYPE)
-    TREE_TYPE (*node)
-      = build_pointer_type
-	(build_type_variant (TREE_TYPE (type),
-			     TYPE_READONLY (TREE_TYPE (type)), 1));
-  else
-    gcc_unreachable ();
-
-  return NULL_TREE;
-}
 
 /* Handle a "leaf" attribute; arguments as in
    struct attribute_spec.handler.  */
@@ -554,32 +517,6 @@ ignore_attribute (tree * ARG_UNUSED (node), tree ARG_UNUSED (name),
   *no_add_attrs = true;
   return NULL_TREE;
 }
-
-/* Handle a "format" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-static tree
-handle_format_attribute (tree * ARG_UNUSED (node), tree ARG_UNUSED (name),
-			 tree ARG_UNUSED (args), int ARG_UNUSED (flags),
-			 bool *no_add_attrs)
-{
-  *no_add_attrs = true;
-  return NULL_TREE;
-}
-
-
-/* Handle a "format_arg" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-tree
-handle_format_arg_attribute (tree * ARG_UNUSED (node), tree ARG_UNUSED (name),
-			     tree ARG_UNUSED (args), int ARG_UNUSED (flags),
-			     bool *no_add_attrs)
-{
-  *no_add_attrs = true;
-  return NULL_TREE;
-}
-
 
 /* Handle a "fn spec" attribute; arguments as in
    struct attribute_spec.handler.  */

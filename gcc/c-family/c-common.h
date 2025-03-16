@@ -1668,6 +1668,7 @@ extern tree handle_musttail_attribute (tree *, tree, tree, int, bool *);
 extern bool has_attribute (location_t, tree, tree, tree (*)(tree));
 extern tree build_attr_access_from_parms (tree, bool);
 extern void set_musttail_on_return (tree, location_t, bool);
+extern tree handle_access_attribute (tree *, tree, tree, int, bool *);
 
 /* In c-format.cc.  */
 extern bool valid_format_string_type_p (tree);

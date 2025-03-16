@@ -145,7 +145,6 @@ static tree handle_expected_throw_attribute (tree *, tree, tree, int, bool *);
 static tree handle_cleanup_attribute (tree *, tree, tree, int, bool *);
 static tree handle_warn_unused_result_attribute (tree *, tree, tree, int,
 						 bool *);
-static tree handle_access_attribute (tree *, tree, tree, int, bool *);
 
 static tree handle_sentinel_attribute (tree *, tree, tree, int, bool *);
 static tree handle_type_generic_attribute (tree *, tree, tree, int, bool *);
@@ -5399,7 +5398,7 @@ append_access_attr_idxs (tree node[3], tree attrs, const char *attrstr,
    representing a VLA bound.  To speed up parsing, the handler transforms
    the attribute and its arguments into a string.  */
 
-static tree
+tree
 handle_access_attribute (tree node[3], tree name, tree args, int flags,
 			 bool *no_add_attrs)
 {

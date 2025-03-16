@@ -4493,6 +4493,7 @@ recording::function::function (context *ctxt,
   m_attributes (),
   m_string_attributes (),
   m_int_array_attributes (),
+  m_sub_attribute_int_array_attributes (),
   m_is_target_builtin (is_target_builtin)
 {
   for (int i = 0; i< num_params; i++)
@@ -4556,6 +4557,7 @@ recording::function::replay_into (replayer *r)
 				     m_attributes,
 				     m_string_attributes,
 				     m_int_array_attributes,
+				     m_sub_attribute_int_array_attributes,
 				     m_is_target_builtin));
 }
 
@@ -4683,6 +4685,26 @@ recording::function::write_to_dump (dump &d)
 	  d.write ("%d", values[i]);
       }
       d.write ("))__\n");
+    }
+  }
+  for (auto attr : m_sub_attribute_int_array_attributes)
+  {
+    gcc_jit_fn_attribute& name = std::get<0>(attr);
+    gcc_jit_fn_attribute& sub_attr = std::get<1>(attr);
+    std::vector<int>& values = std::get<2>(attr);
+    const char* attribute = fn_attribute_to_string (name);
+    const char* sub_attribute = fn_attribute_to_string (sub_attr);
+    if (attribute && sub_attribute)
+    {
+      d.write ("__attribute(%s(%s(", attribute, sub_attribute);
+      for (size_t i = 0; i < values.size(); ++i)
+      {
+	if (i > 0)
+	  d.write (", %d", values[i]);
+	else
+	  d.write ("%d", values[i]);
+      }
+      d.write (")))__\n");
     }
   }
 
@@ -4910,6 +4932,19 @@ recording::function::add_integer_array_attribute (
 {
   m_int_array_attributes.push_back (std::make_pair (
     attribute,
+    std::vector<int> (value, value + length)));
+}
+
+void
+recording::function::add_sub_attribute_integer_array_attribute (
+	gcc_jit_fn_attribute attribute,
+	gcc_jit_fn_attribute sub_attribute,
+	const int* value,
+	size_t length)
+{
+  m_sub_attribute_int_array_attributes.push_back (std::make_tuple (
+    attribute,
+    sub_attribute,
     std::vector<int> (value, value + length)));
 }
 

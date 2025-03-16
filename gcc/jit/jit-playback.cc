@@ -557,6 +557,16 @@ const char* fn_attribute_to_string (gcc_jit_fn_attribute attr)
 {
   switch (attr)
   {
+    case GCC_JIT_FN_ATTRIBUTE_ACCESS:
+      return "access";
+    case GCC_JIT_FN_ATTRIBUTE_ACCESS_NONE:
+      return "none";
+    case GCC_JIT_FN_ATTRIBUTE_ACCESS_READ_WRITE:
+      return "read_write";
+    case GCC_JIT_FN_ATTRIBUTE_ACCESS_READ_ONLY:
+      return "read_only";
+    case GCC_JIT_FN_ATTRIBUTE_ACCESS_WRITE_ONLY:
+      return "write_only";
     case GCC_JIT_FN_ATTRIBUTE_ALIAS:
       return "alias";
     case GCC_JIT_FN_ATTRIBUTE_ALWAYS_INLINE:
@@ -624,6 +634,10 @@ new_function (location *loc,
 	      const std::vector<std::pair<gcc_jit_fn_attribute,
 					  std::vector<int>>>
 					  &int_array_attributes,
+	      const std::vector<std::tuple<gcc_jit_fn_attribute,
+					   gcc_jit_fn_attribute,
+					   std::vector<int>>>
+					   &sub_attribute_int_array_attributes,
 	      bool is_target_builtin)
 {
   int i;
@@ -760,6 +774,36 @@ new_function (location *loc,
       continue;
 
     tree tree_list = NULL_TREE;
+    tree *p_tree_list = &tree_list;
+    for (auto value : values)
+    {
+      tree int_value = build_int_cst (integer_type_node, value);
+      *p_tree_list = build_tree_list (NULL, int_value);
+      p_tree_list = &TREE_CHAIN (*p_tree_list);
+    }
+    fn_attributes = tree_cons (ident, tree_list, fn_attributes);
+  }
+
+  for (auto attr: sub_attribute_int_array_attributes)
+  {
+    gcc_jit_fn_attribute& name = std::get<0>(attr);
+    gcc_jit_fn_attribute& sub_attr = std::get<1>(attr);
+    std::vector<int>& values = std::get<2>(attr);
+
+    const char* attribute = fn_attribute_to_string (name);
+    tree ident = attribute ? get_identifier (attribute) : NULL;
+
+    if (!ident)
+      continue;
+
+    const char* sub_attribute = fn_attribute_to_string (sub_attr);
+    tree sub_ident = sub_attribute ? get_identifier (sub_attribute) : NULL;
+
+    if (!sub_ident)
+      continue;
+
+    tree tree_list = build_tree_list (NULL_TREE, sub_ident);
+
     tree *p_tree_list = &tree_list;
     for (auto value : values)
     {
