@@ -2173,6 +2173,13 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_MS_ABI,
   GCC_JIT_FN_ATTRIBUTE_SYSV_ABI,
 
+  GCC_JIT_FN_ATTRIBUTE_ACCESS,
+  // Acceptable values for access attribute.
+  GCC_JIT_FN_ATTRIBUTE_ACCESS_NONE,
+  GCC_JIT_FN_ATTRIBUTE_ACCESS_READ_WRITE,
+  GCC_JIT_FN_ATTRIBUTE_ACCESS_READ_ONLY,
+  GCC_JIT_FN_ATTRIBUTE_ACCESS_WRITE_ONLY,
+
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_FN_ATTRIBUTE_MAX,
 };
@@ -2192,6 +2199,14 @@ gcc_jit_function_add_integer_array_attribute (
   gcc_jit_function *func,
   enum gcc_jit_fn_attribute attribute,
   const int* value,
+  size_t length);
+
+extern void
+gcc_jit_function_add_sub_attribute_integer_array_attribute (
+  gcc_jit_function *func,
+  gcc_jit_fn_attribute attribute,
+  gcc_jit_fn_attribute sub_attribute,
+  const int* values,
   size_t length);
 
 /* Variable attributes.  */
