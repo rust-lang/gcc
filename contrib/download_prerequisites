@@ -33,7 +33,11 @@ mpc='mpc-1.3.1.tar.gz'
 isl='isl-0.24.tar.bz2'
 gettext='gettext-0.22.tar.gz'
 
-base_url='http://gcc.gnu.org/pub/gcc/infrastructure/'
+#base_url='http://gcc.gnu.org/pub/gcc/infrastructure/'
+# We use rust-lang mirrors because the GCC infrastructure is unreliable.
+# When dependencies are changed, we have to modify our mirrors.
+# Please contact t-infra for that.
+base_url='https://ci-mirrors.rust-lang.org/rustc/gcc/'
 
 echo_archives() {
     echo "${gettext}"
