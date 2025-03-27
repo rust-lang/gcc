@@ -1611,6 +1611,10 @@ public:
   void add_attribute (gcc_jit_fn_attribute attribute);
   void add_string_attribute (gcc_jit_fn_attribute attribute, const char* value);
   void add_integer_array_attribute (gcc_jit_fn_attribute attribute, const int* value, size_t length);
+  void add_sub_attribute_integer_array_attribute (gcc_jit_fn_attribute attribute,
+						  gcc_jit_fn_attribute sub_attribute,
+						  const int* value,
+						  size_t length);
 
 private:
   string * make_debug_string () final override;
@@ -1630,6 +1634,9 @@ private:
   std::vector<gcc_jit_fn_attribute> m_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> m_int_array_attributes;
+  std::vector<std::tuple<gcc_jit_fn_attribute,
+			 gcc_jit_fn_attribute,
+			 std::vector<int>>> m_sub_attribute_int_array_attributes;
   bool m_is_target_builtin;
 };
 

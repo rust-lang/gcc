@@ -127,6 +127,10 @@ public:
 		const std::vector<std::pair<gcc_jit_fn_attribute,
 					    std::vector<int>>>
 					    &int_array_attributes,
+		const std::vector<std::tuple<gcc_jit_fn_attribute,
+					     gcc_jit_fn_attribute,
+					     std::vector<int>>>
+					     &sub_attr_int_array_attributes,
 		bool is_target_builtin);
 
   lvalue *
