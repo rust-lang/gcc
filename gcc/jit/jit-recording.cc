@@ -2693,7 +2693,7 @@ recording::memento_of_get_type::get_size ()
       break;
     case GCC_JIT_TYPE_FLOAT:
       m = targetm.c.mode_for_floating_type (TI_FLOAT_TYPE);
-      size = GET_MODE_PRECISION (m).to_constant ();
+      size = GET_MODE_UNIT_SIZE (m) * BITS_PER_UNIT;
       break;
 #ifdef HAVE_BFmode
     case GCC_JIT_TYPE_BFLOAT16:
@@ -2701,11 +2701,11 @@ recording::memento_of_get_type::get_size ()
 #endif
     case GCC_JIT_TYPE_DOUBLE:
       m = targetm.c.mode_for_floating_type (TI_DOUBLE_TYPE);
-      size = GET_MODE_PRECISION (m).to_constant ();
+      size = GET_MODE_UNIT_SIZE (m) * BITS_PER_UNIT;
       break;
     case GCC_JIT_TYPE_LONG_DOUBLE:
       m = targetm.c.mode_for_floating_type (TI_LONG_DOUBLE_TYPE);
-      size = GET_MODE_PRECISION (m).to_constant ();
+      size = GET_MODE_UNIT_SIZE (m) * BITS_PER_UNIT;
       break;
     case GCC_JIT_TYPE_FLOAT16:
       size = 16;
