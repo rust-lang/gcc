@@ -38,9 +38,14 @@ jobs:
         make -j4
         make install
 
+    - name: Test libgccjit
+      run: |
+        cd gcc
+        make check-jit -j4
+
     - name: Build Debian package
       run: |
-        cd ..
+        cd ../..
         mkdir install/DEBIAN
         cat > install/DEBIAN/control << EOF
         Package: gcc-15
