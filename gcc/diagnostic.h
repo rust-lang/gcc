@@ -830,6 +830,18 @@ public:
     m_abort_on_error = val;
   }
 
+  void
+  set_dont_abort_on_fatal_error (bool val)
+  {
+    m_dont_abort_on_fatal_error = val;
+  }
+
+  bool
+  dont_abort_on_fatal_error () const
+  {
+    return m_dont_abort_on_fatal_error;
+  }
+
 private:
   void error_recursion () ATTRIBUTE_NORETURN;
 
@@ -888,6 +900,9 @@ private:
 
   /* True if we should raise a SIGABRT on errors.  */
   bool m_abort_on_error;
+
+  /* True if we should not abort on fatal errors. Mainly used for libgccjit.  */
+  bool m_dont_abort_on_fatal_error;
 
 public:
   /* True if we should show the column number on diagnostics.  */

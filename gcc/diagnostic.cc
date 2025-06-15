@@ -239,6 +239,7 @@ diagnostic_context::initialize (int n_opts)
   m_show_path_depths = false;
   m_show_option_requested = false;
   m_abort_on_error = false;
+  m_dont_abort_on_fatal_error = false;
   m_show_column = false;
   m_pedantic_errors = false;
   m_permissive = false;
@@ -996,8 +997,12 @@ diagnostic_context::action_after_output (diagnostic_t diag_kind)
       if (m_abort_on_error)
 	real_abort ();
       fnotice (stderr, "compilation terminated.\n");
-      finish ();
-      exit (FATAL_EXIT_CODE);
+      if (!m_dont_abort_on_fatal_error)
+      {
+        finish ();
+        exit (FATAL_EXIT_CODE);
+      }
+      break;
 
     default:
       gcc_unreachable ();
