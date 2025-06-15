@@ -502,7 +502,8 @@ fatal_error (location_t loc, const char *gmsgid, ...)
   global_dc->diagnostic_impl (&richloc, nullptr, -1, gmsgid, &ap, DK_FATAL);
   va_end (ap);
 
-  gcc_unreachable ();
+  if (!global_dc->dont_abort_on_fatal_error ())
+    gcc_unreachable ();
 }
 
 /* An internal consistency check has failed.  We make no attempt to
