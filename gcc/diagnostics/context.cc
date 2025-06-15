@@ -1047,8 +1047,12 @@ context::action_after_output (enum kind diag_kind)
       if (m_abort_on_error)
 	real_abort ();
       fnotice (stderr, "compilation terminated.\n");
-      finish ();
-      exit (FATAL_EXIT_CODE);
+      if (!m_dont_abort_on_fatal_error)
+      {
+        finish ();
+        exit (FATAL_EXIT_CODE);
+      }
+      break;
 
     default:
       gcc_unreachable ();

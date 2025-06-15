@@ -1021,6 +1021,7 @@ public:
   : diagnostics::text_sink (dc),
     m_playback_ctxt (playback_ctxt)
   {
+    dc.set_dont_abort_on_fatal_error (true);
   }
 
   void dump (FILE *out, int indent) const final override
