@@ -767,7 +767,8 @@ fatal_error (location_t loc, const char *gmsgid, ...)
 			      diagnostics::kind::fatal);
   va_end (ap);
 
-  gcc_unreachable ();
+  if (!global_dc->dont_abort_on_fatal_error ())
+    gcc_unreachable ();
 }
 
 /* An internal consistency check has failed.  We make no attempt to
