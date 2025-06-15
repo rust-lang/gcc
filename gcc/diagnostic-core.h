@@ -112,8 +112,7 @@ extern void error_at (rich_location *, const char *, ...)
 extern void error_meta (rich_location *, const diagnostics::metadata &,
 			const char *, ...)
   ATTRIBUTE_GCC_DIAG(3,4);
-extern void fatal_error (location_t, const char *, ...) ATTRIBUTE_GCC_DIAG(2,3)
-     ATTRIBUTE_NORETURN;
+extern void fatal_error (location_t, const char *, ...) ATTRIBUTE_GCC_DIAG(2,3);
 /* Pass one of the OPT_W* from options.h as the second parameter.  */
 extern bool pedwarn (location_t,
 		     diagnostics::option_id,
