@@ -28,6 +28,8 @@ along with GCC; see the file COPYING3.  If not see
 
 /* Implement TARGET_JIT_REGISTER_CPU_TARGET_INFO.  */
 
+extern const char *host_detect_local_cpu (int argc, const char **argv);
+
 void
 aarch64_jit_register_target_info (void)
 {
@@ -125,18 +127,18 @@ aarch64_jit_register_target_info (void)
     jit_add_target_info ("target_feature", "tme");
   // TODO: features dit, dpb, dpb2, flagm, lor, pan, pmuv3, ras, spe, ssbs, vh
 
-  if (AARCH64_ISA_V8_1A)
+  if (AARCH64_HAVE_ISA (V8_1A))
     jit_add_target_info ("target_feature", "v8.1a");
-  if (AARCH64_ISA_V8_2A)
+  if (AARCH64_HAVE_ISA (V8_2A))
     jit_add_target_info ("target_feature", "v8.2a");
-  if (AARCH64_ISA_V8_3A)
+  if (AARCH64_HAVE_ISA (V8_3A))
     jit_add_target_info ("target_feature", "v8.3a");
-  if (AARCH64_ISA_V8_4A)
+  if (AARCH64_HAVE_ISA (V8_4A))
     jit_add_target_info ("target_feature", "v8.4a");
-  if (AARCH64_ISA_V8_5A)
+  if (AARCH64_HAVE_ISA (V8_5A))
     jit_add_target_info ("target_feature", "v8.5a");
-  if (AARCH64_ISA_V8_6A)
+  if (AARCH64_HAVE_ISA (V8_6A))
     jit_add_target_info ("target_feature", "v8.6a");
-  if (AARCH64_ISA_V8_7A)
+  if (AARCH64_HAVE_ISA (V8_7A))
     jit_add_target_info ("target_feature", "v8.7a");
 }
