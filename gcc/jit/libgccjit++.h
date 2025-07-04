@@ -187,6 +187,10 @@ namespace gccjit
 		       int value) const;
     rvalue new_rvalue (type numeric_type,
 		       long value) const;
+#ifdef __SIZEOF_INT128__
+    rvalue new_rvalue (type numeric_type,
+		       __int128_t value) const;
+#endif
     rvalue zero (type numeric_type) const;
     rvalue one (type numeric_type) const;
     rvalue new_rvalue (type numeric_type,
@@ -941,7 +945,17 @@ context::new_rvalue (type numeric_type,
 					  numeric_type.get_inner_type (),
 					  value));
 }
-
+#ifdef __SIZEOF_INT128__
+inline rvalue
+context::new_rvalue (type numeric_type,
+		     __int128_t value) const
+{
+  return rvalue (
+    gcc_jit_context_new_rvalue_from_int128 (m_inner_ctxt,
+					  numeric_type.get_inner_type (),
+					  value));
+}
+#endif
 inline rvalue
 context::zero (type numeric_type) const
 {

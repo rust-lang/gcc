@@ -373,3 +373,10 @@ LIBGCCJIT_ABI_42 {
   global:
     gcc_jit_lvalue_add_attribute;
 } LIBGCCJIT_ABI_41;
+LIBGCCJIT_ABI_43 {
+  global:
+    gcc_jit_context_new_rvalue_from_float;
+    gcc_jit_context_new_rvalue_from_int128;
+    gcc_jit_context_new_rvalue_from_short;
+    gcc_jit_context_new_rvalue_from_char;
+} LIBGCCJIT_ABI_42;
