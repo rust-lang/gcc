@@ -1098,6 +1098,14 @@ gcc_jit_rvalue_set_type (gcc_jit_rvalue *rvalue, gcc_jit_type *new_type);
 
 /* Integer constants. */
 extern gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_from_char (gcc_jit_context *ctxt,
+				     gcc_jit_type *numeric_type,
+				     char value);
+extern gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_from_short (gcc_jit_context *ctxt,
+				     gcc_jit_type *numeric_type,
+				     short value);
+extern gcc_jit_rvalue *
 gcc_jit_context_new_rvalue_from_int (gcc_jit_context *ctxt,
 				     gcc_jit_type *numeric_type,
 				     int value);
@@ -1106,7 +1114,12 @@ extern gcc_jit_rvalue *
 gcc_jit_context_new_rvalue_from_long (gcc_jit_context *ctxt,
 				      gcc_jit_type *numeric_type,
 				      long value);
-
+#ifdef __SIZEOF_INT128__
+extern gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_from_int128 (gcc_jit_context *ctxt,
+				      gcc_jit_type *numeric_type,
+				      __int128_t value);
+#endif
 extern gcc_jit_rvalue *
 gcc_jit_context_zero (gcc_jit_context *ctxt,
 		      gcc_jit_type *numeric_type);
@@ -1120,7 +1133,10 @@ extern gcc_jit_rvalue *
 gcc_jit_context_new_rvalue_from_double (gcc_jit_context *ctxt,
 					gcc_jit_type *numeric_type,
 					double value);
-
+extern gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_from_float(gcc_jit_context *ctxt,
+					gcc_jit_type *numeric_type,
+					float value);
 /* Pointers.  */
 extern gcc_jit_rvalue *
 gcc_jit_context_new_rvalue_from_ptr (gcc_jit_context *ctxt,
