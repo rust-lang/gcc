@@ -9,14 +9,17 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os.image }}
 
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - { image: ubuntu-24.04, asset_name_suffix: "", arch: "amd64" }
+          - { image: ubuntu-24.04-arm, asset_name_suffix: "-aarch64", arch: "arm64" }
         version:
-          - { use_patch: true, asset_name: "gcc-15-without-int128.deb" }
-          - { use_path: false, asset_name: "gcc-15.deb" }
+          - { use_patch: true, asset_name: "gcc-15-without-int128" }
+          - { use_path: false, asset_name: "gcc-15" }
 
     steps:
     - uses: actions/checkout@v2
@@ -45,7 +48,7 @@ jobs:
         cat > install/DEBIAN/control << EOF
         Package: gcc-15
         Version: 15
-        Architecture: amd64
+        Architecture: ${{ matrix.os.arch }}
         Maintainer: Antoni Boucher <bouanto@zoho.com>
         Description: gcc 15 for rustc_codegen_gcc CI
         EOF
@@ -73,7 +76,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: /home/runner/work/gcc/install/usr/lib/libgccjit.so.0.0.1
-        asset_name: libgccjit.so
+        asset_name: libgccjit${{ matrix.os.asset_name_suffix }}.so
         tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
 
     - name: Create release
@@ -82,5 +85,5 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: /home/runner/work/gcc/gcc-15.deb
-        asset_name: ${{ matrix.version.asset_name }}
+        asset_name: ${{ matrix.version.asset_name }}${{ matrix.os.asset_name_suffix }}.deb
         tag: master-${{ steps.tag_name.outputs.TAG_NAME }}
