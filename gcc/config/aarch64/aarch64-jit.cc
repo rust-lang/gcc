@@ -39,15 +39,18 @@ aarch64_jit_register_target_info (void)
 
   const char *params[] = {"arch"};
   const char* local_cpu = host_detect_local_cpu (2, params);
-  std::string arch = local_cpu;
-  free (const_cast <char *> (local_cpu));
+  if (local_cpu != NULL)
+  {
+    std::string arch = local_cpu;
+    free (const_cast <char *> (local_cpu));
 
-  const char* arg = "-march=";
-  size_t arg_pos = arch.find (arg) + strlen (arg);
-  size_t end_pos = arch.find (" ", arg_pos);
+    const char* arg = "-march=";
+    size_t arg_pos = arch.find (arg) + strlen (arg);
+    size_t end_pos = arch.find (" ", arg_pos);
 
-  std::string cpu = arch.substr (arg_pos, end_pos - arg_pos);
-  jit_target_set_arch (cpu);
+    std::string cpu = arch.substr (arg_pos, end_pos - arg_pos);
+    jit_target_set_arch (cpu);
+  }
 
   if (TARGET_AES)
     jit_add_target_info ("target_feature", "aes");
