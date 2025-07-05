@@ -15,8 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - { image: ubuntu-24.04, asset_name_suffix: "" }
-          - { image: ubuntu-24.04-arm, asset_name_suffix: "-aarch64" }
+          - { image: ubuntu-24.04, asset_name_suffix: "", arch: "amd64" }
+          - { image: ubuntu-24.04-arm, asset_name_suffix: "-aarch64", arch: "arm64" }
         version:
           - { use_patch: true, asset_name: "gcc-15-without-int128" }
           - { use_path: false, asset_name: "gcc-15" }
@@ -48,7 +48,7 @@ jobs:
         cat > install/DEBIAN/control << EOF
         Package: gcc-15
         Version: 15
-        Architecture: amd64
+        Architecture: ${{ matrix.os.arch }}
         Maintainer: Antoni Boucher <bouanto@zoho.com>
         Description: gcc 15 for rustc_codegen_gcc CI
         EOF
