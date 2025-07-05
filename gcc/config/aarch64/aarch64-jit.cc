@@ -20,6 +20,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target.h"
 #include "tm.h"
 #include "tm_jit.h"
 #include <sys/auxv.h>
@@ -51,6 +52,24 @@ aarch64_jit_register_target_info (void)
     std::string cpu = arch.substr (arg_pos, end_pos - arg_pos);
     jit_target_set_arch (cpu);
   }
+
+  if (targetm.scalar_mode_supported_p (TImode))
+  {
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_UINT128_T);
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_INT128_T);
+  }
+
+  if (float16_type_node != NULL && TYPE_PRECISION(float16_type_node) == 16)
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT16);
+
+  if (float32_type_node != NULL && TYPE_PRECISION(float32_type_node) == 32)
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT32);
+
+  if (float64_type_node != NULL && TYPE_PRECISION(float64_type_node) == 64)
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT64);
+
+  if (float128_type_node != NULL && TYPE_PRECISION(float128_type_node) == 128)
+    jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT128);
 
   if (TARGET_AES)
     jit_add_target_info ("target_feature", "aes");
