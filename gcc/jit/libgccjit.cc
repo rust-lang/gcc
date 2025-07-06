@@ -2020,6 +2020,35 @@ gcc_jit_rvalue_set_type (gcc_jit_rvalue *rvalue, gcc_jit_type *new_type)
     "not a numeric type: %s",                                  \
     NUMERIC_TYPE->get_debug_string ()); \
   JIT_END_STMT
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::context::new_rvalue_from_const <int> method in
+   jit-recording.cc.  */
+gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_from_char (gcc_jit_context *ctxt,
+				     gcc_jit_type *numeric_type,
+				     char value)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_NULL_IF_FAIL_NONNULL_NUMERIC_TYPE (ctxt, numeric_type);
+
+  return ((gcc_jit_rvalue *)ctxt
+	  ->new_rvalue_from_const <char> (numeric_type, value));
+}
+gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_from_short (gcc_jit_context *ctxt,
+				     gcc_jit_type *numeric_type,
+				     short value)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_NULL_IF_FAIL_NONNULL_NUMERIC_TYPE (ctxt, numeric_type);
+
+  return ((gcc_jit_rvalue *)ctxt
+	  ->new_rvalue_from_const <short> (numeric_type, value));
+}
 
 /* Public entrypoint.  See description in libgccjit.h.
 
@@ -2058,7 +2087,20 @@ gcc_jit_context_new_rvalue_from_long (gcc_jit_context *ctxt,
   return ((gcc_jit_rvalue *)ctxt
 	  ->new_rvalue_from_const <long> (numeric_type, value));
 }
+#ifdef __SIZEOF_INT128__
+gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_from_int128 (gcc_jit_context *ctxt,
+				      gcc_jit_type *numeric_type,
+				      __int128_t value)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_NULL_IF_FAIL_NONNULL_NUMERIC_TYPE (ctxt, numeric_type);
 
+  return ((gcc_jit_rvalue *)ctxt
+	  ->new_rvalue_from_const <__int128_t> (numeric_type, value));
+}
+#endif
 /* Public entrypoint.  See description in libgccjit.h.
 
    This is essentially equivalent to:
@@ -2110,6 +2152,18 @@ gcc_jit_context_new_rvalue_from_double (gcc_jit_context *ctxt,
 
   return ((gcc_jit_rvalue *)ctxt
 	  ->new_rvalue_from_const <double> (numeric_type, value));
+}
+gcc_jit_rvalue *
+gcc_jit_context_new_rvalue_from_float (gcc_jit_context *ctxt,
+					gcc_jit_type *numeric_type,
+					float value)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_NULL_IF_FAIL_NONNULL_NUMERIC_TYPE (ctxt, numeric_type);
+
+  return ((gcc_jit_rvalue *)ctxt
+	  ->new_rvalue_from_const <float> (numeric_type, value));
 }
 
 /* Public entrypoint.  See description in libgccjit.h.
