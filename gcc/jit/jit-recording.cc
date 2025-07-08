@@ -2592,11 +2592,13 @@ recording::type::set_packed ()
 {
   m_packed = true;
 }
+
 void
 recording::type::set_tree_addressable ()
 {
   m_tree_addressable = true;
-} 
+}
+
 /* Given a type, get a vector version of the type.
 
    Implements the post-error-checking part of
