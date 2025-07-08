@@ -459,7 +459,8 @@ playback::context::
 new_compound_type (location *loc,
 		   const char *name,
 		   bool is_struct, /* else is union */
-		   bool is_packed)
+		   bool is_packed,
+		   bool is_addressable)
 {
   gcc_assert (name);
 
@@ -471,7 +472,7 @@ new_compound_type (location *loc,
 
   if (is_packed)
     TYPE_PACKED (t) = 1;
-
+  if (is_addressable) TREE_ADDRESSABLE(t) = 1;
   if (loc)
     set_tree_location (t, loc);
 
