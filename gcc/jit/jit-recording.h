@@ -625,7 +625,7 @@ public:
   type *get_vector (size_t num_units);
 
   void set_packed ();
-
+  void set_addressable();
   /* Get the type obtained when dereferencing this type.
 
      This will return NULL if it's not valid to dereference this type.
@@ -707,12 +707,13 @@ protected:
   type (context *ctxt)
     : memento (ctxt),
     m_packed (false),
+    m_addressable (false),
     m_pointer_to_this_type (NULL)
   {}
 
 public:
   bool m_packed;
-
+  bool m_addressable;
 private:
   type *m_pointer_to_this_type;
 };
