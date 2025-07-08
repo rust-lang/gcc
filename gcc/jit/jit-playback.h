@@ -105,7 +105,8 @@ public:
   new_compound_type (location *loc,
 		     const char *name,
 		     bool is_struct, /* else is union */
-		     bool is_packed);
+		     bool is_packed,
+		     bool is_addressable);
 
   type *
   new_function_type (type *return_type,
