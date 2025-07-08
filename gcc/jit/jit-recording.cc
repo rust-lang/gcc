@@ -2593,6 +2593,12 @@ recording::type::set_packed ()
   m_packed = true;
 }
 
+void
+recording::type::set_tree_addressable ()
+{
+  m_tree_addressable = true;
+}
+
 /* Given a type, get a vector version of the type.
 
    Implements the post-error-checking part of
@@ -3901,7 +3907,8 @@ recording::struct_::replay_into (replayer *r)
     r->new_compound_type (playback_location (r, get_loc ()),
 			  get_name ()->c_str (),
 			  true, /* is_struct */
-			  m_packed));
+			  m_packed, 
+        m_tree_addressable));
 }
 
 const char *
@@ -3956,7 +3963,8 @@ recording::union_::replay_into (replayer *r)
     r->new_compound_type (playback_location (r, get_loc ()),
 			  get_name ()->c_str (),
 			  false, /* is_struct */
-			  m_packed));
+			  m_packed,
+        m_tree_addressable));
 }
 
 /* Implementation of recording::memento::make_debug_string for
