@@ -2267,6 +2267,11 @@ gcc_jit_target_info_supports_target_dependent_type(gcc_jit_target_info *info, en
 extern void
 gcc_jit_type_set_packed (gcc_jit_type *type);
 
+/* Sets TREE_ADDRESSABLE on a given type, forcing it to be 
+   passed indirectly and not in registers*/
+extern void
+   gcc_jit_type_set_tree_addressable(gcc_jit_type *type);
+
 extern void
 gcc_jit_field_set_location (gcc_jit_field *field,
 			    gcc_jit_location *loc);
