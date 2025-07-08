@@ -2325,6 +2325,11 @@ gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable,
 extern void
 gcc_jit_type_set_packed (gcc_jit_type *type);
 
+/* Sets TREE_ADDRESSABLE on a given type, forcing it to be
+   passed indirectly and not in registers.  */
+extern void
+gcc_jit_type_set_addressable(gcc_jit_type *type);
+
 extern void
 gcc_jit_field_set_location (gcc_jit_field *field,
 			    gcc_jit_location *loc);
