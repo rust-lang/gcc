@@ -4870,6 +4870,22 @@ gcc_jit_context_add_top_level_asm (gcc_jit_context *ctxt,
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, this calls the trivial
+   gcc::jit::recording::lvalue::get_name method, in jit-recording.h.  */
+
+extern const char *
+gcc_jit_lvalue_get_name (gcc_jit_lvalue *lvalue)
+{
+  RETURN_NULL_IF_FAIL (lvalue, NULL, NULL, "NULL lvalue");
+  auto name = lvalue->get_name ();
+
+  if (!name)
+    return NULL;
+  return name->c_str ();
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, this calls the trivial
    gcc::jit::recording::field::set_loc method, in jit-recording.h.  */
 
 void

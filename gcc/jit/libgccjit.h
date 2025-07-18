@@ -2305,6 +2305,12 @@ gcc_jit_lvalue_add_string_attribute (gcc_jit_lvalue *variable,
 				     enum gcc_jit_variable_attribute attribute,
 				     const char* value);
 
+/* Returns the name of the `lvalue`, if any. Returns NULL otherwise.  */
+extern const char *
+gcc_jit_lvalue_get_name (gcc_jit_lvalue *lvalue);
+
+#define LIBGCCJIT_HAVE_gcc_jit_lvalue_get_name
+
 extern void
 gcc_jit_context_set_output_ident (gcc_jit_context *ctxt,
 				  const char* output_ident);
