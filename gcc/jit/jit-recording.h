@@ -1499,6 +1499,7 @@ public:
   void set_register_name (const char *reg_name);
   void set_alignment (unsigned bytes);
   unsigned get_alignment () const { return m_alignment; }
+  virtual string * get_name () const { return NULL; }
 
 protected:
   string *m_link_section;
@@ -1538,6 +1539,8 @@ public:
 
   const char *access_as_rvalue (reproducer &r) final override;
   const char *access_as_lvalue (reproducer &r) final override;
+
+  string * get_name () const final override { return m_name; }
 
 private:
   string * make_debug_string () final override { return m_name; }
@@ -1806,6 +1809,8 @@ public:
   }
 
   void set_rvalue_init (rvalue *val) { m_rvalue_init = val; }
+
+  string * get_name () const final override { return m_name; }
 
 private:
   string * make_debug_string () final override { return m_name; }
