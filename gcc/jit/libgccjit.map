@@ -388,3 +388,8 @@ LIBGCCJIT_ABI_45 {
   global:
     gcc_jit_type_set_addressable;
 } LIBGCCJIT_ABI_44;
+
+LIBGCCJIT_ABI_46 {
+  global:
+    gcc_jit_lvalue_get_name;
+} LIBGCCJIT_ABI_45;
