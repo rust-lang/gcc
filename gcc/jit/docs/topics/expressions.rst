@@ -923,6 +923,18 @@ where the rvalue is computed by reading from the storage area.
 
       #ifdef LIBGCCJIT_HAVE_ALIGNMENT
 
+.. function:: const char *\
+              gcc_jit_lvalue_get_name (gcc_jit_lvalue *lvalue)
+
+    Returns the name of an lvalue.
+
+   This entrypoint was added in :ref:`LIBGCCJIT_ABI_44`; you can test for
+   its present using
+
+   .. code-block:: c
+
+      #ifdef LIBGCCJIT_HAVE_gcc_jit_lvalue_get_name
+
 Global variables
 ****************
 
