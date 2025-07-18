@@ -481,3 +481,12 @@ information:
 --------------------
 ``LIBGCCJIT_ABI_37`` covers the addition of
 :func:`gcc_jit_context_new_array_type_u64`
+
+.. _LIBGCCJIT_ABI_44:
+
+``LIBGCCJIT_ABI_44``
+--------------------
+``LIBGCCJIT_ABI_44`` covers the addition of a function to get the name
+of an lvalue.
+
+ * :func:`gcc_jit_lvalue_get_name`

@@ -28,6 +28,8 @@ create_code (gcc_jit_context *ctxt, void *user_data)
       ctxt, NULL, GCC_JIT_GLOBAL_EXPORTED, int_type, "foo");
   gcc_jit_lvalue_set_tls_model (foo, GCC_JIT_TLS_MODEL_GLOBAL_DYNAMIC);
 
+  CHECK_STRING_VALUE (gcc_jit_lvalue_get_name (foo), "foo");
+
   /* Build the test_fn.  */
   gcc_jit_function *test_fn =
     gcc_jit_context_new_function (ctxt, NULL,
