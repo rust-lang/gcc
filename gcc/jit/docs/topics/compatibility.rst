@@ -466,3 +466,10 @@ information:
   * :func:`gcc_jit_target_info_cpu_supports`
   * :func:`gcc_jit_target_info_arch`
   * :func:`gcc_jit_target_info_supports_target_dependent_type`
+
+``LIBGCCJIT_ABI_44``
+--------------------
+``LIBGCCJIT_ABI_44`` covers the addition of a function to get the name
+of an lvalue.
+
+ * :func:`gcc_jit_lvalue_get_name`
