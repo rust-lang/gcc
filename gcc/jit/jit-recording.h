@@ -1520,6 +1520,7 @@ public:
   void set_alignment (unsigned bytes);
   unsigned get_alignment () const { return m_alignment; }
   virtual string * get_name () const { return NULL; }
+  virtual void set_name (const char *new_name) = 0;
 
 protected:
   string *m_link_section;
@@ -1561,6 +1562,9 @@ public:
   const char *access_as_lvalue (reproducer &r) final override;
 
   string * get_name () const final override { return m_name; }
+  void set_name (const char *new_name) final override {
+    m_name = m_ctxt->new_string (new_name);
+  }
 
 private:
   string * make_debug_string () final override { return m_name; }
@@ -1831,6 +1835,9 @@ public:
   void set_rvalue_init (rvalue *val) { m_rvalue_init = val; }
 
   string * get_name () const final override { return m_name; }
+  void set_name (const char *new_name) final override {
+    m_name = m_ctxt->new_string (new_name);
+  }
 
 private:
   string * make_debug_string () final override { return m_name; }
@@ -2275,6 +2282,10 @@ public:
 
   void replay_into (replayer *r) final override;
 
+  void set_name (const char *new_name) final override {
+    m_ctxt->add_error (NULL, "cannot change the name of type `array_access`");
+  }
+
   void visit_children (rvalue_visitor *v) final override;
 
 private:
@@ -2336,6 +2347,10 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
+  void set_name (const char *new_name) final override {
+    m_ctxt->add_error (NULL, "cannot change the name of type `vector_access`");
+  }
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -2364,6 +2379,11 @@ public:
   void replay_into (replayer *r) final override;
 
   void visit_children (rvalue_visitor *v) final override;
+
+  void set_name (const char *new_name) final override {
+    m_ctxt->add_error (
+      NULL, "cannot change the name of type `access_field_of_lvalue`");
+  }
 
 private:
   string * make_debug_string () final override;
@@ -2423,6 +2443,11 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
+  void set_name (const char *new_name) final override {
+    m_ctxt->add_error (
+      NULL, "cannot change the name of type `dereference_field_rvalue`");
+  }
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -2448,6 +2473,11 @@ public:
   void replay_into (replayer *r) final override;
 
   void visit_children (rvalue_visitor *v) final override;
+
+  void set_name (const char *new_name) final override {
+    m_ctxt->add_error (
+      NULL, "cannot change the name of type `dereference_rvalue`");
+  }
 
 private:
   string * make_debug_string () final override;
@@ -2531,6 +2561,11 @@ public:
   bool is_local () const final override { return true; }
 
   void write_to_dump (dump &d) final override;
+
+  string * get_name () const final override { return m_name; }
+  void set_name (const char *new_name) final override {
+    m_name = m_ctxt->new_string (new_name);
+  }
 
 private:
   string * make_debug_string () final override {
