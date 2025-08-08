@@ -2311,6 +2311,12 @@ gcc_jit_lvalue_get_name (gcc_jit_lvalue *lvalue);
 
 #define LIBGCCJIT_HAVE_gcc_jit_lvalue_get_name
 
+/* Set a new name to the `lvalue`.  */
+extern void
+gcc_jit_lvalue_set_name (gcc_jit_lvalue *lvalue, const char *new_name);
+
+#define LIBGCCJIT_HAVE_gcc_jit_lvalue_set_name
+
 extern void
 gcc_jit_context_set_output_ident (gcc_jit_context *ctxt,
 				  const char* output_ident);
