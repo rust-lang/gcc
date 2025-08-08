@@ -490,3 +490,10 @@ information:
 of an lvalue.
 
  * :func:`gcc_jit_lvalue_get_name`
+
+``LIBGCCJIT_ABI_45``
+--------------------
+``LIBGCCJIT_ABI_45`` covers the addition of a function to set the name
+of an lvalue.
+
+ * :func:`gcc_jit_lvalue_set_name`

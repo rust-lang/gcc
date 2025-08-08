@@ -4886,6 +4886,19 @@ gcc_jit_lvalue_get_name (gcc_jit_lvalue *lvalue)
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, this calls the trivial
+   gcc::jit::recording::lvalue::set_name method, in jit-recording.h.  */
+
+extern void
+gcc_jit_lvalue_set_name (gcc_jit_lvalue *lvalue, const char *new_name)
+{
+  RETURN_IF_FAIL (lvalue, NULL, NULL, "NULL lvalue");
+  RETURN_IF_FAIL (new_name, NULL, NULL, "NULL new_name");
+  lvalue->set_name (new_name);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, this calls the trivial
    gcc::jit::recording::field::set_loc method, in jit-recording.h.  */
 
 void
