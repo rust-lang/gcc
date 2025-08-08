@@ -929,11 +929,20 @@ where the rvalue is computed by reading from the storage area.
     Returns the name of an lvalue.
 
    This entrypoint was added in :ref:`LIBGCCJIT_ABI_44`; you can test for
-   its present using
+   its presence using
 
    .. code-block:: c
 
       #ifdef LIBGCCJIT_HAVE_gcc_jit_lvalue_get_name
+
+    Sets the name of an lvalue.
+
+   This entrypoint was added in :ref:`LIBGCCJIT_ABI_45`; you can test for
+   its presence using
+
+   .. code-block:: c
+
+      #ifdef LIBGCCJIT_HAVE_gcc_jit_lvalue_set_name
 
 Global variables
 ****************
