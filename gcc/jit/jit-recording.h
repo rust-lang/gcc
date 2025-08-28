@@ -334,7 +334,7 @@ public:
   get_target_info ();
 
   void
-  add_diagnostic (location *loc, diagnostic_t diagnostic_kind,
+  add_diagnostic (location *loc, enum diagnostics::kind diagnostic_kind,
 		  const char *fmt, ...)
       GNU_PRINTF(4, 5);
 
@@ -343,7 +343,7 @@ public:
       GNU_PRINTF(3, 4);
 
   void
-  add_error_va (location *loc, diagnostic_t diagnostic_kind, const char *fmt,
+  add_error_va (location *loc, enum diagnostics::kind diagnostic_kind, const char *fmt,
 		va_list ap)
       GNU_PRINTF(4, 0);
 

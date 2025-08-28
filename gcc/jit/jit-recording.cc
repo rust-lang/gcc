@@ -31,14 +31,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "jit-recording.h"
 #include "jit-playback.h"
 
-/* This comes from diagnostic.cc.  */
-static const char *const diagnostic_kind_text[] = {
-#define DEFINE_DIAGNOSTIC_KIND(K, T, C) (T),
-#include "diagnostic.def"
-#undef DEFINE_DIAGNOSTIC_KIND
-  "must-not-happen"
-};
-
 namespace gcc {
 namespace jit {
 
@@ -1745,7 +1737,7 @@ recording::context::get_target_info ()
    it to stderr, and add it to the context.  */
 
 void
-recording::context::add_diagnostic (location *loc, diagnostic_t diagnostic_kind,
+recording::context::add_diagnostic (location *loc, diagnostics::kind diagnostic_kind,
 				    const char *fmt, ...)
 {
   va_list ap;
@@ -1759,7 +1751,7 @@ recording::context::add_error (location *loc, const char *fmt, ...)
 {
   va_list ap;
   va_start (ap, fmt);
-  add_error_va (loc, DK_ERROR, fmt, ap);
+  add_error_va (loc, diagnostics::kind::error, fmt, ap);
   va_end (ap);
 }
 
@@ -1767,7 +1759,7 @@ recording::context::add_error (location *loc, const char *fmt, ...)
    it to stderr, and add it to the context.  */
 
 void
-recording::context::add_error_va (location *loc, diagnostic_t diagnostic_kind,
+recording::context::add_error_va (location *loc, diagnostics::kind diagnostic_kind,
 				  const char *fmt, va_list ap)
 {
   int len;
@@ -1789,7 +1781,7 @@ recording::context::add_error_va (location *loc, diagnostic_t diagnostic_kind,
       has_ownership = true;
     }
   if (get_logger ())
-    get_logger ()->log ("%s %i: %s", diagnostic_kind_text[diagnostic_kind],
+    get_logger ()->log ("%s %i: %s", diagnostics::get_text_for_kind (diagnostic_kind),
 			m_error_count, errmsg);
 
   const char *ctxt_progname =
@@ -1805,12 +1797,12 @@ recording::context::add_error_va (location *loc, diagnostic_t diagnostic_kind,
       fprintf (stderr, "%s: %s: %s: %s\n",
 	       ctxt_progname,
 	       loc->get_debug_string (),
-	       diagnostic_kind_text[diagnostic_kind],
+	       diagnostics::get_text_for_kind (diagnostic_kind),
 	       errmsg);
     else
       fprintf (stderr, "%s: %s: %s\n",
 	       ctxt_progname,
-	       diagnostic_kind_text[diagnostic_kind],
+	       diagnostics::get_text_for_kind (diagnostic_kind),
 	       errmsg);
   }
 
@@ -1826,7 +1818,7 @@ recording::context::add_error_va (location *loc, diagnostic_t diagnostic_kind,
   m_last_error_str = const_cast <char *> (errmsg);
   m_owns_last_error_str = has_ownership;
 
-  if (diagnostic_kind == DK_ERROR)
+  if (diagnostic_kind == diagnostics::kind::error)
     m_error_count++;
 }
 
