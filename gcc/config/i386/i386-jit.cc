@@ -29,7 +29,9 @@ along with GCC; see the file COPYING3.  If not see
 
 /* Implement TARGET_JIT_REGISTER_CPU_TARGET_INFO.  */
 
+#ifndef CROSS_DIRECTORY_STRUCTURE
 extern const char *host_detect_local_cpu (int argc, const char **argv);
+#endif
 
 #if TARGET_64BIT_DEFAULT
 const char* x86_bits = "64";
@@ -40,17 +42,22 @@ const char* x86_bits = "32";
 void
 ix86_jit_register_target_info (void)
 {
+#ifndef CROSS_DIRECTORY_STRUCTURE
   const char *params[] = {"arch", x86_bits};
   const char* local_cpu = host_detect_local_cpu (2, params);
-  std::string arch = local_cpu;
-  free (const_cast <char *> (local_cpu));
+  if (local_cpu != NULL)
+  {
+    std::string arch = local_cpu;
+    free (const_cast <char *> (local_cpu));
 
-  const char* arg = "-march=";
-  size_t arg_pos = arch.find (arg) + strlen (arg);
-  size_t end_pos = arch.find (" ", arg_pos);
+    const char* arg = "-march=";
+    size_t arg_pos = arch.find (arg) + strlen (arg);
+    size_t end_pos = arch.find (" ", arg_pos);
 
-  std::string cpu = arch.substr (arg_pos, end_pos - arg_pos);
-  jit_target_set_arch (cpu);
+    std::string cpu = arch.substr (arg_pos, end_pos - arg_pos);
+    jit_target_set_arch (cpu);
+  }
+#endif
 
   if (targetm.scalar_mode_supported_p (TImode))
   {
