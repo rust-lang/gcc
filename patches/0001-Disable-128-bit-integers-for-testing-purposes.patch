@@ -1,6 +1,6 @@
-From d4a4d284c76822280c5f4c05ae4a4d4a58bbeda9 Mon Sep 17 00:00:00 2001
+From 7e874be65179f729c144329a8883fa162a29a123 Mon Sep 17 00:00:00 2001
 From: Antoni Boucher <bouanto@zoho.com>
-Date: Fri, 16 Feb 2024 12:04:40 -0500
+Date: Fri, 19 Sep 2025 10:38:46 -0400
 Subject: [PATCH] Disable 128-bit integers for testing purposes
 
 ---
@@ -10,12 +10,12 @@ Subject: [PATCH] Disable 128-bit integers for testing purposes
  3 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/gcc/config/aarch64/aarch64-jit.cc b/gcc/config/aarch64/aarch64-jit.cc
-index b1cb446baa4..0499e0b0ab1 100644
+index df14b577867..bdc1708dd05 100644
 --- a/gcc/config/aarch64/aarch64-jit.cc
 +++ b/gcc/config/aarch64/aarch64-jit.cc
-@@ -53,11 +53,11 @@ aarch64_jit_register_target_info (void)
-     jit_target_set_arch (cpu);
+@@ -57,11 +57,11 @@ aarch64_jit_register_target_info (void)
    }
+ #endif
  
 -  if (targetm.scalar_mode_supported_p (TImode))
 +  /*if (targetm.scalar_mode_supported_p (TImode))
@@ -28,12 +28,12 @@ index b1cb446baa4..0499e0b0ab1 100644
    if (float16_type_node != NULL && TYPE_PRECISION(float16_type_node) == 16)
      jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT16);
 diff --git a/gcc/config/i386/i386-jit.cc b/gcc/config/i386/i386-jit.cc
-index 8e085ff4526..f839201c084 100644
+index 7f9f561911e..0e926de5258 100644
 --- a/gcc/config/i386/i386-jit.cc
 +++ b/gcc/config/i386/i386-jit.cc
-@@ -52,11 +52,11 @@ ix86_jit_register_target_info (void)
-   std::string cpu = arch.substr (arg_pos, end_pos - arg_pos);
-   jit_target_set_arch (cpu);
+@@ -59,11 +59,11 @@ ix86_jit_register_target_info (void)
+   }
+ #endif
  
 -  if (targetm.scalar_mode_supported_p (TImode))
 +  /*if (targetm.scalar_mode_supported_p (TImode))
@@ -46,7 +46,7 @@ index 8e085ff4526..f839201c084 100644
    if (float16_type_node != NULL && TYPE_PRECISION(float16_type_node) == 16)
      jit_target_add_supported_target_dependent_type(GCC_JIT_TYPE_FLOAT16);
 diff --git a/gcc/jit/jit-playback.cc b/gcc/jit/jit-playback.cc
-index 6badbaf0d6f..97160e08103 100644
+index 4da3156af74..2593288c5ee 100644
 --- a/gcc/jit/jit-playback.cc
 +++ b/gcc/jit/jit-playback.cc
 @@ -250,8 +250,8 @@ get_tree_node_for_type (enum gcc_jit_types type_)
@@ -72,5 +72,5 @@ index 6badbaf0d6f..97160e08103 100644
        add_error (NULL, "gcc_jit_types value unsupported on this target: %i",
  		 type_);
 -- 
-2.50.0
+2.51.0
 
