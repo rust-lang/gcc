@@ -4938,3 +4938,18 @@ gcc_jit_function_set_location (gcc_jit_function *func,
 
   func->set_loc (loc);
 }
+
+bool
+gcc_jit_is_lto_supported ()
+{
+#ifdef ENABLE_LTO
+  char lto1_path[PATH_MAX];
+  snprintf (lto1_path, sizeof(lto1_path), "%s%s/%s/lto1",
+    STANDARD_LIBEXEC_PREFIX, DEFAULT_TARGET_MACHINE, DEFAULT_TARGET_VERSION);
+  if (access (lto1_path, X_OK) == 0) {
+    return true;
+  }
+#endif
+
+  return false;
+}
