@@ -4928,6 +4928,7 @@ gcc_jit_is_lto_supported ()
   char lto1_path[PATH_MAX];
   snprintf (lto1_path, sizeof(lto1_path), "%s%s/%s/lto1",
     STANDARD_LIBEXEC_PREFIX, DEFAULT_TARGET_MACHINE, DEFAULT_TARGET_VERSION);
+  fprintf (stderr, "LTO path: %s\n", lto1_path);
   if (access (lto1_path, X_OK) == 0) {
     return true;
   }
