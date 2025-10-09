@@ -2352,6 +2352,9 @@ extern void
 gcc_jit_rvalue_set_location (gcc_jit_rvalue *rvalue,
 			     gcc_jit_location *loc);
 
+extern bool
+gcc_jit_is_lto_supported ();
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
