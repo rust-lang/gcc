@@ -130,6 +130,10 @@ jit.serial = $(LIBGCCJIT_FILENAME)
 # Tell GNU make to ignore these if they exist.
 .PHONY: jit
 
+CFLAGS-jit/libgccjit.o += -DDEFAULT_TARGET_VERSION=\"$(version)\" \
+	-DDEFAULT_TARGET_MACHINE=\"$(target_noncanonical)\" \
+	-DSTANDARD_LIBEXEC_PREFIX=\"$(libexecdir)/gcc/\"
+
 JIT_OBJS = attribs.o \
 	jit/dummy-frontend.o \
 	jit/libgccjit.o \
