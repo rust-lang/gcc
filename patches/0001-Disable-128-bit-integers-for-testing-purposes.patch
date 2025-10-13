@@ -1,5 +1,5 @@
 From e52b7a97f7114d79b0c2ec2860ca669730c5ffbe Mon Sep 17 00:00:00 2001
-From: winstonallo <arthurbiedchar@gmail.com>
+From: winstonallo <arthur@biedcharreton.com>
 Date: Mon, 13 Oct 2025 16:17:36 +0200
 Subject: [PATCH] Disable 128-bit integers for testing purposes
 
