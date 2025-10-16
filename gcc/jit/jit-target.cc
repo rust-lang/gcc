@@ -15,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with GCC; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  */
 
+#define INCLUDE_SSTREAM
 #define INCLUDE_STRING
 #define INCLUDE_ALGORITHM
 #include "config.h"
@@ -30,6 +31,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "tm_p.h"
 #include "target.h"
 #include "calls.h"
+#include <iterator>
 
 #include "jit-playback.h"
 #include "jit-target.h"
@@ -37,11 +39,34 @@ along with GCC; see the file COPYING3.  If not see
 /* Initialize all variables of the Target structure.  */
 
 void
+jit_target_dependent_types_init ()
+{
+  if (targetm.scalar_mode_supported_p (TImode))
+  {
+    jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_UINT128_T);
+    jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_INT128_T);
+  }
+
+  if (float16_type_node != NULL && TYPE_PRECISION (float16_type_node) == 16)
+    jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_FLOAT16);
+
+  if (float32_type_node != NULL && TYPE_PRECISION (float32_type_node) == 32)
+    jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_FLOAT32);
+
+  if (float64_type_node != NULL && TYPE_PRECISION (float64_type_node) == 64)
+    jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_FLOAT64);
+
+  if (float128_type_node != NULL && TYPE_PRECISION (float128_type_node) == 128)
+    jit_target_add_supported_target_dependent_type (GCC_JIT_TYPE_FLOAT128);
+}
+
+void
 jit_target_init ()
 {
   /* Initialize target info tables, the keys required by the language are added
      last, so that the CPU handler can override.  */
   targetjitm.jit_register_cpu_target_info ();
+  jit_target_dependent_types_init ();
 }
 
 /* Add a target info key:value to JIT_TARGET_INFO for use by
@@ -57,6 +82,28 @@ jit_add_target_info (const char *key, const char *value)
     jit_target_info->m_info.insert ({key, {value}});
   else
     jit_target_info->m_info[key].insert (value);
+}
+
+/*
+ This splits the values by whitespace and calls jit_add_target_info for each
+ value.
+ */
+void jit_add_target_info_space (const char *key, const char *name,
+  const char *values)
+{
+  std::istringstream iss (values);
+  std::vector<std::string> split_values;
+  std::copy (std::istream_iterator<std::string> (iss),
+    std::istream_iterator<std::string> (),
+    std::back_inserter (split_values));
+
+  if (split_values.empty ())
+    jit_add_target_info (key, name);
+  else
+  {
+    for (auto value : split_values)
+      jit_add_target_info (key, value.c_str ());
+  }
 }
 
 void
