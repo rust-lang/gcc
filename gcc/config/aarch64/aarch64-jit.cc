@@ -1,5 +1,5 @@
-/* Subroutines for the JIT front end on the x86 architecture.
-   Copyright (C) 2023-2026 Free Software Foundation, Inc.
+/* Subroutines for the jit front end on the AArch64 architecture.
+   Copyright (C) 2025 Free Software Foundation, Inc.
 
 GCC is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "target.h"
 #include "tm.h"
 #include "tm_jit.h"
+#include <sys/auxv.h>
 #include "jit/jit-target.h"
 #include "jit/jit-target-def.h"
 
@@ -33,19 +34,13 @@ along with GCC; see the file COPYING3.  If not see
 extern const char *host_detect_local_cpu (int argc, const char **argv);
 #endif
 
-#if TARGET_64BIT_DEFAULT
-const char* x86_bits = "64";
-#else
-const char* x86_bits = "32";
-#endif
-
 void
-ix86_jit_register_target_info (void)
+aarch64_jit_register_target_info (void)
 {
+  const char *params[] = {"arch"};
 #ifndef CROSS_DIRECTORY_STRUCTURE
-  const char *params[] = {"arch", x86_bits};
   const char* local_cpu = host_detect_local_cpu (2, params);
-  if (local_cpu)
+  if (local_cpu != NULL)
   {
     std::string arch = local_cpu;
     free (const_cast <char *> (local_cpu));
@@ -59,7 +54,17 @@ ix86_jit_register_target_info (void)
   }
 #endif
 
-#define ADD_TARGET_INFO jit_add_target_info
-#include "i386-rust-and-jit.inc"
-#undef ADD_TARGET_INFO
+#define AARCH64_OPT_EXTENSION(NAME, IDENT, REQUIRES, EXPLICIT_ON, \
+  EXPLICIT_OFF, FEATURE_STRING) \
+if (AARCH64_HAVE_ISA (IDENT)) jit_add_target_info_space ("target_feature", NAME, \
+  FEATURE_STRING);
+#include "aarch64-option-extensions.def"
+
+  if (TARGET_BTI)
+    jit_add_target_info ("target_feature", "bti");
+  // TODO: features dit, dpb, dpb2, lor, pan, pmuv3, ras, spe, vh
+
+#define AARCH64_ARCH(NAME, CORE, ARCH_IDENT, ARCH_REV, FLAGS) \
+if (AARCH64_HAVE_ISA (ARCH_IDENT)) jit_add_target_info ("target_feature", NAME);
+#include "aarch64-arches.def"
 }

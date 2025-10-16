@@ -458,6 +458,9 @@
 /* test-target-info.c: This can't be in the testcases array as it
    is target-specific.  */
 
+/* test-target-info-aarch64.c: This can't be in the testcases array as it
+   is target-specific.  */
+
 /* test-types.c */
 #define create_code create_code_types
 #define verify_code verify_code_types
