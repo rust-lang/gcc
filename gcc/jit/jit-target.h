@@ -55,7 +55,7 @@ struct target_info {
     bool has_target_value (const char *key, const char *value);
 
     std::unordered_map<const char *,
-	std::unordered_set<const char *, CStringHash, CStringEqual>,
+	std::unordered_set<std::string>,
 	CStringHash, CStringEqual>
 	m_info;
     std::string m_arch;
@@ -70,6 +70,8 @@ extern void jit_target_set_arch (std::string const& arch);
 extern void
 jit_target_add_supported_target_dependent_type (enum gcc_jit_types type_);
 extern void jit_add_target_info (const char *key, const char *value);
+extern void jit_add_target_info_space (const char *key, const char *name,
+  const char *values);
 extern target_info * jit_get_target_info ();
 
 #endif /* GCC_JIT_TARGET_H  */
