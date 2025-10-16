@@ -349,6 +349,7 @@ aarch64*-*-*)
 	cxx_target_objs="aarch64-c.o"
 	d_target_objs="aarch64-d.o"
 
+	jit_target_objs="aarch64-jit.o"
 	extra_objs="${extra_objs} aarch64-builtins.o"
 	extra_objs="${extra_objs} aarch-common.o"
 	extra_objs="${extra_objs} aarch64-elf-metadata.o"
@@ -374,7 +375,6 @@ aarch64*-*-*)
 	target_gtfiles="${target_gtfiles} \$(srcdir)/config/aarch64/aarch64-builtins.cc"
 	target_gtfiles="${target_gtfiles} \$(srcdir)/config/aarch64/aarch64-acle-builtins.h"
 	target_gtfiles="${target_gtfiles} \$(srcdir)/config/aarch64/aarch64-acle-builtins.cc"
-
 	target_has_targetm_common=yes
 	;;
 alpha*-*-*)
