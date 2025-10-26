@@ -1124,16 +1124,7 @@ jit_langhook_init (void)
      eventually be controllable by a command line option.  */
   mpfr_set_default_prec (256);
 
-  // FIXME: This code doesn't work as it erases the `target_builtins` map
-  // without checking if it's already filled before. A better check would be
-  // `if target_builtins.len() == 0` (or whatever this `hash_map` type method
-  // name is).
-   //static bool builtins_initialized = false;
-   //if (!builtins_initialized)
-   //{
   targetm.init_builtins ();
-     //builtins_initialized = true;
-   //}
 
   return true;
 }
