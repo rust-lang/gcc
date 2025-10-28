@@ -116,7 +116,8 @@ public:
   param *
   new_param (location *loc,
 	     type *type,
-	     const char *name);
+	     const char *name,
+	     bool is_tree_addressable);
 
   function *
   new_function (location *loc,

@@ -1533,7 +1533,8 @@ public:
 	 type *type,
 	 string *name)
     : lvalue (ctxt, loc, type),
-    m_name (name) {}
+    m_name (name),
+    m_tree_addressable (false) {}
 
   lvalue *
   as_lvalue () { return this; }
@@ -1558,6 +1559,8 @@ public:
     m_name = m_ctxt->new_string (new_name);
   }
 
+  void set_tree_addressable();
+
 private:
   string * make_debug_string () final override { return m_name; }
   void write_reproducer (reproducer &r) final override;
@@ -1568,6 +1571,7 @@ private:
 
 private:
   string *m_name;
+  bool m_tree_addressable;
 };
 
 class function : public memento

@@ -2323,6 +2323,9 @@ extern void
    gcc_jit_type_set_tree_addressable(gcc_jit_type *type);
 
 extern void
+gcc_jit_param_set_tree_addressable(gcc_jit_param *param);
+
+extern void
 gcc_jit_field_set_location (gcc_jit_field *field,
 			    gcc_jit_location *loc);
 extern void

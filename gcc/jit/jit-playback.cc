@@ -542,7 +542,8 @@ playback::param *
 playback::context::
 new_param (location *loc,
 	   type *type,
-	   const char *name)
+	   const char *name,
+	   bool is_tree_addressable)
 {
   gcc_assert (type);
   gcc_assert (name);
@@ -550,6 +551,8 @@ new_param (location *loc,
 			   get_identifier (name), type->as_tree ());
   if (loc)
     set_tree_location (inner, loc);
+
+  if (is_tree_addressable) TREE_ADDRESSABLE(inner) = 1;
 
   return new param (this, inner);
 }

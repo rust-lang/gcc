@@ -4445,6 +4445,13 @@ gcc_jit_type_set_tree_addressable(gcc_jit_type *type)
   type->set_tree_addressable();
 }
 
+void
+gcc_jit_param_set_tree_addressable(gcc_jit_param *param)
+{
+  RETURN_IF_FAIL (param, NULL, NULL, "NULL param");
+  param->set_tree_addressable();
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the

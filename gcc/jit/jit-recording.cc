@@ -4444,7 +4444,8 @@ recording::param::replay_into (replayer *r)
 {
   set_playback_obj (r->new_param (playback_location (r, m_loc),
 				  m_type->playback_type (),
-				  m_name->c_str ()));
+				  m_name->c_str (),
+				  m_tree_addressable));
 }
 
 /* Implementation of recording::rvalue::access_as_rvalue for params.
@@ -4456,6 +4457,12 @@ recording::param::access_as_rvalue (reproducer &r)
 {
   return r.xstrdup_printf ("gcc_jit_param_as_rvalue (%s)",
 			   r.get_identifier (this));
+}
+
+void
+recording::param::set_tree_addressable ()
+{
+  m_tree_addressable = true;
 }
 
 /* Implementation of recording::lvalue::access_as_lvalue for params.
