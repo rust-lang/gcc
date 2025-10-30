@@ -1909,6 +1909,9 @@ extern gcc_jit_type *
 gcc_jit_type_get_aligned (gcc_jit_type *type,
 			  size_t alignment_in_bytes);
 
+extern gcc_jit_type *
+gcc_jit_type_get_addressable (gcc_jit_type *type);
+
 #define LIBGCCJIT_HAVE_gcc_jit_type_get_vector
 
 /* Given type "T", get type:
@@ -1941,6 +1944,9 @@ gcc_jit_function_get_address (gcc_jit_function *fn,
 void
 gcc_jit_function_set_personality_function (gcc_jit_function *fn,
                                            gcc_jit_function *personality_func);
+
+void
+gcc_jit_function_set_indirect_return (gcc_jit_function *fn);
 
 extern void
 gcc_jit_set_global_personality_function_name (char* name);

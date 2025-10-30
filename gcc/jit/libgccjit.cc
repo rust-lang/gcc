@@ -805,7 +805,6 @@ gcc_jit_context_new_array_type (gcc_jit_context *ctxt,
   JIT_LOG_FUNC (ctxt->get_logger ());
   /* LOC can be NULL.  */
   RETURN_NULL_IF_FAIL (element_type, ctxt, loc, "NULL type");
-  RETURN_NULL_IF_FAIL (num_elements >= 0, ctxt, NULL, "negative size");
   RETURN_NULL_IF_FAIL (!element_type->is_void (), ctxt, loc,
 		       "void type for elements");
 
@@ -3058,7 +3057,7 @@ gcc_jit_block_add_try_catch (gcc_jit_block *block,
   RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL (catch_block, ctxt, loc, "NULL rvalue");
 
-  gcc::jit::recording::statement *stmt = block->add_try_catch (loc, try_block, catch_block);
+  /*gcc::jit::recording::statement *stmt =*/ block->add_try_catch (loc, try_block, catch_block);
 
   // TODO: remove this or use it.
   /* "stmt" should be good enough to be usable in error-messages,
@@ -3087,7 +3086,7 @@ gcc_jit_block_add_try_finally (gcc_jit_block *block,
   RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL (finally_block, ctxt, loc, "NULL rvalue");
 
-  gcc::jit::recording::statement *stmt = block->add_try_catch (loc, try_block, finally_block, true);
+  /*gcc::jit::recording::statement *stmt =*/ block->add_try_catch (loc, try_block, finally_block, true);
 
   // TODO: remove this or use it.
   /* "stmt" should be good enough to be usable in error-messages,
@@ -3132,6 +3131,8 @@ gcc_jit_block_add_assignment (gcc_jit_block *block,
     ctxt, loc,
     "cannot assign to readonly variable: %s",
     lvalue->get_debug_string ());
+
+  //RETURN_IF_FAIL (lvalue->get_type ()->get_addressable () == NULL, ctxt, loc, "addressable lvalue");
 
   gcc::jit::recording::statement *stmt = block->add_assignment (loc, lvalue, rvalue);
 
@@ -3903,6 +3904,13 @@ gcc_jit_function_set_personality_function (gcc_jit_function *fn,
   fn->set_personality_function (personality_func);
 }
 
+void
+gcc_jit_function_set_indirect_return (gcc_jit_function *fn)
+{
+  RETURN_IF_FAIL (fn, NULL, NULL, "NULL function");
+  fn->set_indirect_return ();
+}
+
 extern char* jit_personality_func_name;
 
 void
@@ -4344,6 +4352,18 @@ gcc_jit_type_get_aligned (gcc_jit_type *type,
   RETURN_NULL_IF_FAIL (!type->is_void (), ctxt, NULL, "void type");
 
   return (gcc_jit_type *)type->get_aligned (alignment_in_bytes);
+}
+
+gcc_jit_type *
+gcc_jit_type_get_addressable (gcc_jit_type *type)
+{
+  RETURN_NULL_IF_FAIL (type, NULL, NULL, "NULL type");
+
+  gcc::jit::recording::context *ctxt = type->m_ctxt;
+
+  JIT_LOG_FUNC (ctxt->get_logger ());
+
+  return (gcc_jit_type *)type->get_addressable ();
 }
 
 void

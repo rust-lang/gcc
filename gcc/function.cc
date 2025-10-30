@@ -85,6 +85,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "value-range.h"
 #include "gimple-range.h"
 #include "insn-attr.h"
+#include "print-tree.h"
 
 /* So we can assign to cfun in this file.  */
 #undef cfun
@@ -987,6 +988,9 @@ assign_temp (tree type_or_decl, int memory_required,
 
   /* Allocating temporaries of TREE_ADDRESSABLE type must be done in the front
      end.  See also create_tmp_var for the gimplification-time check.  */
+  //fprintf (stderr, "1\n");
+  /*debug_tree (type_or_decl);
+  debug_tree (type);*/
   gcc_assert (!TREE_ADDRESSABLE (type) && COMPLETE_TYPE_P (type));
 
   if (mode == BLKmode || memory_required)

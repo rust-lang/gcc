@@ -393,3 +393,13 @@ LIBGCCJIT_ABI_46 {
   global:
     gcc_jit_is_lto_supported;
 } LIBGCCJIT_ABI_45;
+
+LIBGCCJIT_ABI_47 {
+  global:
+    gcc_jit_type_get_addressable;
+} LIBGCCJIT_ABI_46;
+
+LIBGCCJIT_ABI_48 {
+  global:
+    gcc_jit_function_set_indirect_return;
+} LIBGCCJIT_ABI_47;

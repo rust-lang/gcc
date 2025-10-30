@@ -27,6 +27,7 @@ along with GCC; see the file COPYING3.  If not see
 
 #include "timevar.h"
 #include "varasm.h"
+#include "print-tree.h"
 
 #include "jit-recording.h"
 #include "jit-target.h"
@@ -132,7 +133,8 @@ public:
 		const std::vector<std::pair<gcc_jit_fn_attribute,
 					    std::vector<int>>>
 					    &int_array_attributes,
-		bool is_target_builtin);
+		bool is_target_builtin,
+		bool is_indirect_return);
 
   lvalue *
   new_global (location *loc,
@@ -542,6 +544,7 @@ public:
   }
 
   type *get_aligned (size_t alignment_in_bytes) const;
+  type *get_addressable () const;
   type *get_vector (size_t num_units) const;
 
 private:

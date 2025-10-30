@@ -615,6 +615,7 @@ public:
   type *get_restrict ();
   type *get_aligned (size_t alignment_in_bytes);
   type *get_vector (size_t num_units);
+  type *get_addressable ();
 
   void set_packed ();
   void set_addressable();
@@ -640,6 +641,8 @@ public:
   virtual array_type *dyn_cast_array_type () { return NULL; }
   virtual memento_of_get_aligned *dyn_cast_aligned_type () { return NULL; }
 
+  virtual type* is_addressable () const { return NULL; }
+
   /* Is it typesafe to copy to this type from rtype?  */
   virtual bool accepts_writes_from (type *rtype)
   {
@@ -649,7 +652,7 @@ public:
 
   virtual bool is_same_type_as (type *other)
   {
-    if ((is_int () && other->is_int () || is_float() && other->is_float())
+    if (((is_int () && other->is_int ()) || (is_float() && other->is_float()))
 		 && get_size () == other->get_size ()
 		 && is_signed () == other->is_signed ())
     {
@@ -996,6 +999,50 @@ private:
 
 private:
   size_t m_alignment_in_bytes;
+};
+
+/* Result of "gcc_jit_type_get_addressable".  */
+class memento_of_get_addressable : public decorated_type
+{
+public:
+  memento_of_get_addressable (type *other_type)
+  : decorated_type (other_type) {}
+
+  bool is_same_type_as (type *other) final override
+  {
+    if (!other->is_addressable ())
+    {
+      return m_other_type->is_same_type_as (other);
+    }
+    return m_other_type->is_same_type_as (other->is_addressable ());
+  }
+
+  type *is_addressable () const final override { return m_other_type; }
+
+  type* copy (context* ctxt) final override
+  {
+    type* result = new memento_of_get_addressable (m_other_type->copy (ctxt));
+    ctxt->record_type (result);
+    return result;
+  }
+
+  /* Strip off the addressable, giving the underlying type.  */
+  type *unqualified () final override { return m_other_type; }
+
+  void replay_into (replayer *) final override;
+
+  array_type *dyn_cast_array_type () final override
+  {
+    return m_other_type->dyn_cast_array_type ();
+  }
+
+  vector_type *dyn_cast_vector_type () final override {
+    return m_other_type->dyn_cast_vector_type ();
+  }
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
 };
 
 /* Result of "gcc_jit_type_get_vector".  */
@@ -1621,6 +1668,8 @@ public:
 
   void write_to_dump (dump &d) final override;
 
+  void set_indirect_return () { m_indirect_return = true; }
+
   void validate ();
 
   void dump_to_dot (const char *path);
@@ -1651,6 +1700,7 @@ private:
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> m_int_array_attributes;
   bool m_is_target_builtin;
+  bool m_indirect_return;
 };
 
 class block : public memento
@@ -2274,7 +2324,7 @@ public:
 
   void replay_into (replayer *r) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char * ARG_UNUSED (new_name)) final override {
     m_ctxt->add_error (NULL, "cannot change the name of type `array_access`");
   }
 
@@ -2339,7 +2389,7 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char *ARG_UNUSED (new_name)) final override {
     m_ctxt->add_error (NULL, "cannot change the name of type `vector_access`");
   }
 
@@ -2372,7 +2422,7 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char * ARG_UNUSED (new_name)) final override {
     m_ctxt->add_error (
       NULL, "cannot change the name of type `access_field_of_lvalue`");
   }
@@ -2435,7 +2485,7 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char * ARG_UNUSED (new_name)) final override {
     m_ctxt->add_error (
       NULL, "cannot change the name of type `dereference_field_rvalue`");
   }
@@ -2466,7 +2516,7 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char * ARG_UNUSED (new_name)) final override {
     m_ctxt->add_error (
       NULL, "cannot change the name of type `dereference_rvalue`");
   }

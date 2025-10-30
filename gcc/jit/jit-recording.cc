@@ -1409,6 +1409,16 @@ recording::context::new_call (recording::location *loc,
 			      int numargs , recording::rvalue **args)
 {
   recording::rvalue *result = new call (this, loc, func, numargs, args);
+  /*for (int i = 0 ; i < numargs ; i++)
+  {
+    type* type = args[i]->get_type ();
+    if (args[i]->is_addressable () || type->is_addressable ())
+    {
+      fprintf (stderr, "Function: %s\n", func->get_name ()->c_str ());
+      fprintf (stderr, "Argument: %s\n", args[i]->get_debug_string ());
+      abort ();
+    }
+  }*/
   record (result);
   return result;
 }
@@ -2596,6 +2606,15 @@ recording::type::get_aligned (size_t alignment_in_bytes)
   return result;
 }
 
+recording::type *
+recording::type::get_addressable ()
+{
+  recording::type *result
+    = new memento_of_get_addressable (this);
+  m_ctxt->record_type (result);
+  return result;
+}
+
 void
 recording::type::set_packed ()
 {
@@ -3427,6 +3446,43 @@ recording::memento_of_get_aligned::write_reproducer (reproducer &r)
 	   m_alignment_in_bytes);
 }
 
+/* The implementation of class gcc::jit::recording::memento_of_get_addressable.  */
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::memento_of_get_addressable.  */
+
+void
+recording::memento_of_get_addressable::replay_into (replayer *)
+{
+  set_playback_obj
+    (m_other_type->playback_type ()->get_addressable ());
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   results of get_addressable.  */
+
+recording::string *
+recording::memento_of_get_addressable::make_debug_string ()
+{
+  return string::from_printf (m_ctxt,
+			      "%s adressable",
+			      m_other_type->get_debug_string ());
+}
+
+/* Implementation of recording::memento::write_reproducer for addressable
+   types. */
+
+void
+recording::memento_of_get_addressable::write_reproducer (reproducer &r)
+{
+  const char *id = r.make_identifier (this, "type");
+  r.write ("  gcc_jit_type *%s =\n"
+	   "    gcc_jit_type_get_addressable (%s);\n",
+	   id,
+	   r.get_identifier_as_type (m_other_type));
+}
+
+
 /* The implementation of class gcc::jit::recording::vector_type.  */
 
 /* Implementation of pure virtual hook recording::memento::replay_into
@@ -4164,6 +4220,10 @@ recording::rvalue::dereference_field (recording::location *loc,
 recording::lvalue *
 recording::rvalue::dereference (recording::location *loc)
 {
+  if (this->get_type ()->dereference ()->is_addressable ())
+  {
+    abort();
+  }
   recording::lvalue *result =
     new dereference_rvalue (m_ctxt, loc, this);
   m_ctxt->record (result);
@@ -4515,7 +4575,8 @@ recording::function::function (context *ctxt,
   m_attributes (),
   m_string_attributes (),
   m_int_array_attributes (),
-  m_is_target_builtin (is_target_builtin)
+  m_is_target_builtin (is_target_builtin),
+  m_indirect_return (false)
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -4578,7 +4639,8 @@ recording::function::replay_into (replayer *r)
 				     m_attributes,
 				     m_string_attributes,
 				     m_int_array_attributes,
-				     m_is_target_builtin));
+				     m_is_target_builtin,
+				     m_indirect_return));
 }
 
 /* Implementation of recording::memento::make_debug_string for
@@ -7628,7 +7690,7 @@ recording::statement::write_to_dump (dump &d)
    for recording::memento_of_set_personality_function.  */
 
 void
-recording::memento_of_set_personality_function::replay_into (replayer *r)
+recording::memento_of_set_personality_function::replay_into (replayer * ARG_UNUSED (r))
 {
   m_function->playback_function ()->set_personality_function (m_personality_function->playback_function ());
 }

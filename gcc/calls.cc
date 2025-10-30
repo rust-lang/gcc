@@ -61,6 +61,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "value-query.h"
 #include "tree-pretty-print.h"
 #include "tree-eh.h"
+#include "print-tree.h"
 
 /* Like PREFERRED_STACK_BOUNDARY but in units of bytes, not bits.  */
 #define STACK_BYTES (PREFERRED_STACK_BOUNDARY / BITS_PER_UNIT)
@@ -1337,6 +1338,8 @@ initialize_argument_information (int num_actuals ATTRIBUTE_UNUSED,
 {
   CUMULATIVE_ARGS *args_so_far_pnt = get_cumulative_args (args_so_far);
   location_t loc = EXPR_LOCATION (exp);
+
+  //debug_tree (exp);
 
   /* Count arg position in order args appear.  */
   int argpos;
@@ -2897,6 +2900,13 @@ expand_call (tree exp, rtx target, int ignore)
 	  structure_value_addr = XEXP (target, 0);
 	else
 	  {
+	    fprintf (stderr, "HERE: %d %p, %d, %d\n", CALL_EXPR_RETURN_SLOT_OPT (exp),
+                    target, MEM_P (target),
+	       (TREE_ADDRESSABLE (rettype)
+		|| !(MEM_ALIGN (target) < TYPE_ALIGN (rettype)
+		     && targetm.slow_unaligned_access (TYPE_MODE (rettype),
+						       MEM_ALIGN (target)))));
+            debug_rtx (target);
 	    /* For variable-sized objects, we must be called with a target
 	       specified.  If we were to allocate space on the stack here,
 	       we would have no way of knowing when to free it.  */

@@ -467,7 +467,19 @@ new_compound_type (location *loc,
 
   if (is_packed)
     TYPE_PACKED (t) = 1;
-  if (is_addressable) TREE_ADDRESSABLE(t) = 1;
+
+  //gcc_assert (!is_addressable);
+  if (is_addressable)
+  {
+      TREE_ADDRESSABLE(t) = 1;
+      /*if (TREE_CODE (t) == COMPOUND_LITERAL_EXPR)
+      {
+        fprintf (stderr, "Is compound literal\n");
+        TREE_ADDRESSABLE (COMPOUND_LITERAL_EXPR_DECL (t)) = 1;
+      }
+      else
+          fprintf (stderr, "Is NOT compound literal\n");*/
+  }
   if (loc)
     set_tree_location (t, loc);
 
@@ -653,7 +665,8 @@ new_function (location *loc,
 	      const std::vector<std::pair<gcc_jit_fn_attribute,
 					  std::vector<int>>>
 					  &int_array_attributes,
-	      bool is_target_builtin)
+	      bool is_target_builtin,
+	      bool is_indirect_return)
 {
   int i;
   param *param;
@@ -661,16 +674,23 @@ new_function (location *loc,
   //can return_type be NULL?
   gcc_assert (name);
 
+  tree func_return_type = return_type->as_tree ();
+  if (is_indirect_return)
+  {
+    func_return_type = build_variant_type_copy (func_return_type);
+    TREE_ADDRESSABLE (func_return_type) = 1;
+  }
+
   tree *arg_types = (tree *)xcalloc(params->length (), sizeof(tree*));
   FOR_EACH_VEC_ELT (*params, i, param)
     arg_types[i] = TREE_TYPE (param->as_tree ());
 
   tree fn_type;
   if (is_variadic)
-    fn_type = build_varargs_function_type_array (return_type->as_tree (),
+    fn_type = build_varargs_function_type_array (func_return_type,
 						 params->length (), arg_types);
   else
-    fn_type = build_function_type_array (return_type->as_tree (),
+    fn_type = build_function_type_array (func_return_type,
 					 params->length (), arg_types);
   free (arg_types);
 
@@ -682,7 +702,7 @@ new_function (location *loc,
     set_tree_location (fndecl, loc);
 
   tree resdecl = build_decl (UNKNOWN_LOCATION, RESULT_DECL,
-			     NULL_TREE, return_type->as_tree ());
+			     NULL_TREE, func_return_type);
   DECL_ARTIFICIAL (resdecl) = 1;
   DECL_IGNORED_P (resdecl) = 1;
   DECL_RESULT (fndecl) = resdecl;
@@ -1593,7 +1613,17 @@ build_call (location *loc,
   vec<tree, va_gc> *tree_args;
   vec_alloc (tree_args, args->length ());
   for (unsigned i = 0; i < args->length (); i++)
+  {
+    if (TREE_ADDRESSABLE (TREE_TYPE ((*args)[i]->as_tree ())))
+    {
+      fprintf (stderr, "Function:\n");
+      debug_tree (fn_ptr);
+      fprintf (stderr, "Argument:\n");
+      debug_tree ((*args)[i]->as_tree ());
+      abort ();
+    }
     tree_args->quick_push ((*args)[i]->as_tree ());
+  }
 
   if (loc)
     set_tree_location (fn_ptr, loc);
@@ -1604,6 +1634,11 @@ build_call (location *loc,
 
   tree call = build_call_vec (return_type,
 			      fn_ptr, tree_args);
+  if (TREE_ADDRESSABLE (return_type))
+  {
+    CALL_EXPR_RETURN_SLOT_OPT (call) = true;
+    //fprintf (stderr, "Setting return slot opt\n");
+  }
 
   if (require_tail_call)
     CALL_EXPR_MUST_TAIL_CALL (call) = 1;
@@ -2053,6 +2088,18 @@ get_aligned (size_t alignment_in_bytes) const
 }
 
 /* Construct a playback::type instance (wrapping a tree)
+   with TREE_ADDRESSABLE set.  */
+
+playback::type *
+playback::type::
+get_addressable () const
+{
+  tree t_new_type = build_variant_type_copy (m_inner);
+  TREE_ADDRESSABLE (t_new_type) = 1;
+  return new type (t_new_type);
+}
+
+/* Construct a playback::type instance (wrapping a tree)
    for the given vector type.  */
 
 playback::type *
@@ -2120,6 +2167,8 @@ dereference (location *loc)
 {
   tree ptr = as_tree ();
   tree datum = get_context ()->new_dereference (ptr, loc);
+  /*fprintf (stderr, "ptr: %p\n", ptr);
+  fprintf (stderr, "deref: %p\n", datum);*/
   return new lvalue (get_context (), datum);
 }
 
@@ -2294,12 +2343,13 @@ new_local (location *loc,
 			   type->as_tree ());
   else
   {
-    inner = build_decl (UNKNOWN_LOCATION, VAR_DECL,
+    inner = create_tmp_var (type->as_tree (), "JITTMP");
+    /*inner = build_decl (UNKNOWN_LOCATION, VAR_DECL,
 			create_tmp_var_name ("JITTMP"),
 			type->as_tree ());
     DECL_ARTIFICIAL (inner) = 1;
     DECL_IGNORED_P (inner) = 1;
-    DECL_NAMELESS (inner) = 1;
+    DECL_NAMELESS (inner) = 1;*/
   }
   DECL_CONTEXT (inner) = this->m_inner_fndecl;
 
