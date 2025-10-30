@@ -678,7 +678,7 @@ new_function (location *loc,
   if (is_indirect_return)
   {
     func_return_type = build_variant_type_copy (func_return_type);
-    TREE_ADDRESSABLE (func_return_type) = 1;
+    //TREE_ADDRESSABLE (func_return_type) = 1;
   }
 
   tree *arg_types = (tree *)xcalloc(params->length (), sizeof(tree*));
@@ -703,6 +703,13 @@ new_function (location *loc,
 
   tree resdecl = build_decl (UNKNOWN_LOCATION, RESULT_DECL,
 			     NULL_TREE, func_return_type);
+  if (is_indirect_return)
+  {
+    fprintf (stderr, "Indirect return\n");
+    DECL_BY_REFERENCE (resdecl) = 1;
+    TREE_TYPE (resdecl) = build_reference_type (TREE_TYPE (resdecl));
+    relayout_decl (resdecl);
+  }
   DECL_ARTIFICIAL (resdecl) = 1;
   DECL_IGNORED_P (resdecl) = 1;
   DECL_RESULT (fndecl) = resdecl;
@@ -820,7 +827,7 @@ new_function (location *loc,
   }
 
   decl_attributes (&fndecl, fn_attributes, 0);
-  function *func = new function (this, fndecl, kind);
+  function *func = new function (this, fndecl, kind, is_indirect_return);
   m_functions.safe_push (func);
   return func;
 }
@@ -2271,12 +2278,14 @@ operator new (size_t sz)
 playback::function::
 function (context *ctxt,
 	  tree fndecl,
-	  enum gcc_jit_function_kind kind)
+	  enum gcc_jit_function_kind kind,
+	  bool is_indirect_return)
 : m_ctxt(ctxt),
   m_inner_fndecl (fndecl),
   m_inner_bind_expr (NULL),
   m_kind (kind),
-  m_blocks ()
+  m_blocks (),
+  m_has_indirect_return (is_indirect_return)
 {
   if (m_kind != GCC_JIT_FUNCTION_IMPORTED)
     {
@@ -2740,14 +2749,28 @@ add_return (location *loc,
     {
       tree t_lvalue = DECL_RESULT (m_func->as_fndecl ());
       tree t_rvalue = rvalue->as_tree ();
-      if (TREE_TYPE (t_rvalue) != TREE_TYPE (t_lvalue))
-	t_rvalue = build1 (CONVERT_EXPR,
-			   TREE_TYPE (t_lvalue),
-			   t_rvalue);
-      modify_retval = build2 (MODIFY_EXPR, return_type,
-			      t_lvalue, t_rvalue);
-      if (loc)
-	set_tree_location (modify_retval, loc);
+      if (m_func->m_has_indirect_return)
+      {
+          tree type = TREE_TYPE (TREE_TYPE(t_lvalue));
+          tree datum = fold_build1 (INDIRECT_REF, type, t_lvalue);
+          tree stmt =
+              build2 (MODIFY_EXPR, type,
+                      datum, t_rvalue);
+          if (loc)
+              set_tree_location (stmt, loc);
+          add_stmt (stmt);
+      }
+      else
+      {
+          if (TREE_TYPE (t_rvalue) != TREE_TYPE (t_lvalue))
+              t_rvalue = build1 (CONVERT_EXPR,
+                      TREE_TYPE (t_lvalue),
+                      t_rvalue);
+          modify_retval = build2 (MODIFY_EXPR, return_type,
+                  t_lvalue, t_rvalue);
+          if (loc)
+              set_tree_location (modify_retval, loc);
+      }
     }
   tree return_stmt = build1 (RETURN_EXPR, return_type,
 			     modify_retval);

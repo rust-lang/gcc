@@ -579,7 +579,7 @@ class bitfield : public field {};
 class function : public wrapper
 {
 public:
-  function(context *ctxt, tree fndecl, enum gcc_jit_function_kind kind);
+  function(context *ctxt, tree fndecl, enum gcc_jit_function_kind kind, bool is_indirect_return);
 
   void gt_ggc_mx ();
   void finalizer () final override;
@@ -621,6 +621,7 @@ public:
   {
     m_ctxt->set_tree_location (t, loc);
   }
+  bool m_has_indirect_return;
 
 private:
   tree m_inner_fndecl;
