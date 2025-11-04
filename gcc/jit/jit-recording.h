@@ -638,6 +638,7 @@ public:
   virtual struct_ *dyn_cast_struct () { return NULL; }
   virtual vector_type *dyn_cast_vector_type () { return NULL; }
   virtual array_type *dyn_cast_array_type () { return NULL; }
+  virtual compound_type *dyn_cast_compound_type () { return NULL; }
   virtual memento_of_get_aligned *dyn_cast_aligned_type () { return NULL; }
 
   /* Is it typesafe to copy to this type from rtype?  */
@@ -838,6 +839,7 @@ public:
   type *is_pointer () final override { return m_other_type->is_pointer (); }
   type *is_array () final override { return m_other_type->is_array (); }
   struct_ *is_struct () final override { return m_other_type->is_struct (); }
+  bool is_union () const final override { return m_other_type->is_union (); }
   bool is_signed () const final override { return m_other_type->is_signed (); }
 
 protected:
@@ -984,6 +986,10 @@ public:
   array_type *dyn_cast_array_type () final override
   {
     return m_other_type->dyn_cast_array_type ();
+  }
+
+  compound_type *dyn_cast_compound_type () final override {
+      return m_other_type->dyn_cast_compound_type ();
   }
 
   vector_type *dyn_cast_vector_type () final override {
@@ -1255,6 +1261,8 @@ public:
   type *is_pointer () final override { return NULL; }
   type *is_array () final override { return NULL; }
   bool is_signed () const final override { return false; }
+
+  compound_type *dyn_cast_compound_type () final override { return this; }
 
   bool has_known_size () const final override { return m_fields != NULL; }
   void set_loc (location * loc) { m_loc = loc; }
