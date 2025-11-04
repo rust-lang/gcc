@@ -1494,7 +1494,7 @@ gcc_jit_context_new_struct_constructor (gcc_jit_context *ctxt,
 			       "constructor type is not a struct: %s",
 			       type->get_debug_string ());
 
-  compound_type *ct = reinterpret_cast<compound_type *>(type);
+  compound_type *ct = type->dyn_cast_compound_type ();
   gcc::jit::recording::fields *fields_struct = ct->get_fields ();
   size_t n_fields = fields_struct->length ();
 
@@ -1645,7 +1645,7 @@ gcc_jit_context_new_union_constructor (gcc_jit_context *ctxt,
 			       "constructor type is not an union: %s",
 			       type->get_debug_string ());
 
-  compound_type *ct = reinterpret_cast<compound_type *>(type);
+  compound_type *ct = type->dyn_cast_compound_type ();
   gcc::jit::recording::fields *fields_union = ct->get_fields ();
   size_t n_fields = fields_union->length ();
 
@@ -1742,7 +1742,7 @@ gcc_jit_context_new_array_constructor (gcc_jit_context *ctxt,
 	"'values' NULL with non-zero 'num_values'");
 
       gcc::jit::recording::array_type *arr_type =
-	reinterpret_cast<gcc::jit::recording::array_type*>(type);
+	type->dyn_cast_array_type ();
       size_t n_el = arr_type->num_elements ();
 
       RETURN_NULL_IF_FAIL_PRINTF2 (
