@@ -1293,7 +1293,7 @@ recording::context::new_ctor (recording::location *loc,
       result->m_values.reserve (num_values, false);
       result->m_fields.reserve (num_values, false);
 
-      compound_type *ct = reinterpret_cast<compound_type *>(type);
+      compound_type *ct = type->dyn_cast_compound_type ();
       recording::fields *fields = ct->get_fields ();
 
       /* The entry point checks that num_values is not greater than
