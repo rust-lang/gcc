@@ -666,7 +666,7 @@ public:
 
   virtual bool is_same_type_as (type *other)
   {
-    if ((is_int () && other->is_int () || is_float() && other->is_float())
+    if (((is_int () && other->is_int ()) || (is_float() && other->is_float()))
 		 && get_size () == other->get_size ()
 		 && is_signed () == other->is_signed ())
     {
@@ -2298,7 +2298,7 @@ public:
 
   void replay_into (replayer *r) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char *) final override {
     m_ctxt->add_error (NULL, "cannot change the name of type `array_access`");
   }
 
@@ -2363,7 +2363,7 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char *) final override {
     m_ctxt->add_error (NULL, "cannot change the name of type `vector_access`");
   }
 
@@ -2396,7 +2396,7 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char *) final override {
     m_ctxt->add_error (
       NULL, "cannot change the name of type `access_field_of_lvalue`");
   }
@@ -2459,7 +2459,7 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char *) final override {
     m_ctxt->add_error (
       NULL, "cannot change the name of type `dereference_field_rvalue`");
   }
@@ -2490,7 +2490,7 @@ public:
 
   void visit_children (rvalue_visitor *v) final override;
 
-  void set_name (const char *new_name) final override {
+  void set_name (const char *) final override {
     m_ctxt->add_error (
       NULL, "cannot change the name of type `dereference_rvalue`");
   }

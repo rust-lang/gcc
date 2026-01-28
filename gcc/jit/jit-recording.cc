@@ -7656,7 +7656,7 @@ recording::statement::write_to_dump (dump &d)
    for recording::memento_of_set_personality_function.  */
 
 void
-recording::memento_of_set_personality_function::replay_into (replayer *r)
+recording::memento_of_set_personality_function::replay_into (replayer *)
 {
   m_function->playback_function ()->set_personality_function (m_personality_function->playback_function ());
 }
