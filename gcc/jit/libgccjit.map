@@ -403,3 +403,9 @@ LIBGCCJIT_ABI_48 {
   global:
     gcc_jit_is_lto_supported;
 } LIBGCCJIT_ABI_47;
+
+LIBGCCJIT_ABI_49 {
+  global:
+    gcc_jit_set_lang_name;
+    gcc_jit_context_set_filename;
+} LIBGCCJIT_ABI_48;
