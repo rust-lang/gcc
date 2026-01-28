@@ -38,7 +38,11 @@ jobs:
         mkdir build install
         cd build
         ../gcc/configure --enable-host-shared --enable-languages=c,jit,lto --disable-bootstrap --disable-multilib --prefix=/usr
-        make -j4
+        bash -o pipefail -c 'make -j4 2>&1 | tee build.log'
+        if grep -E 'gcc/jit/.*:.*warning:' build.log; then
+            echo "Warnings detected in libgccjit"
+            exit 1
+        fi
         make install DESTDIR=$(pwd)/../install
 
     - name: Build Debian package
