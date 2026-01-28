@@ -2308,6 +2308,9 @@ gcc_jit_context_set_output_ident (gcc_jit_context *ctxt,
 
 #define LIBGCCJIT_HAVE_gcc_jit_context_set_output_ident
 
+extern void
+gcc_jit_context_set_filename (gcc_jit_context *ctxt, const char *filename);
+
 /* Add an attribute to a variable.  */
 extern void
 gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable,
@@ -2334,6 +2337,9 @@ gcc_jit_rvalue_set_location (gcc_jit_rvalue *rvalue,
 
 extern bool
 gcc_jit_is_lto_supported ();
+
+extern void
+gcc_jit_set_lang_name (const char *lang_name);
 
 #ifdef __cplusplus
 }

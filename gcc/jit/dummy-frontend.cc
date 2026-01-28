@@ -246,6 +246,7 @@ static const scoped_attribute_specs *const jit_attribute_table[] =
 };
 
 char* jit_personality_func_name = NULL;
+const char* jit_lang_name = NULL;
 static tree personality_decl;
 
 /* FIXME: This is a hack to preserve trees that we create from the
@@ -1086,6 +1087,9 @@ jit_end_diagnostic (diagnostics::text_sink &,
 static bool
 jit_langhook_init (void)
 {
+  if (jit_lang_name)
+    lang_hooks.name = jit_lang_name;
+
   jit_gc_root = NULL_TREE;
   personality_decl = NULL_TREE;
   gcc_assert (gcc::jit::active_playback_ctxt);

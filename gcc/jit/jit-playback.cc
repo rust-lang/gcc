@@ -3319,6 +3319,11 @@ make_fake_args (vec <char *> *argvec,
   ADD_ARG (get_path_c_file ());
   ADD_ARG ("-fPIC");
 
+  // Explicitly set the .s file path since the user can customize the path of
+  // the fake C file via gcc_jit_context_set_filename.
+  ADD_ARG ("-o");
+  ADD_ARG (get_path_s_file ());
+
   /* Handle int options: */
   switch (get_int_option (GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL))
     {
@@ -3886,6 +3891,10 @@ const char *
 playback::context::
 get_path_c_file () const
 {
+  const char *filename = m_recording_ctxt->get_filename ();
+  if (filename)
+    return filename;
+
   return m_tempdir->get_path_c_file ();
 }
 
