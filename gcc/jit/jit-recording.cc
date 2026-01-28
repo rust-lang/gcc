@@ -638,6 +638,9 @@ recording::context::~context ()
   if (m_owns_last_error_str)
     if (m_last_error_str != m_first_error_str)
       free (m_last_error_str);
+
+  if (m_filename)
+    free (m_filename);
 }
 
 /* Add the given mememto to the list of those tracked by this
@@ -1493,6 +1496,18 @@ recording::context::new_case (recording::rvalue *min_value,
   recording::case_ *result = new case_ (this, min_value, max_value, block);
   record (result);
   return result;
+}
+
+const char *
+recording::context::get_filename ()
+{
+  return m_filename;
+}
+
+void
+recording::context::set_filename (const char *filename)
+{
+  m_filename = xstrdup(filename);
 }
 
 /* Set the given string option for this context, or add an error if
