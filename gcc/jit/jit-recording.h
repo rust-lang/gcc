@@ -262,6 +262,12 @@ public:
 	    rvalue *max_value,
 	    block *block);
 
+  const char *
+  get_filename ();
+
+  void
+  set_filename (const char *filename);
+
   void
   set_str_option (enum gcc_jit_str_option opt,
 		  const char *value);
@@ -445,6 +451,8 @@ private:
   builtins_manager *m_builtins_manager; // lazily created
 
   target_info *m_target_info;
+
+  char *m_filename = nullptr;
 };
 
 
