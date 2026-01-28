@@ -3068,7 +3068,7 @@ gcc_jit_block_add_try_catch (gcc_jit_block *block,
   RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL (catch_block, ctxt, loc, "NULL rvalue");
 
-  gcc::jit::recording::statement *stmt = block->add_try_catch (loc, try_block, catch_block);
+  /*gcc::jit::recording::statement *stmt =*/ block->add_try_catch (loc, try_block, catch_block);
 
   // TODO: remove this or use it.
   /* "stmt" should be good enough to be usable in error-messages,
@@ -3097,7 +3097,7 @@ gcc_jit_block_add_try_finally (gcc_jit_block *block,
   RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
   RETURN_IF_FAIL (finally_block, ctxt, loc, "NULL rvalue");
 
-  gcc::jit::recording::statement *stmt = block->add_try_catch (loc, try_block, finally_block, true);
+  /*gcc::jit::recording::statement *stmt =*/ block->add_try_catch (loc, try_block, finally_block, true);
 
   // TODO: remove this or use it.
   /* "stmt" should be good enough to be usable in error-messages,
