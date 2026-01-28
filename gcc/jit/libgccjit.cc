@@ -4016,6 +4016,16 @@ gcc_jit_context_set_output_ident (gcc_jit_context *ctxt,
   ctxt->set_output_ident (output_ident);
 }
 
+void
+gcc_jit_context_set_filename (gcc_jit_context *ctxt, const char *filename)
+{
+  RETURN_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  RETURN_IF_FAIL (filename, ctxt, NULL, "NULL filename");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+
+  ctxt->set_filename (filename);
+}
+
 gcc_jit_target_info *
 gcc_jit_context_get_target_info (gcc_jit_context *ctxt)
 {
@@ -4934,4 +4944,12 @@ gcc_jit_is_lto_supported ()
 #endif
 
   return false;
+}
+
+extern const char* jit_lang_name;
+
+void
+gcc_jit_set_lang_name (const char *lang_name)
+{
+  jit_lang_name = lang_name;
 }
