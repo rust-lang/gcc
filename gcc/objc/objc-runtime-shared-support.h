@@ -31,8 +31,8 @@ extern tree build_sized_array_type (tree, int);
 extern tree lookup_interface (tree);
 extern tree objc_build_constructor (tree, vec<constructor_elt, va_gc> *);
 
-extern tree start_var_decl (tree, const char *);
-extern void finish_var_decl (tree, tree);
+extern tree start_meta_decl (tree, const char *);
+extern void finish_meta_decl (tree, tree);
 
 extern tree my_build_string (int, const char *);
 extern tree my_build_string_pointer (int, const char *);
@@ -83,5 +83,28 @@ extern void generate_strings (void);
 
 extern void dump_interface (FILE *, tree);
 extern FILE *gen_declaration_file;
+
+/* For Objective-C/C++ metadata that can be initialized like an aggregate.  */
+
+inline tree
+first_type_field (const tree type)
+{
+#ifdef OBJCPLUS
+  return next_aggregate_field (TYPE_FIELDS (type));
+#else
+  return TYPE_FIELDS (type);
+#endif
+}
+
+inline tree
+next_type_field (const tree last)
+{
+#ifdef OBJCPLUS
+  return next_aggregate_field (DECL_CHAIN (last));
+#else
+  return DECL_CHAIN (last);
+#endif
+}
+
 
 #endif /* _OBJC_RUNTIME_SHARED_SUPPORT_H_ */

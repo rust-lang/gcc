@@ -25,6 +25,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree.h"
 #include "stringpool.h"
 #include "attribs.h"
+#include "stor-layout.h"
 
 #ifdef OBJCPLUS
 #include "cp/cp-tree.h"
@@ -495,9 +496,11 @@ build_selector_table_decl (void)
   tree temp;
 
   build_selector_template ();
-  temp = build_array_type (objc_selector_template, NULL_TREE);
 
-  UOBJC_SELECTOR_TABLE_decl = start_var_decl (temp, "_OBJC_SELECTOR_TABLE");
+  /* We need a forward reference, but do not know the real size at this
+     point.  */
+  temp = build_sized_array_type (objc_selector_template, 1);
+  UOBJC_SELECTOR_TABLE_decl = start_meta_decl (temp, "_OBJC_SELECTOR_TABLE");
   /* Squash `defined but not used' warning check_global_declaration.  */
   TREE_USED (UOBJC_SELECTOR_TABLE_decl) = 1;
   OBJCMETA (UOBJC_SELECTOR_TABLE_decl, objc_meta, meta_base);
@@ -520,7 +523,7 @@ gnu_runtime_abi_01_class_decl (tree klass)
   char buf[BUFSIZE];
   snprintf (buf, BUFSIZE, "_OBJC_Class_%s",
 	    IDENTIFIER_POINTER (CLASS_NAME (klass)));
-  decl = start_var_decl (objc_class_template, buf);
+  decl = start_meta_decl (objc_class_template, buf);
   OBJCMETA (decl, objc_meta, meta_base);
   return decl;
 }
@@ -532,7 +535,7 @@ gnu_runtime_abi_01_metaclass_decl (tree klass)
   char buf[BUFSIZE];
   snprintf (buf, BUFSIZE, "_OBJC_MetaClass_%s",
 	    IDENTIFIER_POINTER (CLASS_NAME (klass)));
-  decl = start_var_decl (objc_class_template, buf);
+  decl = start_meta_decl (objc_class_template, buf);
   OBJCMETA (decl, objc_meta, meta_base);
   return decl;
 }
@@ -545,7 +548,7 @@ gnu_runtime_abi_01_category_decl (tree klass)
   snprintf (buf, BUFSIZE, "_OBJC_Category_%s_on_%s",
 	    IDENTIFIER_POINTER (CLASS_SUPER_NAME (klass)),
 	    IDENTIFIER_POINTER (CLASS_NAME (klass)));
-  decl = start_var_decl (objc_category_template, buf);
+  decl = start_meta_decl (objc_category_template, buf);
   OBJCMETA (decl, objc_meta, meta_base);
   return decl;
 }
@@ -559,7 +562,7 @@ gnu_runtime_abi_01_protocol_decl (tree p)
   /* static struct _objc_protocol _OBJC_Protocol_<mumble>; */
   snprintf (buf, BUFSIZE, "_OBJC_Protocol_%s",
 	    IDENTIFIER_POINTER (PROTOCOL_NAME (p)));
-  decl = start_var_decl (objc_protocol_template, buf);
+  decl = start_meta_decl (objc_protocol_template, buf);
   OBJCMETA (decl, objc_meta, meta_base);
   return decl;
 }
@@ -568,7 +571,7 @@ static tree
 gnu_runtime_abi_01_string_decl (tree type, const char *name,
 				string_section where ATTRIBUTE_UNUSED)
 {
-  tree decl = start_var_decl (type, name);
+  tree decl = start_meta_decl (type, name);
   OBJCMETA (decl, objc_meta, meta_base);
   return decl;
 }
@@ -652,7 +655,7 @@ gnu_runtime_abi_01_build_typed_selector_reference (location_t loc, tree ident,
  return_at_index:
   expr = build_unary_op (loc, ADDR_EXPR,
 			 build_array_ref (loc, UOBJC_SELECTOR_TABLE_decl,
-					  build_int_cst (NULL_TREE, index)),
+					  size_int (index)),
 			 1);
   return convert (objc_selector_type, expr);
 }
@@ -760,6 +763,7 @@ gnu_runtime_abi_01_get_protocol_reference (location_t loc, tree p)
   if (!PROTOCOL_FORWARD_DECL (p))
     PROTOCOL_FORWARD_DECL (p) = gnu_runtime_abi_01_protocol_decl (p);
 
+  TREE_ADDRESSABLE (PROTOCOL_FORWARD_DECL (p)) = true;
   expr = build_unary_op (loc, ADDR_EXPR, PROTOCOL_FORWARD_DECL (p), 0);
 
   /* ??? Ideally we'd build the reference with objc_protocol_type directly,
@@ -919,14 +923,15 @@ gnu_runtime_abi_01_build_const_string_constructor (location_t loc, tree string,
   vec<constructor_elt, va_gc> *v = NULL;
 
   /* GNU:    (NXConstantString *) & ((__builtin_ObjCString) { NULL, string, length })  */
-  fields = TYPE_FIELDS (internal_const_str_type);
+  fields = first_type_field (internal_const_str_type);
   CONSTRUCTOR_APPEND_ELT (v, fields, build_int_cst (NULL_TREE, 0));
 
-  fields = DECL_CHAIN (fields);
+  fields = next_type_field (fields);
+  TREE_ADDRESSABLE (string) = true;
   CONSTRUCTOR_APPEND_ELT (v, fields, build_unary_op (loc,
 						     ADDR_EXPR, string, 1));
 
-  fields = DECL_CHAIN (fields);
+  fields = next_type_field (fields);
   CONSTRUCTOR_APPEND_ELT (v, fields, build_int_cst (NULL_TREE, length));
   constructor = objc_build_constructor (internal_const_str_type, v);
 
@@ -1030,7 +1035,7 @@ generate_classref_translation_entry (tree chain)
      but will be optimized away unless we force it.  */
   DECL_PRESERVE_P (decl) = 1;
   OBJCMETA (decl, objc_meta, meta_base);
-  finish_var_decl (decl, expr);
+  finish_meta_decl (decl, expr);
   return;
 }
 
@@ -1077,23 +1082,18 @@ handle_impent (struct imp_entry *impent)
     }
 
     {
-      tree decl, init;
-
-      init = integer_zero_node;
-      decl = build_decl (input_location,
-			 VAR_DECL, get_identifier (string), TREE_TYPE (init));
-      TREE_PUBLIC (decl) = 1;
-      TREE_READONLY (decl) = 1;
-      TREE_USED (decl) = 1;
-      TREE_CONSTANT (decl) = 1;
-      DECL_CONTEXT (decl) = NULL_TREE;
-      DECL_ARTIFICIAL (decl) = 1;
-      TREE_STATIC (decl) = 1;
-      DECL_INITIAL (decl) = error_mark_node; /* A real initializer is coming... */
-      /* We must force the reference.  */
-      DECL_PRESERVE_P (decl) = 1;
-
-      finish_var_decl(decl, init) ;
+      tree decl = start_meta_decl (integer_type_node, string);
+      TREE_READONLY (decl) = true;
+      TREE_PUBLIC (decl) = true;
+      TREE_USED (decl) = true;
+      /* We must keep this even if LTO can see it is not directly used.  */
+      DECL_PRESERVE_P (decl) = true;
+      DECL_IGNORED_P (decl) = false;
+#ifdef OBJCPLUS
+      DECL_THIS_STATIC (decl) = false;
+#endif
+      tree init = build_zero_cst (integer_type_node);
+      finish_meta_decl (decl, init) ;
     }
 }
 
@@ -1101,35 +1101,36 @@ tree
 build_protocol_initializer (tree type, tree protocol_name, tree protocol_list,
 			    tree inst_methods, tree class_methods)
 {
-  tree expr, ttyp;
-  location_t loc;
   vec<constructor_elt, va_gc> *inits = NULL;
 
-  /* TODO: pass the loc in or find it from args.  */
-  loc = input_location;
-  ttyp = build_pointer_type (xref_tag (RECORD_TYPE,
-				       get_identifier (UTAG_CLASS)));
+  tree ttyp = build_pointer_type (xref_tag (RECORD_TYPE,
+				  get_identifier (UTAG_CLASS)));
   /* Filling the "isa" in with a version allows the runtime system to
      detect this ...   */
-  expr = build_int_cst (ttyp, PROTOCOL_VERSION);
+  tree expr = build_int_cst (ttyp, PROTOCOL_VERSION);
+  tree fields = first_type_field (type);
+  CONSTRUCTOR_APPEND_ELT (inits, fields, expr);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (inits, fields, protocol_name);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (inits, fields, protocol_list);
 
-  CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, expr);
-
-  CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, protocol_name);
-  CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, protocol_list);
-
-  ttyp = objc_method_proto_list_ptr;
+  /* TODO: pass the loc in or find it from args.  */
+  location_t loc = input_location;
+   ttyp = objc_method_proto_list_ptr;
   if (inst_methods)
     expr = convert (ttyp, build_unary_op (loc, ADDR_EXPR, inst_methods, 0));
   else
     expr = convert (ttyp, null_pointer_node);
-  CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, expr);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (inits, fields, expr);
 
   if (class_methods)
     expr = convert (ttyp, build_unary_op (loc, ADDR_EXPR, class_methods, 0));
   else
     expr = convert (ttyp, null_pointer_node);
-  CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, expr);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (inits, fields, expr);
 
   return objc_build_constructor (type, inits);
 }
@@ -1137,11 +1138,7 @@ build_protocol_initializer (tree type, tree protocol_name, tree protocol_list,
 static tree
 generate_protocol_list (tree i_or_p, tree klass_ctxt)
 {
-  tree array_type, ptype, refs_decl, lproto, e, plist;
-  vec<constructor_elt, va_gc> *v = NULL;
-  char buf[BUFSIZE];
-  int size = 0;
-
+  tree plist;
   switch (TREE_CODE (i_or_p))
     {
     case CLASS_INTERFACE_TYPE:
@@ -1156,17 +1153,22 @@ generate_protocol_list (tree i_or_p, tree klass_ctxt)
     }
 
   /* Compute size.  */
-  for (lproto = plist; lproto; lproto = TREE_CHAIN (lproto))
+  int size = 0;
+  for (tree lproto = plist; lproto; lproto = TREE_CHAIN (lproto))
     if (TREE_CODE (TREE_VALUE (lproto)) == PROTOCOL_INTERFACE_TYPE
 	&& PROTOCOL_FORWARD_DECL (TREE_VALUE (lproto)))
       size++;
 
   /* Build initializer.  */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, build_int_cst (NULL_TREE, 0));
-  e = build_int_cst (build_pointer_type (objc_protocol_template), size);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, e);
+  vec<constructor_elt, va_gc> *v = NULL;
+  unsigned n = 0;
+  tree idx = size_int (n++);
+  CONSTRUCTOR_APPEND_ELT (v, idx, build_int_cst (NULL_TREE, 0));
+  tree e = build_int_cst (build_pointer_type (objc_protocol_template), size);
+  idx = size_int (n++);
+  CONSTRUCTOR_APPEND_ELT (v, idx, e);
 
-  for (lproto = plist; lproto; lproto = TREE_CHAIN (lproto))
+  for (tree lproto = plist; lproto; lproto = TREE_CHAIN (lproto))
     {
       tree pval = TREE_VALUE (lproto);
 
@@ -1176,12 +1178,13 @@ generate_protocol_list (tree i_or_p, tree klass_ctxt)
 	  tree fwref = PROTOCOL_FORWARD_DECL (pval);
 	  location_t loc = DECL_SOURCE_LOCATION (fwref) ;
 	  e = build_unary_op (loc, ADDR_EXPR, fwref, 0);
-          CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, e);
+	  idx = size_int (n++);
+	  CONSTRUCTOR_APPEND_ELT (v, idx, e);
 	}
     }
 
   /* static struct objc_protocol *refs[n]; */
-
+  char buf[BUFSIZE];
   switch (TREE_CODE (i_or_p))
     {
     case PROTOCOL_INTERFACE_TYPE:
@@ -1201,12 +1204,11 @@ generate_protocol_list (tree i_or_p, tree klass_ctxt)
       gcc_unreachable ();
     }
 
-  ptype = build_pointer_type (objc_protocol_template);
-  array_type = build_sized_array_type (ptype, size + 3);
-  refs_decl = start_var_decl (array_type, buf);
+  tree ptype = build_pointer_type (objc_protocol_template);
+  tree array_type = build_sized_array_type (ptype, size + 3);
+  tree refs_decl = start_meta_decl (array_type, buf);
   OBJCMETA (refs_decl, objc_meta, meta_base);
-  finish_var_decl (refs_decl,
-                   objc_build_constructor (TREE_TYPE (refs_decl), v));
+  finish_meta_decl (refs_decl, objc_build_constructor (array_type, v));
 
   return refs_decl;
 }
@@ -1214,33 +1216,31 @@ generate_protocol_list (tree i_or_p, tree klass_ctxt)
 static tree
 generate_v1_meth_descriptor_table (tree chain, tree protocol, const char *prefix)
 {
-  tree method_list_template, initlist, decl;
-  int size;
-  vec<constructor_elt, va_gc> *v = NULL;
-  char buf[BUFSIZE];
-
   if (!chain || !prefix)
     return NULL_TREE;
 
   if (!objc_method_prototype_template)
     objc_method_prototype_template = build_method_prototype_template ();
 
-  size = list_length (chain);
-  method_list_template =
-	build_method_prototype_list_template (objc_method_prototype_template,
-					      size);
+  int size = list_length (chain);
+  tree method_list_template
+    = build_method_prototype_list_template (objc_method_prototype_template,
+					    size);
+  char buf[BUFSIZE];
   snprintf (buf, BUFSIZE, "%s_%s", prefix,
 	    IDENTIFIER_POINTER (PROTOCOL_NAME (protocol)));
 
-  decl = start_var_decl (method_list_template, buf);
-
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, build_int_cst (NULL_TREE, size));
-  initlist =
-	build_descriptor_table_initializer (objc_method_prototype_template,
-					    chain);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, initlist);
+  tree decl = start_meta_decl (method_list_template, buf);
+  vec<constructor_elt, va_gc> *v = NULL;
+  tree fields = first_type_field (method_list_template);
+  CONSTRUCTOR_APPEND_ELT (v, fields, build_int_cst (NULL_TREE, size));
+  tree initlist
+    = build_descriptor_table_initializer (objc_method_prototype_template,
+					  chain);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, initlist);
   OBJCMETA (decl, objc_meta, meta_base);
-  finish_var_decl (decl, objc_build_constructor (method_list_template, v));
+  finish_meta_decl (decl, objc_build_constructor (method_list_template, v));
   return decl;
 }
 
@@ -1341,14 +1341,13 @@ generate_protocols (void)
 
       /* static struct objc_protocol _OBJC_PROTOCOL_<mumble>; */
       protocol_name_expr = add_objc_string (PROTOCOL_NAME (p), class_names);
-
+      tree prot_ptr = build_pointer_type (objc_protocol_template);
       if (refs_decl)
-	refs_expr = convert (build_pointer_type (build_pointer_type
-						 (objc_protocol_template)),
-			     build_unary_op (input_location,
-					     ADDR_EXPR, refs_decl, 0));
+	refs_expr
+	  = convert (prot_ptr, build_unary_op (input_location, ADDR_EXPR,
+					       refs_decl, 0));
       else
-	refs_expr = build_int_cst (NULL_TREE, 0);
+	refs_expr = build_zero_cst (prot_ptr);
 
       /* UOBJC_INSTANCE_METHODS_decl/UOBJC_CLASS_METHODS_decl are set
 	 by generate_method_descriptors, which is called above.  */
@@ -1356,34 +1355,33 @@ generate_protocols (void)
 					     protocol_name_expr, refs_expr,
 					     UOBJC_INSTANCE_METHODS_decl,
 					     UOBJC_CLASS_METHODS_decl);
-      finish_var_decl (decl, initlist);
+      finish_meta_decl (decl, initlist);
     }
 }
 
 static tree
 generate_dispatch_table (tree chain, const char *name)
 {
-  tree decl, method_list_template, initlist;
-  vec<constructor_elt, va_gc> *v = NULL;
-  int size = list_length (chain);
-
   if (!objc_method_template)
     objc_method_template = build_method_template ();
 
-  method_list_template = build_method_list_template (objc_method_template,
-						     size);
-  initlist = build_dispatch_table_initializer (objc_method_template, chain);
+  int size = list_length (chain);
+  tree method_list_template
+    = build_method_list_template (objc_method_template, size);
 
-  decl = start_var_decl (method_list_template, name);
-
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, integer_zero_node);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
-			  build_int_cst (integer_type_node, size));
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, initlist);
+  tree decl = start_meta_decl (method_list_template, name);
+  vec<constructor_elt, va_gc> *v = NULL;
+  tree fields = first_type_field (method_list_template);
+  CONSTRUCTOR_APPEND_ELT (v, fields, integer_zero_node);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, build_int_cst (integer_type_node, size));
+  tree initlist
+    = build_dispatch_table_initializer (objc_method_template, chain);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, initlist);
 
   OBJCMETA (decl, objc_meta, meta_base);
-  finish_var_decl (decl,
-		   objc_build_constructor (TREE_TYPE (decl), v));
+  finish_meta_decl (decl, objc_build_constructor (TREE_TYPE (decl), v));
 
   return decl;
 }
@@ -1394,36 +1392,38 @@ build_category_initializer (tree type, tree cat_name, tree class_name,
 			    tree inst_methods, tree class_methods,
 			    tree protocol_list)
 {
-  tree expr, ltyp;
-  location_t loc;
   vec<constructor_elt, va_gc> *v = NULL;
+  tree fields = first_type_field (type);
+  CONSTRUCTOR_APPEND_ELT (v, fields, cat_name);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, class_name);
 
+  tree ltyp = objc_method_list_ptr;
   /* TODO: pass the loc in or find it from args.  */
-  /* TODO: pass the loc in or find it from args.  */
-  loc = UNKNOWN_LOCATION;
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, cat_name);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, class_name);
-
-  ltyp = objc_method_list_ptr;
+  location_t loc = UNKNOWN_LOCATION;
+  tree expr;
   if (inst_methods)
     expr = convert (ltyp, build_unary_op (loc, ADDR_EXPR, inst_methods, 0));
   else
     expr = convert (ltyp, null_pointer_node);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, expr);
 
   if (class_methods)
     expr = convert (ltyp, build_unary_op (loc, ADDR_EXPR, class_methods, 0));
   else
     expr = convert (ltyp, null_pointer_node);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, expr);
 
   /* protocol_list = */
   ltyp = build_pointer_type (build_pointer_type (objc_protocol_template));
   if (protocol_list)
     expr = convert (ltyp, build_unary_op (loc, ADDR_EXPR, protocol_list, 0));
   else
-    expr = convert (ltyp, null_pointer_node);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+    expr = build_zero_cst (ltyp);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, expr);
 
   return objc_build_constructor (type, v);
 }
@@ -1477,7 +1477,7 @@ generate_category (struct imp_entry *impent)
 					 inst_methods, class_methods,
 					 protocol_decl);
   /* Finish and initialize the forward decl.  */
-  finish_var_decl (cat_decl, initlist);
+  finish_meta_decl (cat_decl, initlist);
   impent->class_decl = cat_decl;
 }
 
@@ -1503,77 +1503,85 @@ build_shared_structure_initializer (tree type, tree isa, tree super,
 				    tree dispatch_table, tree ivar_list,
 				    tree protocol_list)
 {
-  tree expr, ltyp;
   vec<constructor_elt, va_gc> *v = NULL;
 
   /* isa = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, isa);
+  tree fields = first_type_field (type);
+  CONSTRUCTOR_APPEND_ELT (v, fields, isa);
 
   /* super_class = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, super);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, super);
 
   /* name = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, default_conversion (name));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, default_conversion (name));
 
   /* version = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
-                          build_int_cst (long_integer_type_node, 0));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields,
+			  build_int_cst (long_integer_type_node, 0));
 
   /* info = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
-                          build_int_cst (long_integer_type_node, status));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields,
+			  build_int_cst (long_integer_type_node, status));
 
   /* instance_size = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
-                          convert (long_integer_type_node, size));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, convert (long_integer_type_node, size));
 
   /* objc_ivar_list = */
-  if (!ivar_list)
-    CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
-			    build_int_cst (objc_ivar_list_ptr, 0));
-  else
+  fields = next_type_field (fields);
+  if (ivar_list)
     {
-      expr = convert (objc_ivar_list_ptr,
-		      build_unary_op (input_location, ADDR_EXPR,
-				      ivar_list, 0));
-      CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+      tree expr = convert (objc_ivar_list_ptr,
+			   build_unary_op (input_location, ADDR_EXPR,
+					   ivar_list, 0));
+      CONSTRUCTOR_APPEND_ELT (v, fields, expr);
     }
+ else
+    CONSTRUCTOR_APPEND_ELT (v, fields, build_zero_cst (objc_ivar_list_ptr));
 
   /* objc_method_list = */
-  if (!dispatch_table)
-    CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
-			   convert (objc_method_list_ptr, null_pointer_node));
-  else
-    {
-      expr = convert (objc_method_list_ptr,
-		      build_unary_op (input_location, ADDR_EXPR,
-				      dispatch_table, 0));
-      CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+  fields = next_type_field (fields);
+  if (dispatch_table)
+   {
+      tree expr = convert (objc_method_list_ptr,
+			   build_unary_op (input_location, ADDR_EXPR,
+					   dispatch_table, 0));
+      CONSTRUCTOR_APPEND_ELT (v, fields, expr);
     }
+  else
+   CONSTRUCTOR_APPEND_ELT (v, fields, build_zero_cst (objc_method_list_ptr));
 
   /* dtable = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, build_int_cst (NULL_TREE, 0));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, build_int_cst (NULL_TREE, 0));
 
   /* subclass_list = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, build_int_cst (NULL_TREE, 0));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, build_int_cst (NULL_TREE, 0));
 
   /* sibling_class = */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, build_int_cst (NULL_TREE, 0));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, build_int_cst (NULL_TREE, 0));
 
   /* protocol_list = */
-  ltyp = build_pointer_type (build_pointer_type (objc_protocol_template));
-  if (! protocol_list)
-    CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, build_int_cst (ltyp, 0));
-  else
+  tree ltyp = build_pointer_type (build_pointer_type (objc_protocol_template));
+  fields = next_type_field (fields);
+  if (protocol_list)
     {
-      expr = convert (ltyp,
-		      build_unary_op (input_location, ADDR_EXPR,
-				      protocol_list, 0));
-      CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+      tree expr = convert (ltyp, build_unary_op (input_location, ADDR_EXPR,
+						 protocol_list, 0));
+      CONSTRUCTOR_APPEND_ELT (v, fields, expr);
     }
+  else
+    CONSTRUCTOR_APPEND_ELT (v, fields, build_zero_cst (ltyp));
 
   /* gc_object_type = NULL */
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, build_int_cst (NULL_TREE, 0));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, build_zero_cst (TREE_TYPE (fields)));
 
   return objc_build_constructor (type, v);
 }
@@ -1582,31 +1590,27 @@ build_shared_structure_initializer (tree type, tree isa, tree super,
 static tree
 generate_ivars_list (tree chain, const char *name)
 {
-  tree initlist, ivar_list_template, decl;
-  int size;
-  vec<constructor_elt, va_gc> *inits = NULL;
-
   if (!chain)
     return NULL_TREE;
 
   if (!objc_ivar_template)
     objc_ivar_template = build_ivar_template ();
 
-  size = ivar_list_length (chain);
-
+  int size = ivar_list_length (chain);
   generating_instance_variables = 1;
-  ivar_list_template = build_ivar_list_template (objc_ivar_template, size);
-  initlist = build_ivar_list_initializer (objc_ivar_template, chain);
+  tree ivar_list_template = build_ivar_list_template (objc_ivar_template, size);
+  tree initlist = build_ivar_list_initializer (objc_ivar_template, chain);
   generating_instance_variables = 0;
 
-  decl = start_var_decl (ivar_list_template, name);
-
-  CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, build_int_cst (NULL_TREE, size));
-  CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, initlist);
+  tree decl = start_meta_decl (ivar_list_template, name);
+  vec<constructor_elt, va_gc> *inits = NULL;
+  tree fields = first_type_field (ivar_list_template);
+  CONSTRUCTOR_APPEND_ELT (inits, fields, build_int_cst (NULL_TREE, size));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (inits, fields, initlist);
 
   OBJCMETA (decl, objc_meta, meta_base);
-  finish_var_decl (decl,
-		   objc_build_constructor (TREE_TYPE (decl), inits));
+  finish_meta_decl (decl, objc_build_constructor (ivar_list_template, inits));
 
   return decl;
 }
@@ -1710,7 +1714,7 @@ generate_class_structures (struct imp_entry *impent)
 			CLS_META, class_methods, class_ivars,
 			protocol_decl);
 
-  finish_var_decl (meta_decl, initlist);
+  finish_meta_decl (meta_decl, initlist);
   impent->meta_decl = meta_decl;
 
   /* static struct objc_class _OBJC_CLASS_Foo={ ... }; */
@@ -1718,8 +1722,9 @@ generate_class_structures (struct imp_entry *impent)
     {
       snprintf (buf, BUFSIZE, "_OBJC_InstanceMethods_%s",
 		IDENTIFIER_POINTER (CLASS_NAME (impent->imp_context)));
-      inst_methods = generate_dispatch_table (CLASS_NST_METHODS (impent->imp_context),
-					      buf);
+      inst_methods
+	= generate_dispatch_table (CLASS_NST_METHODS (impent->imp_context),
+				   buf);
     }
 
   if ((chain = CLASS_IVARS (impent->imp_template)))
@@ -1740,7 +1745,7 @@ generate_class_structures (struct imp_entry *impent)
 		CLS_FACTORY | cls_flags, inst_methods, inst_ivars,
 		protocol_decl);
 
-  finish_var_decl (class_decl, initlist);
+  finish_meta_decl (class_decl, initlist);
   impent->class_decl = class_decl;
 }
 
@@ -1763,24 +1768,17 @@ handle_class_ref (tree chain)
   DECL_EXTERNAL (decl) = 1;
   TREE_PUBLIC (decl) = 1;
   DECL_CONTEXT (decl) = NULL_TREE;
-  finish_var_decl (decl, 0);
+  finish_decl (decl, input_location, NULL_TREE, NULL_TREE, NULL_TREE);
 
   /* Make a decl for the address.  */
   sprintf (string, "__objc_class_ref_%s", name);
-  exp = build1 (ADDR_EXPR, string_type_node, decl);
-  decl = build_decl (input_location,
-		     VAR_DECL, get_identifier (string), string_type_node);
-  TREE_STATIC (decl) = 1;
+  decl = start_meta_decl (ptr_type_node, name);
   TREE_USED (decl) = 1;
   DECL_READ_P (decl) = 1;
-  DECL_ARTIFICIAL (decl) = 1;
-  DECL_INITIAL (decl) = error_mark_node;
-
   /* We must force the reference.  */
   DECL_PRESERVE_P (decl) = 1;
-
-  DECL_CONTEXT (decl) = NULL_TREE;
-  finish_var_decl (decl, exp);
+  exp = build1 (ADDR_EXPR, ptr_type_node, decl);
+  finish_meta_decl (decl, exp);
 }
 
 static tree
@@ -1806,16 +1804,15 @@ get_proto_encoding (tree proto)
 static void
 build_gnu_selector_translation_table (void)
 {
-  tree chain, expr;
-  vec<constructor_elt, va_gc> *inits = NULL;
-  vec<constructor_elt, va_gc> *v ;
-
   /* Cause the selector table (previously forward-declared)
      to be actually output.  */
 
-  for (chain = sel_ref_chain; chain; chain = TREE_CHAIN (chain))
+  tree f1 = first_type_field (objc_selector_template);
+  tree f2 = next_type_field (f1);
+  vec<constructor_elt, va_gc> *inits = NULL;
+  unsigned n = 0;
+  for (tree chain = sel_ref_chain; chain; chain = TREE_CHAIN (chain))
     {
-      tree encoding;
       if (warn_selector)
 	{
 	  /* TODO: improve on the location for the diagnostic.  */
@@ -1823,85 +1820,92 @@ build_gnu_selector_translation_table (void)
 	  diagnose_missing_method (TREE_VALUE (chain), loc);
 	}
 
-      v = NULL;
-      expr = build_selector (TREE_VALUE (chain));
-      encoding = get_proto_encoding (TREE_PURPOSE (chain));
-      CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
-      CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, encoding);
+      vec<constructor_elt, va_gc> *v = NULL;
+      tree expr = build_selector (TREE_VALUE (chain));
+      tree encoding = get_proto_encoding (TREE_PURPOSE (chain));
+      CONSTRUCTOR_APPEND_ELT (v, f1, expr);
+      CONSTRUCTOR_APPEND_ELT (v, f2, encoding);
       expr = objc_build_constructor (objc_selector_template, v);
 
-      CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, expr);
+      tree idx = size_int (n++);
+      CONSTRUCTOR_APPEND_ELT (inits, idx, expr);
     } /* each element in the chain */
 
   /* List terminator.  */
-  v = NULL;
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, integer_zero_node);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, integer_zero_node);
-  expr = objc_build_constructor (objc_selector_template, v);
+  vec<constructor_elt, va_gc> *v = NULL;
+  CONSTRUCTOR_APPEND_ELT (v, f1, build_zero_cst (TREE_TYPE (f1)));
+  CONSTRUCTOR_APPEND_ELT (v, f2, build_zero_cst (TREE_TYPE (f2)));
+  tree expr = objc_build_constructor (objc_selector_template, v);
 
-  CONSTRUCTOR_APPEND_ELT (inits, NULL_TREE, expr);
-  expr = objc_build_constructor (TREE_TYPE (UOBJC_SELECTOR_TABLE_decl),
-				     inits);
-  finish_var_decl (UOBJC_SELECTOR_TABLE_decl, expr);
+  tree idx = size_int (n++);
+  CONSTRUCTOR_APPEND_ELT (inits, idx, expr);
+  /* Now we know the size of the array.  */
+  tree type = build_sized_array_type (objc_selector_template, n);
+  TREE_TYPE (UOBJC_SELECTOR_TABLE_decl) = type;
+  relayout_decl (UOBJC_SELECTOR_TABLE_decl);
+  expr = objc_build_constructor (type, inits);
+  finish_meta_decl (UOBJC_SELECTOR_TABLE_decl, expr);
 }
 
-/* Output references to all statically allocated objects.  Return the DECL
-   for the array built.  */
+/* Output references to all statically allocated objects.  */
 
 static void
 generate_static_references (void)
 {
-  tree expr = NULL_TREE;
-  tree class_name, klass, decl;
-  tree cl_chain, in_chain, type
-    = build_array_type (build_pointer_type (void_type_node), NULL_TREE);
-  int num_class;
-  char buf[BUFSIZE];
   vec<constructor_elt, va_gc> *decls = NULL;
-
-  for (cl_chain = objc_static_instances, num_class = 0;
-       cl_chain; cl_chain = TREE_CHAIN (cl_chain), num_class++)
+  int num_class = 0;
+  for (tree cl_chain = objc_static_instances;
+       cl_chain; cl_chain = TREE_CHAIN (cl_chain))
     {
       vec<constructor_elt, va_gc> *v = NULL;
 
-      for (in_chain = TREE_PURPOSE (cl_chain);
-	   in_chain; in_chain = TREE_CHAIN (in_chain));
-
-      snprintf (buf, BUFSIZE, "_OBJC_STATIC_INSTANCES_%d", num_class);
-      decl = start_var_decl (type, buf);
-
+      /* Inner index (num_class is the outer).  */
+      unsigned n = 0;
       /* Output {class_name, ...}.  */
-      klass = TREE_VALUE (cl_chain);
-      class_name = get_objc_string_decl (OBJC_TYPE_NAME (klass), class_names);
-      CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
+      tree klass = TREE_VALUE (cl_chain);
+      tree class_name
+	= get_objc_string_decl (OBJC_TYPE_NAME (klass), class_names);
+      tree idx = size_int (n++);
+      CONSTRUCTOR_APPEND_ELT (v, idx,
 			      build_unary_op (input_location,
 					      ADDR_EXPR, class_name, 1));
 
       /* Output {..., instance, ...}.  */
-      for (in_chain = TREE_PURPOSE (cl_chain);
+      for (tree in_chain = TREE_PURPOSE (cl_chain);
 	   in_chain; in_chain = TREE_CHAIN (in_chain))
 	{
-	  expr = build_unary_op (input_location,
-				 ADDR_EXPR, TREE_VALUE (in_chain), 1);
-	  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+	  tree expr = build_unary_op (input_location,
+				      ADDR_EXPR, TREE_VALUE (in_chain), 1);
+	  idx = size_int (n++);
+	  CONSTRUCTOR_APPEND_ELT (v, idx, expr);
 	}
 
       /* Output {..., NULL}.  */
-      CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, build_int_cst (NULL_TREE, 0));
+      idx = size_int (n++);
+      CONSTRUCTOR_APPEND_ELT (v, idx, null_pointer_node);
 
-      expr = objc_build_constructor (TREE_TYPE (decl), v);
+      tree inner = build_sized_array_type (ptr_type_node, n);
+      char buf[BUFSIZE];
+      snprintf (buf, BUFSIZE, "_OBJC_STATIC_INSTANCES_%d", num_class);
+      tree decl = start_meta_decl (inner, buf);
+
+      tree expr = objc_build_constructor (inner, v);
       OBJCMETA (decl, objc_meta, meta_base);
-      finish_var_decl (decl, expr);
-      CONSTRUCTOR_APPEND_ELT (decls, NULL_TREE,
+      finish_meta_decl (decl, expr);
+      idx = build_int_cst (unsigned_type_node, num_class++);
+      CONSTRUCTOR_APPEND_ELT (decls, idx,
 			      build_unary_op (input_location,
 					      ADDR_EXPR, decl, 1));
     }
 
-  CONSTRUCTOR_APPEND_ELT (decls, NULL_TREE, build_int_cst (NULL_TREE, 0));
-  expr = objc_build_constructor (type, decls);
-  static_instances_decl = start_var_decl (type, "_OBJC_STATIC_INSTANCES");
+  tree idx = build_int_cst (unsigned_type_node, num_class++);
+  CONSTRUCTOR_APPEND_ELT (decls, idx, null_pointer_node);
+
+  tree outer = build_sized_array_type (ptr_type_node, num_class);
+  tree expr = objc_build_constructor (outer, decls);
+  static_instances_decl = start_meta_decl (outer, "_OBJC_STATIC_INSTANCES");
   OBJCMETA (static_instances_decl, objc_meta, meta_base);
-  finish_var_decl (static_instances_decl, expr);
+  finish_meta_decl (static_instances_decl, expr);
 }
 
 /* Create the initial value for the `defs' field of _objc_symtab.
@@ -1910,42 +1914,44 @@ generate_static_references (void)
 static tree
 init_def_list (tree type)
 {
-  tree expr;
-  struct imp_entry *impent;
-  location_t loc;
   vec<constructor_elt, va_gc> *v = NULL;
 
+  unsigned n = 0;
   if (imp_count)
-    for (impent = imp_list; impent; impent = impent->next)
+    for (struct imp_entry *impent = imp_list; impent; impent = impent->next)
       {
 	if (TREE_CODE (impent->imp_context) == CLASS_IMPLEMENTATION_TYPE)
 	  {
-	    loc = DECL_SOURCE_LOCATION (impent->class_decl);
-	    expr = build_unary_op (loc,
-				   ADDR_EXPR, impent->class_decl, 0);
-	    CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+	    location_t loc = DECL_SOURCE_LOCATION (impent->class_decl);
+	    tree expr = build_unary_op (loc,
+					ADDR_EXPR, impent->class_decl, 0);
+	    tree idx = size_int (n++);
+	    CONSTRUCTOR_APPEND_ELT (v, idx, expr);
 	  }
       }
 
   if (cat_count)
-    for (impent = imp_list; impent; impent = impent->next)
+    for (struct imp_entry *impent = imp_list; impent; impent = impent->next)
       {
 	if (TREE_CODE (impent->imp_context) == CATEGORY_IMPLEMENTATION_TYPE)
 	  {
-	    loc = DECL_SOURCE_LOCATION (impent->class_decl);
-	    expr = build_unary_op (loc,
-				   ADDR_EXPR, impent->class_decl, 0);
-	    CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+	    location_t loc = DECL_SOURCE_LOCATION (impent->class_decl);
+	    tree expr = build_unary_op (loc,
+					ADDR_EXPR, impent->class_decl, 0);
+	    tree idx = size_int (n++);
+	    CONSTRUCTOR_APPEND_ELT (v, idx, expr);
 	  }
       }
 
-  loc = UNKNOWN_LOCATION;
+  location_t loc = UNKNOWN_LOCATION;
   /* statics = { ..., _OBJC_STATIC_INSTANCES, ... }  */
+  tree expr;
   if (static_instances_decl)
     expr = build_unary_op (loc, ADDR_EXPR, static_instances_decl, 0);
   else
-    expr = integer_zero_node;
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+    expr = null_pointer_node;
+  tree idx = size_int (n++);
+  CONSTRUCTOR_APPEND_ELT (v, idx, expr);
 
   return objc_build_constructor (type, v);
 }
@@ -1998,43 +2004,38 @@ build_objc_symtab_template (void)
 static tree
 init_objc_symtab (tree type)
 {
-  tree field, expr, ltyp;
-  location_t loc;
   vec<constructor_elt, va_gc> *v = NULL;
 
-  loc = UNKNOWN_LOCATION;
-
   /* sel_ref_cnt = { ..., 5, ... } */
-
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
+  tree fields = first_type_field (type);
+  CONSTRUCTOR_APPEND_ELT (v, fields,
 			  build_int_cst (long_integer_type_node, 0));
 
   /* refs = { ..., _OBJC_SELECTOR_TABLE, ... } */
-
-  ltyp = build_pointer_type (objc_selector_type);
+  location_t loc = UNKNOWN_LOCATION;
+  tree ltyp = build_pointer_type (objc_selector_type);
+  tree expr;
   if (sel_ref_chain)
     expr = convert (ltyp, build_unary_op (loc, ADDR_EXPR,
 					  UOBJC_SELECTOR_TABLE_decl, 1));
   else
     expr = convert (ltyp, null_pointer_node);
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, expr);
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, expr);
 
   /* cls_def_cnt = { ..., 5, ... } */
-
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields,
 			  build_int_cst (short_integer_type_node, imp_count));
 
   /* cat_def_cnt = { ..., 5, ... } */
-
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE,
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields,
 			  build_int_cst (short_integer_type_node, cat_count));
 
   /* cls_def = { ..., { &Foo, &Bar, ...}, ... } */
-
-  field = TYPE_FIELDS (type);
-  field = DECL_CHAIN (DECL_CHAIN (DECL_CHAIN (DECL_CHAIN (field))));
-
-  CONSTRUCTOR_APPEND_ELT (v, NULL_TREE, init_def_list (TREE_TYPE (field)));
+  fields = next_type_field (fields);
+  CONSTRUCTOR_APPEND_ELT (v, fields, init_def_list (TREE_TYPE (fields)));
 
   return objc_build_constructor (type, v);
 }
@@ -2046,10 +2047,10 @@ static void
 generate_objc_symtab_decl (void)
 {
   build_objc_symtab_template ();
-  UOBJC_SYMBOLS_decl = start_var_decl (objc_symtab_template, "_OBJC_SYMBOLS");
+  UOBJC_SYMBOLS_decl = start_meta_decl (objc_symtab_template, "_OBJC_SYMBOLS");
   OBJCMETA (UOBJC_SYMBOLS_decl, objc_meta, meta_base);
-  finish_var_decl (UOBJC_SYMBOLS_decl,
-		   init_objc_symtab (TREE_TYPE (UOBJC_SYMBOLS_decl)));
+  finish_meta_decl (UOBJC_SYMBOLS_decl,
+		    init_objc_symtab (TREE_TYPE (UOBJC_SYMBOLS_decl)));
 }
 
 static void
@@ -2180,7 +2181,7 @@ make_err_class:
 			     IDENTIFIER_POINTER (ident));
       /* We have to finalize this var here, because this might be called after
 	 all the other metadata strings have been emitted.  */
-      finish_var_decl (decl, str);
+      finish_meta_decl (decl, str);
     }
   return eh_id;
 }

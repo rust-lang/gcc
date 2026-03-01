@@ -3386,17 +3386,12 @@ objc_build_string_object (tree string)
 tree
 objc_build_constructor (tree type, vec<constructor_elt, va_gc> *elts)
 {
+  gcc_checking_assert (!elts || (*elts)[0].index);
   tree constructor = build_constructor (type, elts);
 
   TREE_CONSTANT (constructor) = 1;
   TREE_STATIC (constructor) = 1;
   TREE_READONLY (constructor) = 1;
-
-#ifdef OBJCPLUS
-  /* If we know the initializer, then set the type to what C++ expects.  */
-  if (elts && !(*elts)[0].index)
-    TREE_TYPE (constructor) = init_list_type_node;
-#endif
   return constructor;
 }
 
