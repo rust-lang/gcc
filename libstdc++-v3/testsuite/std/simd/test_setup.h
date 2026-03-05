@@ -73,6 +73,12 @@ static std::string_view test_name = "unknown";
 
 namespace simd = std::simd;
 
+template <typename T, typename... Us>
+  concept any_type_of = (std::same_as<T, Us> || ...);
+
+template <typename T>
+  concept complex_like = std::simd::__complex_like<T>;
+
 template <typename T>
   struct is_character_type
   : std::bool_constant<false>
@@ -285,8 +291,16 @@ template <typename T>
 	using TT = typename T::value_type;
 	if constexpr (std::is_integral_v<TT>)
 	  return all_of(a == b);
+	else if constexpr (T::abi_type::_S_nreg > 1)
+	  {
+	    return bit_equal(a._M_get_low(), b._M_get_low())
+		     && bit_equal(a._M_get_high(), b._M_get_high());
+	  }
 	else
 	  {
+	    // float, 4 -> unsigned, 4 (uint_size = 4)
+	    // double, 4 -> ullong, 4 (uint_size = 8)
+	    // complex<double>, 4 -> ullong, 8 (uint_size = 8)
 	    constexpr size_t uint_size = std::min(size_t(8), sizeof(TT));
 	    struct B
 	    {
@@ -303,13 +317,26 @@ template <typename T>
 	      }
 	  }
       }
+    else if constexpr (complex_like<T>)
+      return bit_equal(a.real(), b.real()) && bit_equal(a.imag(), b.imag());
     else
       static_assert(false);
+  }
+
+// true iff real or imag parts of x are +/-inf. This matches the C23 Annex G interpretation.
+template <complex_like T, typename Abi>
+  constexpr typename simd::basic_vec<T, Abi>::mask_type
+  cx_isinf(const simd::basic_vec<T, Abi>& x)
+  {
+    using M = typename simd::basic_vec<T, Abi>::mask_type;
+    return M(isinf(x.real()) || isinf(x.imag()));
   }
 
 // treat as equal if either:
 // - operator== yields true
 // - or for floats, a and b are NaNs
+// - or for complex, a and b are any infinity (see cx_isinf)
+// - or for complex, a and b are NaNs in real *and* imag components
 template <typename V>
   constexpr bool
   equal_with_nan_and_inf_fixup(const V& a, const V& b)
@@ -321,9 +348,15 @@ template <typename V>
       {
 	using M = typename V::mask_type;
 	using T = typename V::value_type;
-	if constexpr (std::is_floating_point_v<T>)
+	if constexpr (complex_like<T>)
+	  { // fix up nan == nan and (inf,nan) == (inf,?)
+	    eq |= M(isnan(a.real()) && isnan(a.imag()) && isnan(b.real()) && isnan(a.imag()))
+		  // a and b are "an infinity" according to C23 Annex G.3
+		    || (cx_isinf(a) && cx_isinf(b));
+	  }
+	else if constexpr (std::is_floating_point_v<T>)
 	  { // fix up nan == nan results
-	    eq |= a._M_isnan() && b._M_isnan();
+	    eq |= isnan(a) && isnan(b);
 	  }
 	else
 	  return false;
@@ -617,6 +650,11 @@ template <std::size_t B, typename Abi>
   is_const_known(const std::simd::basic_mask<B, Abi>& x)
   { return __is_const_known(x); }
 
+template <typename T>
+  [[gnu::always_inline]] inline bool
+  is_const_known(const std::complex<T>& x)
+  { return is_const_known(x.real()) && is_const_known(x.imag()); }
+
 template <std::ranges::sized_range R>
   [[gnu::always_inline]] inline bool
   is_const_known(const R& arr)
@@ -675,6 +713,9 @@ template <typename V, int Init = 0, int MaxArg = int(test_iota_max<V, Init>)>
 		    i -= Max - Init + 1;
 		}
 	      using T = value_type_t<V>;
+	      if constexpr (std::simd::__simd_complex<V>)
+		return std::complex<T>(T(i), T());
+	      else
 		return static_cast<T>(i);
 	    });
 

@@ -18,7 +18,8 @@ template <typename V>
     ADD_TEST(mask_conversion) {
       std::array {alternating, k010, k00111},
       [](auto& t, M k) {
-	template for (auto tmp : {char(), short(), int(), double()})
+	template for (auto tmp : {char(), short(), int(), double(), std::complex<float>(),
+				  std::complex<double>()})
 	  {
 	    using U = decltype(tmp);
 	    using M2 = simd::rebind_t<U, M>;

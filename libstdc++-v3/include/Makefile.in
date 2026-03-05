@@ -629,12 +629,15 @@ bits_freestanding = \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/shared_ptr_atomic.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/shared_ptr_base.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_alg.h \
+@GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_bit.h \
+@GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_complex.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_details.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_flags.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_iterator.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_loadstore.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_mask.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_mask_reductions.h \
+@GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_math.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_reductions.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_vec.h \
 @GLIBCXX_HOSTED_TRUE@	${bits_srcdir}/simd_x86.h \

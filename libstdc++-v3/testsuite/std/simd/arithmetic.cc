@@ -3,6 +3,7 @@
 // { dg-additional-options "-msse2" }
 
 #include "test_setup.h"
+#include "complex_init.h"
 
 static constexpr bool is_iec559 =
 #ifdef __GCC_IEC_559
@@ -13,7 +14,6 @@ static constexpr bool is_iec559 =
       false;
 #endif
 
-#if VIR_NEXT_PATCH
 template <typename V>
   requires complex_like<typename V::value_type>
   struct Tests<V>
@@ -135,7 +135,6 @@ template <typename V>
       }
     };
   };
-#endif
 
 template <typename V>
   struct Tests

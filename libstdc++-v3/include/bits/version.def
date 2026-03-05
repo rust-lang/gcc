@@ -2429,6 +2429,17 @@ ftms = {
 };
 
 ftms = {
+  name = simd_complex;
+  values = {
+    no_stdname = true; // TODO: change once complete
+    v = 202502;
+    cxxmin = 26;
+    extra_cond = "defined __glibcxx_simd";
+    hosted = yes;
+  };
+};
+
+ftms = {
   name = is_structural;
   values = {
     v = 202603;

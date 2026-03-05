@@ -249,6 +249,7 @@ namespace simd
 
   template <__vectorizable _Tp, __abi_tag _Ap>
     requires (_Ap::_S_nreg == 1)
+      && (!__complex_like<_Tp>)
     class basic_vec<_Tp, _Ap>
     : public _VecBase<_Tp, _Ap>
     {
@@ -296,8 +297,13 @@ namespace simd
       }
 
       [[__gnu__::__always_inline__]]
+      constexpr _DataType&
+      _M_get() noexcept
+      { return _M_data; }
+
+      [[__gnu__::__always_inline__]]
       constexpr const _DataType&
-      _M_get() const
+      _M_get() const noexcept
       { return _M_data; }
 
       [[__gnu__::__always_inline__]]
@@ -1747,6 +1753,7 @@ namespace simd
 
   template <__vectorizable _Tp, __abi_tag _Ap>
     requires (_Ap::_S_nreg > 1)
+      && (!__complex_like<_Tp>)
     class basic_vec<_Tp, _Ap>
     : public _VecBase<_Tp, _Ap>
     {
@@ -1797,13 +1804,23 @@ namespace simd
       }
 
       [[__gnu__::__always_inline__]]
-      constexpr const _DataType0&
-      _M_get_low() const
+      constexpr _DataType0&
+      _M_get_low() noexcept
       { return _M_data0; }
 
       [[__gnu__::__always_inline__]]
+      constexpr const _DataType0&
+      _M_get_low() const noexcept
+      { return _M_data0; }
+
+      [[__gnu__::__always_inline__]]
+      constexpr _DataType1&
+      _M_get_high() noexcept
+      { return _M_data1; }
+
+      [[__gnu__::__always_inline__]]
       constexpr const _DataType1&
-      _M_get_high() const
+      _M_get_high() const noexcept
       { return _M_data1; }
 
       [[__gnu__::__always_inline__]]

@@ -273,12 +273,15 @@ bits_headers = \
 	${bits_srcdir}/shared_ptr_atomic.h \
 	${bits_srcdir}/shared_ptr_base.h \
 	${bits_srcdir}/simd_alg.h \
+	${bits_srcdir}/simd_bit.h \
+	${bits_srcdir}/simd_complex.h \
 	${bits_srcdir}/simd_details.h \
 	${bits_srcdir}/simd_flags.h \
 	${bits_srcdir}/simd_iterator.h \
 	${bits_srcdir}/simd_loadstore.h \
 	${bits_srcdir}/simd_mask.h \
 	${bits_srcdir}/simd_mask_reductions.h \
+	${bits_srcdir}/simd_math.h \
 	${bits_srcdir}/simd_reductions.h \
 	${bits_srcdir}/simd_vec.h \
 	${bits_srcdir}/simd_x86.h \

@@ -2680,6 +2680,15 @@
 #endif /* !defined(__cpp_lib_simd) */
 #undef __glibcxx_want_simd
 
+#if !defined(__cpp_lib_simd_complex)
+# if (__cplusplus >  202302L) && _GLIBCXX_HOSTED && (defined __glibcxx_simd)
+#  define __glibcxx_simd_complex 202502L
+#  if defined(__glibcxx_want_all) || defined(__glibcxx_want_simd_complex)
+#  endif
+# endif
+#endif /* !defined(__cpp_lib_simd_complex) */
+#undef __glibcxx_want_simd_complex
+
 #if !defined(__cpp_lib_is_structural)
 # if (__cplusplus >  202302L) && (__has_builtin(__builtin_is_structural))
 #  define __glibcxx_is_structural 202603L

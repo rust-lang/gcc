@@ -299,7 +299,10 @@ namespace simd
     constexpr bool
     __is_const_known(const _Tp& __x)
     {
-      return __builtin_constant_p(__x);
+      if constexpr (__complex_like<_Tp>)
+	return __is_const_known(__x.real()) && __is_const_known(__x.imag());
+      else
+	return __builtin_constant_p(__x);
     }
 
   [[__gnu__::__always_inline__]]
@@ -590,12 +593,71 @@ namespace simd
 	__xh = __builtin_shufflevector(__xh, __y, ((_Is & 1) == 1 ? __nh + _Is / 2 : _Is)...);
       }
 
+      // negate every even element (real part of interleaved complex)
+      [[__gnu__::__always_inline__]]
+      static constexpr _TV
+      _S_complex_negate_real(_TV __x)
+      { return __vec_xor(_S_broadcast_to_even(_S_signmask<_TV>[0]), __x); }
+
+      // negate every odd element (imaginary part of interleaved complex)
+      [[__gnu__::__always_inline__]]
+      static constexpr _TV
+      _S_complex_negate_imag(_TV __x)
+      { return __vec_xor(_S_broadcast_to_odd(_S_signmask<_TV>[0]), __x); }
+
+      // Subtract elements with even index, add elements with odd index.
+      template <_ArchTraits _Traits = {}>
+	[[__gnu__::__always_inline__]]
+	static constexpr _TV
+	_S_addsub(_TV __x, _TV __y)
+	{
+	  if constexpr (_Traits._M_have_addsub())
+	    // GCC recognizes this pattern as addsub
+	    return __builtin_shufflevector(__x - __y, __x + __y,
+					   (_Is + (_Is & 1) * __width_of<_TV>)...);
+	  else
+	    return __x + _S_complex_negate_real(__y);
+	}
+
       // true if all elements are know to be equal to __ref at compile time
       [[__gnu__::__always_inline__]]
       static constexpr bool
       _S_is_const_known_equal_to(_TV __x, _Tp __ref)
       { return (__is_const_known_equal_to(__x[_Is], __ref) && ...); }
 
+      // True iff all elements at even indexes are zero. This includes signed zeros only when
+      // -fno-signed-zeros is in effect.
+      template <_OptTraits _Traits = {}>
+	[[__gnu__::__always_inline__]]
+	static constexpr bool
+	_S_complex_real_is_const_known_zero(_TV __x)
+	{
+	  if constexpr (_Traits._M_conforming_to_STDC_annex_G())
+	    {
+	      using _Up = _UInt<sizeof(_Tp)>;
+	      return (((_Is & 1) == 1 || __is_const_known_equal_to(
+					   __builtin_bit_cast(_Up, __x[_Is]), _Up())) && ...);
+	    }
+	  else
+	    return (((_Is & 1) == 1 || __is_const_known_equal_to(__x[_Is], _Tp())) && ...);
+      }
+
+      // True iff all elements at odd indexes are zero. This includes signed zeros only when
+      // -fno-signed-zeros is in effect.
+      template <_OptTraits _Traits = {}>
+	[[__gnu__::__always_inline__]]
+	static constexpr bool
+	_S_complex_imag_is_const_known_zero(_TV __x)
+	{
+	  if constexpr (_Traits._M_conforming_to_STDC_annex_G())
+	    {
+	      using _Up = _UInt<sizeof(_Tp)>;
+	      return (((_Is & 1) == 0 || __is_const_known_equal_to(
+					   __builtin_bit_cast(_Up, __x[_Is]), _Up())) && ...);
+	    }
+	  else
+	    return (((_Is & 1) == 0 || __is_const_known_equal_to(__x[_Is], _Tp())) && ...);
+	}
     };
 } // namespace simd
 _GLIBCXX_END_NAMESPACE_VERSION

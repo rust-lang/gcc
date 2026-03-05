@@ -90,6 +90,8 @@ namespace simd
 	  return _RV([&](size_t __i) -> _Rp {
 		   if (__i >= __rg_size)
 		     return _Rp();
+		   else if constexpr (__complex_like<_Rp> && !__complex_like<_Tp>)
+		     return static_cast<typename _Rp::value_type>(__r[__i]);
 		   else
 		     return static_cast<_Rp>(__r[__i]);
 		 });
@@ -137,6 +139,8 @@ namespace simd
 	  return _RV([&](size_t __i) -> _Rp {
 		   if (__i >= __rg_size || !__mask[int(__i)])
 		     return _Rp();
+		   else if constexpr (__complex_like<_Rp> && !__complex_like<_Tp>)
+		     return static_cast<typename _Rp::value_type>(__r[__i]);
 		   else
 		     return static_cast<_Rp>(__r[__i]);
 		 });

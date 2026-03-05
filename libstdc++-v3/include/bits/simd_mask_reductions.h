@@ -68,7 +68,7 @@ namespace simd
     {
       if constexpr (_Ap::_S_size == 1)
 	return +__k[0];
-      else if constexpr (_Ap::_S_is_vecmask)
+      else if constexpr (_Ap::_S_is_vecmask && _Bytes <= sizeof(0ll))
 	return -reduce(-__k);
       else
 	return __k._M_reduce_count();

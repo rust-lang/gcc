@@ -34,6 +34,7 @@
 #endif
 
 #define __glibcxx_want_simd
+#define __glibcxx_want_simd_complex
 #include <bits/version.h>
 
 #ifdef __glibcxx_simd
@@ -43,6 +44,11 @@
 #include "bits/simd_mask_reductions.h"
 #include "bits/simd_reductions.h"
 #include "bits/simd_alg.h"
+#include "bits/simd_bit.h"
+#ifdef __glibcxx_simd_complex
+#include "bits/simd_complex.h"
+#endif
+#include "bits/simd_math.h"
 
 #endif
 #endif

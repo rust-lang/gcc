@@ -1043,6 +1043,52 @@ namespace simd
 	static_assert(false, "TODO");
     }
 
+  template <_ArchTraits _Traits = {}, __vec_builtin _TV>
+    [[__gnu__::__always_inline__]]
+    inline _Bitmask<__width_of<_TV>>
+    __x86_cvt_vecmask_to_bitmask(const _TV __k)
+    {
+      using _Tp = __vec_value_type<_TV>;
+      constexpr int _Bytes = sizeof(_Tp);
+      constexpr int _Np = __width_of<_TV>;
+      constexpr bool __vl = _Traits._M_have_avx512vl();
+      constexpr bool __bw = _Traits._M_have_avx512bw();
+      constexpr bool __dq = _Traits._M_have_avx512dq();
+      if constexpr (__vl && __bw && _Bytes == 1 && sizeof(__k) == 16)
+	return __builtin_ia32_cvtb2mask128(__k);
+      else if constexpr (__vl && __bw && _Bytes == 1 && sizeof(__k) == 32)
+	return __builtin_ia32_cvtb2mask256(__k);
+      else if constexpr (__bw && _Bytes == 1 && sizeof(__k) == 64)
+	return __builtin_ia32_cvtb2mask512(__k);
+      else if constexpr (__vl && __bw && _Bytes == 2 && sizeof(__k) == 16)
+	return __builtin_ia32_cvtw2mask128(__k);
+      else if constexpr (__vl && __bw && _Bytes == 2 && sizeof(__k) == 32)
+	return __builtin_ia32_cvtw2mask256(__k);
+      else if constexpr (__bw && _Bytes == 2 && sizeof(__k) == 64)
+	return __builtin_ia32_cvtw2mask512(__k);
+      else if constexpr (__vl && __dq && _Bytes == 4 && sizeof(__k) == 16)
+	return __builtin_ia32_cvtd2mask128(__k);
+      else if constexpr (__vl && __dq && _Bytes == 4 && sizeof(__k) == 32)
+	return __builtin_ia32_cvtd2mask256(__k);
+      else if constexpr (__dq && _Bytes == 4 && sizeof(__k) == 64)
+	return __builtin_ia32_cvtd2mask512(__k);
+      else if constexpr (__vl && __dq && _Bytes == 8 && sizeof(__k) == 16)
+	return __builtin_ia32_cvtq2mask128(__k);
+      else if constexpr (__vl && __dq && _Bytes == 8 && sizeof(__k) == 32)
+	return __builtin_ia32_cvtq2mask256(__k);
+      else if constexpr (__dq && _Bytes == 8 && sizeof(__k) == 64)
+	return __builtin_ia32_cvtq2mask512(__k);
+      else if constexpr (__vl && __dq && __bw && sizeof(__k) < 16)
+	return __x86_cvt_vecmask_to_bitmask(__vec_zero_pad_to_16(__k));
+      else if constexpr (_Bytes != 2) // movmskb would duplicate each bit
+	return __x86_movmsk(__k);
+      else if constexpr (_Traits._M_have_bmi2())
+	return __bit_extract_even<_Np>(__x86_movmsk(__k));
+      else
+	return __x86_cvt_vecmask_to_bitmask(
+		 __x86_cvt_vecmask<__vec_builtin_type<char, _Np>>(__k));
+    }
+
   /** @internal
    * AVX512 masked (converting) loads
    *

@@ -4,9 +4,12 @@
 // { dg-timeout-factor 2 }
 
 #include <simd>
+#include <complex>
 #include <stdfloat>
 
 namespace simd = std::simd;
+
+using std::complex;
 
 // test that instantiation of the complete class is well-formed
 template class simd::basic_vec<int, typename simd::vec<int, 1>::abi_type>;
@@ -15,6 +18,45 @@ template class simd::basic_vec<int, typename simd::vec<int, 8>::abi_type>;
 template class simd::basic_vec<int, typename simd::vec<int, 13>::abi_type>;
 template class simd::basic_vec<float, typename simd::vec<float, 8>::abi_type>;
 template class simd::basic_vec<float, typename simd::vec<float, 13>::abi_type>;
+template class simd::basic_vec<complex<double>, typename simd::vec<complex<double>, 3>::abi_type>;
+
+// LWG4420 ///////////////////////////////////////
+
+#ifdef __STDCPP_FLOAT16_T__
+namespace LWG4420
+{
+  using std::convertible_to;
+  using std::constructible_from;
+  using std::float16_t;
+  using std::array;
+
+  static_assert( convertible_to<simd::vec<float16_t, 4>, simd::vec<float, 4>>);
+  static_assert(!convertible_to<simd::vec<float, 4>, simd::vec<float16_t, 4>>);
+
+  static_assert( convertible_to<float16_t, simd::vec<float, 4>>);
+  static_assert(!convertible_to<float, simd::vec<float16_t, 4>>);
+
+  static_assert(constructible_from<simd::vec<float16_t, 4>, simd::vec<float, 4>>);
+
+  static_assert(convertible_to<array<float16_t, 4>, simd::vec<float, 4>>);
+  static_assert(convertible_to<array<float, 4>, simd::vec<float16_t, 4>>); // Mandates flag_convert
+
+  static_assert([] {
+    array<float, 4> f4 = {};
+    array<float16_t, 4> h4 = {};
+
+    simd::vec<float, 4> vh2f = h4;
+    simd::vec<float, 4> vh2f_b = float16_t();
+
+    simd::vec<float16_t, 4> vf2h = {f4, simd::flag_convert};
+
+    vh2f = vf2h;
+    vf2h = static_cast<decltype(vf2h)>(vh2f);
+
+    return all_of(vh2f == vh2f_b);
+  }());
+}
+#endif
 
 constexpr auto default_mask_abi_variant =
 #ifdef __AVX512F__
@@ -52,14 +94,55 @@ namespace test02
 
   static_assert(!destructible<simd::basic_mask<7>>);
 
+  template <int N>
+    using expected_abi = _Abi_t<N, 1, default_mask_abi_variant, _AbiVariant::_CxIleav>;
+
+  static_assert(same_as<simd::vec<complex<float>, 1>::abi_type, expected_abi<1>>);
+  static_assert(same_as<simd::vec<complex<double>, 1>::abi_type, expected_abi<1>>);
+
+#if defined __AVX512F__
+  static_assert(same_as<simd::vec<complex<float>, 2>::abi_type,
+			_Abi_t<2, 1, _AbiVariant::_CxIleav, _AbiVariant::_BitMask>>);
+  static_assert(same_as<simd::vec<complex<double>, 2>::abi_type,
+			_Abi_t<2, 1, _AbiVariant::_CxIleav, _AbiVariant::_BitMask>>);
+  static_assert(same_as<simd::vec<complex<float>, 4>::abi_type,
+			_Abi_t<4, 1, _AbiVariant::_CxIleav, _AbiVariant::_BitMask>>);
+  static_assert(same_as<simd::vec<complex<double>, 4>::abi_type,
+			_Abi_t<4, 1, _AbiVariant::_CxIleav, _AbiVariant::_BitMask>>);
+#elif defined __AVX__
+  static_assert(same_as<simd::vec<complex<float>, 2>::abi_type,
+			_Abi_t<2, 1, _AbiVariant::_CxIleav>>);
+  static_assert(same_as<simd::vec<complex<double>, 2>::abi_type,
+			_Abi_t<2, 1, _AbiVariant::_CxIleav>>);
+  static_assert(same_as<simd::vec<complex<float>, 4>::abi_type,
+			_Abi_t<4, 1, _AbiVariant::_CxIleav>>);
+  static_assert(same_as<simd::vec<complex<double>, 4>::abi_type,
+			_Abi_t<4, 2, _AbiVariant::_CxIleav>>);
+#elif defined __SSE__
+  static_assert(same_as<simd::vec<complex<float>, 2>::abi_type,
+			_Abi_t<2, 1, _AbiVariant::_CxIleav>>);
+  static_assert(same_as<simd::vec<complex<double>, 2>::abi_type,
+			_Abi_t<2, 2, _AbiVariant::_CxIleav>>);
+  static_assert(same_as<simd::vec<complex<float>, 4>::abi_type,
+			_Abi_t<4, 2, _AbiVariant::_CxIleav>>);
+  static_assert(same_as<simd::vec<complex<double>, 4>::abi_type,
+			_Abi_t<4, 4, _AbiVariant::_CxIleav>>);
+#endif
+
   static_assert(same_as<simd::vec<int>::mask_type, simd::mask<int>>);
   static_assert(same_as<simd::vec<float>::mask_type, simd::mask<float>>);
   static_assert(same_as<simd::vec<float, 1>::mask_type, simd::mask<float, 1>>);
+
+  static_assert(destructible<simd::vec<complex<float>>>);
+  static_assert(same_as<simd::vec<complex<float>>::mask_type, simd::mask<complex<float>>>);
+  static_assert(same_as<simd::vec<complex<float>, 1>::mask_type, simd::mask<complex<float>, 1>>);
 
   // ensure 'true ? int : vec<float>' doesn't work
   template <typename T>
     concept has_type_member = requires { typename T::type; };
   static_assert(!has_type_member<common_type<int, simd::vec<float>>>);
+
+  constexpr simd::vec<complex<double>>::mask_type k = {};
 }
 
 #if defined __AVX__ && !defined __AVX2__
@@ -77,6 +160,8 @@ static_assert(std::same_as<decltype(+simd::mask<float, 8>()), simd::vec<int, 8>>
 #if defined __SSE__ && !defined __F16C__ && defined __STDCPP_FLOAT16_T__
 static_assert(simd::vec<std::float16_t>::size() == 1);
 static_assert(simd::mask<std::float16_t>::size() == 1);
+static_assert(simd::vec<std::complex<std::float16_t>>::size() == 1);
+static_assert(simd::mask<std::complex<std::float16_t>>::size() == 1);
 static_assert(alignof(simd::vec<std::float16_t, 8>) == alignof(std::float16_t));
 static_assert(alignof(simd::rebind_t<std::float16_t, simd::vec<float>>) == alignof(std::float16_t));
 static_assert(simd::rebind_t<std::float16_t, simd::mask<float>>::abi_type::_S_nreg
@@ -198,16 +283,37 @@ template <template <typename> class Tpl>
     Tpl<unsigned long long> p;
 #ifdef __STDCPP_FLOAT16_T__
     Tpl<std::float16_t> q;
+    Tpl<std::complex<std::float16_t>> qc;
 #endif
 #ifdef __STDCPP_FLOAT32_T__
     Tpl<std::float32_t> r;
+    Tpl<std::complex<std::float32_t>> rc;
 #endif
 #ifdef __STDCPP_FLOAT64_T__
     Tpl<std::float64_t> s;
+    Tpl<std::complex<std::float64_t>> sc;
 #endif
+    Tpl<std::complex<float>> u;
+    Tpl<std::complex<double>> v;
   };
 
 template struct instantiate_all_vectorizable<test_usable_simd>;
+
+// vec broadcast ctor ///////////////
+namespace test_broadcast
+{
+  using std::constructible_from;
+  using std::complex;
+  using simd::vec;
+
+  static_assert(constructible_from<simd::vec<complex<float>>, complex<float>>);
+  static_assert(constructible_from<simd::vec<complex<double>>, complex<float>>);
+
+  constexpr simd::vec<complex<double>, 2> cd2 = 1.f; // broadcast real from float
+  static_assert(all_of(cd2.real() == 1));
+  static_assert(all_of(cd2.imag() == 0));
+  static_assert(all_of(cd2 == complex{1.f, 0.f}));
+}
 
 // vec generator ctor ///////////////
 
@@ -223,6 +329,10 @@ namespace test_generator
   static_assert( std::constructible_from<simd::vec<float>, short (&)(int)>);
   static_assert(!std::constructible_from<simd::vec<float>, long double (&)(int)>);
   static_assert( std::constructible_from<simd::vec<float>, udt_convertible_to_float (&)(int)>);
+  static_assert( std::constructible_from<simd::vec<std::complex<double>>,
+					 std::complex<double> (&)(int)>);
+  static_assert( std::constructible_from<simd::vec<std::complex<double>>,
+					 std::complex<float> (&)(int)>);
 }
 
 // mask generator ctor ///////////////
@@ -358,6 +468,7 @@ static_assert([] constexpr {
 // mask conversions //////////////////
 namespace mask_conversion_tests
 {
+  using std::complex;
   using simd::mask;
 
   struct TestResult
@@ -423,6 +534,10 @@ namespace mask_conversion_tests
 	  check<do_test<std::float16_t>(    k)>();
 	  check<do_test<std::float16_t>(!k)>();
 #endif
+	  check<do_test<complex<float>>(    k)>();
+	  check<do_test<complex<float>>(!k)>();
+	  check<do_test<complex<double>>(    k)>();
+	  check<do_test<complex<double>>(!k)>();
 	  if constexpr (P <= 2)
 	    do_test<T, N, P + 1>();
 	}
@@ -453,6 +568,8 @@ namespace mask_conversion_tests
 #ifdef __STDCPP_FLOAT16_T__
   static_assert(test<std::float16_t>());
 #endif
+  static_assert(test<complex<float>>());
+  static_assert(test<complex<double>>());
 }
 
 // vec reductions ///////////////////
@@ -541,6 +658,18 @@ static_assert(all_of(simd::cat(simd::__iota<simd::vec<double, 4>>, simd::__iota<
 
 static_assert(all_of(simd::cat(simd::__iota<simd::vec<double, 4>>, simd::__iota<simd::vec<double, 4>> + 4)
 		       == simd::__iota<simd::vec<double, 8>>));
+
+static_assert(all_of(simd::cat(simd::__iota<simd::vec<complex<float>, 1>>,
+			       simd::__iota<simd::vec<complex<float>, 1>> + 1.f)
+		       == simd::__iota<simd::vec<complex<float>, 2>>));
+
+static_assert(all_of(simd::cat(simd::__iota<simd::vec<complex<float>, 3>>,
+			       simd::__iota<simd::vec<complex<float>, 3>> + 3.f)
+		       == simd::__iota<simd::vec<complex<float>, 6>>));
+
+static_assert(all_of(simd::cat(simd::__iota<simd::vec<complex<float>, 8>>,
+			       simd::__iota<simd::vec<complex<float>, 8>> + 8.f)
+		       == simd::__iota<simd::vec<complex<float>, 16>>));
 
 // select ////////////////////////
 
