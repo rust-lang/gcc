@@ -1777,7 +1777,7 @@ namespace simd
 
       _DataType1 _M_data1;
 
-      static constexpr bool _S_use_bitmask = _Ap::_S_is_bitmask;
+      static constexpr bool _S_use_bitmask = _DataType0::_S_use_bitmask;
 
       static constexpr bool _S_is_partial = _DataType1::_S_is_partial;
 

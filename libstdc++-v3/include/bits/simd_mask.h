@@ -543,7 +543,7 @@ namespace simd
 
       static constexpr bool _S_is_scalar = _S_has_bool_member;
 
-      static constexpr bool _S_use_bitmask = _Ap::_S_is_bitmask;
+      static constexpr bool _S_use_bitmask = _Ap::_S_is_bitmask && !_S_is_scalar;
 
       static constexpr int _S_full_size = [] {
 	if constexpr (_S_is_scalar)
@@ -1519,8 +1519,16 @@ namespace simd
       constexpr basic_mask&
       _M_and_neighbors()
       {
-	_M_data0._M_and_neighbors();
-	_M_data1._M_and_neighbors();
+	if constexpr (_S_size == 2)
+	  {
+	    static_assert(_S_is_scalar);
+	    _M_data0 = _M_data1 = _M_data0 && _M_data1;
+	  }
+	else
+	  {
+	    _M_data0._M_and_neighbors();
+	    _M_data1._M_and_neighbors();
+	  }
 	return *this;
       }
 
@@ -1528,8 +1536,16 @@ namespace simd
       constexpr basic_mask&
       _M_or_neighbors()
       {
-	_M_data0._M_or_neighbors();
-	_M_data1._M_or_neighbors();
+	if constexpr (_S_size == 2)
+	  {
+	    static_assert(_S_is_scalar);
+	    _M_data0 = _M_data1 = _M_data0 || _M_data1;
+	  }
+	else
+	  {
+	    _M_data0._M_or_neighbors();
+	    _M_data1._M_or_neighbors();
+	  }
 	return *this;
       }
 
@@ -1650,7 +1666,7 @@ namespace simd
 	else if constexpr (_M_data1._S_has_bool_member)
 	  // in some cases the last element can be 'bool' instead of bit-/vector-mask;
 	  // e.g. mask<short, 17> is {mask<short, 16>, mask<short, 1>}, where the latter uses
-	  // _ScalarAbi<1>, which is stored as 'bool'
+	  // _Abi<1, 1>, which is stored as 'bool'
 	  return __i < _N0 ? _M_data0[__i] : _M_data1[__i - _N0];
 	else if constexpr (abi_type::_S_is_bitmask)
 	  {
@@ -1929,10 +1945,7 @@ namespace simd
 	  {
 	    const auto __bits = _M_to_uint();
 	    __glibcxx_simd_precondition(__bits, "An empty mask does not have a min_index.");
-	    if constexpr (_S_size == 1)
-	      return 0;
-	    else
-	      return __countr_zero(_M_to_uint());
+	    return __countr_zero(_M_to_uint());
 	  }
 	else if (_M_data0._M_none_of())
 	  return _M_data1._M_reduce_min_index() + _N0;
@@ -1948,10 +1961,7 @@ namespace simd
 	  {
 	    const auto __bits = _M_to_uint();
 	    __glibcxx_simd_precondition(__bits, "An empty mask does not have a max_index.");
-	    if constexpr (_S_size == 1)
-	      return 0;
-	    else
-	      return __highest_bit(_M_to_uint());
+	    return __highest_bit(_M_to_uint());
 	  }
 	else if (_M_data1._M_none_of())
 	  return _M_data0._M_reduce_max_index();
