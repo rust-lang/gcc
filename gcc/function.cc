@@ -6091,6 +6091,9 @@ make_epilogue_seq (void)
 void
 thread_prologue_and_epilogue_insns (void)
 {
+  /* We need alias.  */
+  init_alias_analysis ();
+
   df_analyze ();
 
   /* Can't deal with multiple successors of the entry block at the
@@ -6323,6 +6326,9 @@ thread_prologue_and_epilogue_insns (void)
       df_update_entry_block_defs ();
       df_update_exit_block_uses ();
     }
+
+  /* Clean up.  */
+  end_alias_analysis ();
 }
 
 /* Reposition the prologue-end and epilogue-begin notes after

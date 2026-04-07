@@ -8628,221 +8628,135 @@ output_probe_stack_range (rtx reg, rtx end)
   return "";
 }
 
-/* Data passed to ix86_update_stack_alignment.  */
-struct stack_access_data
-{
-  /* The stack access register.  */
-  const_rtx reg;
-  /* Pointer to stack alignment.  */
-  unsigned int *stack_alignment;
-};
+/* Update the maximum stack slot alignment from memory alignment if
+   OP is stack memory.  */
 
-/* Return true if OP references an argument passed on stack.  */
-
-static bool
-ix86_argument_passed_on_stack_p (const_rtx op)
+static void
+ix86_update_stack_alignment_2 (const_rtx op, unsigned int &alignment)
 {
+  unsigned int mem_align = MEM_ALIGN (op);
+  if (mem_align <= alignment)
+    return;
+
+  /* Skip if OP is a memory operand with CONST_INT in
+
+     (set (mem/v:SI (const_int 0 [0]) [14 MEM[(int *)0B]+0 S4 A256])
+	  (const_int 0 [0]))
+
+     or SYMBOLIC_CONST in
+
+     (set (reg:SI 0 ax [orig:118 _2 ] [118])
+	  (sign_extend:SI (mem/c:QI (symbol_ref:DI ("c") [flags 0x2] <var_decl 0x7fffe960de40 c>) [0 c+0 S1 A8])))
+   */
+  rtx x = XEXP (op, 0);
+  if (CONST_INT_P (x) || SYMBOLIC_CONST (x))
+    return;
+
+  /* Skip if OP is function result on stack in
+
+     (set (mem/c:TI (reg/f:SI 0 ax [orig:99 .result_ptr ] [99]) [2 <retval>+0 S16 A128])
+	  (reg:TI 20 xmm0 [orig:100 x ] [100]))
+  */
+  tree result_decl = DECL_RESULT (current_function_decl);
+  if (result_decl && DECL_RTL_SET_P (result_decl))
+    {
+      rtx result_rtl = DECL_RTL (result_decl);
+      if (MEM_P (result_rtl) && XEXP (result_rtl, 0) == x)
+	return;
+    }
+
+  /* All stack is in the generic address space.  Skip
+
+     (mem:DI (reg:DI 2 cx [103]) [4 MEM[(<address-space-1> __int128 *)0B]+0 S8 A128 AS1])
+
+     from from gcc.target/i386/apx-ndd-seg-1.c.  */
+  if (MEM_ADDR_SPACE (op) != ADDR_SPACE_GENERIC)
+    return;
+
+  rtx base = find_base_term (x);
+  if (base)
+    {
+      /* Update ALIGNMENT if RTL points-to says OP accesses stack.  */
+      if (base == static_reg_base_value[STACK_POINTER_REGNUM]
+	  || base == static_reg_base_value[FRAME_POINTER_REGNUM])
+	alignment = mem_align;
+      return;
+    }
+
+  /* RTL points-to isn't available.  */
+  bool ok;
+  struct ix86_address parts;
+  ok = ix86_decompose_address (x, &parts);
+  gcc_assert (ok);
+
+  /* Skip if displacement is SYMBOLIC_CONST in
+
+     (set (mem:V16QI (plus:SI (reg:SI 2 cx [orig:105 niters_vector_mult_vf.6 ] [105])
+			      (symbol_ref:SI ("perm") [flags 0x2] <var_decl 0x7fffe9613130 perm>)) [0 MEM <vector(16) char> [(char *)vectp_perm.21_69]+0 S16 A256])
+	  (reg:V16QI 20 xmm0 [orig:179 vect__13.18_68 ] [179]))
+
+     from gcc.target/i386/pr109780-1.c.  */
+  if (parts.disp && SYMBOLIC_CONST (parts.disp))
+    return;
+
   tree mem_expr = MEM_EXPR (op);
   if (mem_expr)
     {
       tree var = get_base_address (mem_expr);
-      return TREE_CODE (var) == PARM_DECL;
+
+      if (TREE_CODE (var) == MEM_REF
+	  || TREE_CODE (var) == TARGET_MEM_REF)
+	{
+	   tree ptr = TREE_OPERAND (var, 0);
+	   if (TREE_CODE (ptr) == BIT_AND_EXPR)
+	     ptr = TREE_OPERAND (ptr, 0);
+
+	   /* Skip if OP is a memory operand of non-local reference in
+
+	      (set (mem:V4DI (reg:DI 0 ax [orig:112 ivtmp.23 ] [112]) [1 MEM <vector(4) unsigned long> [(_BitInt(2048) *)_34]+0 S32 A256])
+		   (reg:V4DI 20 xmm0 [117]))
+
+	      from gcc.target/i386/pr124098.c.  */
+	   if (!ptr_deref_may_alias_auto_p (ptr)
+	       /* An access based on an incoming pointer cannot point to
+		  local stack as in
+
+		  (set (reg:V2DI 20 xmm0 [orig:103 MEM[(const __m128i * {ref-all})s_1(D) & 4294967280B] ] [103])
+		       (mem:V2DI (reg:SI 0 ax [102]) [0 MEM[(const __m128i * {ref-all})s_1(D) & 4294967280B]+0 S16 A128]))
+
+		  from gcc.target/i386/pr53907.  */
+	       || (TREE_CODE (ptr) == SSA_NAME
+		   && SSA_NAME_IS_DEFAULT_DEF (ptr)
+		   && TREE_CODE (SSA_NAME_VAR (ptr)) == PARM_DECL))
+	     return;
+	}
+      /* Skip if OP isn't a local stack variable in
+
+	 (set (mem/c:DI (plus:DI (reg/f:DI 1 dx [157])
+				 (reg:DI 0 ax [98])) [2 __gcov8.foo.strub.0[0]+0 S8 A256])
+	      (ior:DI (mem/c:DI (plus:DI (reg/f:DI 1 dx [157])
+				(reg:DI 0 ax [98])) [2 __gcov8.foo.strub.0[0]+0 S8 A256])
+		      (const_int 1 [0x1])))
+
+	 from gcc.target/i386/pr123210.c.  */
+      else if (VAR_P (var)
+	       && !auto_var_in_fn_p (var, current_function_decl))
+	return;
     }
-  return false;
+
+  alignment = mem_align;
 }
 
-/* Update the maximum stack slot alignment from memory alignment in PAT.  */
+/* Update the maximum stack slot alignment from memory alignment if
+   SET references stack memory.  */
 
 static void
-ix86_update_stack_alignment (rtx, const_rtx pat, void *data)
-{
-  /* This insn may reference stack slot.  Update the maximum stack slot
-     alignment if the memory is referenced by the stack access register. */
-  stack_access_data *p = (stack_access_data *) data;
-
-  subrtx_iterator::array_type array;
-  FOR_EACH_SUBRTX (iter, array, pat, ALL)
-    {
-      auto op = *iter;
-      if (MEM_P (op))
-	{
-	  /* NB: Ignore arguments passed on stack since caller is
-	     responsible to align the outgoing stack for arguments
-	     passed on stack.  */
-	  if (reg_mentioned_p (p->reg, XEXP (op, 0))
-	      && !ix86_argument_passed_on_stack_p (op))
-	    {
-	      unsigned int alignment = MEM_ALIGN (op);
-
-	      if (alignment > *p->stack_alignment)
-		*p->stack_alignment = alignment;
-	      break;
-	    }
-	  else
-	    iter.skip_subrtxes ();
-	}
-    }
-}
-
-/* Helper function for ix86_find_all_reg_uses.  */
-
-static void
-ix86_find_all_reg_uses_1 (HARD_REG_SET &regset,
-			  rtx set, unsigned int regno,
-			  auto_bitmap &worklist)
-{
-  rtx dest = SET_DEST (set);
-
-  if (!REG_P (dest))
-    return;
-
-  /* Reject non-Pmode modes.  */
-  if (GET_MODE (dest) != Pmode)
-    return;
-
-  unsigned int dst_regno = REGNO (dest);
-
-  if (TEST_HARD_REG_BIT (regset, dst_regno))
-    return;
-
-  const_rtx src = SET_SRC (set);
-
-  subrtx_iterator::array_type array;
-  FOR_EACH_SUBRTX (iter, array, src, ALL)
-    {
-      auto op = *iter;
-
-      if (MEM_P (op))
-	iter.skip_subrtxes ();
-
-      if (REG_P (op) && REGNO (op) == regno)
-	{
-	  /* Add this register to register set.  */
-	  add_to_hard_reg_set (&regset, Pmode, dst_regno);
-	  bitmap_set_bit (worklist, dst_regno);
-	  break;
-	}
-    }
-}
-
-/* Find all registers defined with register REGNO.  */
-
-static void
-ix86_find_all_reg_uses (HARD_REG_SET &regset,
-			unsigned int regno, auto_bitmap &worklist)
-{
-  for (df_ref ref = DF_REG_USE_CHAIN (regno);
-       ref != NULL;
-       ref = DF_REF_NEXT_REG (ref))
-    {
-      if (DF_REF_IS_ARTIFICIAL (ref))
-	continue;
-
-      rtx_insn *insn = DF_REF_INSN (ref);
-
-      if (!NONJUMP_INSN_P (insn))
-	continue;
-
-      unsigned int ref_regno = DF_REF_REGNO (ref);
-
-      rtx set = single_set (insn);
-      if (set)
-	{
-	  ix86_find_all_reg_uses_1 (regset, set,
-				    ref_regno, worklist);
-	  continue;
-	}
-
-      rtx pat = PATTERN (insn);
-      if (GET_CODE (pat) != PARALLEL)
-	continue;
-
-      for (int i = 0; i < XVECLEN (pat, 0); i++)
-	{
-	  rtx exp = XVECEXP (pat, 0, i);
-
-	  if (GET_CODE (exp) == SET)
-	    ix86_find_all_reg_uses_1 (regset, exp,
-				      ref_regno, worklist);
-	}
-    }
-}
-
-/* Return true if the hard register REGNO used for a stack access is
-   defined in a basic block that dominates the block where it is used.  */
-
-static bool
-ix86_access_stack_p (unsigned int regno, basic_block bb,
-		     HARD_REG_SET &set_up_by_prologue,
-		     HARD_REG_SET &prologue_used,
-		     auto_bitmap reg_dominate_bbs_known[],
-		     auto_bitmap reg_dominate_bbs[])
-{
-  if (bitmap_bit_p (reg_dominate_bbs_known[regno], bb->index))
-    return bitmap_bit_p (reg_dominate_bbs[regno], bb->index);
-
-  bitmap_set_bit (reg_dominate_bbs_known[regno], bb->index);
-
-  /* Get all BBs which set REGNO and dominate the current BB from all
-     DEFs of REGNO.  */
-  for (df_ref def = DF_REG_DEF_CHAIN (regno);
-       def;
-       def = DF_REF_NEXT_REG (def))
-    if (!DF_REF_IS_ARTIFICIAL (def)
-	&& !DF_REF_FLAGS_IS_SET (def, DF_REF_MAY_CLOBBER)
-	&& !DF_REF_FLAGS_IS_SET (def, DF_REF_MUST_CLOBBER))
-      {
-	basic_block set_bb = DF_REF_BB (def);
-	if (dominated_by_p (CDI_DOMINATORS, bb, set_bb))
-	  {
-	    rtx_insn *insn = DF_REF_INSN (def);
-	    /* Return true if INSN requires stack.  */
-	    if (requires_stack_frame_p (insn, prologue_used,
-					set_up_by_prologue))
-	      {
-		bitmap_set_bit (reg_dominate_bbs[regno], bb->index);
-		return true;
-	      }
-	  }
-      }
-
-  /* When we get here, REGNO used in the current BB doesn't access
-     stack.  */
-  return false;
-}
-
-/* Return true if OP isn't a memory operand with SYMBOLIC_CONST and
-   needs alignment > ALIGNMENT.  */
-
-static bool
-ix86_need_alignment_p_2 (const_rtx op, unsigned int alignment)
-{
-  bool need_alignment = MEM_ALIGN (op) > alignment;
-  tree mem_expr = MEM_EXPR (op);
-  if (!mem_expr)
-    return need_alignment;
-
-  tree var = get_base_address (mem_expr);
-  if (!VAR_P (var) || !DECL_RTL_SET_P (var))
-    return need_alignment;
-
-  rtx x = DECL_RTL (var);
-  if (!MEM_P (x))
-    return need_alignment;
-
-  x = XEXP (x, 0);
-  return !SYMBOLIC_CONST (x) && need_alignment;
-}
-
-/* Return true if SET needs alignment > ALIGNMENT.  */
-
-static bool
-ix86_need_alignment_p_1 (rtx set, unsigned int alignment)
+ix86_update_stack_alignment_1 (rtx set, unsigned int &alignment)
 {
   rtx dest = SET_DEST (set);
 
   if (MEM_P (dest))
-    return ix86_need_alignment_p_2 (dest, alignment);
+    return ix86_update_stack_alignment_2 (dest, alignment);
 
   const_rtx src = SET_SRC (set);
 
@@ -8852,35 +8766,31 @@ ix86_need_alignment_p_1 (rtx set, unsigned int alignment)
       auto op = *iter;
 
       if (MEM_P (op))
-	return ix86_need_alignment_p_2 (op, alignment);
+	return ix86_update_stack_alignment_2 (op, alignment);
     }
-
-  return false;
 }
 
-/* Return true if INSN needs alignment > ALIGNMENT.  */
+/* Update the maximum stack slot alignment from memory alignment if
+   INSN references stack memory.  */
 
-static bool
-ix86_need_alignment_p (rtx_insn *insn, unsigned int alignment)
+static void
+ix86_update_stack_alignment (rtx_insn *insn, unsigned int &alignment)
 {
   rtx set = single_set (insn);
   if (set)
-    return ix86_need_alignment_p_1 (set, alignment);
+    return ix86_update_stack_alignment_1 (set, alignment);
 
   rtx pat = PATTERN (insn);
   if (GET_CODE (pat) != PARALLEL)
-    return false;
+    return;
 
   for (int i = 0; i < XVECLEN (pat, 0); i++)
     {
       rtx exp = XVECEXP (pat, 0, i);
 
-      if (GET_CODE (exp) == SET
-	  && ix86_need_alignment_p_1 (exp, alignment))
-	return true;
+      if (GET_CODE (exp) == SET)
+	ix86_update_stack_alignment_1 (exp, alignment);
     }
-
-  return false;
 }
 
 /* Set stack_frame_required to false if stack frame isn't required.
@@ -8901,103 +8811,38 @@ ix86_find_max_used_stack_alignment (unsigned int &stack_alignment,
   add_to_hard_reg_set (&set_up_by_prologue, Pmode,
 		       HARD_FRAME_POINTER_REGNUM);
 
-  bool require_stack_frame = false;
+  cfun->machine->stack_frame_required = false;
+
+  /* The preferred stack alignment is the minimum stack alignment.  */
+  if (check_stack_slot
+      && stack_alignment > crtl->preferred_stack_boundary)
+    stack_alignment = crtl->preferred_stack_boundary;
 
   FOR_EACH_BB_FN (bb, cfun)
     {
       rtx_insn *insn;
       FOR_BB_INSNS (bb, insn)
-	if (NONDEBUG_INSN_P (insn)
-	    && requires_stack_frame_p (insn, prologue_used,
-				       set_up_by_prologue))
+	if (NONDEBUG_INSN_P (insn))
 	  {
-	    require_stack_frame = true;
-	    break;
+	    if (!cfun->machine->stack_frame_required
+		&& requires_stack_frame_p (insn, prologue_used,
+					   set_up_by_prologue))
+	      {
+		/* Set stack_frame_required before calling
+		   ix86_update_stack_alignment.  */
+		cfun->machine->stack_frame_required = true;
+
+		/* Stop if we don't need to check stack slot.  */
+		if (!check_stack_slot)
+		  break;
+	      }
+
+	    if (!check_stack_slot || !NONJUMP_INSN_P (insn))
+	      continue;
+
+	    ix86_update_stack_alignment (insn, stack_alignment);
 	  }
     }
-
-  cfun->machine->stack_frame_required = require_stack_frame;
-
-  /* Stop if we don't need to check stack slot.  */
-  if (!check_stack_slot)
-    return;
-
-  /* The preferred stack alignment is the minimum stack alignment.  */
-  if (stack_alignment > crtl->preferred_stack_boundary)
-    stack_alignment = crtl->preferred_stack_boundary;
-
-  HARD_REG_SET stack_slot_access;
-  CLEAR_HARD_REG_SET (stack_slot_access);
-
-  /* Stack slot can be accessed by stack pointer, frame pointer or
-     registers defined by stack pointer or frame pointer.  */
-  auto_bitmap worklist;
-
-  add_to_hard_reg_set (&stack_slot_access, Pmode, STACK_POINTER_REGNUM);
-  bitmap_set_bit (worklist, STACK_POINTER_REGNUM);
-
-  if (frame_pointer_needed)
-    {
-      add_to_hard_reg_set (&stack_slot_access, Pmode,
-			   HARD_FRAME_POINTER_REGNUM);
-      bitmap_set_bit (worklist, HARD_FRAME_POINTER_REGNUM);
-    }
-
-  /* Registers on HARD_STACK_SLOT_ACCESS always access stack.  */
-  HARD_REG_SET hard_stack_slot_access = stack_slot_access;
-
-  calculate_dominance_info (CDI_DOMINATORS);
-
-  unsigned int regno;
-
-  do
-    {
-      regno = bitmap_clear_first_set_bit (worklist);
-      ix86_find_all_reg_uses (stack_slot_access, regno, worklist);
-    }
-  while (!bitmap_empty_p (worklist));
-
-  hard_reg_set_iterator hrsi;
-  stack_access_data data;
-
-  auto_bitmap reg_dominate_bbs_known[FIRST_PSEUDO_REGISTER];
-  auto_bitmap reg_dominate_bbs[FIRST_PSEUDO_REGISTER];
-
-  data.stack_alignment = &stack_alignment;
-
-  EXECUTE_IF_SET_IN_HARD_REG_SET (stack_slot_access, 0, regno, hrsi)
-    {
-      for (df_ref ref = DF_REG_USE_CHAIN (regno);
-	   ref != NULL;
-	   ref = DF_REF_NEXT_REG (ref))
-	{
-	  if (DF_REF_IS_ARTIFICIAL (ref))
-	    continue;
-
-	  rtx_insn *insn = DF_REF_INSN (ref);
-
-	  if (!NONJUMP_INSN_P (insn))
-	    continue;
-
-	  /* Call ix86_access_stack_p only if INSN needs alignment >
-	     STACK_ALIGNMENT.  */
-	  if (ix86_need_alignment_p (insn, stack_alignment)
-	      && (TEST_HARD_REG_BIT (hard_stack_slot_access, regno)
-		  || ix86_access_stack_p (regno, BLOCK_FOR_INSN (insn),
-					  set_up_by_prologue,
-					  prologue_used,
-					  reg_dominate_bbs_known,
-					  reg_dominate_bbs)))
-	    {
-	      /* Update stack alignment if REGNO is used for stack
-		 access.  */
-	      data.reg = DF_REF_REG (ref);
-	      note_stores (insn, ix86_update_stack_alignment, &data);
-	    }
-	}
-    }
-
-  free_dominance_info (CDI_DOMINATORS);
 }
 
 /* Finalize stack_realign_needed and frame_pointer_needed flags, which

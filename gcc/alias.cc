@@ -232,9 +232,6 @@ static GTY((deletable)) vec<rtx, va_gc> *old_reg_base_value;
 #define UNIQUE_BASE_VALUE_FP	-3
 #define UNIQUE_BASE_VALUE_HFP	-4
 
-#define static_reg_base_value \
-  (this_target_rtl->x_static_reg_base_value)
-
 #define REG_BASE_VALUE(X)					\
   (REGNO (X) < vec_safe_length (reg_base_value)			\
    ? (*reg_base_value)[REGNO (X)] : 0)
@@ -2065,7 +2062,7 @@ find_base_term (rtx x, vec<std::pair<cselib_val *,
 /* Wrapper around the worker above which removes locs from visited VALUEs
    to avoid visiting them multiple times.  We unwind that changes here.  */
 
-static rtx
+rtx
 find_base_term (rtx x)
 {
   auto_vec<std::pair<cselib_val *, struct elt_loc_list *>, 32> visited_vals;

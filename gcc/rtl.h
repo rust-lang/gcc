@@ -4015,6 +4015,8 @@ extern struct target_rtl *this_target_rtl;
   (this_target_rtl->x_top_of_stack)
 #define mode_mem_attrs \
   (this_target_rtl->x_mode_mem_attrs)
+#define static_reg_base_value \
+  (this_target_rtl->x_static_reg_base_value)
 
 /* All references to certain hard regs, except those created
    by allocating pseudo regs into them (when that's possible),
