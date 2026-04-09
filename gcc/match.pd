@@ -5118,6 +5118,68 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
        && TYPE_UNSIGNED (TREE_TYPE (@1)))
    (cmp @0 @1))))
 
+/* PR124808: (A >> CST1) CMP CST2 -> A CMP (CST2 << CST1)
+   Canonicalize non-equality comparisons between a right
+   shift and a constant, turning it into a comparison
+   with a constant that is left shifted.  If we view A as:
+
+   A: "|--- CST2 ----|--CST1--|"
+
+   A >> CST1 will be equal to CST2 for all A values in the
+   range CST2 << CST1 to (CST2 << CST1) | 1s_mask (CST1).
+
+   Therefore:
+   - (A >> CST1) < CST2 -> A < (CST2 << CST1), A must
+     be smaller than all values from the range;
+   - (A >> CST1) <= CST2 -> A <= (CST2 << CST1) | mask,
+     A must be smaller or equal than the range end;
+   - (A >> CST1) > CST2 -> A > (CST2 << CST1) | mask,
+     A must be greater than all values from the range;
+   - (A >> CST1) >= CST2 -> A >= (CST2 << CST1), A must
+     be greater or equal than the range start.
+
+   We're also using "single_use" and wrapping around "if GIMPLE"
+   because (1) this class "VA1 LSHIFT/RSHIFT VAL2 CMP VAL3" of
+   optimizations tend to match CTZ|CLZ builtin patterns and we
+   don't want to trip on them and (2) we will get in the way of
+   certain optimizations (see ARM's sat-1.c test) that are done
+   using GENERIC due to how forwprop currently works.  */
+#if GIMPLE
+(for cmp (le lt ge gt)
+ (simplify
+  (cmp (rshift@3 @0 INTEGER_CST@1) INTEGER_CST@2)
+  (if (INTEGRAL_TYPE_P (TREE_TYPE (@0))
+       && single_use (@3)
+       && tree_fits_uhwi_p (@1)
+       && tree_to_uhwi (@1) < TYPE_PRECISION (TREE_TYPE (@0))
+       && tree_int_cst_sgn (@2) >= 0
+       && tree_to_uhwi (@1) < TYPE_PRECISION (TREE_TYPE (@2))
+       && (wi::to_wide (@2) == 0
+	   /* If @2 is nonzero, verify if we'll overflow when
+	      doing @2 << @1 by checking if the shift amount
+	      can start throwing 1s away if type_unsigned, or
+	      if the shift amount can reach the sign bit.  */
+	   || (TYPE_UNSIGNED (TREE_TYPE (@2))
+	       && wi::leu_p (wi::to_wide (@1), wi::clz (wi::to_wide (@2))))
+	   || (!TYPE_UNSIGNED (TREE_TYPE (@2))
+	       && wi::ltu_p (wi::to_wide (@1), wi::clz (wi::to_wide (@2))))))
+
+   /* No need to set the lower @1 bits of the resulting
+      lshift for "<" and ">=" comparisons.  */
+   (if (cmp == LT_EXPR || cmp == GE_EXPR)
+    (cmp @0 (lshift @2 @1))
+
+     /* For "<=" and ">" set the lower @1 lshift bits.  */
+     (with {
+	tree type2 = TREE_TYPE (@2);
+	unsigned prec = TYPE_PRECISION (type2);
+	unsigned mask_len = tree_to_uhwi (@1);
+	wide_int cst1_mask = wi::mask (mask_len, false, prec);
+      }
+       (cmp @0 (bit_ior (lshift @2 @1)
+			{ wide_int_to_tree (type2, cst1_mask); })))))))
+#endif
+
 /* Rewrite an LROTATE_EXPR by a constant into an
    RROTATE_EXPR by a new constant.  */
 (simplify
