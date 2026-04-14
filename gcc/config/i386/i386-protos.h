@@ -286,7 +286,6 @@ extern tree ix86_valid_target_attribute_tree (tree, tree,
 					      struct gcc_options *,
 					      struct gcc_options *, bool);
 extern unsigned int ix86_get_callcvt (const_tree);
-extern bool ix86_type_no_callee_saved_registers_p (const_tree);
 
 #endif
 
@@ -295,6 +294,8 @@ extern bool ix86_gpr_tls_address_pattern_p (rtx);
 extern bool ix86_tls_address_pattern_p (rtx);
 extern rtx ix86_rewrite_tls_address (rtx);
 extern rtx ix86_tls_get_addr (void);
+class predefined_function_abi;
+extern const predefined_function_abi & ix86_tls_get_addr_abi (void);
 
 extern void ix86_expand_vector_init (bool, rtx, rtx);
 extern void ix86_expand_vector_set (bool, rtx, rtx, int);

@@ -26,7 +26,9 @@ foo (void *frame)
   }
 }
 
-/* { dg-final { scan-assembler-times "push(?:l|q)\[\\t \]*%(?:e|r)bp" 1 } } */
-/* { dg-final { scan-assembler-times "pop(?:l|q)\[\\t \]*%(?:e|r)bp" 1 } } */
-/* { dg-final { scan-assembler-times "push(?:l|q)\[\\t \]*" 1 } } */
-/* { dg-final { scan-assembler-times "pop(?:l|q)\[\\t \]*" 1 } } */
+/* { dg-final { scan-assembler-times "push(?:l|q)\[\\t \]*%(?:e|r)bp" 1 { target ia32 } } } */
+/* { dg-final { scan-assembler-times "pop(?:l|q)\[\\t \]*%(?:e|r)bp" 1 { target ia32 } } } */
+/* { dg-final { scan-assembler-times "push(?:l|q)\[\\t \]*" 1 { target ia32 } } } */
+/* { dg-final { scan-assembler-times "pop(?:l|q)\[\\t \]*" 1 { target ia32 } } } */
+/* { dg-final { scan-assembler-not "push(?:l|q)\[\\t \]*" { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-not "pop(?:l|q)\[\\t \]*" { target { ! ia32 } } } } */

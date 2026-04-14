@@ -1,4 +1,4 @@
-/* { dg-do compile { target { *-*-linux* && maybe_x32 } } } */
+/* { dg-do compile { target { *-*-linux* && { lp64 && maybe_x32 } } } } */
 /* { dg-options "-O2 -mx32 -fno-pic -mtune=generic -msse2 -mno-avx -mno-mmx -mno-80387 -mapxf -mtune-ctrl=prologue_using_move,epilogue_using_move" } */
 /* Keep labels and directives ('.cfi_startproc', '.cfi_endproc').  */
 /* { dg-final { check-function-bodies "**" "" "" { target "*-*-*" } {^\t?\.}  } } */
@@ -52,15 +52,14 @@
 **	.cfi_startproc
 **	subl	\$504, %esp
 **...
-**	movq	%rax, 256\(%rsp\)
-**	movq	%rdx, 264\(%rsp\)
-**	movq	%rcx, 272\(%rsp\)
-**	movq	%rbx, 280\(%rsp\)
-**	movq	%rsi, 288\(%rsp\)
-**	movq	%rdi, 296\(%rsp\)
+**	movq	%rax, 264\(%rsp\)
+**	movq	%rdi, 304\(%rsp\)
 **...
 **	movl	\$code\+4, %edi
-**	movq	%rbp, 304\(%rsp\)
+**	movq	%rdx, 272\(%rsp\)
+**	movq	%rcx, 280\(%rsp\)
+**	movq	%rbx, 288\(%rsp\)
+**	movq	%rsi, 296\(%rsp\)
 **	movq	%r8, 312\(%rsp\)
 **	movq	%r9, 320\(%rsp\)
 **	movq	%r10, 328\(%rsp\)
@@ -85,9 +84,8 @@
 **	movq	%r29, 480\(%rsp\)
 **	movq	%r30, 488\(%rsp\)
 **	movq	%r31, 496\(%rsp\)
-**...
-**	movl	code\(%rip\), %ebp
 **	movaps	%xmm0, \(%rsp\)
+**	movl	code\(%rip\), %eax
 **	movaps	%xmm1, 16\(%rsp\)
 **	movaps	%xmm2, 32\(%rsp\)
 **	movaps	%xmm3, 48\(%rsp\)
@@ -104,7 +102,7 @@
 **	movaps	%xmm14, 224\(%rsp\)
 **	movaps	%xmm15, 240\(%rsp\)
 **...
-**	call	\*%rbp
+**	call	\*%rax
 **	movaps	\(%rsp\), %xmm0
 **	movaps	16\(%rsp\), %xmm1
 **	movaps	32\(%rsp\), %xmm2
@@ -121,13 +119,12 @@
 **	movaps	208\(%rsp\), %xmm13
 **	movaps	224\(%rsp\), %xmm14
 **	movaps	240\(%rsp\), %xmm15
-**	movq	256\(%rsp\), %rax
-**	movq	264\(%rsp\), %rdx
-**	movq	272\(%rsp\), %rcx
-**	movq	280\(%rsp\), %rbx
-**	movq	288\(%rsp\), %rsi
-**	movq	296\(%rsp\), %rdi
-**	movq	304\(%rsp\), %rbp
+**	movq	264\(%rsp\), %rax
+**	movq	272\(%rsp\), %rdx
+**	movq	280\(%rsp\), %rcx
+**	movq	288\(%rsp\), %rbx
+**	movq	296\(%rsp\), %rsi
+**	movq	304\(%rsp\), %rdi
 **	movq	312\(%rsp\), %r8
 **	movq	320\(%rsp\), %r9
 **	movq	328\(%rsp\), %r10

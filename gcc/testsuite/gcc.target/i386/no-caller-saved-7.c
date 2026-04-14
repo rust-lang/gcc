@@ -1,0 +1,49 @@
+/* PR target/124798  */
+/* { dg-do compile } */
+/* { dg-options "-O2 -mtune=corei7 -mtune-ctrl=^prologue_using_move,^epilogue_using_move -fomit-frame-pointer" } */
+
+typedef struct
+{
+  double d[16];
+} record;
+
+[[gnu::no_caller_saved_registers]] extern record foo (void);
+
+record
+qux (void)
+{
+  int a, b, c, d, e, f;
+  asm volatile ("# %0 %1 %2 %3 %4 %5"
+		: "=r" (a), "=r" (b), "=r" (c), "=r" (d), "=r" (e), "=r" (f));
+#ifdef __x86_64__
+  int g, h, i, j;
+  asm volatile ("# %0 %1 %2 %3"
+		: "=r" (g), "=r" (h), "=r" (i), "=r" (j));
+#endif
+  record ret = foo ();
+  asm volatile ("# %0 %1 %2 %3 %4 %5"
+		:: "r" (a), "r" (b), "r" (c), "r" (d), "r" (e), "r" (f));
+#ifdef __x86_64__
+  asm volatile ("# %0 %1 %2 %3"
+		:: "r" (g), "r" (h), "r" (i), "r" (j));
+#endif
+
+  return ret;
+}
+
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+%edx, \[0-9\]*\\(%\[re\]?sp\\)" } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+%ecx, \[0-9\]*\\(%\[re\]?sp\\)" } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+%esi, \[0-9\]*\\(%\[re\]?sp\\)" } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+%edi, \[0-9\]*\\(%\[re\]?sp\\)" } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+\[0-9\]*\\(%\[re\]?sp\\), %edx" } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+\[0-9\]*\\(%\[re\]?sp\\), %ecx" } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+\[0-9\]*\\(%\[re\]?sp\\), %esi" } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+\[0-9\]*\\(%\[re\]?sp\\), %edi" } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+%r8d, \[0-9\]*\\(%\[re\]?sp\\)" { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+%r9d, \[0-9\]*\\(%\[re\]?sp\\)" { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+%r10d, \[0-9\]*\\(%\[re\]?sp\\)" { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+%r11d, \[0-9\]*\\(%\[re\]?sp\\)" { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+\[0-9\]*\\(%\[re\]?sp\\), %r8d" { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+\[0-9\]*\\(%\[re\]?sp\\), %r9d" { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+\[0-9\]*\\(%\[re\]?sp\\), %r10d" { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-not "mov(l|q)\[ \\t\]+\[0-9\]*\\(%\[re\]?sp\\), %r11d" { target { ! ia32 } } } } */

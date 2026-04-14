@@ -4349,11 +4349,15 @@ ix86_emit_tls_call (rtx tls_set, x86_cse_kind kind, basic_block bb,
       /* Get all live caller-saved registers for TLS_GD and TLS_LD_BASE
 	 instructions.  */
       if (kind != X86_CSE_TLSDESC)
-	for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
-	  if (default_function_abi.clobbers_full_reg_p (i)
-	      && !fixed_regs[i]
-	      && bitmap_bit_p (in, i))
-	    bitmap_set_bit (live_caller_saved_regs, i);
+	{
+	  const predefined_function_abi &tls_abi
+	    = ix86_tls_get_addr_abi ();
+	  for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
+	    if (tls_abi.clobbers_full_reg_p (i)
+		&& !fixed_regs[i]
+		&& bitmap_bit_p (in, i))
+	      bitmap_set_bit (live_caller_saved_regs, i);
+	}
 
       if (bitmap_empty_p (live_caller_saved_regs))
 	{
@@ -4526,6 +4530,7 @@ ix86_place_single_tls_call (rtx dest, rtx val, x86_cse_kind kind,
 
       symbol = XVECEXP (val, 0, 0);
       tls = gen_tls_global_dynamic_64 (Pmode, rax, symbol, caddr, rdi);
+      CALL_INSN_ABI_ID (tls) = ix86_tls_get_addr_abi ().id ();
 
       if (GET_MODE (symbol) != Pmode)
 	symbol = gen_rtx_ZERO_EXTEND (Pmode, symbol);
@@ -4538,6 +4543,7 @@ ix86_place_single_tls_call (rtx dest, rtx val, x86_cse_kind kind,
       caddr = ix86_tls_get_addr ();
 
       tls = gen_tls_local_dynamic_base_64 (Pmode, rax, caddr, rdi);
+      CALL_INSN_ABI_ID (tls) = ix86_tls_get_addr_abi ().id ();
 
       /* Attach a unique REG_EQUAL to DEST, to allow the RTL optimizers
 	 to share the LD_BASE result with other LD model accesses.  */

@@ -107,6 +107,7 @@ along with GCC; see the file COPYING3.  If not see
 
 static void ix86_print_operand_address_as (FILE *, rtx, addr_space_t, bool);
 static void ix86_emit_restore_reg_using_pop (rtx, bool = false);
+static const predefined_function_abi & ix86_alternate_abi (void);
 
 
 #ifndef CHECK_STACK_LIMIT
@@ -503,17 +504,6 @@ ix86_conditional_register_usage (void)
 {
   int i, c_mask;
 
-  /* If there are no caller-saved registers, preserve all registers.
-     except fixed_regs and registers used for function return value
-     since aggregate_value_p checks call_used_regs[regno] on return
-     value.  */
-  if (cfun
-      && (cfun->machine->call_saved_registers
-	  == TYPE_NO_CALLER_SAVED_REGISTERS))
-    for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
-      if (!fixed_regs[i] && !ix86_function_value_regno_p (i))
-	call_used_regs[i] = 0;
-
   /* For 32-bit targets, disable the REX registers.  */
   if (! TARGET_64BIT)
     {
@@ -525,8 +515,10 @@ ix86_conditional_register_usage (void)
 	CLEAR_HARD_REG_BIT (accessible_reg_set, i);
     }
 
-  /*  See the definition of CALL_USED_REGISTERS in i386.h.  */
-  c_mask = CALL_USED_REGISTERS_MASK (TARGET_64BIT_MS_ABI);
+  /* Set up the call-used registers based on the system ABI (ix86_abi).
+
+     See the definition of CALL_USED_REGISTERS in i386.h.  */
+  c_mask = CALL_USED_REGISTERS_MASK (TARGET_64BIT && ix86_abi == MS_ABI);
 
   CLEAR_HARD_REG_SET (reg_class_contents[(int)CLOBBERED_REGS]);
 
@@ -932,7 +924,7 @@ x86_64_elf_unique_section (tree decl, int reloc)
 /* Return true if TYPE has no_callee_saved_registers or preserve_none
    attribute.  */
 
-bool
+static bool
 ix86_type_no_callee_saved_registers_p (const_tree fntype)
 {
   auto type = ix86_fntype_call_saved_registers (fntype);
@@ -3871,10 +3863,10 @@ ix86_function_value_regno_p (const unsigned int regno)
       /* Complex values are returned in %st(0)/%st(1) pair.  */
     case ST0_REG:
     case ST1_REG:
-      /* TODO: The function should depend on current function ABI but
-       builtins.cc would need updating then. Therefore we use the
-       default ABI.  */
-      if (TARGET_64BIT && ix86_cfun_abi () == MS_ABI)
+      /* TODO: An ABI identifier should be passed as a parameter.
+	 For now, most callers, including those in builtins.cc,
+	 expect us to use the default ABI.  */
+      if (TARGET_64BIT && ix86_abi == MS_ABI)
 	return false;
       return TARGET_FLOAT_RETURNS_IN_80387;
 
@@ -6783,8 +6775,6 @@ ix86_hard_regno_scratch_ok (unsigned int regno)
 bool
 ix86_save_reg (unsigned int regno, bool maybe_eh_return, bool ignore_outlined)
 {
-  rtx reg;
-
   /* Save and restore DRAP register between prologue and epilogue so
      that stack pointer can be restored.  */
   if (crtl->drap_reg
@@ -6792,41 +6782,12 @@ ix86_save_reg (unsigned int regno, bool maybe_eh_return, bool ignore_outlined)
       && !cfun->machine->no_drap_save_restore)
     return true;
 
-  switch (cfun->machine->call_saved_registers)
-    {
-    case TYPE_DEFAULT_CALL_SAVED_REGISTERS:
-      break;
-
-    case TYPE_NO_CALLER_SAVED_REGISTERS:
-      /* If there are no caller-saved registers, we preserve all
-	 registers, except for MMX and x87 registers which aren't
-	 supported when saving and restoring registers.  Don't
-	 explicitly save SP register since it is always preserved.
-
-	 Don't preserve registers used for function return value.  */
-      reg = crtl->return_rtx;
-      if (reg)
-	{
-	  unsigned int i = REGNO (reg);
-	  unsigned int nregs = REG_NREGS (reg);
-	  while (nregs-- > 0)
-	    if ((i + nregs) == regno)
-	      return false;
-	}
-
-      return (df_regs_ever_live_p (regno)
-	      && !fixed_regs[regno]
-	      && !STACK_REGNO_P (regno)
-	      && !MMX_REGNO_P (regno)
-	      && (regno != HARD_FRAME_POINTER_REGNUM
-		  || !frame_pointer_needed));
-
-    case TYPE_NO_CALLEE_SAVED_REGISTERS:
-    case TYPE_PRESERVE_NONE:
-      if (regno != HARD_FRAME_POINTER_REGNUM)
-	return false;
-      break;
-    }
+  /* ??? Treat no_callee_saved_registers as a special case in order
+     to cope with -mnoreturn-no-callee-saved-registers, which is not
+     reflected in crtl->abi.  */
+  if (cfun->machine->call_saved_registers == TYPE_NO_CALLEE_SAVED_REGISTERS
+      && regno != HARD_FRAME_POINTER_REGNUM)
+    return false;
 
   if (regno == REAL_PIC_OFFSET_TABLE_REGNUM
       && pic_offset_table_rtx)
@@ -12561,6 +12522,18 @@ ix86_tls_get_addr (void)
   return ix86_tls_symbol;
 }
 
+/* Return the descriptor of the function ABI type for the tls_get_addr
+   function.  */
+
+const predefined_function_abi &
+ix86_tls_get_addr_abi (void)
+{
+  if (ix86_abi == SYSV_ABI)
+    return default_function_abi;
+  else
+    return ix86_alternate_abi ();
+}
+
 /* Construct the SYMBOL_REF for the _TLS_MODULE_BASE_ symbol.  */
 
 static GTY(()) rtx ix86_tls_module_base_symbol;
@@ -12671,8 +12644,10 @@ legitimize_tls_address (rtx x, enum tls_model model, bool for_mov)
 	      rtx_insn *insns;
 
 	      start_sequence ();
-	      emit_call_insn
+	      rtx_insn *call_insn = emit_call_insn
 		(gen_tls_global_dynamic_64 (Pmode, rax, x, caddr, rdi));
+	      CALL_INSN_ABI_ID (call_insn)
+		= ix86_tls_get_addr_abi ().id ();
 	      insns = end_sequence ();
 
 	      if (GET_MODE (x) != Pmode)
@@ -12726,8 +12701,10 @@ legitimize_tls_address (rtx x, enum tls_model model, bool for_mov)
 	      rtx eqv;
 
 	      start_sequence ();
-	      emit_call_insn
+	      rtx_insn *call_insn = emit_call_insn
 		(gen_tls_local_dynamic_base_64 (Pmode, rax, caddr, rdi));
+	      CALL_INSN_ABI_ID (call_insn)
+		= ix86_tls_get_addr_abi ().id ();
 	      insns = end_sequence ();
 
 	      /* Attach a unique REG_EQUAL, to allow the RTL optimizers to
@@ -21713,6 +21690,243 @@ ix86_hard_regno_mode_ok (unsigned int regno, machine_mode mode)
   return false;
 }
 
+/* Initialize function_abis[ABI_ID] with the set of register clobbers
+   in FULL_REG_CLOBBERS, adjusting for rules that apply to all ABIs.  */
+
+static void
+ix86_initialize_abi (unsigned int abi_id, HARD_REG_SET full_reg_clobbers)
+{
+  /* The general rule is that fixed registers should be marked as
+     call-clobbered.  This includes global registers, inaccessible
+     registers, the flags register, and the FPSR.
+
+     Handle the exceptions below.  */
+  full_reg_clobbers |= fixed_reg_set;
+
+  /* Every ABI (even preserve_none) preserves EBP/RBP.  */
+  CLEAR_HARD_REG_BIT (full_reg_clobbers, HARD_FRAME_POINTER_REGNUM);
+
+  /* Treat GCC's internal frame-related registers as call-preserved.  */
+  CLEAR_HARD_REG_BIT (full_reg_clobbers, FRAME_POINTER_REGNUM);
+  CLEAR_HARD_REG_BIT (full_reg_clobbers, ARG_POINTER_REGNUM);
+
+  /* MMX registers aren't preserved.  */
+  if (TARGET_MMX)
+    full_reg_clobbers |= reg_class_contents[MMX_REGS];
+
+  /* X87 registers aren't preserved.  */
+  if (TARGET_80387 || TARGET_FLOAT_RETURNS_IN_80387)
+    full_reg_clobbers |= reg_class_contents[FLOAT_REGS];
+
+  function_abis[abi_id].initialize (abi_id, full_reg_clobbers);
+}
+
+/* Return the descriptor of no_callee_saved_registers function type.
+   None of the enabled registers are preserved, except for the common
+   rules applied by ix86_initialize_abi.  */
+
+static const predefined_function_abi &
+ix86_no_callee_saved_abi (void)
+{
+  auto &no_callee_saved_abi = function_abis[ABI_NO_CALLEE_SAVED];
+  if (!no_callee_saved_abi.initialized_p ())
+    ix86_initialize_abi (ABI_NO_CALLEE_SAVED, accessible_reg_set);
+  return no_callee_saved_abi;
+}
+
+/* Return the descriptor of the no_caller_saved_registers function type
+   with ABI identifier ABI_ID.  All registers are preserved, except for:
+
+   - the return registers, which are enumerated in ABI_ID.
+
+   - the common rules applied by ix86_initialize_abi.  */
+
+static const predefined_function_abi &
+ix86_no_caller_saved_abi (unsigned int abi_id)
+{
+  auto &abi = function_abis[abi_id];
+  if (!abi.initialized_p ())
+    {
+      HARD_REG_SET full_reg_clobbers = {};
+
+      switch (abi_id)
+	{
+	case ABI_NO_CALLER_SAVED_RETURN_VOID:
+	  break;
+
+	case ABI_NO_CALLER_SAVED_RETURN_AX_DX:
+	  SET_HARD_REG_BIT (full_reg_clobbers, DX_REG);
+	  /* Fall through.  */
+	case ABI_NO_CALLER_SAVED_RETURN_AX:
+	  SET_HARD_REG_BIT (full_reg_clobbers, AX_REG);
+	  break;
+
+	case ABI_NO_CALLER_SAVED_RETURN_AX_XMM0:
+	  SET_HARD_REG_BIT (full_reg_clobbers, AX_REG);
+	  SET_HARD_REG_BIT (full_reg_clobbers, XMM0_REG);
+	  break;
+
+	case ABI_NO_CALLER_SAVED_RETURN_XMM0_XMM1:
+	  SET_HARD_REG_BIT (full_reg_clobbers, XMM1_REG);
+	  /* Fall through.  */
+	case ABI_NO_CALLER_SAVED_RETURN_XMM0:
+	  SET_HARD_REG_BIT (full_reg_clobbers, XMM0_REG);
+	  break;
+
+	default:
+	  gcc_unreachable ();
+	}
+
+      ix86_initialize_abi (abi_id, full_reg_clobbers);
+    }
+  return abi;
+}
+
+/* Return the descriptor of the standard function ABI type.  If
+   ABI_TYPE == ABI_ALTERNATE, return the function alternate ABI type.  */
+
+static const predefined_function_abi &
+ix86_standard_abi (int abi_type)
+{
+  static const char ix86_call_used_regs[] = CALL_USED_REGISTERS;
+  auto &standard_abi = function_abis[abi_type];
+  if (!standard_abi.initialized_p ())
+    {
+      HARD_REG_SET full_reg_clobbers = {};
+
+      /* Add all registers that are clobbered by the call.  NB: If the
+	 current ABI is SYSV_ABI, the alternate ABI is MS_ABI.   */
+      bool is_64bit_ms_abi = (TARGET_64BIT
+			      && ix86_abi == (abi_type == ABI_ALTERNATE
+					      ? SYSV_ABI : MS_ABI));
+      char c_mask = CALL_USED_REGISTERS_MASK (is_64bit_ms_abi);
+      for (int i = 0; i < FIRST_PSEUDO_REGISTER; i++)
+	if (ix86_call_used_regs[i] == 1
+	    || (ix86_call_used_regs[i] & c_mask))
+	  SET_HARD_REG_BIT (full_reg_clobbers, i);
+
+      ix86_initialize_abi (abi_type, full_reg_clobbers);
+    }
+  return standard_abi;
+}
+
+/* Return the descriptor of the function alternate ABI type.  */
+
+static const predefined_function_abi &
+ix86_alternate_abi (void)
+{
+  return ix86_standard_abi (ABI_ALTERNATE);
+}
+
+/* Return the function ABI ID based on FNTYPE.  */
+
+static int
+ix86_function_abi_id (const_tree fntype)
+{
+  auto call_saved_registers = ix86_fntype_call_saved_registers (fntype);
+  if (call_saved_registers == TYPE_PRESERVE_NONE
+      || call_saved_registers == TYPE_NO_CALLEE_SAVED_REGISTERS)
+    return ABI_NO_CALLEE_SAVED;
+
+  if (call_saved_registers == TYPE_NO_CALLER_SAVED_REGISTERS)
+    {
+      tree type = TREE_TYPE (fntype);
+      if (VOID_TYPE_P (type))
+	return ABI_NO_CALLER_SAVED_RETURN_VOID;
+      /* AX register contains the address of the return value location
+	 passed in by the caller.  */
+      else if (ix86_return_in_memory (type, fntype))
+	return ABI_NO_CALLER_SAVED_RETURN_AX;
+      rtx ret = ix86_function_value (type, fntype, false);
+      unsigned int nregs;
+      if (REG_P (ret))
+	{
+	  unsigned int regno = REGNO (ret);
+	  if (STACK_REGNO_P (regno) || MMX_REGNO_P (regno))
+	    return ABI_NO_CALLER_SAVED_RETURN_VOID;
+	  else
+	    switch (regno)
+	      {
+	      case AX_REG:
+		nregs = REG_NREGS (ret);
+		if (nregs == 1)
+		  return ABI_NO_CALLER_SAVED_RETURN_AX;
+		else if (nregs == 2)
+		  return ABI_NO_CALLER_SAVED_RETURN_AX_DX;
+		gcc_unreachable ();
+	      case XMM0_REG:
+		return ABI_NO_CALLER_SAVED_RETURN_XMM0;
+	      default:
+		gcc_unreachable ();
+	      }
+	}
+      else if (GET_CODE (ret) == PARALLEL && XVECLEN (ret, 0) == 2)
+	{
+	  rtx x0 = XVECEXP (ret, 0, 0);
+	  rtx x1 = XVECEXP (ret, 0, 1);
+	  if (GET_CODE (x0) == EXPR_LIST
+	      && GET_CODE (x1) == EXPR_LIST)
+	    {
+	      x0 = XEXP (x0, 0);
+	      x1 = XEXP (x1, 0);
+	      if (REG_P (x0) && REGNO (x0) == AX_REG)
+		{
+		  if (REG_P (x1) && REGNO (x1) == XMM0_REG)
+		    return ABI_NO_CALLER_SAVED_RETURN_AX_XMM0;
+		}
+	      if (REG_P (x0) && REGNO (x0) == XMM0_REG && REG_P (x1))
+		{
+		  if (REGNO (x1) == AX_REG)
+		    return ABI_NO_CALLER_SAVED_RETURN_AX_XMM0;
+		  else if (REGNO (x1) == XMM1_REG)
+		    return ABI_NO_CALLER_SAVED_RETURN_XMM0_XMM1;
+		}
+	    }
+
+	  gcc_unreachable ();
+	}
+    }
+
+  /* NB: This must be the last since other attributes change the
+     function ABI.  */
+  if (ix86_function_type_abi (fntype) != ix86_abi)
+    return ABI_ALTERNATE;
+
+  return ABI_DEFAULT;
+}
+
+/* Implement TARGET_FNTYPE_ABI.  */
+
+static const predefined_function_abi &
+ix86_fntype_abi (const_tree fntype)
+{
+  unsigned int abi_id = ix86_function_abi_id (fntype);
+  switch (abi_id)
+    {
+    case ABI_DEFAULT:
+      return default_function_abi;
+
+    case ABI_ALTERNATE:
+      return ix86_alternate_abi ();
+
+    case ABI_NO_CALLEE_SAVED:
+      return ix86_no_callee_saved_abi ();
+
+    case ABI_NO_CALLER_SAVED_RETURN_VOID:
+    case ABI_NO_CALLER_SAVED_RETURN_AX:
+    case ABI_NO_CALLER_SAVED_RETURN_AX_DX:
+    case ABI_NO_CALLER_SAVED_RETURN_AX_XMM0:
+    case ABI_NO_CALLER_SAVED_RETURN_XMM0:
+    case ABI_NO_CALLER_SAVED_RETURN_XMM0_XMM1:
+      return ix86_no_caller_saved_abi (abi_id);
+
+    default:
+      gcc_unreachable ();
+    }
+
+  return default_function_abi;
+}
+
 /* Initialize function_abis with corresponding abi_id,
    currently only handle vzeroupper.  */
 void
@@ -21751,11 +21965,37 @@ static bool
 ix86_hard_regno_call_part_clobbered (unsigned int abi_id, unsigned int regno,
 				     machine_mode mode)
 {
-  /* Special ABI for vzeroupper which only clobber higher part of sse regs.  */
-  if (abi_id == ABI_VZEROUPPER)
+  switch (abi_id)
+    {
+    case ABI_VZEROUPPER:
+      /* Special ABI for vzeroupper which only clobbers higher part of
+	 SSE registers.  */
       return (GET_MODE_SIZE (mode) > 16
 	      && ((TARGET_64BIT && REX_SSE_REGNO_P (regno))
 		  || LEGACY_SSE_REGNO_P (regno)));
+
+    case ABI_DEFAULT:
+    case ABI_ALTERNATE:
+    case ABI_NO_CALLEE_SAVED:
+      break;
+
+    case ABI_NO_CALLER_SAVED_RETURN_VOID:
+    case ABI_NO_CALLER_SAVED_RETURN_AX:
+    case ABI_NO_CALLER_SAVED_RETURN_AX_DX:
+      /* These ABIs don't clobber SSE registers.  */
+      return false;
+
+    case ABI_NO_CALLER_SAVED_RETURN_AX_XMM0:
+    case ABI_NO_CALLER_SAVED_RETURN_XMM0:
+    case ABI_NO_CALLER_SAVED_RETURN_XMM0_XMM1:
+      /* These ABIs return some values in SSE registers and preserve
+	 the rest.  The return value registers (XMM0 and possibly XMM1)
+	 are fully rather than partially call-clobbered.  */
+      return false;
+
+    default:
+      gcc_unreachable ();
+    }
 
   return SSE_REGNO_P (regno) && GET_MODE_SIZE (mode) > 16;
 }
@@ -28679,6 +28919,9 @@ ix86_libgcc_floating_mode_supported_p
 #undef TARGET_HARD_REGNO_CALL_PART_CLOBBERED
 #define TARGET_HARD_REGNO_CALL_PART_CLOBBERED \
   ix86_hard_regno_call_part_clobbered
+
+#undef TARGET_FNTYPE_ABI
+#define TARGET_FNTYPE_ABI ix86_fntype_abi
 
 #undef TARGET_CAN_CHANGE_MODE_CLASS
 #define TARGET_CAN_CHANGE_MODE_CLASS ix86_can_change_mode_class

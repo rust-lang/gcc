@@ -17,7 +17,6 @@ foo (fn_t bar)
 /* { dg-final { scan-assembler-times "push(?:l|q)\[\\t \]*%(?:e|r)bx" 1 } } */
 /* { dg-final { scan-assembler-not "push(?:l|q)\[\\t \]*%(?:e|r)cx" } } */
 /* { dg-final { scan-assembler-not "push(?:l|q)\[\\t \]*%(?:e|r)dx" } } */
-/* { dg-final { scan-assembler-not "push(?:l|q)\[\\t \]*%(?:e|r)bp" } } */
 /* { dg-final { scan-assembler-times "pushl\[\\t \]*%esi" 1 { target ia32 } } } */
 /* { dg-final { scan-assembler-not "pushq\[\\t \]*%rsi" { target { ! ia32 } } } } */
 /* { dg-final { scan-assembler-times "pushl\[\\t \]*%edi" 1 { target ia32 } } } */
@@ -34,7 +33,6 @@ foo (fn_t bar)
 /* { dg-final { scan-assembler-times "pop(?:l|q)\[\\t \]*%(?:e|r)bx" 1 } } */
 /* { dg-final { scan-assembler-not "pop(?:l|q)\[\\t \]*%(?:e|r)cx" } } */
 /* { dg-final { scan-assembler-not "pop(?:l|q)\[\\t \]*%(?:e|r)dx" } } */
-/* { dg-final { scan-assembler-not "pop(?:l|q)\[\\t \]*%(?:e|r)bp" } } */
 /* { dg-final { scan-assembler-times "popl\[\\t \]*%esi" 1 { target ia32 } } } */
 /* { dg-final { scan-assembler-not "popq\[\\t \]*%rsi" { target { ! ia32 } } } } */
 /* { dg-final { scan-assembler-times "popl\[\\t \]*%edi" 1 { target ia32 } } } */
@@ -43,7 +41,7 @@ foo (fn_t bar)
 /* { dg-final { scan-assembler-not "popq\[\\t \]*%r9" { target { ! ia32 } } } } */
 /* { dg-final { scan-assembler-not "popq\[\\t \]*%r10" { target { ! ia32 } } } } */
 /* { dg-final { scan-assembler-not "popq\[\\t \]*%r11" { target { ! ia32 } } } } */
-/* { dg-final { scan-assembler-times "popq\[\\t \]*%r12" 1 { target { ! ia32 } } } } */
-/* { dg-final { scan-assembler-times "popq\[\\t \]*%r13" 1 { target { ! ia32 } } } } */
-/* { dg-final { scan-assembler-times "popq\[\\t \]*%r14" 1 { target { ! ia32 } } } } */
-/* { dg-final { scan-assembler-times "popq\[\\t \]*%r15" 1 { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-times "pushq\[\\t \]*%r12" 1 { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-times "pushq\[\\t \]*%r13" 1 { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-times "pushq\[\\t \]*%r14" 1 { target { ! ia32 } } } } */
+/* { dg-final { scan-assembler-times "pushq\[\\t \]*%r15" 1 { target { ! ia32 } } } } */

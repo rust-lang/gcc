@@ -94,6 +94,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "i386-builtins.h"
 #include "i386-expand.h"
 #include "asan.h"
+#include "function-abi.h"
 
 /* Split one or more double-mode RTL references into pairs of half-mode
    references.  The RTL can be REG, offsettable MEM, integer constant, or
@@ -11329,17 +11330,6 @@ construct_plt_address (rtx symbol)
   return tmp;
 }
 
-/* Additional registers that are clobbered by SYSV calls.  */
-
-static int const x86_64_ms_sysv_extra_clobbered_registers
-		 [NUM_X86_64_MS_CLOBBERED_REGS] =
-{
-  SI_REG, DI_REG,
-  XMM6_REG, XMM7_REG,
-  XMM8_REG, XMM9_REG, XMM10_REG, XMM11_REG,
-  XMM12_REG, XMM13_REG, XMM14_REG, XMM15_REG
-};
-
 rtx_insn *
 ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
 		  rtx callarg2,
@@ -11349,7 +11339,6 @@ ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
   rtx use = NULL, call;
   unsigned int vec_len = 0;
   tree fndecl;
-  bool call_no_callee_saved_registers = false;
 
   if (SYMBOL_REF_P (XEXP (fnaddr, 0)))
     {
@@ -11359,26 +11348,13 @@ ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
 	  if (lookup_attribute ("interrupt",
 				TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))
 	    error ("interrupt service routine cannot be called directly");
-	  else if (ix86_type_no_callee_saved_registers_p (TREE_TYPE (fndecl)))
-	    call_no_callee_saved_registers = true;
 	  if (fndecl == current_function_decl
 	      && decl_binds_to_current_def_p (fndecl))
 	    cfun->machine->recursive_function = true;
 	}
     }
   else
-    {
-      if (MEM_P (fnaddr))
-	{
-	  tree mem_expr = MEM_EXPR (fnaddr);
-	  if (mem_expr != nullptr
-	      && TREE_CODE (mem_expr) == MEM_REF
-	      && ix86_type_no_callee_saved_registers_p (TREE_TYPE (mem_expr)))
-	    call_no_callee_saved_registers = true;
-	}
-
-      fndecl = NULL_TREE;
-    }
+    fndecl = NULL_TREE;
 
   if (pop == const0_rtx)
     pop = NULL;
@@ -11515,62 +11491,26 @@ ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
       vec[vec_len++] = pop;
     }
 
-  static const char ix86_call_used_regs[] = CALL_USED_REGISTERS;
-
-  if ((cfun->machine->call_saved_registers
-       == TYPE_NO_CALLER_SAVED_REGISTERS)
-      && (!fndecl
-	  || (!TREE_THIS_VOLATILE (fndecl)
-	      && !lookup_attribute ("no_caller_saved_registers",
-				    TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))))
+  /* Set here, but it may get cleared later.  */
+  if (TARGET_64BIT_MS_ABI
+      && (!callarg2 || INTVAL (callarg2) != -2)
+      && TARGET_CALL_MS2SYSV_XLOGUES)
     {
-      bool is_64bit_ms_abi = (TARGET_64BIT
-			      && ix86_function_abi (fndecl) == MS_ABI);
-      char c_mask = CALL_USED_REGISTERS_MASK (is_64bit_ms_abi);
+      if (!TARGET_SSE)
+	;
 
-      /* If there are no caller-saved registers, add all registers
-	 that are clobbered by the call which returns.  */
-      for (int i = 0; i < FIRST_PSEUDO_REGISTER; i++)
-	if (!fixed_regs[i]
-	    && (ix86_call_used_regs[i] == 1
-		|| (ix86_call_used_regs[i] & c_mask))
-	    && !STACK_REGNO_P (i)
-	    && !MMX_REGNO_P (i))
-	  clobber_reg (&use,
-		       gen_rtx_REG (GET_MODE (regno_reg_rtx[i]), i));
-    }
-  else if (TARGET_64BIT_MS_ABI
-	   && (!callarg2 || INTVAL (callarg2) != -2))
-    {
-      unsigned i;
+      /* Don't break hot-patched functions.  */
+      else if (ix86_function_ms_hook_prologue (current_function_decl))
+	;
 
-      for (i = 0; i < NUM_X86_64_MS_CLOBBERED_REGS; i++)
+      /* TODO: Cases not yet examined.  */
+      else if (flag_split_stack)
+	warn_once_call_ms2sysv_xlogues ("-fsplit-stack");
+
+      else
 	{
-	  int regno = x86_64_ms_sysv_extra_clobbered_registers[i];
-	  machine_mode mode = SSE_REGNO_P (regno) ? TImode : DImode;
-
-	  clobber_reg (&use, gen_rtx_REG (mode, regno));
-	}
-
-      /* Set here, but it may get cleared later.  */
-      if (TARGET_CALL_MS2SYSV_XLOGUES)
-	{
-	  if (!TARGET_SSE)
-	    ;
-
-	  /* Don't break hot-patched functions.  */
-	  else if (ix86_function_ms_hook_prologue (current_function_decl))
-	    ;
-
-	  /* TODO: Cases not yet examined.  */
-	  else if (flag_split_stack)
-	    warn_once_call_ms2sysv_xlogues ("-fsplit-stack");
-
-	  else
-	    {
-	      gcc_assert (!reload_completed);
-	      cfun->machine->call_ms2sysv = true;
-	    }
+	  gcc_assert (!reload_completed);
+	  cfun->machine->call_ms2sysv = true;
 	}
     }
 
@@ -11586,25 +11526,6 @@ ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
 	 resolver could be used which clobbers R11 and R10.  */
       clobber_reg (&use, gen_rtx_REG (DImode, R11_REG));
       clobber_reg (&use, gen_rtx_REG (DImode, R10_REG));
-    }
-
-  if (call_no_callee_saved_registers)
-    {
-      /* After calling a no_callee_saved_registers function, all
-	 registers may be clobbered.  Clobber all registers that are
-	 not used by the callee.  */
-      bool is_64bit_ms_abi = (TARGET_64BIT
-			      && ix86_function_abi (fndecl) == MS_ABI);
-      char c_mask = CALL_USED_REGISTERS_MASK (is_64bit_ms_abi);
-      for (int i = 0; i < FIRST_PSEUDO_REGISTER; i++)
-	if (!fixed_regs[i]
-	    && i != HARD_FRAME_POINTER_REGNUM
-	    && !(ix86_call_used_regs[i] == 1
-		 || (ix86_call_used_regs[i] & c_mask))
-	    && !STACK_REGNO_P (i)
-	    && !MMX_REGNO_P (i))
-	  clobber_reg (&use,
-		       gen_rtx_REG (GET_MODE (regno_reg_rtx[i]), i));
     }
 
   if (vec_len > 1)

@@ -1,63 +1,26 @@
 /* { dg-do compile { target { *-*-linux* && lp64 } } } */
-/* { dg-options "-O2 -fno-pic -mtune=generic -msse2 -mno-avx -mno-mmx -mno-80387 -mapxf -mtune-ctrl=prologue_using_move,epilogue_using_move" } */
+/* { dg-options "-O2 -fno-pic -mgeneral-regs-only -mtune=generic -mtune-ctrl=prologue_using_move,epilogue_using_move" } */
 /* Keep labels and directives ('.cfi_startproc', '.cfi_endproc').  */
 /* { dg-final { check-function-bodies "**" "" "" { target "*-*-*" } {^\t?\.}  } } */
 
-/* end must be empty.  */
+__attribute__((no_callee_saved_registers, noipa))
+void
+foo (void)
+{
+}
 
 /*
-**end:
+**bar:
 **.LFB[0-9]+:
 **	.cfi_startproc
-**	ret
-**	.cfi_endproc
+**	subq	\$376, %rsp
 **...
-*/
-
-/* inc doesn't have any callee saved registers.  */
-
-/*
-**inc:
-**.LFB[0-9]+:
-**	.cfi_startproc
-**	addl	\$1, accumulator\(%rip\)
-**	movq	\(%rdi\), %rax
-**	addq	\$8, %rdi
-**	jmp	\*%rax
-**	.cfi_endproc
-**...
-*/
-
-/* dec doesn't have any callee saved registers.  */
-
-/*
-**dec:
-**.LFB[0-9]+:
-**	.cfi_startproc
-**	subl	\$1, accumulator\(%rip\)
-**	movq	\(%rdi\), %rax
-**	addq	\$8, %rdi
-**	jmp	\*%rax
-**	.cfi_endproc
-**...
-*/
-
-/* start must save and restore all caller saved registers.  */
-
-/*
-**start:
-**.LFB[0-9]+:
-**	.cfi_startproc
-**	subq	\$504, %rsp
-**...
-**	movq	%rdi, 304\(%rsp\)
-**...
-**	movl	\$code\+8, %edi
 **	movq	%rax, 264\(%rsp\)
 **	movq	%rdx, 272\(%rsp\)
 **	movq	%rcx, 280\(%rsp\)
 **	movq	%rbx, 288\(%rsp\)
 **	movq	%rsi, 296\(%rsp\)
+**	movq	%rdi, 304\(%rsp\)
 **	movq	%r8, 312\(%rsp\)
 **	movq	%r9, 320\(%rsp\)
 **	movq	%r10, 328\(%rsp\)
@@ -66,23 +29,6 @@
 **	movq	%r13, 352\(%rsp\)
 **	movq	%r14, 360\(%rsp\)
 **	movq	%r15, 368\(%rsp\)
-**	movq	%r16, 376\(%rsp\)
-**	movq	%r17, 384\(%rsp\)
-**	movq	%r18, 392\(%rsp\)
-**	movq	%r19, 400\(%rsp\)
-**	movq	%r20, 408\(%rsp\)
-**	movq	%r21, 416\(%rsp\)
-**	movq	%r22, 424\(%rsp\)
-**	movq	%r23, 432\(%rsp\)
-**	movq	%r24, 440\(%rsp\)
-**	movq	%r25, 448\(%rsp\)
-**	movq	%r26, 456\(%rsp\)
-**	movq	%r27, 464\(%rsp\)
-**	movq	%r28, 472\(%rsp\)
-**	movq	%r29, 480\(%rsp\)
-**	movq	%r30, 488\(%rsp\)
-**	movq	%r31, 496\(%rsp\)
-**...
 **	movaps	%xmm0, \(%rsp\)
 **	movaps	%xmm1, 16\(%rsp\)
 **	movaps	%xmm2, 32\(%rsp\)
@@ -100,7 +46,7 @@
 **	movaps	%xmm14, 224\(%rsp\)
 **	movaps	%xmm15, 240\(%rsp\)
 **...
-**	call	\*code\(%rip\)
+**	call	foo
 **	movaps	\(%rsp\), %xmm0
 **	movaps	16\(%rsp\), %xmm1
 **	movaps	32\(%rsp\), %xmm2
@@ -129,29 +75,18 @@
 **	movq	352\(%rsp\), %r13
 **	movq	360\(%rsp\), %r14
 **	movq	368\(%rsp\), %r15
-**	movq	376\(%rsp\), %r16
-**	movq	384\(%rsp\), %r17
 **	movaps	224\(%rsp\), %xmm14
 **	movaps	240\(%rsp\), %xmm15
-**	movq	392\(%rsp\), %r18
-**	movq	400\(%rsp\), %r19
-**	movq	408\(%rsp\), %r20
-**	movq	416\(%rsp\), %r21
-**	movq	424\(%rsp\), %r22
-**	movq	432\(%rsp\), %r23
-**	movq	440\(%rsp\), %r24
-**	movq	448\(%rsp\), %r25
-**	movq	456\(%rsp\), %r26
-**	movq	464\(%rsp\), %r27
-**	movq	472\(%rsp\), %r28
-**	movq	480\(%rsp\), %r29
-**	movq	488\(%rsp\), %r30
-**	movq	496\(%rsp\), %r31
-**	addq	\$504, %rsp
+**	addq	\$376, %rsp
 **...
 **	ret
 **	.cfi_endproc
 **...
 */
 
-#include "no-callee-saved-19a.c"
+__attribute__((no_caller_saved_registers, target("sse2")))
+void
+bar (void)
+{
+  foo ();
+}

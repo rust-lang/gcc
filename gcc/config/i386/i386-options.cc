@@ -3525,21 +3525,6 @@ ix86_set_current_function (tree fndecl)
     }
   ix86_previous_fndecl = fndecl;
 
-  static call_saved_registers_type prev_call_saved_registers;
-
-  /* 64-bit MS and SYSV ABI have different set of call used registers.
-     Avoid expensive re-initialization of init_regs each time we switch
-     function context.  */
-  if (TARGET_64BIT
-      && (call_used_or_fixed_reg_p (SI_REG)
-	  == (cfun->machine->call_abi == MS_ABI)))
-    reinit_regs ();
-  /* Need to re-initialize init_regs if caller-saved registers are
-     changed.  */
-  else if (prev_call_saved_registers
-	   != cfun->machine->call_saved_registers)
-    reinit_regs ();
-
   if (cfun->machine->func_type != TYPE_NORMAL
       || (cfun->machine->call_saved_registers
 	  == TYPE_NO_CALLER_SAVED_REGISTERS))
@@ -3587,8 +3572,6 @@ ix86_set_current_function (tree fndecl)
 	    = TYPE_DEFAULT_CALL_SAVED_REGISTERS;
 	}
     }
-
-  prev_call_saved_registers = cfun->machine->call_saved_registers;
 }
 
 /* Implement the TARGET_OFFLOAD_OPTIONS hook.  */
