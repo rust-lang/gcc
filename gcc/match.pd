@@ -11973,21 +11973,20 @@ and,
 (match (ctz_table_index @1 @2 @3)
   (rshift (mult (bit_and:c (negate @1) @1) INTEGER_CST@2) INTEGER_CST@3))
 
-/* Match count leading zeros for simplify_count_zeroes in forwprop.
-   One canonical form is 31 - array[idx] where IDX is computed from X
-   by first setting all bits from the topmost set bits down via a
-   series of shifts and ors to X' and then computing (X' * C) >> SHIFT.  */
-(match (clz_table_index @1 @2 @3)
-  (rshift (mult
-   (bit_ior (rshift
-     (bit_ior@d (rshift
-       (bit_ior@c (rshift
-         (bit_ior@b (rshift
-	   (bit_ior@a (rshift @1 INTEGER_CST@c1) @1)
-	   INTEGER_CST@c2) @a)
-	 INTEGER_CST@c4) @b)
-       INTEGER_CST@c8) @c)
-     INTEGER_CST@c16) @d) INTEGER_CST@2) INTEGER_CST@3)
+/* Helpers for clz_table_index and its variants: match the 5- or
+   6-stage MSB OR-cascade that drives a DeBruijn CLZ lookup.  Given a
+   value @1, the cascade sets every bit from 0 to the MSB of @1,
+   producing 2^(k+1) - 1 where k is the MSB position.  */
+(match (msb_or_cascade_32 @1)
+  (bit_ior (rshift
+    (bit_ior@d (rshift
+      (bit_ior@c (rshift
+	(bit_ior@b (rshift
+	  (bit_ior@a (rshift @1 INTEGER_CST@c1) @1)
+	  INTEGER_CST@c2) @a)
+	INTEGER_CST@c4) @b)
+      INTEGER_CST@c8) @c)
+    INTEGER_CST@c16) @d)
   (if (INTEGRAL_TYPE_P (type)
        && TYPE_UNSIGNED (type)
        && TYPE_PRECISION (type) == 32
@@ -11996,19 +11995,19 @@ and,
        && compare_tree_int (@c4, 4) == 0
        && compare_tree_int (@c8, 8) == 0
        && compare_tree_int (@c16, 16) == 0)))
-(match (clz_table_index @1 @2 @3)
-  (rshift (mult
-   (bit_ior (rshift
-     (bit_ior@e (rshift
-       (bit_ior@d (rshift
-         (bit_ior@c (rshift
-           (bit_ior@b (rshift
-	     (bit_ior@a (rshift @1 INTEGER_CST@c1) @1)
-	     INTEGER_CST@c2) @a)
-	   INTEGER_CST@c4) @b)
-         INTEGER_CST@c8) @c)
-       INTEGER_CST@c16) @d)
-     INTEGER_CST@c32) @e) INTEGER_CST@2) INTEGER_CST@3)
+
+(match (msb_or_cascade_64 @1)
+  (bit_ior (rshift
+    (bit_ior@e (rshift
+      (bit_ior@d (rshift
+	(bit_ior@c (rshift
+	  (bit_ior@b (rshift
+	    (bit_ior@a (rshift @1 INTEGER_CST@c1) @1)
+	    INTEGER_CST@c2) @a)
+	  INTEGER_CST@c4) @b)
+	INTEGER_CST@c8) @c)
+      INTEGER_CST@c16) @d)
+    INTEGER_CST@c32) @e)
   (if (INTEGRAL_TYPE_P (type)
        && TYPE_UNSIGNED (type)
        && TYPE_PRECISION (type) == 64
@@ -12018,6 +12017,15 @@ and,
        && compare_tree_int (@c8, 8) == 0
        && compare_tree_int (@c16, 16) == 0
        && compare_tree_int (@c32, 32) == 0)))
+
+/* Match count leading zeros for simplify_count_zeroes in forwprop.
+   One canonical form is 31 - array[idx] where IDX is computed from X
+   by first setting all bits from the topmost set bits down via a
+   series of shifts and ors to X' and then computing (X' * C) >> SHIFT.  */
+(match (clz_table_index @1 @2 @3)
+  (rshift (mult (msb_or_cascade_32 @1) INTEGER_CST@2) INTEGER_CST@3))
+(match (clz_table_index @1 @2 @3)
+  (rshift (mult (msb_or_cascade_64 @1) INTEGER_CST@2) INTEGER_CST@3))
 
 /* Floatint point/integer comparison and integer->integer
    or floating point -> float point conversion.  */
