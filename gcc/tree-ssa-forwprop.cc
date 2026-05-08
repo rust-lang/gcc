@@ -3374,6 +3374,7 @@ check_table (tree ctor, tree type, HOST_WIDE_INT &zero_val, unsigned bits,
 /* Match.pd function to match the ctz expression.  */
 extern bool gimple_ctz_table_index (tree, tree *, tree (*)(tree));
 extern bool gimple_clz_table_index (tree, tree *, tree (*)(tree));
+extern bool gimple_clz_msb_iso_table_index (tree, tree *, tree (*)(tree));
 
 /* Recognize count leading and trailing zeroes idioms.
    The canonical form is array[((x & -x) * C) >> SHIFT] where C is a magic
@@ -3393,6 +3394,12 @@ simplify_count_zeroes (gimple_stmt_iterator *gsi)
   gcc_checking_assert (TREE_CODE (array_ref) == ARRAY_REF);
 
   internal_fn fn = IFN_LAST;
+  /* When true, the matched idiom is a CLZ using DeBruijn CTZ on the
+     isolated MSB -- see clz_msb_iso_table_index in match.pd.  The
+     table stores MSB positions and must satisfy the direct CTZ
+     DeBruijn property, so we validate it with the CTZ checkfn even
+     though we emit IFN_CLZ code.  */
+  bool clz_via_ctz = false;
   /* For CTZ we recognize ((x & -x) * C) >> SHIFT where the array data
      represents the number of trailing zeros.  */
   if (gimple_ctz_table_index (TREE_OPERAND (array_ref, 1), &res_ops[0], NULL))
@@ -3408,6 +3415,17 @@ simplify_count_zeroes (gimple_stmt_iterator *gsi)
   else if (gimple_clz_table_index (TREE_OPERAND (array_ref, 1), &res_ops[0],
 				   NULL))
     fn = IFN_CLZ;
+  /* Variant CLZ idiom: after the OR-cascade sets all bits from 0 to
+     the original MSB, (value - (value >> 1)) isolates the MSB as a
+     power of two (2^k), and the subsequent DeBruijn multiply-and-shift
+     is a CTZ-style lookup on 2^k.  The table stores MSB positions
+     directly.  */
+  else if (gimple_clz_msb_iso_table_index (TREE_OPERAND (array_ref, 1),
+					   &res_ops[0], NULL))
+    {
+      fn = IFN_CLZ;
+      clz_via_ctz = true;
+    }
   else
     return false;
 
@@ -3417,9 +3435,13 @@ simplify_count_zeroes (gimple_stmt_iterator *gsi)
   tree input_type = TREE_TYPE (res_ops[0]);
   unsigned input_bits = tree_to_shwi (TYPE_SIZE (input_type));
 
-  /* Check the array element type is not wider than 32 bits and the input is
-     an unsigned 32-bit or 64-bit type.  */
-  if (TYPE_PRECISION (type) > 32 || !TYPE_UNSIGNED (input_type))
+  /* Check the array element type is integral and not wider than 64 bits,
+     and the input is an unsigned 32-bit or 64-bit type.  The table values
+     are bit positions in [0, input_bits - 1], so any integer element type
+     with at least 6 bits of precision suffices; the cap is just to keep
+     the transformation simple.  */
+  if (!INTEGRAL_TYPE_P (type) || TYPE_PRECISION (type) > 64
+      || !TYPE_UNSIGNED (input_type))
     return false;
   if (input_bits != 32 && input_bits != 64)
     return false;
@@ -3441,7 +3463,9 @@ simplify_count_zeroes (gimple_stmt_iterator *gsi)
   if (!ctor)
     return false;
   unsigned HOST_WIDE_INT mulval = tree_to_uhwi (res_ops[1]);
-  if (fn == IFN_CTZ)
+  /* CTZ and the MSB-isolation CLZ variant both use the direct CTZ
+     DeBruijn check (table[(magic << data) >> shift] == data).  */
+  if (fn == IFN_CTZ || clz_via_ctz)
     {
       auto checkfn = [&](unsigned data, unsigned i) -> bool
 	{

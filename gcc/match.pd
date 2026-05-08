@@ -12027,6 +12027,20 @@ and,
 (match (clz_table_index @1 @2 @3)
   (rshift (mult (msb_or_cascade_64 @1) INTEGER_CST@2) INTEGER_CST@3))
 
+/* Match count leading zeros for simplify_count_zeroes in forwprop,
+   variant that isolates the MSB as a power of two via (s - (s >> 1))
+   after the OR-cascade.  For s = 2^(k+1) - 1 (the cascade output),
+   (s - (s >> 1)) equals 2^k, so the subsequent DeBruijn
+   multiply-and-shift is a CTZ-style lookup on the isolated MSB.  The
+   table has to satisfy the direct CTZ DeBruijn property (validated by
+   the CTZ checkfn in simplify_count_zeroes).
+   PR tree-optimization/122569.  */
+(match (clz_msb_iso_table_index @1 @2 @3)
+  (rshift (mult
+   (minus (msb_or_cascade_64@f @1) (rshift @f INTEGER_CST@sub1))
+   INTEGER_CST@2) INTEGER_CST@3)
+  (if (compare_tree_int (@sub1, 1) == 0)))
+
 /* Floatint point/integer comparison and integer->integer
    or floating point -> float point conversion.  */
 (match (cond_expr_convert_p @0 @2 @3 @6)
