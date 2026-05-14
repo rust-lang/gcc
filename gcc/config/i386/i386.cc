@@ -3601,9 +3601,7 @@ ix86_function_arg (cumulative_args_t cum_v, const function_arg_info &arg)
 
   if (TARGET_64BIT)
     {
-      enum calling_abi call_abi = cum ? cum->call_abi : ix86_abi;
-
-      if (call_abi == MS_ABI)
+      if (cum->call_abi == MS_ABI)
 	reg = function_arg_ms_64 (cum, mode, arg.mode, arg.named,
 				  arg.type, bytes);
       else
