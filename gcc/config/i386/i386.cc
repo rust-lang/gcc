@@ -6870,7 +6870,8 @@ ix86_save_reg (unsigned int regno, bool maybe_eh_return, bool ignore_outlined)
     }
 
   return (df_regs_ever_live_p (regno)
-	  && !call_used_or_fixed_reg_p (regno)
+	  && !fixed_regs[regno]
+	  && !crtl->abi->clobbers_full_reg_p (regno)
 	  && (regno != HARD_FRAME_POINTER_REGNUM || !frame_pointer_needed));
 }
 
@@ -23524,13 +23525,13 @@ x86_order_regs_for_local_alloc (void)
 
    /* First allocate the local general purpose registers.  */
    for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
-     if (GENERAL_REGNO_P (i) && call_used_or_fixed_reg_p (i))
-	reg_alloc_order [pos++] = i;
+     if (GENERAL_REGNO_P (i) && default_function_abi.clobbers_full_reg_p (i))
+       reg_alloc_order [pos++] = i;
 
    /* Global general purpose registers.  */
    for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
-     if (GENERAL_REGNO_P (i) && !call_used_or_fixed_reg_p (i))
-	reg_alloc_order [pos++] = i;
+     if (GENERAL_REGNO_P (i) && !default_function_abi.clobbers_full_reg_p (i))
+       reg_alloc_order [pos++] = i;
 
    /* x87 registers come first in case we are doing FP math
       using them.  */
@@ -23992,7 +23993,7 @@ x86_64_select_profile_regnum (bool r11_ok ATTRIBUTE_UNUSED)
 #endif
 	&& TEST_HARD_REG_BIT (accessible_reg_set, i)
 	&& (ix86_save_reg (i, true, true)
-	    || (call_used_regs[i]
+	    || (crtl->abi->clobbers_full_reg_p (i)
 		&& !fixed_regs[i]
 		&& !REGNO_REG_SET_P (reg_live, i))))
       return i;

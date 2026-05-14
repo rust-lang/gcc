@@ -90,6 +90,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree-vector-builder.h"
 #include "debug.h"
 #include "dwarf2out.h"
+#include "function-abi.h"
 #include "i386-builtins.h"
 #include "i386-features.h"
 #include "i386-expand.h"
@@ -4349,7 +4350,7 @@ ix86_emit_tls_call (rtx tls_set, x86_cse_kind kind, basic_block bb,
 	 instructions.  */
       if (kind != X86_CSE_TLSDESC)
 	for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
-	  if (call_used_regs[i]
+	  if (default_function_abi.clobbers_full_reg_p (i)
 	      && !fixed_regs[i]
 	      && bitmap_bit_p (in, i))
 	    bitmap_set_bit (live_caller_saved_regs, i);
