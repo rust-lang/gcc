@@ -47,6 +47,8 @@ extern enum calling_abi ix86_function_type_abi (const_tree);
 extern bool ix86_use_pseudo_pic_reg (void);
 
 extern void ix86_reset_previous_fndecl (void);
+extern call_saved_registers_type
+  ix86_fntype_call_saved_registers (const_tree, location_t * = nullptr);
 
 extern bool ix86_using_red_zone (void);
 

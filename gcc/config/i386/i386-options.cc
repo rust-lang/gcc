@@ -3265,13 +3265,53 @@ ix86_simd_clone_adjust (struct cgraph_node *node)
   ix86_set_current_function (node->decl);
 }
 
+/* Return the call_saved_registers_type for function type FNTYPE.
+   If LOC is nonnull, report incompatible attributes against that
+   location, otherwise remain silent.  */
 
+call_saved_registers_type
+ix86_fntype_call_saved_registers (const_tree fntype, location_t *loc)
+{
+  auto call_saved_registers = TYPE_DEFAULT_CALL_SAVED_REGISTERS;
+  const char *interrupt_conflict = nullptr;
+  if (lookup_attribute ("preserve_none", TYPE_ATTRIBUTES (fntype)))
+    {
+      call_saved_registers = TYPE_PRESERVE_NONE;
+      interrupt_conflict = "preserve_none";
+    }
+  else if (lookup_attribute ("no_callee_saved_registers",
+			     TYPE_ATTRIBUTES (fntype)))
+    {
+      call_saved_registers = TYPE_NO_CALLEE_SAVED_REGISTERS;
+      interrupt_conflict = "no_callee_saved_registers";
+    }
+  else if (lookup_attribute ("no_caller_saved_registers",
+			     TYPE_ATTRIBUTES (fntype)))
+    call_saved_registers = TYPE_NO_CALLER_SAVED_REGISTERS;
+
+  if (lookup_attribute ("interrupt", TYPE_ATTRIBUTES (fntype)))
+    {
+      if (loc && interrupt_conflict)
+	error_at (*loc, "%qs and %qs attributes are not compatible",
+		  "interrupt", interrupt_conflict);
+      return TYPE_NO_CALLER_SAVED_REGISTERS;
+    }
+
+  return call_saved_registers;
+}
 
 /* Set the func_type field from the function FNDECL.  */
 
 static void
 ix86_set_func_type (tree fndecl)
 {
+  if (cfun->machine->func_type != TYPE_UNKNOWN)
+    return;
+
+  cfun->machine->call_saved_registers
+    = ix86_fntype_call_saved_registers (TREE_TYPE (fndecl),
+					&DECL_SOURCE_LOCATION (fndecl));
+
   /* No need to save and restore callee-saved registers for a noreturn
      function with nothrow or compiled with -fno-exceptions unless when
      compiling with -O0 or -Og, except that it interferes with debugging
@@ -3287,74 +3327,37 @@ ix86_set_func_type (tree fndecl)
      function is marked with TREE_THIS_VOLATILE in the IR output, which
      leads to the incompatible attribute error in LTO1.  Ignore the
      interrupt function in this case.  */
-  enum call_saved_registers_type no_callee_saved_registers
-    = TYPE_DEFAULT_CALL_SAVED_REGISTERS;
-  if (lookup_attribute ("preserve_none",
-			     TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))
-    no_callee_saved_registers = TYPE_PRESERVE_NONE;
-  else if ((lookup_attribute ("no_callee_saved_registers",
-			      TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))
-	   || (ix86_noreturn_no_callee_saved_registers
-	       && TREE_THIS_VOLATILE (fndecl)
-	       && optimize
-	       && !optimize_debug
-	       && (TREE_NOTHROW (fndecl) || !flag_exceptions)
-	       && !lookup_attribute ("interrupt",
-				     TYPE_ATTRIBUTES (TREE_TYPE (fndecl)))
-	       && !lookup_attribute ("no_caller_saved_registers",
-				 TYPE_ATTRIBUTES (TREE_TYPE (fndecl)))))
-    no_callee_saved_registers = TYPE_NO_CALLEE_SAVED_REGISTERS;
+  if (cfun->machine->call_saved_registers == TYPE_DEFAULT_CALL_SAVED_REGISTERS
+      && ix86_noreturn_no_callee_saved_registers
+      && TREE_THIS_VOLATILE (fndecl)
+      && optimize
+      && !optimize_debug
+      && (TREE_NOTHROW (fndecl) || !flag_exceptions))
+    cfun->machine->call_saved_registers = TYPE_NO_CALLEE_SAVED_REGISTERS;
 
-  if (cfun->machine->func_type == TYPE_UNKNOWN)
+  if (lookup_attribute ("interrupt",
+			TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))
     {
-      if (lookup_attribute ("interrupt",
-			    TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))
-	{
-	  if (ix86_function_naked (fndecl))
-	    error_at (DECL_SOURCE_LOCATION (fndecl),
-		      "interrupt and naked attributes are not compatible");
+      if (ix86_function_naked (fndecl))
+	error_at (DECL_SOURCE_LOCATION (fndecl),
+		  "interrupt and naked attributes are not compatible");
 
-	  if (no_callee_saved_registers)
-	    {
-	      const char *attr;
-	      if (no_callee_saved_registers == TYPE_PRESERVE_NONE)
-		attr = "preserve_none";
-	      else
-		attr = "no_callee_saved_registers";
-	      error_at (DECL_SOURCE_LOCATION (fndecl),
-			"%qs and %qs attributes are not compatible",
-			"interrupt", attr);
-	    }
+      int nargs = 0;
+      for (tree arg = DECL_ARGUMENTS (fndecl);
+	   arg;
+	   arg = TREE_CHAIN (arg))
+	nargs++;
+      cfun->machine->func_type = nargs == 2 ? TYPE_EXCEPTION : TYPE_INTERRUPT;
 
-	  int nargs = 0;
-	  for (tree arg = DECL_ARGUMENTS (fndecl);
-	       arg;
-	       arg = TREE_CHAIN (arg))
-	    nargs++;
-	  cfun->machine->call_saved_registers
-	    = TYPE_NO_CALLER_SAVED_REGISTERS;
-	  cfun->machine->func_type
-	    = nargs == 2 ? TYPE_EXCEPTION : TYPE_INTERRUPT;
+      ix86_optimize_mode_switching[X86_DIRFLAG] = 1;
 
-	  ix86_optimize_mode_switching[X86_DIRFLAG] = 1;
-
-	  /* Only dwarf2out.cc can handle -WORD(AP) as a pointer argument.  */
-	  if (write_symbols != NO_DEBUG && write_symbols != DWARF2_DEBUG)
-	    sorry ("only DWARF debug format is supported for interrupt "
-		   "service routine");
-	}
-      else
-	{
-	  cfun->machine->func_type = TYPE_NORMAL;
-	  if (no_callee_saved_registers)
-	    cfun->machine->call_saved_registers
-	      = no_callee_saved_registers;
-	  else if (lookup_attribute ("no_caller_saved_registers",
-				     TYPE_ATTRIBUTES (TREE_TYPE (fndecl))))
-	    cfun->machine->call_saved_registers
-	      = TYPE_NO_CALLER_SAVED_REGISTERS;
-	}
+      /* Only dwarf2out.cc can handle -WORD(AP) as a pointer argument.  */
+      if (write_symbols != NO_DEBUG && write_symbols != DWARF2_DEBUG)
+	sorry ("only DWARF debug format is supported for interrupt "
+	       "service routine");
     }
+  else
+    cfun->machine->func_type = TYPE_NORMAL;
 }
 
 /* Set the indirect_branch_type field from the function FNDECL.  */

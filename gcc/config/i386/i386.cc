@@ -933,12 +933,10 @@ x86_64_elf_unique_section (tree decl, int reloc)
    attribute.  */
 
 bool
-ix86_type_no_callee_saved_registers_p (const_tree type)
+ix86_type_no_callee_saved_registers_p (const_tree fntype)
 {
-  return (lookup_attribute ("no_callee_saved_registers",
-			    TYPE_ATTRIBUTES (type)) != NULL
-	  || lookup_attribute ("preserve_none",
-			       TYPE_ATTRIBUTES (type)) != NULL);
+  auto type = ix86_fntype_call_saved_registers (fntype);
+  return type == TYPE_PRESERVE_NONE || type == TYPE_NO_CALLEE_SAVED_REGISTERS;
 }
 
 #ifdef COMMON_ASM_OP
