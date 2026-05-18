@@ -84,6 +84,9 @@ extern const struct gcn_device_def {
   {"arch", "%{!march=*:-march=%(VALUE)}" }, \
   {"tune", "%{!mtune=*:-mtune=%(VALUE)}" }
 
+/* Assembler doesn't support '-v' option.  */
+#define ASM_V_SPEC ""
+
 /* Default target_flags if no switches specified.  */
 #ifndef TARGET_DEFAULT
 #define TARGET_DEFAULT 0
