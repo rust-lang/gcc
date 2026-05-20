@@ -9524,9 +9524,7 @@ vectorizable_induction (loop_vec_info loop_vinfo,
   tree new_name;
   gphi *induction_phi;
   tree induc_def, vec_dest;
-  poly_uint64 vf = LOOP_VINFO_VECT_FACTOR (loop_vinfo);
   unsigned i;
-  tree expr;
   tree index_vectype = NULL_TREE;
   gimple_stmt_iterator si;
   enum vect_induction_op_type induction_type
@@ -9633,7 +9631,8 @@ vectorizable_induction (loop_vec_info loop_vinfo,
   if (!target_supports_op_p (step_vectype, PLUS_EXPR, optab_default)
       || !target_supports_op_p (step_vectype, MINUS_EXPR, optab_default))
       return false;
-  if (!nunits.is_constant ())
+  if (!nunits.is_constant ()
+      || !LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
     {
       if (!target_supports_op_p (step_vectype, MULT_EXPR, optab_default))
 	return false;
@@ -9734,7 +9733,8 @@ vectorizable_induction (loop_vec_info loop_vinfo,
   unsigned HOST_WIDE_INT const_nunits;
   if (nested_in_vect_loop)
     nivs = nvects;
-  else if (nunits.is_constant (&const_nunits))
+  else if (nunits.is_constant (&const_nunits)
+	   && LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
     {
       /* Compute the number of distinct IVs we need.  First reduce
 	 group_size if it is a multiple of const_nunits so we get
@@ -9750,10 +9750,12 @@ vectorizable_induction (loop_vec_info loop_vinfo,
       nivs = 1;
     }
   gimple_seq init_stmts = NULL;
+  gimple_seq lupdate_mul_stmts = NULL;
   tree lupdate_mul = NULL_TREE;
   if (!nested_in_vect_loop)
     {
-      if (nunits.is_constant (&const_nunits))
+      if (nunits.is_constant (&const_nunits)
+	  && LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
 	{
 	  /* The number of iterations covered in one vector iteration.  */
 	  unsigned lup_mul = (nvects * const_nunits) / group_size;
@@ -9766,14 +9768,23 @@ vectorizable_induction (loop_vec_info loop_vinfo,
 	}
       else
 	{
+	  gimple_seq *update_stmts
+	    = LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo)
+		? &init_stmts
+		: &lupdate_mul_stmts;
 	  if (SCALAR_FLOAT_TYPE_P (stept))
 	    {
-	      tree tem = build_int_cst (integer_type_node, vf);
-	      lupdate_mul = gimple_build (&init_stmts, FLOAT_EXPR, stept, tem);
+	      tree increment
+		= gimple_convert (update_stmts, integer_type_node,
+				  LOOP_VINFO_IV_INCREMENT (loop_vinfo));
+	      lupdate_mul = gimple_build (update_stmts, FLOAT_EXPR, stept,
+					  increment);
 	    }
 	  else
-	    lupdate_mul = build_int_cst (stept, vf);
-	  lupdate_mul = gimple_build_vector_from_val (&init_stmts, step_vectype,
+	    lupdate_mul = gimple_convert (update_stmts, stept,
+					 LOOP_VINFO_IV_INCREMENT (loop_vinfo));
+	  lupdate_mul = gimple_build_vector_from_val (update_stmts,
+						      step_vectype,
 						      lupdate_mul);
 	}
     }
@@ -9796,7 +9807,8 @@ vectorizable_induction (loop_vec_info loop_vinfo,
     {
       gimple_seq stmts = NULL;
       bool invariant = true;
-      if (nunits.is_constant (&const_nunits))
+      if (nunits.is_constant (&const_nunits)
+	  && LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
 	{
 	  tree_vector_builder step_elts (step_vectype, const_nunits, 1);
 	  tree_vector_builder init_elts (vectype, const_nunits, 1);
@@ -9904,36 +9916,12 @@ vectorizable_induction (loop_vec_info loop_vinfo,
       /* Create the iv update inside the loop  */
       tree up = vec_step;
       if (lupdate_mul)
-	{
-	  if (LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo))
-	    {
-	      /* When we're using loop_len produced by SELEC_VL, the
-		 non-final iterations are not always processing VF
-		 elements.  So vectorize induction variable instead of
-
-		   _21 = vect_vec_iv_.6_22 + { VF, ... };
-
-		 We should generate:
-
-		   _35 = .SELECT_VL (ivtmp_33, VF);
-		   vect_cst__22 = [vec_duplicate_expr] _35;
-		   _21 = vect_vec_iv_.6_22 + vect_cst__22;  */
-	      vec_loop_lens *lens = &LOOP_VINFO_LENS (loop_vinfo);
-	      tree len = vect_get_loop_len (loop_vinfo, NULL, lens, 1,
-					    vectype, 0, 0, false);
-	      if (SCALAR_FLOAT_TYPE_P (stept))
-		expr = gimple_build (&stmts, FLOAT_EXPR, stept, len);
-	      else
-		expr = gimple_convert (&stmts, stept, len);
-	      lupdate_mul = gimple_build_vector_from_val (&stmts, step_vectype,
-							  expr);
-	      up = gimple_build (&stmts, MULT_EXPR,
-				 step_vectype, vec_step, lupdate_mul);
-	    }
-	  else
-	    up = gimple_build (&init_stmts, MULT_EXPR, step_vectype,
-			       vec_step, lupdate_mul);
-	}
+	 {
+	   if (lupdate_mul_stmts)
+	     gimple_seq_add_seq (&stmts, lupdate_mul_stmts);
+	   up = gimple_build (&stmts, MULT_EXPR, step_vectype, vec_step,
+			      lupdate_mul);
+	 }
       vec_def = gimple_convert (&stmts, step_vectype, induc_def);
       vec_def = gimple_build (&stmts, PLUS_EXPR, step_vectype, vec_def, up);
       vec_def = gimple_convert (&stmts, vectype, vec_def);
@@ -9964,7 +9952,8 @@ vectorizable_induction (loop_vec_info loop_vinfo,
   if (!nested_in_vect_loop)
     {
       /* Fill up to the number of vectors we need for the whole group.  */
-      if (nunits.is_constant (&const_nunits))
+      if (nunits.is_constant (&const_nunits)
+	  && LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
 	nivs = least_common_multiple (group_size, const_nunits) / const_nunits;
       else
 	nivs = 1;
@@ -9980,7 +9969,8 @@ vectorizable_induction (loop_vec_info loop_vinfo,
      stmts by adding VF' * stride to the IVs generated above.  */
   if (ivn < nvects)
     {
-      if (nunits.is_constant (&const_nunits))
+      if (nunits.is_constant (&const_nunits)
+	  && LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
 	{
 	  unsigned vfp = (least_common_multiple (group_size, const_nunits)
 			  / group_size);
@@ -11073,7 +11063,6 @@ vect_update_ivs_after_vectorizer_for_early_breaks (loop_vec_info loop_vinfo)
 
   tree phi_var = LOOP_VINFO_EARLY_BRK_NITERS_VAR (loop_vinfo);
   tree niters_skip = LOOP_VINFO_MASK_SKIP_NITERS (loop_vinfo);
-  poly_uint64 vf = LOOP_VINFO_VECT_FACTOR (loop_vinfo);
   tree ty_var = TREE_TYPE (phi_var);
   auto loop = LOOP_VINFO_LOOP (loop_vinfo);
   tree induc_var = niters_skip ? copy_ssa_name (phi_var) : phi_var;
@@ -11090,27 +11079,15 @@ vect_update_ivs_after_vectorizer_for_early_breaks (loop_vec_info loop_vinfo)
   gimple_seq init_stmts = NULL;
   gimple_seq stmts = NULL;
   gimple_seq iv_stmts = NULL;
-  tree tree_vf = build_int_cst (ty_var, vf);
-
-  /* For loop len targets we have to use .SELECT_VL (ivtmp_33, VF); instead of
-     just += VF as the VF can change in between two loop iterations.  */
-  if (LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo))
-    {
-      vec_loop_lens *lens = &LOOP_VINFO_LENS (loop_vinfo);
-      tree_vf = vect_get_loop_len (loop_vinfo, NULL, lens, 1,
-				   NULL_TREE, 0, 0, true);
-    }
+  tree tree_iv_incr = LOOP_VINFO_IV_INCREMENT (loop_vinfo);
 
   tree iter_var;
   if (POINTER_TYPE_P (ty_var))
-    {
-      tree offset = gimple_convert (&stmts, sizetype, tree_vf);
-      iter_var = gimple_build (&stmts, POINTER_PLUS_EXPR, ty_var, induc_def,
-			       gimple_convert (&stmts, sizetype, offset));
-    }
+    iter_var = gimple_build (&stmts, POINTER_PLUS_EXPR, ty_var, induc_def,
+			     tree_iv_incr);
   else
     {
-      tree offset = gimple_convert (&stmts, ty_var, tree_vf);
+      tree offset = gimple_convert (&stmts, ty_var, tree_iv_incr);
       iter_var = gimple_build (&stmts, PLUS_EXPR, ty_var, induc_def, offset);
     }
 
@@ -11157,10 +11134,17 @@ vect_update_ivs_after_vectorizer_for_early_breaks (loop_vec_info loop_vinfo)
   /* Write the init_stmts in the loop-preheader block.  */
   auto psi = gsi_last_nondebug_bb (pe->src);
   gsi_insert_seq_after (&psi, init_stmts, GSI_LAST_NEW_STMT);
-  /* Write the adjustments in the header block.  */
-  basic_block bb = loop->header;
-  auto si = gsi_after_labels (bb);
-  gsi_insert_seq_before (&si, stmts, GSI_SAME_STMT);
+
+  /* Write the adjustments at the end of the iv increment.  */
+  bool insert_after;
+  gimple_stmt_iterator incr_gsi;
+  vect_iv_increment_position (LOOP_VINFO_MAIN_EXIT (loop_vinfo), &incr_gsi,
+			      &insert_after);
+
+  if (insert_after)
+    gsi_insert_seq_after (&incr_gsi, stmts, GSI_NEW_STMT);
+  else
+    gsi_insert_seq_before (&incr_gsi, stmts, GSI_NEW_STMT);
 }
 
 /* Function vect_transform_loop.
@@ -11258,6 +11242,9 @@ vect_transform_loop (loop_vec_info loop_vinfo, gimple *loop_vectorized_call)
 			      &step_vector, &niters_vector_mult_vf, th,
 			      check_profitability, niters_no_overflow,
 			      &advance);
+
+  LOOP_VINFO_IV_INCREMENT (loop_vinfo)
+    = vect_get_loop_iv_increment (loop_vinfo);
 
   /* Assign hierarchical discriminators to the vectorized loop.  */
   poly_uint64 vf_val = LOOP_VINFO_VECT_FACTOR (loop_vinfo);

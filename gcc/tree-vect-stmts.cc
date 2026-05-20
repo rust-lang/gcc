@@ -3170,44 +3170,35 @@ vect_get_gather_scatter_ops (class loop *loop, slp_tree slp_node,
    the gather load or scatter store operation described by GS_INFO.
    STMT_INFO is the load or store statement.
 
-   Set *DATAREF_BUMP to the amount that should be added to the base
-   address after each copy of the vectorized statement.  Set *VEC_OFFSET
-   to an invariant offset vector in which element I has the value
-   I * DR_STEP / SCALE.  */
+   Set *DR_STEP to the amount that should be added to pointer base address
+   to get to the next iteration's base address.
+   Set *DR_BUMP to the amount that should be added to the base
+   address after each copy of the vectorized statement in a grouped read.
+   Set *VEC_OFFSET to an invariant offset vector in which element I has the
+   value I * DR_STEP / SCALE.  */
 
 static void
 vect_get_strided_load_store_ops (stmt_vec_info stmt_info, slp_tree node,
 				 tree vectype, tree offset_vectype,
 				 loop_vec_info loop_vinfo,
 				 gimple_stmt_iterator *gsi,
-				 tree *dataref_bump, tree *vec_offset,
-				 vec_loop_lens *loop_lens)
+				 tree *dr_step, tree *dr_bump,
+				 tree *vec_offset)
 {
   struct data_reference *dr = STMT_VINFO_DATA_REF (stmt_info);
 
-  if (LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo))
-    {
-      /* _31 = .SELECT_VL (ivtmp_29, POLY_INT_CST [4, 4]);
-	 ivtmp_8 = _31 * 16 (step in bytes);
-	 .MASK_LEN_SCATTER_STORE (vectp_a.9_7, ... );
-	 vectp_a.9_26 = vectp_a.9_7 + ivtmp_8;  */
-      tree loop_len
-	= vect_get_loop_len (loop_vinfo, gsi, loop_lens, 1, vectype, 0, 0, true);
-      tree tmp
-	= fold_build2 (MULT_EXPR, sizetype,
-		       fold_convert (sizetype, unshare_expr (DR_STEP (dr))),
-		       loop_len);
-      *dataref_bump = force_gimple_operand_gsi (gsi, tmp, true, NULL_TREE, true,
-						GSI_SAME_STMT);
-    }
-  else
-    {
-      tree bump
-	= size_binop (MULT_EXPR,
-		      fold_convert (sizetype, unshare_expr (DR_STEP (dr))),
-		      size_int (TYPE_VECTOR_SUBPARTS (vectype)));
-      *dataref_bump = cse_and_gimplify_to_preheader (loop_vinfo, bump);
-    }
+  tree dr_step_temp
+    = size_binop (MULT_EXPR,
+		  fold_convert (sizetype, unshare_expr (DR_STEP (dr))),
+		  LOOP_VINFO_IV_INCREMENT (loop_vinfo));
+  *dr_step = LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo)
+	     ? cse_and_gimplify_to_preheader (loop_vinfo, dr_step_temp)
+	     : force_gimple_operand_gsi (gsi, dr_step_temp, false, NULL_TREE,
+					 true, GSI_SAME_STMT);
+  tree bump = size_binop (MULT_EXPR,
+			  fold_convert (sizetype, unshare_expr (DR_STEP (dr))),
+			  size_int (TYPE_VECTOR_SUBPARTS (vectype)));
+  *dr_bump = cse_and_gimplify_to_preheader (loop_vinfo, bump);
 
   internal_fn ifn
     = DR_IS_READ (dr) ? IFN_MASK_LEN_STRIDED_LOAD : IFN_MASK_LEN_STRIDED_STORE;
@@ -3233,47 +3224,31 @@ vect_get_strided_load_store_ops (stmt_vec_info stmt_info, slp_tree node,
   *vec_offset = cse_and_gimplify_to_preheader (loop_vinfo, offset);
 }
 
-/* Prepare the pointer IVs which needs to be updated by a variable amount.
-   Such variable amount is the outcome of .SELECT_VL. In this case, we can
-   allow each iteration process the flexible number of elements as long as
-   the number <= vf elements.
-
-   Return data reference according to SELECT_VL.
-   If new statements are needed, insert them before GSI.  */
+/* Return the amount that should be added to a vector pointer, represented by
+   DR_INFO, to increment to the next vectorized iteration.  */
 
 static tree
-vect_get_loop_variant_data_ptr_increment (
-  vec_info *vinfo, tree aggr_type, gimple_stmt_iterator *gsi,
-  vec_loop_lens *loop_lens, dr_vec_info *dr_info,
-  vect_memory_access_type memory_access_type)
+vect_get_data_ptr_step (vec_info *vinfo, dr_vec_info *dr_info,
+			vect_memory_access_type memory_access_type)
 {
+  if (memory_access_type == VMAT_INVARIANT)
+    return size_zero_node;
+
   loop_vec_info loop_vinfo = dyn_cast<loop_vec_info> (vinfo);
-  tree step = vect_dr_behavior (vinfo, dr_info)->step;
+
+  /* For BB SLP there is no next iteration.  */
+  if (!loop_vinfo)
+    return build_zero_cst (sizetype);
+
+  tree step = vect_dr_behavior (loop_vinfo, dr_info)->step;
 
   /* gather/scatter never reach here.  */
   gcc_assert (!mat_gather_scatter_p (memory_access_type));
 
-  /* When we support SELECT_VL pattern, we dynamic adjust
-     the memory address by .SELECT_VL result.
+  tree iv_increment = LOOP_VINFO_IV_INCREMENT (loop_vinfo);
 
-     The result of .SELECT_VL is the number of elements to
-     be processed of each iteration. So the memory address
-     adjustment operation should be:
-
-     addr = addr + .SELECT_VL (ARG..) * step;
-  */
-  tree loop_len
-    = vect_get_loop_len (loop_vinfo, gsi, loop_lens, 1, aggr_type, 0, 0, true);
-  tree len_type = TREE_TYPE (loop_len);
-  /* Since the outcome of .SELECT_VL is element size, we should adjust
-     it into bytesize so that it can be used in address pointer variable
-     amount IVs adjustment.  */
-  tree tmp = fold_build2 (MULT_EXPR, len_type, loop_len,
-			  wide_int_to_tree (len_type, wi::to_widest (step)));
-  tree bump = make_temp_ssa_name (len_type, NULL, "ivtmp");
-  gassign *assign = gimple_build_assign (bump, tmp);
-  gsi_insert_before (gsi, assign, GSI_SAME_STMT);
-  return bump;
+  return fold_build2 (MULT_EXPR, sizetype, iv_increment,
+		      fold_convert (sizetype, step));
 }
 
 /* Return the amount that should be added to a vector pointer to move
@@ -3282,19 +3257,18 @@ vect_get_loop_variant_data_ptr_increment (
    vectorization.  */
 
 static tree
-vect_get_data_ptr_increment (vec_info *vinfo, gimple_stmt_iterator *gsi,
-			     dr_vec_info *dr_info, tree aggr_type,
-			     vect_memory_access_type memory_access_type,
-			     vec_loop_lens *loop_lens)
+vect_get_data_ptr_bump (vec_info *vinfo,
+			dr_vec_info *dr_info, tree aggr_type,
+			vect_memory_access_type memory_access_type)
 {
   if (memory_access_type == VMAT_INVARIANT)
     return size_zero_node;
 
   loop_vec_info loop_vinfo = dyn_cast<loop_vec_info> (vinfo);
+  /* We do not support SLP loads where num_vec != 1 with SELECT_VL so this value
+     should never be needed.  */
   if (loop_vinfo && LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo))
-    return vect_get_loop_variant_data_ptr_increment (vinfo, aggr_type, gsi,
-						     loop_lens, dr_info,
-						     memory_access_type);
+    return NULL_TREE;
 
   tree iv_step = TYPE_SIZE_UNIT (aggr_type);
   tree step = vect_dr_behavior (vinfo, dr_info)->step;
@@ -7945,19 +7919,12 @@ vectorizable_scan_store (vec_info *vinfo, stmt_vec_info stmt_info,
 	perms[i] = vect_gen_perm_mask_checked (vectype, indices);
     }
 
-  vec_loop_lens *loop_lens
-    = (loop_vinfo && LOOP_VINFO_FULLY_WITH_LENGTH_P (loop_vinfo)
-       ? &LOOP_VINFO_LENS (loop_vinfo)
-       : NULL);
-
   tree vec_oprnd1 = NULL_TREE;
   tree vec_oprnd2 = NULL_TREE;
   tree vec_oprnd3 = NULL_TREE;
   tree dataref_ptr = DR_BASE_ADDRESS (dr_info->dr);
   tree dataref_offset = build_int_cst (ref_type, 0);
-  tree bump = vect_get_data_ptr_increment (vinfo, gsi, dr_info,
-					   vectype, VMAT_CONTIGUOUS,
-					   loop_lens);
+  tree bump = vect_get_data_ptr_bump (vinfo, dr_info, vectype, VMAT_CONTIGUOUS);
   tree ldataref_ptr = NULL_TREE;
   tree orig = NULL_TREE;
   if (STMT_VINFO_SIMD_LANE_ACCESS_P (stmt_info) == 4 && !inscan_var_store)
@@ -8131,7 +8098,6 @@ vectorizable_store (vec_info *vinfo,
   enum vect_def_type mask_dt = vect_unknown_def_type;
   tree dataref_ptr = NULL_TREE;
   tree dataref_offset = NULL_TREE;
-  gimple *ptr_incr = NULL;
   int j;
   stmt_vec_info first_stmt_info;
   bool grouped_store;
@@ -8558,15 +8524,26 @@ vectorizable_store (vec_info *vinfo,
       if (!costing_p)
 	{
 	  ivstep = stride_step;
+
+	  tree increment = fold_convert (TREE_TYPE (ivstep),
+					 LOOP_VINFO_IV_INCREMENT (loop_vinfo));
+
 	  ivstep = fold_build2 (MULT_EXPR, TREE_TYPE (ivstep), ivstep,
-				build_int_cst (TREE_TYPE (ivstep), vf));
+				increment);
 
 	  standard_iv_increment_position (loop, &incr_gsi, &insert_after);
 
 	  stride_base = cse_and_gimplify_to_preheader (loop_vinfo, stride_base);
-	  ivstep = cse_and_gimplify_to_preheader (loop_vinfo, ivstep);
+	  if (LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
+	    ivstep = cse_and_gimplify_to_preheader (loop_vinfo, ivstep);
+	  else
+	    ivstep = force_gimple_operand_gsi (&incr_gsi, unshare_expr (ivstep),
+					       true, NULL_TREE, true,
+					       GSI_SAME_STMT);
+
 	  create_iv (stride_base, PLUS_EXPR, ivstep, NULL, loop, &incr_gsi,
-		     insert_after, &offvar, NULL);
+		     insert_after, &offvar, NULL,
+		     LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo));
 
 	  stride_step = cse_and_gimplify_to_preheader (loop_vinfo, stride_step);
 	}
@@ -8705,12 +8682,15 @@ vectorizable_store (vec_info *vinfo,
   if (!known_eq (poffset, 0))
     offset = size_int (poffset);
 
-  tree bump;
+  tree dr_increment;
+  tree dr_bump;
+
   tree vec_offset = NULL_TREE;
   if (STMT_VINFO_GATHER_SCATTER_P (stmt_info))
     {
       aggr_type = NULL_TREE;
-      bump = NULL_TREE;
+      dr_increment = NULL_TREE;
+      dr_bump = NULL_TREE;
     }
   else if (mat_gather_scatter_p (memory_access_type))
     {
@@ -8721,7 +8701,8 @@ vectorizable_store (vec_info *vinfo,
 	  vect_get_strided_load_store_ops (stmt_info, slp_node, vtype,
 					   ls.strided_offset_vectype,
 					   loop_vinfo, gsi,
-					   &bump, &vec_offset, loop_lens);
+					   &dr_increment, &dr_bump,
+					   &vec_offset);
 	}
     }
   else
@@ -8731,8 +8712,12 @@ vectorizable_store (vec_info *vinfo,
       else
 	aggr_type = vectype;
       if (!costing_p)
-	bump = vect_get_data_ptr_increment (vinfo, gsi, dr_info, aggr_type,
-					    memory_access_type, loop_lens);
+	{
+	  dr_increment = vect_get_data_ptr_step (vinfo, dr_info,
+						 memory_access_type);
+	  dr_bump = vect_get_data_ptr_bump (vinfo, dr_info, aggr_type,
+					    memory_access_type);
+	}
     }
 
   if (loop_vinfo && mask_node && !costing_p)
@@ -8785,7 +8770,7 @@ vectorizable_store (vec_info *vinfo,
 		  dataref_ptr
 		    = vect_create_data_ref_ptr (vinfo, first_stmt_info,
 						aggr_type, NULL, offset, &dummy,
-						gsi, &ptr_incr, false, bump);
+						gsi, NULL, false, dr_increment);
 		}
 	    }
 	  else if (!costing_p)
@@ -8793,8 +8778,8 @@ vectorizable_store (vec_info *vinfo,
 	      gcc_assert (!LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo));
 	      if (mask_node)
 		vec_mask = vec_masks[j];
-	      dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr, gsi,
-					     stmt_info, bump);
+	      dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi,
+					     stmt_info, dr_bump);
 	    }
 
 	  if (costing_p)
@@ -8941,16 +8926,16 @@ vectorizable_store (vec_info *vinfo,
 		    dataref_ptr
 		      = vect_create_data_ref_ptr (vinfo, first_stmt_info,
 						  aggr_type, NULL, offset,
-						  &dummy, gsi, &ptr_incr, false,
-						  bump);
+						  &dummy, gsi, NULL, false,
+						  dr_increment);
 		}
 	    }
 	  else if (!costing_p)
 	    {
 	      gcc_assert (!LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo));
 	      if (!STMT_VINFO_GATHER_SCATTER_P (stmt_info))
-		dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr,
-					       gsi, stmt_info, bump);
+		dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr,
+					       gsi, stmt_info, dr_bump);
 	    }
 
 	  new_stmt = NULL;
@@ -9347,8 +9332,8 @@ vectorizable_store (vec_info *vinfo,
   else if (!costing_p)
     dataref_ptr = vect_create_data_ref_ptr (vinfo, first_stmt_info, aggr_type,
 					    simd_lane_access_p ? loop : NULL,
-					    offset, &dummy, gsi, &ptr_incr,
-					    simd_lane_access_p, bump);
+					    offset, &dummy, gsi, NULL,
+					    simd_lane_access_p, dr_increment);
 
   new_stmt = NULL;
   gcc_assert (!grouped_store);
@@ -9398,8 +9383,8 @@ vectorizable_store (vec_info *vinfo,
 
       if (i > 0)
 	/* Bump the vector pointer.  */
-	dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr, gsi,
-				       stmt_info, bump);
+	dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi, stmt_info,
+				       dr_bump);
 
       unsigned misalign;
       unsigned HOST_WIDE_INT align;
@@ -9722,7 +9707,6 @@ vectorizable_load (vec_info *vinfo,
   tree dummy;
   tree dataref_ptr = NULL_TREE;
   tree dataref_offset = NULL_TREE;
-  gimple *ptr_incr = NULL;
   int i, j;
   unsigned int group_size;
   poly_uint64 group_gap_adj;
@@ -10231,16 +10215,22 @@ vectorizable_load (vec_info *vinfo,
 		 vectemp = {tmp1, tmp2, ...}
 	     */
 
-	  ivstep = fold_build2 (MULT_EXPR, TREE_TYPE (stride_step), stride_step,
-				build_int_cst (TREE_TYPE (stride_step), vf));
+	  tree increment = fold_convert (TREE_TYPE (stride_step),
+					 LOOP_VINFO_IV_INCREMENT (loop_vinfo));
+	  ivstep = fold_build2 (MULT_EXPR, TREE_TYPE (stride_step),
+				stride_step, increment);
 
 	  standard_iv_increment_position (loop, &incr_gsi, &insert_after);
 
 	  stride_base = cse_and_gimplify_to_preheader (loop_vinfo, stride_base);
-	  ivstep = cse_and_gimplify_to_preheader (loop_vinfo, ivstep);
-	  create_iv (stride_base, PLUS_EXPR, ivstep, NULL,
-		     loop, &incr_gsi, insert_after,
-		     &offvar, NULL);
+	  if (LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
+	    ivstep = cse_and_gimplify_to_preheader (loop_vinfo, ivstep);
+	  else
+	    ivstep = force_gimple_operand_gsi (&incr_gsi, unshare_expr (ivstep),
+					       true, NULL_TREE, true,
+					       GSI_SAME_STMT);
+	  create_iv (stride_base, PLUS_EXPR, ivstep, NULL, loop, &incr_gsi,
+		     insert_after, &offvar, NULL, true);
 
 	  stride_step = cse_and_gimplify_to_preheader (loop_vinfo, stride_step);
 	}
@@ -10710,7 +10700,8 @@ vectorizable_load (vec_info *vinfo,
 	      ? size_binop (PLUS_EXPR, offset, size_int (poffset))
 	      : size_int (poffset));
 
-  tree bump;
+  tree dr_increment;
+  tree dr_bump;
   tree vec_offset = NULL_TREE;
 
   auto_vec<tree> vec_offsets;
@@ -10730,8 +10721,12 @@ vectorizable_load (vec_info *vinfo,
 
       aggr_type = build_array_type_nelts (elem_type, group_size * nunits);
       if (!costing_p)
-	bump = vect_get_data_ptr_increment (vinfo, gsi, dr_info, aggr_type,
-					    memory_access_type, loop_lens);
+	{
+	  dr_increment = vect_get_data_ptr_step (vinfo, dr_info,
+						      memory_access_type);
+	  dr_bump = vect_get_data_ptr_bump (vinfo, dr_info, aggr_type,
+					    memory_access_type);
+	}
 
       unsigned int inside_cost = 0, prologue_cost = 0;
       /* For costing some adjacent vector loads, we'd like to cost with
@@ -10778,12 +10773,12 @@ vectorizable_load (vec_info *vinfo,
 	    dataref_ptr
 	      = vect_create_data_ref_ptr (vinfo, first_stmt_info, aggr_type,
 					  at_loop, offset, &dummy, gsi,
-					  &ptr_incr, false, bump);
+					  NULL, false, dr_increment);
 	  else
 	    {
 	      gcc_assert (!LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo));
-	      dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr, gsi,
-					     stmt_info, bump);
+	      dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi,
+					     stmt_info, dr_bump);
 	    }
 	  if (mask_node)
 	    vec_mask = vec_masks[j];
@@ -10909,7 +10904,7 @@ vectorizable_load (vec_info *vinfo,
       if (STMT_VINFO_GATHER_SCATTER_P (stmt_info))
 	{
 	  aggr_type = NULL_TREE;
-	  bump = NULL_TREE;
+	  dr_increment = NULL_TREE;
 	  if (!costing_p)
 	    vect_get_gather_scatter_ops (loop, slp_node, &dataref_ptr,
 					 &vec_offsets);
@@ -10922,11 +10917,12 @@ vectorizable_load (vec_info *vinfo,
 	      vect_get_strided_load_store_ops (stmt_info, slp_node, vectype,
 					       ls.strided_offset_vectype,
 					       loop_vinfo, gsi,
-					       &bump, &vec_offset, loop_lens);
+					       &dr_increment, &dr_bump,
+					       &vec_offset);
 	      dataref_ptr
 		  = vect_create_data_ref_ptr (vinfo, first_stmt_info, aggr_type,
 					      at_loop, offset, &dummy, gsi,
-					      &ptr_incr, false, bump);
+					      NULL, false, dr_increment);
 	    }
 	}
 
@@ -10950,8 +10946,8 @@ vectorizable_load (vec_info *vinfo,
 					       final_mask, vec_mask, gsi);
 
 	      if (i > 0 && !STMT_VINFO_GATHER_SCATTER_P (stmt_info))
-		dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr,
-					       gsi, stmt_info, bump);
+		dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi,
+					       stmt_info, dr_bump);
 	    }
 
 	  /* 2. Create the vector-load in the loop.  */
@@ -11336,8 +11332,12 @@ vectorizable_load (vec_info *vinfo,
 
   aggr_type = vectype;
   if (!costing_p)
-    bump = vect_get_data_ptr_increment (vinfo, gsi, dr_info, aggr_type,
-					memory_access_type, loop_lens);
+    {
+      dr_increment = vect_get_data_ptr_step (vinfo, dr_info,
+						  memory_access_type);
+      dr_bump = vect_get_data_ptr_bump (vinfo, dr_info, aggr_type,
+					memory_access_type);
+    }
 
   poly_uint64 group_elt = 0;
   unsigned int inside_cost = 0, prologue_cost = 0;
@@ -11368,8 +11368,8 @@ vectorizable_load (vec_info *vinfo,
 	  dataref_ptr
 	    = vect_create_data_ref_ptr (vinfo, first_stmt_info_for_drptr,
 					aggr_type, at_loop, offset, &dummy,
-					gsi, &ptr_incr, simd_lane_access_p,
-					bump);
+					gsi, NULL, simd_lane_access_p,
+					dr_increment);
 	  /* Adjust the pointer by the difference to first_stmt.  */
 	  data_reference_p ptrdr
 	    = STMT_VINFO_DATA_REF (first_stmt_info_for_drptr);
@@ -11377,7 +11377,7 @@ vectorizable_load (vec_info *vinfo,
 				    size_binop (MINUS_EXPR,
 						DR_INIT (first_dr_info->dr),
 						DR_INIT (ptrdr)));
-	  dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr, gsi,
+	  dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi,
 					 stmt_info, diff);
 	  if (alignment_support_scheme == dr_explicit_realign)
 	    {
@@ -11393,8 +11393,8 @@ vectorizable_load (vec_info *vinfo,
 	dataref_ptr
 	  = vect_create_data_ref_ptr (vinfo, first_stmt_info, aggr_type,
 				      at_loop,
-				      offset, &dummy, gsi, &ptr_incr,
-				      simd_lane_access_p, bump);
+				      offset, &dummy, gsi, NULL,
+				      simd_lane_access_p, dr_increment);
     }
 
   auto_vec<tree> dr_chain;
@@ -11420,8 +11420,8 @@ vectorizable_load (vec_info *vinfo,
 					   final_mask, vec_mask, gsi);
 
 	  if (i > 0)
-	    dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr,
-					   gsi, stmt_info, bump);
+	    dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi, stmt_info,
+					   dr_bump);
 	}
 
       /* 2. Create the vector-load in the loop.  */
@@ -11767,8 +11767,7 @@ vectorizable_load (vec_info *vinfo,
 
 	    bump = size_binop (MULT_EXPR, vs, TYPE_SIZE_UNIT (elem_type));
 	    bump = size_binop (MINUS_EXPR, bump, size_one_node);
-	    ptr = bump_vector_ptr (vinfo, dataref_ptr, NULL, gsi, stmt_info,
-				   bump);
+	    ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi, stmt_info, bump);
 	    new_stmt = gimple_build_assign (NULL_TREE, BIT_AND_EXPR, ptr,
 					    build_int_cst (TREE_TYPE (ptr),
 							   -(HOST_WIDE_INT) align));
@@ -11925,8 +11924,8 @@ vectorizable_load (vec_info *vinfo,
 	  if (tree_int_cst_sgn (vect_dr_behavior (vinfo, dr_info)->step) == -1)
 	    bump_val = -bump_val;
 	  tree bump = wide_int_to_tree (sizetype, bump_val);
-	  dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr, gsi,
-					 stmt_info, bump);
+	  dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi, stmt_info,
+					 bump);
 	  group_elt = 0;
 	}
     }
@@ -11941,8 +11940,7 @@ vectorizable_load (vec_info *vinfo,
       if (tree_int_cst_sgn (vect_dr_behavior (vinfo, dr_info)->step) == -1)
 	bump_val = -bump_val;
       tree bump = wide_int_to_tree (sizetype, bump_val);
-      dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, ptr_incr, gsi,
-				     stmt_info, bump);
+      dataref_ptr = bump_vector_ptr (vinfo, dataref_ptr, gsi, stmt_info, bump);
     }
 
   if (ls.slp_perm)

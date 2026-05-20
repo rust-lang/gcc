@@ -514,7 +514,6 @@ vect_set_loop_controls_directly (class loop *loop, loop_vec_info loop_vinfo,
   tree ctrl_type = rgc->type;
   unsigned int nitems_per_iter = rgc->max_nscalars_per_iter * rgc->factor;
   poly_uint64 nitems_per_ctrl = TYPE_VECTOR_SUBPARTS (ctrl_type) * rgc->factor;
-  poly_uint64 vf = LOOP_VINFO_VECT_FACTOR (loop_vinfo);
   tree length_limit = NULL_TREE;
   /* For length, we need length_limit to ensure length in range.  */
   if (!use_masks_p)
@@ -525,7 +524,15 @@ vect_set_loop_controls_directly (class loop *loop, loop_vec_info loop_vinfo,
      of the vector loop, and the number that it should skip during the
      first iteration of the vector loop.  */
   tree nitems_total = niters;
-  tree nitems_step = build_int_cst (iv_type, vf);
+  tree nitems_vf
+    = build_int_cst (iv_type, LOOP_VINFO_VECT_FACTOR (loop_vinfo));
+  tree nitems_step
+    = LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo)
+	? gimple_convert (preheader_seq, iv_type,
+			  LOOP_VINFO_IV_INCREMENT (loop_vinfo))
+	: gimple_convert (&loop_cond_gsi, true, GSI_SAME_STMT, UNKNOWN_LOCATION,
+			  iv_type, LOOP_VINFO_IV_INCREMENT (loop_vinfo));
+
   tree nitems_skip = niters_skip;
   if (nitems_per_iter != 1)
     {
@@ -535,8 +542,14 @@ vect_set_loop_controls_directly (class loop *loop, loop_vec_info loop_vinfo,
       tree iv_factor = build_int_cst (iv_type, nitems_per_iter);
       nitems_total = gimple_build (preheader_seq, MULT_EXPR, compare_type,
 				   nitems_total, compare_factor);
-      nitems_step = gimple_build (preheader_seq, MULT_EXPR, iv_type,
-				  nitems_step, iv_factor);
+      nitems_vf = gimple_build (preheader_seq, MULT_EXPR, iv_type,
+				  nitems_vf, iv_factor);
+      nitems_step = LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo)
+		      ? gimple_build (preheader_seq, MULT_EXPR, iv_type,
+				      nitems_step, iv_factor)
+		      : gimple_build (&loop_cond_gsi, true, GSI_SAME_STMT,
+				      UNKNOWN_LOCATION, MULT_EXPR, iv_type,
+				      nitems_step, iv_factor);
       if (nitems_skip)
 	nitems_skip = gimple_build (preheader_seq, MULT_EXPR, compare_type,
 				    nitems_skip, compare_factor);
@@ -578,9 +591,21 @@ vect_set_loop_controls_directly (class loop *loop, loop_vec_info loop_vinfo,
 		     insert_after, &index_before_incr, &index_after_incr);
 	  tree vectype = build_zero_cst (rgc->type);
 	  tree len = gimple_build (header_seq, IFN_SELECT_VL, iv_type,
-				   index_before_incr, nitems_step,
+				   index_before_incr, nitems_vf,
 				   vectype);
 	  gimple_seq_add_stmt (header_seq, gimple_build_assign (step, len));
+	  len = gimple_convert (header_seq, sizetype, len);
+
+	  /* Remove the previous initialization of IV_INCREMENT to VARYING.  */
+	  gimple *varying_def
+	    = SSA_NAME_DEF_STMT (LOOP_VINFO_IV_INCREMENT (loop_vinfo));
+	  auto def_gsi = gsi_for_stmt (varying_def);
+	  gsi_remove (&def_gsi, true);
+
+	  /* Set the LOOP_VINFO_IV_INCREMENT to be len.  */
+	  gassign* assign_iv_increment
+	    = gimple_build_assign (LOOP_VINFO_IV_INCREMENT (loop_vinfo), len);
+	  gimple_seq_add_stmt (header_seq, assign_iv_increment);
 	}
       else
 	{
@@ -593,7 +618,7 @@ vect_set_loop_controls_directly (class loop *loop, loop_vec_info loop_vinfo,
 						    nitems_step));
 	}
       *iv_step = step;
-      *compare_step = nitems_step;
+      *compare_step = nitems_vf;
       return LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo) ? index_after_incr
 						       : index_before_incr;
     }
@@ -601,7 +626,8 @@ vect_set_loop_controls_directly (class loop *loop, loop_vec_info loop_vinfo,
   /* Create increment IV.  */
   create_iv (build_int_cst (iv_type, 0), PLUS_EXPR, nitems_step, NULL_TREE,
 	     loop, &incr_gsi, insert_after, &index_before_incr,
-	     &index_after_incr);
+	     &index_after_incr,
+	     LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo));
 
   tree zero_index = build_int_cst (compare_type, 0);
   tree test_index, test_limit, first_limit;
@@ -636,7 +662,7 @@ vect_set_loop_controls_directly (class loop *loop, loop_vec_info loop_vinfo,
 	 COMPARE_TYPE.  */
       test_index = index_before_incr;
       tree adjust = gimple_convert (preheader_seq, compare_type,
-				    nitems_step);
+				    nitems_vf);
       if (nitems_skip)
 	adjust = gimple_build (preheader_seq, MINUS_EXPR, compare_type,
 			       adjust, nitems_skip);
@@ -1040,14 +1066,16 @@ vect_set_loop_condition_partial_vectors_avx512 (class loop *loop,
 				 iv_type, niters, skip);
     }
 
-  /* The iteration step is the vectorization factor.  */
-  tree iv_step = build_int_cst (iv_type, vf);
-
-  /* Create the decrement IV.  */
-  tree index_before_incr, index_after_incr;
   gimple_stmt_iterator incr_gsi;
+  tree index_before_incr, index_after_incr;
   bool insert_after;
   vect_iv_increment_position (exit_edge, &incr_gsi, &insert_after);
+
+  /* The iteration step is the vectorization factor.  */
+  tree iv_step = gimple_convert (&preheader_seq, iv_type,
+				 LOOP_VINFO_IV_INCREMENT (loop_vinfo));
+
+  /* Create the decrement IV.  */
   create_iv (niters_adj, MINUS_EXPR, iv_step, NULL_TREE, loop,
 	     &incr_gsi, insert_after, &index_before_incr,
 	     &index_after_incr);
@@ -1230,7 +1258,7 @@ vect_set_loop_condition_partial_vectors_avx512 (class loop *loop,
    loop handles exactly VF scalars per iteration.  */
 
 static gcond *
-vect_set_loop_condition_normal (loop_vec_info /* loop_vinfo */, edge exit_edge,
+vect_set_loop_condition_normal (loop_vec_info loop_vinfo, edge exit_edge,
 				class loop *loop, tree niters, tree step,
 				tree final_iv, bool niters_maybe_zero,
 				gimple_stmt_iterator loop_cond_gsi)
@@ -1325,7 +1353,10 @@ vect_set_loop_condition_normal (loop_vec_info /* loop_vinfo */, edge exit_edge,
 
   vect_iv_increment_position (exit_edge, &incr_gsi, &insert_after);
   create_iv (init, PLUS_EXPR, step, NULL_TREE, loop,
-             &incr_gsi, insert_after, &indx_before_incr, &indx_after_incr);
+	     &incr_gsi, insert_after,
+	     &indx_before_incr, &indx_after_incr,
+	     LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo));
+
   indx_after_incr = force_gimple_operand_gsi (&loop_cond_gsi, indx_after_incr,
 					      true, NULL_TREE, true,
 					      GSI_SAME_STMT);
@@ -2979,7 +3010,8 @@ vect_gen_vector_loop_niters (loop_vec_info loop_vinfo, tree niters,
   /* To silence some unexpected warnings, simply initialize to 0. */
   unsigned HOST_WIDE_INT const_vf = 0;
   if (vf.is_constant (&const_vf)
-      && !LOOP_VINFO_USING_PARTIAL_VECTORS_P (loop_vinfo))
+      && !LOOP_VINFO_USING_PARTIAL_VECTORS_P (loop_vinfo)
+      && LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo))
     {
       /* Create: niters / vf, which is equivalent to niters >> log2(vf) when
 		 vf is a power of two, and when not we approximate using a
@@ -3052,6 +3084,30 @@ vect_gen_vector_loop_niters (loop_vec_info loop_vinfo, tree niters,
   *step_vector_ptr = step_vector;
 
   return;
+}
+
+/* Finds the amount IV's should be incremented by each iteration.
+   Stored in LOOP_VINFO_IV_INCREMENT.  */
+
+tree
+vect_get_loop_iv_increment (loop_vec_info loop_vinfo)
+{
+  if (LOOP_VINFO_USING_SELECT_VL_P (loop_vinfo))
+    {
+      /* For now, set this as varying.
+	 Fill this in later when building the loop controls.  */
+      tree iv_increment = make_temp_ssa_name (sizetype, NULL, "iv_increment");
+
+      gcall *varying_call = gimple_build_call_internal (IFN_VARYING, 0);
+      gimple_call_set_lhs (varying_call, iv_increment);
+
+      gimple_stmt_iterator gsi = gsi_after_labels (loop_vinfo->loop->header);
+      gsi_insert_before (&gsi, varying_call, GSI_NEW_STMT);
+
+      return iv_increment;
+    }
+  else
+    return build_int_cst (sizetype, LOOP_VINFO_VECT_FACTOR (loop_vinfo));
 }
 
 /* Given NITERS_VECTOR which is the number of iterations for vectorized

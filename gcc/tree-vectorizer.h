@@ -978,6 +978,10 @@ public:
      it can be that no unrolling is needed, and thus this is 1.  */
   poly_uint64 vectorization_factor;
 
+  /* Gimple operand for the number of scalar iteration handed per loop
+     iteration, and therefore how much to increment each IV by.  */
+  tree iv_increment;
+
   /* If this loop is an epilogue loop whose main loop can be skipped,
      MAIN_LOOP_EDGE is the edge from the main loop to this loop's
      preheader.  SKIP_MAIN_LOOP_EDGE is then the edge that skips the
@@ -1302,6 +1306,9 @@ public:
 #define LOOP_VINFO_ALLOW_MUTUAL_ALIGNMENT(L) (L)->allow_mutual_alignment
 #define LOOP_VINFO_PARTIAL_LOAD_STORE_BIAS(L) (L)->partial_load_store_bias
 #define LOOP_VINFO_VECT_FACTOR(L)          (L)->vectorization_factor
+#define LOOP_VINFO_IV_INCREMENT(L)         (L)->iv_increment
+#define LOOP_VINFO_IV_INCREMENT_INVARIANT_P(L) \
+  (!LOOP_VINFO_USING_SELECT_VL_P (L))
 #define LOOP_VINFO_MAX_VECT_FACTOR(L)      (L)->max_vectorization_factor
 #define LOOP_VINFO_MASKS(L)                (L)->masks
 #define LOOP_VINFO_LENS(L)                 (L)->lens
@@ -2650,7 +2657,7 @@ extern tree vect_create_data_ref_ptr (vec_info *,
 				      tree *, gimple_stmt_iterator *,
 				      gimple **, bool,
 				      tree = NULL_TREE);
-extern tree bump_vector_ptr (vec_info *, tree, gimple *, gimple_stmt_iterator *,
+extern tree bump_vector_ptr (vec_info *, tree, gimple_stmt_iterator *,
 			     stmt_vec_info, tree);
 extern void vect_copy_ref_info (tree, tree);
 extern tree vect_create_destination_var (tree, tree);
@@ -2684,6 +2691,7 @@ extern opt_loop_vec_info vect_analyze_loop (class loop *, gimple *,
 extern tree vect_build_loop_niters (loop_vec_info, bool * = NULL);
 extern void vect_gen_vector_loop_niters (loop_vec_info, tree, tree *,
 					 tree *, bool);
+extern tree vect_get_loop_iv_increment (loop_vec_info);
 extern tree vect_halve_mask_nunits (tree, machine_mode);
 extern tree vect_double_mask_nunits (tree, machine_mode);
 extern void vect_record_loop_mask (loop_vec_info, vec_loop_masks *,

@@ -24,7 +24,8 @@ typedef void (*transform_callback)(class loop *, void *);
 
 extern void insert_iv_increment (gimple_stmt_iterator *, bool, gimple_seq);
 extern void create_iv (tree, tree_code, tree, tree, class loop *,
-		       gimple_stmt_iterator *, bool, tree *, tree *);
+		       gimple_stmt_iterator *, bool, tree *, tree *,
+		       bool = true);
 extern void rewrite_into_loop_closed_ssa (bitmap, unsigned);
 extern void verify_loop_closed_ssa (bool, class loop * = NULL);
 

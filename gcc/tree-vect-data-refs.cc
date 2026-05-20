@@ -6015,7 +6015,9 @@ vect_create_data_ref_ptr (vec_info *vinfo, stmt_vec_info stmt_info,
 
       create_iv (aggr_ptr_init, PLUS_EXPR,
 		 iv_step, aggr_ptr, loop, &incr_gsi, insert_after,
-		 &indx_before_incr, &indx_after_incr);
+		 &indx_before_incr, &indx_after_incr,
+		 !loop_vinfo
+		   || LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo));
       incr = gsi_stmt (incr_gsi);
 
       /* Copy the points-to information if it exists. */
@@ -6059,30 +6061,12 @@ vect_create_data_ref_ptr (vec_info *vinfo, stmt_vec_info stmt_info,
 
 /* Function bump_vector_ptr
 
-   Increment a pointer (to a vector type) by vector-size. If requested,
-   i.e. if PTR-INCR is given, then also connect the new increment stmt
-   to the existing def-use update-chain of the pointer, by modifying
-   the PTR_INCR as illustrated below:
-
-   The pointer def-use update-chain before this function:
-                        DATAREF_PTR = phi (p_0, p_2)
-                        ....
-        PTR_INCR:       p_2 = DATAREF_PTR + step
-
-   The pointer def-use update-chain after this function:
-                        DATAREF_PTR = phi (p_0, p_2)
-                        ....
-                        NEW_DATAREF_PTR = DATAREF_PTR + BUMP
-                        ....
-        PTR_INCR:       p_2 = NEW_DATAREF_PTR + step
+   Increment DATAREF_PTR by UPDATE.
 
    Input:
    DATAREF_PTR - ssa_name of a pointer (to vector type) that is being updated
                  in the loop.
-   PTR_INCR - optional. The stmt that updates the pointer in each iteration of
-	      the loop.  The increment amount across iterations is expected
-	      to be vector_size.
-   BSI - location where the new update stmt is to be placed.
+   GSI - location where the new update stmt is to be placed.
    STMT_INFO - the original scalar memory-access stmt that is being vectorized.
    UPDATE - The offset by which to bump the pointer.
 
@@ -6092,13 +6076,11 @@ vect_create_data_ref_ptr (vec_info *vinfo, stmt_vec_info stmt_info,
 
 tree
 bump_vector_ptr (vec_info *vinfo,
-		 tree dataref_ptr, gimple *ptr_incr, gimple_stmt_iterator *gsi,
+		 tree dataref_ptr, gimple_stmt_iterator *gsi,
 		 stmt_vec_info stmt_info, tree update)
 {
   struct data_reference *dr = STMT_VINFO_DATA_REF (stmt_info);
   gimple *incr_stmt;
-  ssa_op_iter iter;
-  use_operand_p use_p;
   tree new_dataref_ptr;
 
   if (TREE_CODE (dataref_ptr) == SSA_NAME)
@@ -6128,20 +6110,6 @@ bump_vector_ptr (vec_info *vinfo,
 
   /* Copy the points-to information if it exists. */
   duplicate_ssa_name_ptr_info (new_dataref_ptr, DR_PTR_INFO (dr));
-
-  if (!ptr_incr)
-    return new_dataref_ptr;
-
-  /* Update the vector-pointer's cross-iteration increment.  */
-  FOR_EACH_SSA_USE_OPERAND (use_p, ptr_incr, iter, SSA_OP_USE)
-    {
-      tree use = USE_FROM_PTR (use_p);
-
-      if (use == dataref_ptr)
-        SET_USE (use_p, new_dataref_ptr);
-      else
-        gcc_assert (operand_equal_p (use, update, 0));
-    }
 
   return new_dataref_ptr;
 }
