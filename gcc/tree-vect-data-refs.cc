@@ -5878,7 +5878,8 @@ vect_create_data_ref_ptr (vec_info *vinfo, stmt_vec_info stmt_info,
     {
       gcc_assert (bb_vinfo);
       only_init = true;
-      *ptr_incr = NULL;
+      if (ptr_incr)
+	*ptr_incr = NULL;
     }
 
   /* Create an expression for the first address accessed by this load
