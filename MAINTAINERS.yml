@@ -1,0 +1,6156 @@
+users:
+- sn: Abson
+  cn: Spencer Abson
+  email:
+  - spencer.abson@student.manchester.ac.uk
+  - sabson@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sabson
+- sn: Adams
+  cn: Mark G. Adams
+  email:
+  - mark.g.adams@sympatico.ca
+  - mgadams@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: mgadams
+  inactive: true
+- sn: Agarwal
+  cn: Ajit Kumar Agarwal
+  email:
+  - aagarwa1@linux.ibm.com
+  - aagarwa@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aagarwa
+- sn: Alves
+  cn: Pedro Alves
+  email:
+  - palves@redhat.com
+  - palves@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: palves
+  inactive: true
+- sn: Anglin
+  cn: John David Anglin
+  email:
+  - dave.anglin@bell.net
+  - danglin@gcc.gnu.org
+  roles:
+  - Maintainer: hppa port
+  - Maintainer: hpux
+  - WriteAfter
+  account: danglin
+- sn: Anlauf
+  cn: Harald Anlauf
+  email:
+  - anlauf@gmx.de
+  - anlauf@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: anlauf
+- sn: AR
+  cn: Soumya AR
+  email:
+  - soumyaa@nvidia.com
+  - soumyaa@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: soumyaa@nvidia.com
+  account: soumyaa
+- sn: Arras
+  cn: Paul-Antoine Arras
+  email:
+  - parras@baylibre.com
+  - parras@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: parras
+- sn: Arsenović
+  cn: Arsen Arsenović
+  email:
+  - aarsenovic@baylibre.com
+  - arsen@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: arsen
+- sn: Ashok
+  cn: Raksit Ashok
+  email:
+  - raksit@google.com
+  - raksit@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: raksit
+  inactive: true
+- sn: Augustine
+  cn: Sterling Augustine
+  email:
+  - augustine.sterling@gmail.com
+  - sterling@gcc.gnu.org
+  roles:
+  - Maintainer: xtensa port
+  - WriteAfter
+  account: sterling
+- sn: Austern
+  cn: Matt Austern
+  email:
+  - austern@google.com
+  - austern@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: austern
+  inactive: true
+- sn: Ayers
+  cn: David Ayers
+  email:
+  - ayers@fsfe.org
+  - ayers@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ayers
+  inactive: true
+- sn: Bahuguna
+  cn: Prakhar Bahuguna
+  email:
+  - prakhar.bahuguna@arm.com
+  - prakhar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: prakhar
+  inactive: true
+- sn: Bajo
+  cn: Giovanni Bajo
+  email:
+  - giovannibajo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: giovannibajo
+  inactive: true
+- sn: Baldwin
+  cn: Simon Baldwin
+  email:
+  - simonb@google.com
+  - simonb@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: simonb
+  inactive: true
+- sn: Ball
+  cn: Richard Ball
+  email:
+  - richard.ball@arm.com
+  - ricbal02@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ricbal02
+- sn: Bambrough
+  cn: Scott Bambrough
+  email:
+  - scottb@netwinder.org
+  - scottb@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: scottb
+  inactive: true
+- sn: Bangerth
+  cn: Wolfgang Bangerth
+  email:
+  - bangerth@dealii.org
+  - bangerth@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bangerth
+  inactive: true
+- sn: Bantaloukas
+  cn: Claudio Bantaloukas
+  email:
+  - claudio.bantaloukas@arm.com
+  - rdfm@gcc.gnu.org
+  roles:
+  - Maintainer: forge integration
+  - WriteAfter
+  account: rdfm
+- sn: Barany
+  cn: Gergö Barany
+  email:
+  - gergo@codesourcery.com
+  - gergo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gergo
+  inactive: true
+- sn: Barboza
+  cn: Daniel Barboza
+  email:
+  - daniel.barboza@oss.qualcomm.com
+  - dbarboza@gcc.gnu.org
+  - dbarboza@qti.qualcomm.com
+  - dbarboza@ventanamicro.com
+  roles:
+  - WriteAfter
+  - DCO: dbarboza@qti.qualcomm.com
+  - DCO: dbarboza@ventanamicro.com
+  account: dbarboza
+  aliases:
+  - Daniel Henrique Barboza
+- sn: Bauermann
+  cn: Thiago Jung Bauermann
+  email:
+  - thiago.bauermann@linaro.org
+  - bauermann@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bauermann
+- sn: Baylis
+  cn: Charles Baylis
+  email:
+  - charles.baylis@linaro.org
+  - cbaylis@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cbaylis
+  inactive: true
+- sn: Bazley
+  cn: Christopher Bazley
+  email:
+  - chris.bazley@arm.com
+  - chrbaz01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: chrbaz01
+  aliases:
+  - Chris Bazley
+- sn: Belagod
+  cn: Tejas Belagod
+  email:
+  - tejas.belagod@arm.com
+  - belagod@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: belagod
+- sn: Belevantsev
+  cn: Andrey Belevantsev
+  email:
+  - abel@ispras.ru
+  - abel@gcc.gnu.org
+  roles:
+  - Reviewer: selective scheduling
+  - WriteAfter
+  account: abel
+  inactive: true
+- sn: Beliveau
+  cn: Matthew Beliveau
+  email:
+  - mbelivea@redhat.com
+  - mbelivea@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: mbelivea
+  inactive: true
+- sn: Belyshev
+  cn: Serge Belyshev
+  email:
+  - belyshev@depni.sinp.msu.ru
+  - ssb@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ssb
+  inactive: true
+- sn: Beniston
+  cn: Jon Beniston
+  email:
+  - jon@beniston.com
+  - jbeniston@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jbeniston
+  inactive: true
+- sn: Bennett
+  cn: Andrew Bennett
+  email:
+  - andrew.bennett@imgtec.com
+  - abennett@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: abennett
+- sn: Benson
+  cn: Andrew Benson
+  email:
+  - abensonca@gmail.com
+  - abensonca@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: abensonca
+  inactive: true
+- sn: Bergner
+  cn: Peter Bergner
+  email:
+  - bergner@tenstorrent.com
+  - bergner@gcc.gnu.org
+  roles:
+  - Reviewer: register allocation
+  - WriteAfter
+  - DCO: bergner@tenstorrent.com
+  account: bergner
+- sn: Berlin
+  cn: Daniel Berlin
+  email:
+  - dberlin@dberlin.org
+  - dberlin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dberlin
+  inactive: true
+- sn: Bernardi
+  cn: Pat Bernardi
+  email:
+  - bernardi@adacore.com
+  - pbernardi@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pbernardi
+  inactive: true
+- sn: Beulich
+  cn: Jan Beulich
+  email:
+  - jbeulich@suse.com
+  - jbeulich@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jbeulich
+- sn: Bhagat
+  cn: Indu Bhagat
+  email:
+  - indu.bhagat@oracle.com
+  - ibhagat@gcc.gnu.org
+  roles:
+  - Reviewer: CTF, BTF
+  - WriteAfter
+  account: ibhagat
+- sn: Biener
+  cn: Richard Biener
+  email:
+  - rguenther@suse.de
+  - rguenth@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: middle-end
+  - Maintainer: vectorizer (+ tree-if-conv)
+  - Reviewer: LTO
+  - WriteAfter
+  account: rguenth
+- sn: Billinghurst
+  cn: David Billinghurst
+  email:
+  - David.Billinghurst@riotinto.com
+  - billingd@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: billingd
+  inactive: true
+- sn: Bily
+  cn: Tomas Bily
+  email:
+  - tbily@suse.cz
+  - tomby@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tomby
+  inactive: true
+- sn: Biveinis
+  cn: Laurynas Biveinis
+  email:
+  - laurynas.biveinis@gmail.com
+  - lauras@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: lauras
+  inactive: true
+- sn: Bizjak
+  cn: Uros Bizjak
+  email:
+  - ubizjak@gmail.com
+  - uros@gcc.gnu.org
+  roles:
+  - Maintainer: i386 port
+  - WriteAfter
+  account: uros
+- sn: Blake
+  cn: Eric Blake
+  email:
+  - ericb@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ericb
+  inactive: true
+- sn: Blomqvist
+  cn: Janne Blomqvist
+  email:
+  - jb@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: jb
+  inactive: true
+- sn: Blundell
+  cn: Phil Blundell
+  email:
+  - pb@futuretv.com
+  - pb@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pb
+  inactive: true
+- sn: Boehm
+  cn: Hans Boehm
+  email:
+  - hboehm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hboehm
+  inactive: true
+- sn: Boessenkool
+  cn: Segher Boessenkool
+  email:
+  - segher@kernel.crashing.org
+  - segher@gcc.gnu.org
+  roles:
+  - Maintainer: rs6000/powerpc port
+  - Maintainer: instruction combiner
+  - WriteAfter
+  account: segher
+- sn: Boger
+  cn: Lynn Boger
+  email:
+  - laboger@linux.vnet.ibm.com
+  - boger@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: boger
+  inactive: true
+- sn: Bolton
+  cn: Ian Bolton
+  email:
+  - ian.bolton@arm.com
+  - ibolton@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ibolton
+  inactive: true
+- sn: Bona
+  cn: Andrea Bona
+  email:
+  - andrea.bona@st.com
+  - andreabo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: andreabo
+  inactive: true
+- sn: Bonzini
+  cn: Paolo Bonzini
+  email:
+  - bonzini@gnu.org
+  - bonzini@gcc.gnu.org
+  roles:
+  - Maintainer: build machinery (*.in)
+  - Reviewer: dataflow
+  - WriteAfter
+  account: bonzini
+- sn: Booth
+  cn: Neil Booth
+  email:
+  - neil@daikokuya.co.uk
+  - neil@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: neil
+  inactive: true
+- sn: Bosscher
+  cn: Steven Bosscher
+  email:
+  - steven@gcc.gnu.org
+  roles:
+  - Reviewer: RTL optimizers
+  - WriteAfter
+  account: steven
+  inactive: true
+- sn: Botcazou
+  cn: Eric Botcazou
+  email:
+  - ebotcazou@libertysurf.fr
+  - ebotcazou@gcc.gnu.org
+  - ebotcazou@adacore.com
+  roles:
+  - Maintainer: sparc port
+  - Maintainer: visium port
+  - Maintainer: Ada front end
+  - Maintainer: RTL optimizers
+  - WriteAfter
+  account: ebotcazou
+- sn: Bothner
+  cn: Per Bothner
+  email:
+  - per@bothner.com
+  - bothner@gcc.gnu.org
+  roles:
+  - Maintainer: libcpp
+  - WriteAfter
+  account: bothner
+  inactive: true
+- sn: Boucher
+  cn: Antoni Boucher
+  email:
+  - bouanto@zoho.com
+  - antoyo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: antoyo
+- sn: Bourdeauducq
+  cn: Sebastien Bourdeauducq
+  email:
+  - sebastien@milkymist.org
+  - lekernel@gcc.gnu.org
+  roles:
+  - Maintainer: lm32 port
+  - WriteAfter
+  account: lekernel
+  inactive: true
+- sn: Bowdidge
+  cn: Robert Bowdidge
+  email:
+  - bowdidge@apple.com
+  - bowdidge@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bowdidge
+  inactive: true
+- sn: Bowman
+  cn: James Bowman
+  email:
+  - james.bowman@ftdichip.com
+  - jamesbowman@gcc.gnu.org
+  roles:
+  - Maintainer: ft32 port
+  - WriteAfter
+  account: jamesbowman
+  inactive: true
+- sn: Brobecker
+  cn: Joel Brobecker
+  email:
+  - brobecker@gnat.com
+  - brobecke@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: brobecke
+  inactive: true
+- sn: Brolley
+  cn: Dave Brolley
+  email:
+  - brolley@redhat.com
+  - brolley@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: brolley
+  inactive: true
+- sn: Brown
+  cn: Julian Brown
+  email:
+  - julian@codesourcery.com
+  - jules@gcc.gnu.org
+  roles:
+  - Maintainer: amdgcn port
+  - WriteAfter
+  account: jules
+- sn: Bruel
+  cn: Christian Bruel
+  email:
+  - christian.bruel@st.com
+  - chrbr@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: chrbr
+  inactive: true
+- sn: Buclaw
+  cn: Iain Buclaw
+  email:
+  - ibuclaw@gdcproject.org
+  - ibuclaw@gcc.gnu.org
+  roles:
+  - Maintainer: D front end
+  - Maintainer: libphobos
+  - WriteAfter
+  account: ibuclaw
+- sn: Buettner
+  cn: Kevin Buettner
+  email:
+  - kevinb@redhat.com
+  - kevinb@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kevinb
+- sn: Burgess
+  cn: Andrew Burgess
+  email:
+  - aburgess@redhat.com
+  - aburgess@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aburgess
+- sn: Burnus
+  cn: Tobias Burnus
+  email:
+  - tburnus@baylibre.com
+  - burnus@gcc.gnu.org
+  roles:
+  - Maintainer: libgomp
+  - Maintainer: libquadmath
+  - Maintainer: OpenACC
+  - Maintainer: OpenMP
+  - Reviewer: Fortran
+  - WriteAfter
+  account: burnus
+- sn: Butcher
+  cn: Adam Butcher
+  email:
+  - adam@jessamine.co.uk
+  - abutcher@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: abutcher
+  inactive: true
+- sn: Cagney
+  cn: Andrew Cagney
+  email:
+  - cagney@gnu.org
+  - cagney@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cagney
+  inactive: true
+- sn: Carlini
+  cn: Paolo Carlini
+  email:
+  - pcarlini@gmail.com
+  - paolo@gcc.gnu.org
+  roles:
+  - Maintainer: c++ runtime libs
+  - WriteAfter
+  account: paolo
+  inactive: true
+- sn: Carlotti
+  cn: Alice Carlotti
+  email:
+  - alice.carlotti@arm.com
+  - acarlotti@gcc.gnu.org
+  roles:
+  - Reviewer: aarch64 port
+  - WriteAfter
+  account: acarlotti
+- sn: Carrera
+  cn: Daniel Carrera
+  email:
+  - dcarrera@gmail.com
+  - dcarrera@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dcarrera
+  inactive: true
+- sn: Carrez
+  cn: Stephane Carrez
+  email:
+  - stcarrez@nerim.fr
+  - ciceron@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ciceron
+  inactive: true
+- sn: Charette
+  cn: Gabriel Charette
+  email:
+  - gchare@google.com
+  - gchare@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gchare
+  inactive: true
+- sn: Charlet
+  cn: Arnaud Charlet
+  email:
+  - charlet@adacore.com
+  - charlet@gcc.gnu.org
+  roles:
+  - Maintainer: Ada front end
+  - WriteAfter
+  account: charlet
+- sn: Chavva
+  cn: Chandra Chavva
+  email:
+  - cchavva@redhat.com
+  - cchavva@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cchavva
+  inactive: true
+- sn: Chawla
+  cn: Dhruv Chawla
+  email:
+  - dhruvc@nvidia.com
+  - dhruvc@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: dhruvc@nvidia.com
+  account: dhruvc
+- sn: Chen
+  cn: Dehao Chen
+  email:
+  - dehao@google.com
+  - dehao@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dehao
+  inactive: true
+- sn: Chen
+  cn: Zhongyao Chen
+  email:
+  - chenzhongyao.hit@gmail.com
+  - zhongyao@gcc.gnu.org
+  - chen.zhongyao@zte.com.cn
+  roles:
+  - WriteAfter
+  - DCO: chen.zhongyao@zte.com.cn
+  - DCO: chenzhongyao.hit@gmail.com
+  account: zhongyao
+  aliases:
+  - zhongyao
+- sn: Chêne
+  cn: Fabien Chêne
+  email:
+  - fabien@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fabien
+  inactive: true
+- sn: Cheng
+  cn: Bin Cheng
+  email:
+  - bin.cheng@linux.alibaba.com
+  - amker@gcc.gnu.org
+  roles:
+  - Maintainer: loop ivopts
+  - Maintainer: loop optimizer
+  - WriteAfter
+  account: amker
+  inactive: true
+- sn: Cheng
+  cn: Kito Cheng
+  email:
+  - kito.cheng@gmail.com
+  - kito@gcc.gnu.org
+  - kito.cheng@sifive.com
+  roles:
+  - Maintainer: riscv port
+  - WriteAfter
+  account: kito
+- sn: Cheng
+  cn: Lulu Cheng
+  email:
+  - chenglulu@loongson.cn
+  - chenglulu@gcc.gnu.org
+  roles:
+  - Maintainer: LoongArch port
+  - WriteAfter
+  account: chenglulu
+  aliases:
+  - ChengLulu
+- sn: Chertykov
+  cn: Denis Chertykov
+  email:
+  - chertykov@gmail.com
+  - denisc@gcc.gnu.org
+  roles:
+  - Maintainer: avr port
+  - WriteAfter
+  account: denisc
+- sn: Chiang
+  cn: Monk Chiang
+  email:
+  - monkchiang@gmail.com
+  - monkc@gcc.gnu.org
+  - monk.chiang@sifive.com
+  roles:
+  - WriteAfter
+  account: monkc
+- sn: Chigot
+  cn: Clément Chigot
+  email:
+  - chigot@adacore.com
+  - helflym@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: helflym
+- sn: Chopra
+  cn: Harshit Chopra
+  email:
+  - harshit@google.com
+  - harshit@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: harshit
+  inactive: true
+- sn: Christ
+  cn: Juergen Christ
+  email:
+  - jchrist@linux.ibm.com
+  - jchrist@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: jchrist@linux.ibm.com
+  account: jchrist
+- sn: Christina
+  cn: Tamar Christina
+  email:
+  - tamar.christina@arm.com
+  - tnfchris@gcc.gnu.org
+  roles:
+  - Maintainer: aarch64 port
+  - Maintainer: vectorizer (+ tree-if-conv)
+  - WriteAfter
+  account: tnfchris
+- sn: Christopher
+  cn: Eric Christopher
+  email:
+  - echristo@gmail.com
+  - echristo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: echristo
+  inactive: true
+- sn: Clarke
+  cn: Paul Clarke
+  email:
+  - pc@us.ibm.com
+  - pc@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pc
+  inactive: true
+- sn: Clifton
+  cn: Nick Clifton
+  email:
+  - nickc@redhat.com
+  - nickc@gcc.gnu.org
+  roles:
+  - Maintainer: arm port
+  - Maintainer: fr30 port
+  - Maintainer: frv port
+  - Maintainer: iq2000 port
+  - Maintainer: m32r port
+  - Maintainer: mcore port
+  - Maintainer: msp430 port
+  - Maintainer: rx port
+  - Maintainer: v850 port
+  - Maintainer: xstormy16 port
+  - WriteAfter
+  account: nickc
+- sn: Cohen
+  cn: Arthur Cohen
+  email:
+  - arthur.cohen@embecosm.com
+  - cohenarthur@gcc.gnu.org
+  roles:
+  - Maintainer: Rust
+  - Maintainer: libgrust
+  - WriteAfter
+  account: cohenarthur
+- sn: Cohen
+  cn: William Cohen
+  email:
+  - wcohen@redhat.com
+  - wcohen@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: wcohen
+  inactive: true
+- sn: Collison
+  cn: Michael Collison
+  email:
+  - michael.collison@arm.com
+  - collison@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: collison
+  inactive: true
+- sn: Colomar
+  cn: Alejandro Colomar
+  email:
+  - alx@kernel.org
+  - alx@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: alx@kernel.org
+  account: alx
+- sn: Conner
+  cn: Josh Conner
+  email:
+  - joshconner@google.com
+  - jconner@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jconner
+  inactive: true
+- sn: Cook
+  cn: R. Kelley Cook
+  email:
+  - kcook@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kcook
+  inactive: true
+- sn: Coplan
+  cn: Alex Coplan
+  email:
+  - alex.coplan@arm.com
+  - acoplan@gcc.gnu.org
+  roles:
+  - Maintainer: aarch64 ldp/stp
+  - Maintainer: pair fusion
+  - Reviewer: aarch64 port
+  - WriteAfter
+  account: acoplan
+- sn: Corallo
+  cn: Andrea Corallo
+  email:
+  - andrea.corallo@arm.com
+  - akrl@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: akrl
+- sn: Cornelssen
+  cn: Christian Cornelssen
+  email:
+  - ccorn@cs.tu-berlin.de
+  - ccorn@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ccorn
+  inactive: true
+- sn: Corsepius
+  cn: Ralf Corsepius
+  email:
+  - ralf.corsepius@rtems.org
+  - corsepiu@gcc.gnu.org
+  roles:
+  - Maintainer: RTEMS Ports
+  - WriteAfter
+  account: corsepiu
+  inactive: true
+- sn: Coudert
+  cn: François-Xavier Coudert
+  email:
+  - fxcoudert@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: fxcoudert
+- sn: Courtès
+  cn: Ludovic Courtès
+  email:
+  - ludo@gnu.org
+  - ludo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ludo
+  inactive: true
+- sn: Coutant
+  cn: Cary Coutant
+  email:
+  - ccoutant@gmail.com
+  - ccoutant@gcc.gnu.org
+  roles:
+  - Maintainer: dwarf debugging code
+  - Reviewer: LTO plugin
+  - WriteAfter
+  account: ccoutant
+  inactive: true
+- sn: Crowl
+  cn: Lawrence Crowl
+  email:
+  - crowl@google.com
+  - crowl@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: crowl
+  inactive: true
+- sn: Cui
+  cn: Lili Cui
+  email:
+  - lili.cui@intel.com
+  - cuilili@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cuilili
+  aliases:
+  - Cui, Lili
+- sn: D'Angelo
+  cn: Giuseppe D'Angelo
+  email:
+  - giuseppe.dangelo@kdab.com
+  - peppe@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: giuseppe.dangelo@kdab.com
+  account: peppe
+- sn: Dabbelt
+  cn: Palmer Dabbelt
+  email:
+  - palmer@dabbelt.com
+  - palmer@gcc.gnu.org
+  roles:
+  - Maintainer: riscv port
+  - WriteAfter
+  account: palmer
+- sn: Dall
+  cn: Ian Dall
+  email:
+  - ian@beware.dropbear.id.au
+  - iandall@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: iandall
+  inactive: true
+- sn: Daney
+  cn: David Daney
+  email:
+  - david.daney@caviumnetworks.com
+  - daney@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: daney
+  inactive: true
+- sn: Dapp
+  cn: Robin Dapp
+  email:
+  - rdapp.gcc@gmail.com
+  - rdapp@gcc.gnu.org
+  - rdapp@qti.qualcomm.com
+  - rdapp@ventanamicro.com
+  - robin.dapp@oss.qualcomm.com
+  roles:
+  - Maintainer: riscv port
+  - Reviewer: vectorizer (+ tree-if-conv)
+  - WriteAfter
+  - DCO: rdapp.gcc@gmail.com
+  - DCO: rdapp@qti.qualcomm.com
+  - DCO: rdapp@ventanamicro.com
+  account: rdapp
+- sn: Dardis
+  cn: Simon Dardis
+  email:
+  - simon.dardis@gmail.com
+  - dardiss@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dardiss
+  inactive: true
+- sn: Das
+  cn: Sudakshina Das
+  email:
+  - sudi.das@arm.com
+  - sudi@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sudi
+  inactive: true
+- sn: Davis
+  cn: Bud Davis
+  email:
+  - jmdavis@link.com
+  - bdavis@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bdavis
+  inactive: true
+- sn: DeLisle
+  cn: Jerry DeLisle
+  email:
+  - jvdelisle@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: jvdelisle
+- sn: Delorie
+  cn: DJ Delorie
+  email:
+  - dj@delorie.com
+  - dj@gcc.gnu.org
+  roles:
+  - Maintainer: DJGPP
+  - WriteAfter
+  account: dj
+  inactive: true
+- sn: Demetriou
+  cn: Chris Demetriou
+  email:
+  - cgd@google.com
+  - cgd@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cgd
+  inactive: true
+- sn: Dennett
+  cn: James Dennett
+  email:
+  - jdennett@acm.org
+  roles:
+  - BZ
+  inactive: true
+- sn: Deshpande
+  cn: Sameera Deshpande
+  email:
+  - sameera.deshpande@linaro.org
+  - sameerad@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sameerad
+  inactive: true
+- sn: Dijkstra
+  cn: Wilco Dijkstra
+  email:
+  - wilco.dijkstra@arm.com
+  - wilco@gcc.gnu.org
+  roles:
+  - Reviewer: aarch64 port
+  - WriteAfter
+  account: wilco
+- sn: Dimitrov
+  cn: Dimitar Dimitrov
+  email:
+  - dimitar@dinux.eu
+  - dimitar@gcc.gnu.org
+  roles:
+  - Maintainer: pru port
+  - WriteAfter
+  account: dimitar
+- sn: Dinechin
+  cn: Benoit Dupont de Dinechin
+  email:
+  - benoit.dupont-de-dinechin@st.com
+  - bd3@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bd3
+  inactive: true
+- sn: Ding
+  cn: Lehua Ding
+  email:
+  - lehua.ding@rivai.ai
+  - lhtin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: lhtin
+- sn: Drepper
+  cn: Ulrich Drepper
+  email:
+  - drepper@gmail.com
+  - drepper@gcc.gnu.org
+  roles:
+  - Maintainer: c++ runtime libs
+  - WriteAfter
+  account: drepper
+- sn: Dubner
+  cn: Robert Dubner
+  email:
+  - rdubner@symas.com
+  - rdubner@gcc.gnu.org
+  roles:
+  - Maintainer: COBOL front end
+  - WriteAfter
+  account: rdubner
+  aliases:
+  - Bob Dubner
+- sn: Dumont
+  cn: François Dumont
+  email:
+  - fdumont@gcc.gnu.org
+  - frs.dumont@gmail.com
+  roles:
+  - Maintainer: c++ runtime libs special modes
+  - WriteAfter
+  account: fdumont
+- sn: Dvorak
+  cn: Zdenek Dvorak
+  email:
+  - ook@ucw.cz
+  - rakdver@gcc.gnu.org
+  roles:
+  - Maintainer: loop infrastructure
+  - Maintainer: vectorizer (+ tree-if-conv)
+  - Reviewer: loop optimizer
+  - WriteAfter
+  account: rakdver
+  inactive: true
+- sn: Eager
+  cn: Michael Eager
+  email:
+  - eager@eagercon.com
+  - eager@gcc.gnu.org
+  roles:
+  - Maintainer: microblaze
+  - WriteAfter
+  account: eager
+  aliases:
+  - Michael J. Eager
+- sn: Earnshaw
+  cn: Richard Earnshaw
+  email:
+  - richard.earnshaw@arm.com
+  - rearnsha@gcc.gnu.org
+  - rearnsha@arm.com
+  roles:
+  - Global
+  - Maintainer: aarch64 port
+  - Maintainer: arm port
+  - WriteAfter
+  account: rearnsha
+- sn: Eckhardt
+  cn: Jason Eckhardt
+  email:
+  - jle@rice.edu
+  - jle@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jle
+  inactive: true
+- sn: Edelmann
+  cn: Erik Edelmann
+  email:
+  - erik.edelmann@iki.fi
+  - eedelman@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: eedelman
+  inactive: true
+- sn: Edelsohn
+  cn: David Edelsohn
+  email:
+  - dje.gcc@gmail.com
+  - dje@gcc.gnu.org
+  roles:
+  - Maintainer: rs6000/powerpc port
+  - Maintainer: aix
+  - WriteAfter
+  account: dje
+- sn: Edlinger
+  cn: Bernd Edlinger
+  email:
+  - bernd.edlinger@hotmail.de
+  - edlinger@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: edlinger
+- sn: Edwards
+  cn: Phil Edwards
+  email:
+  - pme@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pme
+  inactive: true
+- sn: Eggleston
+  cn: Mark Eggleston
+  email:
+  - mark.eggleston@codethink.co.uk
+  - markeggleston@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: markeggleston
+  inactive: true
+- sn: Ehrhardt
+  cn: Christian Ehrhardt
+  email:
+  - ehrhardt@mathematik.uni-ulm.de
+  roles:
+  - BZ
+  inactive: true
+- sn: Ellcey
+  cn: Steve Ellcey
+  email:
+  - sellcey@caviumnetworks.com
+  - sje@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sje
+  inactive: true
+- sn: Elliston
+  cn: Ben Elliston
+  email:
+  - config-patches@gnu.org
+  - bje@gcc.gnu.org
+  roles:
+  - Maintainer: config.sub/config.guess
+  - WriteAfter
+  account: bje
+  inactive: true
+- sn: Embar
+  cn: Mohan Embar
+  email:
+  - gnustuff@thisiscool.com
+  - membar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: membar
+  inactive: true
+- sn: Endo
+  cn: Oleg Endo
+  email:
+  - olegendo@gcc.gnu.org
+  roles:
+  - Maintainer: sh port
+  - WriteAfter
+  account: olegendo
+- sn: Eres
+  cn: Revital Eres
+  email:
+  - eres@il.ibm.com
+  - revitale@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: revitale
+  inactive: true
+- sn: Espie
+  cn: Marc Espie
+  email:
+  - espie@cvs.openbsd.org
+  - espie@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: espie
+  inactive: true
+- sn: Esztermann
+  cn: Ansgar Esztermann
+  email:
+  - ansgar@thphy.uni-duesseldorf.de
+  - ansgar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ansgar
+  inactive: true
+- sn: Evans
+  cn: Doug Evans
+  email:
+  - dje@google.com
+  - devans@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: devans
+  inactive: true
+- sn: Fairles
+  cn: Chris Fairles
+  email:
+  - cfairles@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cfairles
+  inactive: true
+- sn: Fanfarillo
+  cn: Alessandro Fanfarillo
+  email:
+  - fanfarillo.gcc@gmail.com
+  - afanfa@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: afanfa
+  inactive: true
+- sn: Fang
+  cn: Changpeng Fang
+  email:
+  - changpeng.fang@amd.com
+  - cfang@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cfang
+  inactive: true
+- sn: Faust
+  cn: David Faust
+  email:
+  - david.faust@oracle.com
+  - dfaust@gcc.gnu.org
+  roles:
+  - Reviewer: CTF, BTF, bpf port
+  - WriteAfter
+  account: dfaust
+- sn: Feifer
+  cn: Sam Feifer
+  email:
+  - sfeifer@redhat.com
+  - sfeifer@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sfeifer
+  inactive: true
+- sn: Feng
+  cn: Eric Feng
+  email:
+  - ef2648@columbia.edu
+  - efric@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: efric
+- sn: Feng
+  cn: Li Feng
+  email:
+  - nemokingdom@gmail.com
+  - lifeng@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: lifeng
+  inactive: true
+- sn: Filippov
+  cn: Max Filippov
+  email:
+  - jcmvbkbc@gmail.com
+  - jcmvbkbc@gcc.gnu.org
+  roles:
+  - Maintainer: xtensa port
+  - WriteAfter
+  account: jcmvbkbc
+- sn: Fitzsimmons
+  cn: Thomas Fitzsimmons
+  email:
+  - fitzsim@redhat.com
+  - fitzsim@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fitzsim
+  inactive: true
+- sn: Fomin
+  cn: Alexander Fomin
+  email:
+  - afomin.mailbox@gmail.com
+  - afomin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: afomin
+  inactive: true
+- sn: Ford
+  cn: Brian Ford
+  email:
+  - ford@vss.fsi.com
+  - ford@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ford
+  inactive: true
+- sn: Fortune
+  cn: Matthew Fortune
+  email:
+  - mfortune@gmail.com
+  - mpf@gcc.gnu.org
+  - matthew.fortune@imgtec.com
+  roles:
+  - WriteAfter
+  account: mpf
+- sn: Franke
+  cn: Daniel Franke
+  email:
+  - franke.daniel@gmail.com
+  - dfranke@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: dfranke
+  inactive: true
+- sn: Freeman
+  cn: John Freeman
+  email:
+  - jfreeman08@gmail.com
+  - jfreeman@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jfreeman
+  inactive: true
+- sn: Froyd
+  cn: Nathan Froyd
+  email:
+  - froydnj@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: froydnj
+  inactive: true
+- sn: Fu
+  cn: Chao-ying Fu
+  email:
+  - fu@mips.com
+  - chaoyingfu@gcc.gnu.org
+  - cfu@wavecomp.com
+  roles:
+  - WriteAfter
+  account: chaoyingfu
+- sn: Funck
+  cn: Gary Funck
+  email:
+  - gary@intrepid.com
+  - gfunck@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gfunck
+  inactive: true
+- sn: Gadad
+  cn: Pompapathi V Gadad
+  email:
+  - Pompapathi.V.Gadad@nsc.com
+  - pompa@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pompa
+  inactive: true
+- sn: Gallager
+  cn: Eric Gallager
+  email:
+  - egall@gwmail.gwu.edu
+  - egallager@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: egallager
+- sn: Ganesh
+  cn: Gopalasubramanian Ganesh
+  email:
+  - Ganesh.Gopalasubramanian@amd.com
+  - gganesh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gganesh
+  inactive: true
+- sn: Gao
+  cn: Fei Gao
+  email:
+  - gaofei@eswincomputing.com
+  - feigao@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: feigao
+- sn: Ghazi
+  cn: Kaveh Ghazi
+  email:
+  - ghazi@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ghazi
+  inactive: true
+- sn: Gilmore
+  cn: Doug Gilmore
+  email:
+  - Doug.Gilmore@imgtec.com
+  - dgilmore@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dgilmore
+  inactive: true
+- sn: Gingell
+  cn: Matthew Gingell
+  email:
+  - gingell@gnat.com
+  - gingell@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gingell
+  inactive: true
+- sn: Gingold
+  cn: Tristan Gingold
+  email:
+  - tgingold@free.fr
+  - gingold@gcc.gnu.org
+  roles:
+  - Maintainer: VMS
+  - WriteAfter
+  account: gingold
+  inactive: true
+- sn: Glaw
+  cn: Jan-Benedict Glaw
+  email:
+  - jbglaw@lug-owl.de
+  - jbglaw@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jbglaw
+- sn: Glisse
+  cn: Marc Glisse
+  email:
+  - marc.glisse@inria.fr
+  - glisse@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: glisse
+- sn: Godbole
+  cn: Prachi Godbole
+  email:
+  - pgodbole@nvidia.com
+  - pgodbole@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: pgodbole@nvidia.com
+  account: pgodbole
+- sn: Granlund
+  cn: Torbjorn Granlund
+  email:
+  - tege@swox.com
+  roles:
+  - WriteAfter
+  inactive: true
+- sn: Green
+  cn: Anthony Green
+  email:
+  - green@moxielogic.com
+  - green@gcc.gnu.org
+  roles:
+  - Maintainer: moxie port
+  - WriteAfter
+  account: green
+  inactive: true
+- sn: Greenhalgh
+  cn: James Greenhalgh
+  email:
+  - james.greenhalgh@arm.com
+  - jgreenhalgh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jgreenhalgh
+  inactive: true
+- sn: Gregor
+  cn: Doug Gregor
+  email:
+  - doug.gregor@gmail.com
+  - dgregor@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dgregor
+  inactive: true
+- sn: Gretton-Dann
+  cn: Matthew Gretton-Dann
+  email:
+  - matthew.gretton-dann@arm.com
+  - mgretton@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: mgretton
+  inactive: true
+- sn: Gribov
+  cn: Yury Gribov
+  email:
+  - tetra2005@gmail.com
+  - ygribov@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ygribov
+  inactive: true
+- sn: Grimm
+  cn: Jon Grimm
+  email:
+  - jgrimm2@us.ibm.com
+  - jgrimm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jgrimm
+  inactive: true
+- sn: Grosser
+  cn: Tobias Grosser
+  email:
+  - grosser@fim.uni-passau.de
+  - grosser@gcc.gnu.org
+  roles:
+  - Reviewer: Graphite
+  - WriteAfter
+  account: grosser
+  inactive: true
+- sn: Guerby
+  cn: Laurent Guerby
+  email:
+  - laurent@guerby.net
+  - guerby@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: guerby
+  inactive: true
+- sn: Gui
+  cn: Haochen Gui
+  email:
+  - guihaoc@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: guihaoc
+  inactive: true
+- sn: Guo
+  cn: Jiufu Guo
+  email:
+  - guojiufu@linux.ibm.com
+  - guojiufu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: guojiufu
+- sn: Guo
+  cn: Xuepeng Guo
+  email:
+  - terry.xpguo@gmail.com
+  - xguo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: xguo
+  inactive: true
+- sn: Guozhi
+  cn: Wei Guozhi
+  email:
+  - carrot@google.com
+  - carrot@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: carrot
+  inactive: true
+- sn: Gupta
+  cn: Vineet Gupta
+  email:
+  - vineet.gupta@linux.dev
+  - vineetg@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vineetg
+- sn: H.S
+  cn: Naveen H.S
+  email:
+  - naveen.siddegowda@oss.qualcomm.com
+  - naveenh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: naveen.siddegowda@oss.qualcomm.com
+  account: naveenh
+  aliases:
+  - Naveen Gowda
+  - Naveen
+- sn: Hagog
+  cn: Mostafa Hagog
+  email:
+  - hagog@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hagog
+  inactive: true
+- sn: Hainque
+  cn: Olivier Hainque
+  email:
+  - hainque@adacore.com
+  - hainque@gcc.gnu.org
+  roles:
+  - Maintainer: VxWorks ports
+  - WriteAfter
+  account: hainque
+- sn: Hakobyan
+  cn: Jivan Hakobyan
+  email:
+  - jivanhakobyan9@gmail.com
+  - jivan@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jivan
+- sn: Haley
+  cn: Andrew Haley
+  email:
+  - aph@redhat.com
+  - aph@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aph
+  inactive: true
+- sn: Han
+  cn: Demin Han
+  email:
+  - demin.han@starfivetech.com
+  - deminhan@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: deminhan
+- sn: Harmstone
+  cn: Mark Harmstone
+  email:
+  - mark@harmstone.com
+  - maharmstone@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: maharmstone
+- sn: Harwath
+  cn: Frederik Harwath
+  email:
+  - frederik@harwath.name
+  - frederik@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: frederik
+- sn: Hastings
+  cn: Stuart Hastings
+  email:
+  - stuart@apple.com
+  - stuart@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: stuart
+  inactive: true
+- sn: Haubenwallner
+  cn: Michael Haubenwallner
+  email:
+  - michael.haubenwallner@ssi-schaefer.com
+  - haubi@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: haubi
+  inactive: true
+- sn: Haugen
+  cn: Pat Haugen
+  email:
+  - pthaugen@us.ibm.com
+  - pthaugen@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pthaugen
+  inactive: true
+- sn: Hayes
+  cn: Michael Hayes
+  email:
+  - m.hayes@elec.canterbury.ac.nz
+  - m.hayes@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: m.hayes
+  inactive: true
+- sn: Hayward
+  cn: Alan Hayward
+  email:
+  - alan.hayward@arm.com
+  - alahay01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: alahay01
+  inactive: true
+- sn: Hazeghi
+  cn: Dara Hazeghi
+  email:
+  - dhazeghi@yahoo.com
+  roles:
+  - BZ
+  inactive: true
+- sn: He
+  cn: Li Jia He
+  email:
+  - helijia@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: helijia
+  inactive: true
+- sn: Heffernan
+  cn: Mark Heffernan
+  email:
+  - meheff@google.com
+  - meheff@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: meheff
+  inactive: true
+- sn: Helffrich
+  cn: George Helffrich
+  email:
+  - george@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: george
+  inactive: true
+- sn: Hellstrom
+  cn: Daniel Hellstrom
+  email:
+  - daniel@gaisler.com
+  - danielh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: danielh
+  inactive: true
+- sn: Henderson
+  cn: Fergus Henderson
+  email:
+  - fjh@cs.mu.oz.au
+  - fjh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fjh
+  inactive: true
+- sn: Henderson
+  cn: Richard Henderson
+  email:
+  - rth@gcc.gnu.org
+  - richard.henderson@linaro.org
+  roles:
+  - Maintainer: alpha port
+  - WriteAfter
+  account: rth
+- sn: Henderson
+  cn: Stuart Henderson
+  email:
+  - shenders@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: shenders
+  inactive: true
+- sn: Hernandez
+  cn: Aldy Hernandez
+  email:
+  - aldy@quesejoda.com
+  - aldyh@gcc.gnu.org
+  roles:
+  - Maintainer: rs6000 vector extns
+  - Maintainer: '*gimpl*'
+  - Maintainer: '*vrp, ranger'
+  - WriteAfter
+  - DCO: aldy@quesejoda.com
+  account: aldyh
+- sn: Herron
+  cn: Philip Herron
+  email:
+  - herron.philip@googlemail.com
+  - redbrain@gcc.gnu.org
+  roles:
+  - Maintainer: Rust
+  - Maintainer: libgrust
+  - WriteAfter
+  account: redbrain
+- sn: Hillenbrand
+  cn: Marius Hillenbrand
+  email:
+  - mhillen@linux.ibm.com
+  - mhillen@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: mhillen
+  inactive: true
+- sn: Hiller
+  cn: Matthew Hiller
+  email:
+  - hiller@redhat.com
+  - hiller@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hiller
+  inactive: true
+- sn: Hirata
+  cn: Kazu Hirata
+  email:
+  - kazu@codesourcery.com
+  - kazu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kazu
+  inactive: true
+- sn: Hollstein
+  cn: Manfred Hollstein
+  email:
+  - mh@suse.com
+  - manfred@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: manfred
+  inactive: true
+- sn: Horne
+  cn: Stafford Horne
+  email:
+  - shorne@gmail.com
+  - shorne@gcc.gnu.org
+  roles:
+  - Maintainer: or1k port
+  - WriteAfter
+  account: shorne
+- sn: Hou
+  cn: Cong Hou
+  email:
+  - congh@google.com
+  - congh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: congh
+  inactive: true
+- sn: Hsu
+  cn: Levy Hsu
+  email:
+  - admin@levyhsu.com
+  - xlwxlw7969@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: xlwxlw7969
+- sn: Hu
+  cn: Lin Hu
+  email:
+  - lin1.hu@intel.com
+  - hulin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hulin
+  aliases:
+  - Hu, Lin1
+- sn: Huber
+  cn: Sebastian Huber
+  email:
+  - sebastian.huber@embedded-brains.de
+  - sh@gcc.gnu.org
+  roles:
+  - Maintainer: RTEMS Ports
+  - WriteAfter
+  account: sh
+- sn: Hubicka
+  cn: Jan Hubicka
+  email:
+  - hubicka@ucw.cz
+  - hubicka@gcc.gnu.org
+  roles:
+  - Maintainer: i386 port
+  - Maintainer: x86-64 port
+  - Maintainer: callgraph
+  - Maintainer: gcov
+  - Maintainer: predict.def
+  - Maintainer: profile feedback
+  - WriteAfter
+  account: hubicka
+- sn: Hueffner
+  cn: Falk Hueffner
+  email:
+  - falk@debian.org
+  - falk@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: falk
+  inactive: true
+- sn: Hughes
+  cn: Andrew John Hughes
+  email:
+  - gnu_andrew@member.fsf.org
+  - gandalf@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gandalf
+  inactive: true
+- sn: Humieres
+  cn: Dominique d'Humieres
+  email:
+  - dhumieres.dominique@free.fr
+  - dominiq@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dominiq
+  inactive: true
+- sn: Hutchinson
+  cn: Andy Hutchinson
+  email:
+  - hutchinsonandy@aim.com
+  - hutchinsonandy@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hutchinsonandy
+  inactive: true
+- sn: Hutton
+  cn: Joel Hutton
+  email:
+  - joel.hutton@arm.com
+  - joelh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: joelh
+  inactive: true
+- sn: Hyatt
+  cn: Lewis Hyatt
+  email:
+  - lhyatt@gmail.com
+  - lhyatt@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: lhyatt
+- sn: Iannetta
+  cn: Paul Iannetta
+  email:
+  - piannetta@kalrayinc.com
+  - piannetta@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: piannetta
+- sn: Illig
+  cn: Roland Illig
+  email:
+  - roland.illig@gmx.de
+  - rillig@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rillig
+  inactive: true
+- sn: Inge
+  cn: Meador Inge
+  email:
+  - meadori@codesourcery.com
+  - meadori@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: meadori
+  inactive: true
+- sn: Innocenti
+  cn: Bernardo Innocenti
+  email:
+  - bernie@develer.com
+  - bernie@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bernie
+  inactive: true
+- sn: Ionescu
+  cn: Mihail Ionescu
+  email:
+  - mihail.ionescu@arm.com
+  - mionescu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: mionescu
+  inactive: true
+- sn: Ivanishin
+  cn: Vladislav Ivanishin
+  email:
+  - vlad@ispras.ru
+  - vlad@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vlad
+  inactive: true
+- sn: Ivchenko
+  cn: Alexander Ivchenko
+  email:
+  - aivchenk@gmail.com
+  - aivchenk@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aivchenk
+  inactive: true
+- sn: Iyer
+  cn: Balaji V. Iyer
+  email:
+  - bviyer@gmail.com
+  - bviyer@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bviyer
+  inactive: true
+- sn: Jääskeläinen
+  cn: Pekka Jääskeläinen
+  email:
+  - pekka.jaaskelainen@parmance.com
+  - visit0r@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: visit0r
+  inactive: true
+- sn: Jacobowitz
+  cn: Daniel Jacobowitz
+  email:
+  - drow@false.org
+  - drow@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: drow
+  inactive: true
+- sn: Jaeger
+  cn: Andreas Jaeger
+  email:
+  - aj@suse.de
+  - aj@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aj
+  inactive: true
+- sn: Jagasia
+  cn: Harsha Jagasia
+  email:
+  - harsha.jagasia@amd.com
+  - hjagasia@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hjagasia
+  inactive: true
+- sn: Jahanian
+  cn: Fariborz Jahanian
+  email:
+  - fjahanian@apple.com
+  - fjahanian@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fjahanian
+  inactive: true
+- sn: Jambor
+  cn: Martin Jambor
+  email:
+  - mjambor@suse.cz
+  - jamborm@gcc.gnu.org
+  roles:
+  - Reviewer: callgraph
+  - WriteAfter
+  account: jamborm
+- sn: James
+  cn: Sam James
+  email:
+  - sam@gentoo.org
+  - sjames@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sjames
+- sn: Jangala
+  cn: Surya Kumari Jangala
+  email:
+  - jskumari@linux.ibm.com
+  - jskumari@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jskumari
+- sn: Jayakar
+  cn: Avinash Jayakar
+  email:
+  - avinashd@linux.ibm.com
+  - avinashd@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: avinashd
+- sn: Jelinek
+  cn: Jakub Jelinek
+  email:
+  - jakub@redhat.com
+  - jakub@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: '*gimpl*'
+  - Maintainer: libgomp
+  - Maintainer: libquadmath
+  - Maintainer: OpenMP
+  - Reviewer: libsanitizer, asan.cc
+  - WriteAfter
+  account: jakub
+- sn: Jenner
+  cn: Andrew Jenner
+  email:
+  - andrew@codesourcery.com
+  - andrewjenner@gcc.gnu.org
+  roles:
+  - Maintainer: powerpcspe port
+  - WriteAfter
+  account: andrewjenner
+  inactive: true
+- sn: Jha
+  cn: Saurabh Jha
+  email:
+  - saurabh.jha@arm.com
+  - saurabhjha@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: saurabhjha
+- sn: Jiang
+  cn: Haochen Jiang
+  email:
+  - haochen.jiang@intel.com
+  - jianghc@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jianghc
+- sn: Jianhua
+  cn: Qian Jianhua
+  email:
+  - qianjh@fujitsu.com
+  - qianjh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: qianjh
+  inactive: true
+- sn: Jires
+  cn: Michal Jires
+  email:
+  - mjires@suse.cz
+  - mjires@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: mjires@suse.cz
+  account: mjires
+- sn: Johnson
+  cn: Janis Johnson
+  email:
+  - janis.marie.johnson@gmail.com
+  - janis@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: janis
+  inactive: true
+- sn: Johnson
+  cn: Teresa Johnson
+  email:
+  - tejohnson@google.com
+  - tejohnson@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tejohnson
+  inactive: true
+- sn: Johnston
+  cn: Kean Johnston
+  email:
+  - jkj@sco.com
+  - jkj@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jkj
+  inactive: true
+- sn: Jordan
+  cn: Phillip Jordan
+  email:
+  - phillip.m.jordan@gmail.com
+  - pmj@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pmj
+  inactive: true
+- sn: Josling
+  cn: Tim Josling
+  email:
+  - tej@melbpc.org.au
+  - timjosling@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: timjosling
+  inactive: true
+- sn: Kamiński
+  cn: Tomasz Kamiński
+  email:
+  - tkaminsk@redhat.com
+  - tkaminsk@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tkaminsk
+- sn: Kaplansky
+  cn: Victor Kaplansky
+  email:
+  - victork@il.ibm.com
+  - victork@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: victork
+  inactive: true
+- sn: Karpov
+  cn: Evgeny Karpov
+  email:
+  - evgeny.karpov@arm.com
+  - eukarpov@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: eukarpov
+- sn: Kastl
+  cn: Filip Kastl
+  email:
+  - fkastl@suse.cz
+  - pheeck@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pheeck
+- sn: Kaushik
+  cn: Abhishek Kaushik
+  email:
+  - abhishek.kaushik@arm.com
+  - abhkau01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: abhkau01
+- sn: Keating
+  cn: Geoffrey Keating
+  email:
+  - geoffk@geoffk.org
+  - geoffk@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: geoffk
+  inactive: true
+- sn: Kehoe
+  cn: Brendan Kehoe
+  email:
+  - brendan@zen.org
+  - brendan@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: brendan
+  inactive: true
+- sn: Kenner
+  cn: Richard Kenner
+  email:
+  - kenner@nyu.edu
+  - kenner@gcc.gnu.org
+  roles:
+  - Global
+  - WriteAfter
+  account: kenner
+  inactive: true
+- sn: Khrustalev
+  cn: Yury Khrustalev
+  email:
+  - yury.khrustalev@arm.com
+  - ykhrustalev@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ykhrustalev
+- sn: Kleen
+  cn: Andi Kleen
+  email:
+  - andi@firstfloor.org
+  - ak@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ak
+- sn: Klose
+  cn: Matthias Klose
+  email:
+  - doko@debian.org
+  - doko@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: doko
+- sn: Knaggs
+  cn: Jeff Knaggs
+  email:
+  - jknaggs@redhat.com
+  - jknaggs@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jknaggs
+  inactive: true
+- sn: Koch
+  cn: Michael Koch
+  email:
+  - konqueror@gmx.de
+  - mkoch@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: mkoch
+  inactive: true
+- sn: Koenig
+  cn: Nicolas Koenig
+  email:
+  - koenigni@student.ethz.ch
+  - koenigni@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: koenigni
+  inactive: true
+- sn: Kojima
+  cn: Kaz Kojima
+  email:
+  - kkojima@gcc.gnu.org
+  - kkojima@rr.iij4u.or.jp
+  roles:
+  - Maintainer: sh-linux-gnu
+  - WriteAfter
+  account: kkojima
+- sn: Kolpackov
+  cn: Boris Kolpackov
+  email:
+  - boris@codesynthesis.com
+  - boris@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: boris
+- sn: Kong
+  cn: Lingling Kong
+  email:
+  - lingling.kong@intel.com
+  - konglin1@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: konglin1
+- sn: König
+  cn: Thomas König
+  email:
+  - tkoenig@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: tkoenig
+  aliases:
+  - Thomas Koenig
+- sn: Koning
+  cn: Paul Koning
+  email:
+  - ni1d@arrl.net
+  - pkoning@gcc.gnu.org
+  roles:
+  - Maintainer: pdp11 port
+  - WriteAfter
+  account: pkoning
+  inactive: true
+- sn: Korb
+  cn: Bruce Korb
+  email:
+  - bkorb@gnu.org
+  - korbb@gcc.gnu.org
+  roles:
+  - Maintainer: fixincludes
+  - WriteAfter
+  account: korbb
+- sn: Korn
+  cn: Dave Korn
+  email:
+  - dave.korn.cygwin@gmail.com
+  - davek@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: davek
+  inactive: true
+- sn: Kosnik
+  cn: Benjamin De Kosnik
+  email:
+  - bkoz@gnu.org
+  - bkoz@gcc.gnu.org
+  roles:
+  - Maintainer: c++ runtime libs
+  - WriteAfter
+  account: bkoz
+  inactive: true
+- sn: Koval
+  cn: Julia Koval
+  email:
+  - julia.koval@intel.com
+  - jkoval@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jkoval
+  inactive: true
+- sn: Kraai
+  cn: Matt Kraai
+  email:
+  - kraai@ftbfs.org
+  - kraai@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kraai
+  inactive: true
+- sn: Kraft
+  cn: Daniel Kraft
+  email:
+  - d@domob.eu
+  - domob@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: domob
+  inactive: true
+- sn: Kratochvil
+  cn: Jan Kratochvil
+  email:
+  - jan.kratochvil@redhat.com
+  - jkratoch@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jkratoch
+  inactive: true
+- sn: Krebbel
+  cn: Andreas Krebbel
+  email:
+  - krebbel@linux.ibm.com
+  - krebbel@gcc.gnu.org
+  roles:
+  - Maintainer: s390 port
+  - WriteAfter
+  account: krebbel
+- sn: Kretz
+  cn: Matthias Kretz
+  email:
+  - m.kretz@gsi.de
+  - mkretz@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: m.kretz@gsi.de
+  account: mkretz
+- sn: Krupp
+  cn: Louis Krupp
+  email:
+  - louis.krupp@zoho.com
+  - lkrupp@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: lkrupp
+  inactive: true
+- sn: Kulkarni
+  cn: Prathamesh Kulkarni
+  email:
+  - prathameshk@nvidia.com
+  - prathamesh3492@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: prathameshk@nvidia.com
+  account: prathamesh3492
+- sn: Kumar
+  cn: Venkataramanan Kumar
+  email:
+  - venkataramanan.kumar@amd.com
+  - vekumar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vekumar
+  aliases:
+  - vekumar
+- sn: Kuvyrkov
+  cn: Maxim Kuvyrkov
+  email:
+  - maxim.kuvyrkov@linaro.org
+  - mkuvyrkov@gcc.gnu.org
+  roles:
+  - Maintainer: Android sub-port
+  - WriteAfter
+  account: mkuvyrkov
+- sn: Kwan
+  cn: Doug Kwan
+  email:
+  - dougkwan@google.com
+  - dougkwan@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dougkwan
+  inactive: true
+- sn: Ladd
+  cn: Scott Robert Ladd
+  email:
+  - scott.ladd@coyotegulch.com
+  - srladd@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: srladd
+  inactive: true
+- sn: Ladelsky
+  cn: Razya Ladelsky
+  email:
+  - razya@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: razya
+  inactive: true
+- sn: Lafage
+  cn: Thierry Lafage
+  email:
+  - thierry.lafage@inria.fr
+  - tlafage@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tlafage
+  inactive: true
+- sn: LaFramboise
+  cn: Aaron W. LaFramboise
+  email:
+  - aaronavay62@aaronwl.com
+  - aaronwl@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aaronwl
+  inactive: true
+- sn: Lambertsen
+  cn: Rask Ingemann Lambertsen
+  email:
+  - ccc94453@vip.cybercity.dk
+  - rask@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rask
+  inactive: true
+- sn: Lambourg
+  cn: Jerome Lambourg
+  email:
+  - lambourg@adacore.com
+  - lambourg@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: lambourg
+  inactive: true
+- sn: Lange
+  cn: Tim Lange
+  email:
+  - mail@tim-lange.me
+  - tlange@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: mail@tim-lange.me
+  account: tlange
+  inactive: true
+- sn: Langton
+  cn: Asher Langton
+  email:
+  - langton2@llnl.gov
+  - langton@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: langton
+  inactive: true
+- sn: Lattner
+  cn: Chris Lattner
+  email:
+  - sabre@nondot.org
+  - sabre@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sabre
+  inactive: true
+- sn: Laurenzo
+  cn: Terry Laurenzo
+  email:
+  - tlaurenzo@gmail.com
+  - tlaurenzo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tlaurenzo
+  inactive: true
+- sn: Law
+  cn: Jeff Law
+  email:
+  - jeffrey.law@oss.qualcomm.com
+  - jeffreyalaw@gmail.com
+  - law@gcc.gnu.org
+  - jefflaw@qti.qualcomm.com
+  - jlaw@tachyum.com
+  - jlaw@ventanamicro.com
+  roles:
+  - Global
+  - Maintainer: h8 port
+    email: jeffreyalaw@gmail.com
+  - Maintainer: hppa port
+    email: jeffreyalaw@gmail.com
+  - Maintainer: m68k port (?)
+    email: jeffreyalaw@gmail.com
+  - Maintainer: mn10300 port
+    email: jeffreyalaw@gmail.com
+  - Maintainer: caller-save.cc
+    email: jeffreyalaw@gmail.com
+  - Maintainer: gcse.cc
+    email: jeffreyalaw@gmail.com
+  - Maintainer: global opt framework
+    email: jeffreyalaw@gmail.com
+  - Maintainer: middle-end
+    email: jeffreyalaw@gmail.com
+  - Maintainer: reorg
+    email: jeffreyalaw@gmail.com
+  - Maintainer: scheduler (+ haifa)
+    email: jeffreyalaw@gmail.com
+  - WriteAfter: jeffreyalaw@gmail.com
+  - DCO: jefflaw@qti.qualcomm.com
+  - DCO: jeffrey.law@oss.qualcomm.com
+  - DCO: jeffreyalaw@gmail.com
+  - DCO: jlaw@tachyum.com
+  - DCO: jlaw@ventanamicro.com
+  account: law
+  aliases:
+  - jlaw
+- sn: Lawrence
+  cn: Alan Lawrence
+  email:
+  - alan.lawrence@arm.com
+  - alalaw01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: alalaw01
+  inactive: true
+- sn: Lawrynowicz
+  cn: Jozef Lawrynowicz
+  email:
+  - jozef.l@mittosystems.com
+  - jozefl@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jozefl
+  inactive: true
+- sn: Lay
+  cn: Georg-Johann Lay
+  email:
+  - avr@gjlay.de
+  - gjl@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gjl
+- sn: Lazar
+  cn: Vlad Lazar
+  email:
+  - vlad.lazar@arm.com
+  - vladlazar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vladlazar
+  inactive: true
+- sn: Lehmann
+  cn: Marc Lehmann
+  email:
+  - pcg@goof.com
+  - pcg@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pcg
+  inactive: true
+- sn: Lei
+  cn: Bohan Lei
+  email:
+  - garthlei@linux.alibaba.com
+  - garthlei@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: garthlei@linux.alibaba.com
+  account: garthlei
+- sn: Lemke
+  cn: James Lemke
+  email:
+  - jim@lemke.org
+  - jwlemke@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jwlemke
+  inactive: true
+- sn: Leoshkevich
+  cn: Ilya Leoshkevich
+  email:
+  - iii@linux.ibm.com
+  - iii@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: iii
+- sn: Lerdsuwanakij
+  cn: Kriang Lerdsuwanakij
+  email:
+  - lerdsuwa@users.sourceforge.net
+  - lerdsuwa@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: lerdsuwa
+  inactive: true
+- sn: Li
+  cn: Pan Li
+  email:
+  - pan2.li@intel.com
+  - panli@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: panli
+- sn: Li
+  cn: Pengfei Li
+  email:
+  - pengfei.li2@arm.com
+  - pfustc@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pfustc
+- sn: Li
+  cn: Renlin Li
+  email:
+  - renlin.li@arm.com
+  - renlin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: renlin
+  inactive: true
+- sn: Li
+  cn: Xinliang David Li
+  email:
+  - davidxl@google.com
+  - davidxl@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: davidxl
+  inactive: true
+- sn: Lin
+  cn: Kewen Lin
+  email:
+  - linkw@gcc.gnu.org
+  roles:
+  - Maintainer: rs6000/powerpc port
+  - WriteAfter
+  account: linkw
+- sn: Liqin
+  cn: Chen Liqin
+  email:
+  - liqin.gcc@gmail.com
+  - liqin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: liqin
+  inactive: true
+- sn: Liška
+  cn: Martin Liška
+  email:
+  - mliska@suse.cz
+  - marxin@gcc.gnu.org
+  - martin.liska@hey.com
+  roles:
+  - WriteAfter
+  - DCO: martin.liska@hey.com
+  account: marxin
+- sn: Liu
+  cn: Hao Liu
+  email:
+  - hliu@os.amperecomputing.com
+  - hliu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hliu
+- sn: Liu
+  cn: Hongtao Liu
+  email:
+  - hongtao.liu@intel.com
+  - liuhongt@gcc.gnu.org
+  roles:
+  - Maintainer: i386 vector ISA extns
+  - WriteAfter
+  account: liuhongt
+  aliases:
+  - liuhongt
+  - hongtao.liu
+- sn: Liu
+  cn: Jiangning Liu
+  email:
+  - jiangning.liu@arm.com
+  - liujiangning@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: liujiangning
+  inactive: true
+- sn: Liu
+  cn: Sa Liu
+  email:
+  - saliu@de.ibm.com
+  - saliu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: saliu
+  inactive: true
+- sn: Loader
+  cn: Ralph Loader
+  email:
+  - rcl@ihug.co.nz
+  - ralph@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ralph
+  inactive: true
+- sn: Lobo
+  cn: Sheldon Lobo
+  email:
+  - sheldon.lobo@oracle.com
+  - smlobo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: smlobo
+  inactive: true
+- sn: Loki
+  cn: Gabor Loki
+  email:
+  - loki@inf.u-szeged.hu
+  - loki@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: loki
+  inactive: true
+- sn: Longo
+  cn: Matthieu Longo
+  email:
+  - matthieu.longo@arm.com
+  - mlongo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: mlongo
+- sn: Loosemore
+  cn: Sandra Loosemore
+  email:
+  - sloosemore@baylibre.com
+  - sandra@gcc.gnu.org
+  roles:
+  - Maintainer: docs co-maintainer
+  - WriteAfter
+  account: sandra
+- sn: López-Ibáñez
+  cn: Manuel López-Ibáñez
+  email:
+  - manu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: manu
+  inactive: true
+- sn: Love
+  cn: Carl Love
+  email:
+  - cel@linux.ibm.com
+  - carll@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: carll
+- sn: Lowden
+  cn: James K. Lowden
+  email:
+  - jklowden@cobolworx.com
+  - jklowden@gcc.gnu.org
+  roles:
+  - Maintainer: COBOL front end
+  - WriteAfter
+  account: jklowden
+- sn: Löwis
+  cn: Martin v. Löwis
+  email:
+  - loewis@informatik.hu-berlin.de
+  - loewis@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: loewis
+  inactive: true
+- sn: Lu
+  cn: Edwin Lu
+  email:
+  - ewlu@rivosinc.com
+  - ewlu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ewlu
+- sn: Lu
+  cn: H.J. Lu
+  email:
+  - hjl.tools@gmail.com
+  - hjl@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: hjl.tools@gmail.com
+  account: hjl
+- sn: Luo
+  cn: Xiong Hu Luo
+  email:
+  - luoxhu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: luoxhu
+  inactive: true
+- sn: Lv
+  cn: Bin Bin Lv
+  email:
+  - shlb@linux.ibm.com
+  - shlb@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: shlb
+  inactive: true
+- sn: Lyon
+  cn: Christophe Lyon
+  email:
+  - christophe.lyon@arm.com
+  - clyon@gcc.gnu.org
+  roles:
+  - Reviewer: arm port (MVE)
+  - WriteAfter
+  account: clyon
+- sn: Ma
+  cn: Jin Ma
+  email:
+  - jinma@linux.alibaba.com
+  - majin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: majin
+- sn: Ma
+  cn: Jun Ma
+  email:
+  - junma@linux.alibaba.com
+  - junma@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: junma
+  inactive: true
+- sn: Ma
+  cn: Yuao Ma
+  email:
+  - yuao@gcc.gnu.org
+  - c8ef@outlook.com
+  roles:
+  - WriteAfter
+  - DCO: yuao@gcc.gnu.org
+  account: yuao
+- sn: Machado
+  cn: Luis Machado
+  email:
+  - luis.machado.foss@gmail.com
+  - luisgpm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: luisgpm
+- sn: MacLeod
+  cn: Andrew MacLeod
+  email:
+  - amacleod@redhat.com
+  - amacleod@gcc.gnu.org
+  roles:
+  - Maintainer: '*vrp, ranger'
+  - Maintainer: tree-ssa
+  - WriteAfter
+  account: amacleod
+- sn: Mahkovec
+  cn: Ziga Mahkovec
+  email:
+  - ziga.mahkovec@klika.si
+  - ziga@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ziga
+  inactive: true
+- sn: Makarov
+  cn: Vladimir Makarov
+  email:
+  - vmakarov@redhat.com
+  - vmakarov@gcc.gnu.org
+  roles:
+  - Maintainer: register allocation
+  - Maintainer: scheduler (+ haifa)
+  - WriteAfter
+  account: vmakarov
+  aliases:
+  - Vladimir N. Makarov
+- sn: Malcolm
+  cn: David Malcolm
+  email:
+  - dmalcolm@redhat.com
+  - dmalcolm@gcc.gnu.org
+  roles:
+  - Maintainer: diagnostic messages
+  - Maintainer: gdbhooks.py
+  - Maintainer: jit
+  - Maintainer: libcpp
+  - Maintainer: static analyzer
+  - WriteAfter
+  account: dmalcolm
+- sn: Malcomson
+  cn: Matthew Malcomson
+  email:
+  - mmalcomson@nvidia.com
+  - matmal01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: mmalcomson@nvidia.com
+  account: matmal01
+- sn: Maltsev
+  cn: Mikhail Maltsev
+  email:
+  - maltsevm@gmail.com
+  - miyuki@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: miyuki
+  inactive: true
+- sn: Marchesi
+  cn: Jose E. Marchesi
+  email:
+  - jose.marchesi@oracle.com
+  - jemarch@gnu.org
+  - jemarch@gcc.gnu.org
+  roles:
+  - Maintainer: bpf port
+  - Maintainer: Algol 68
+    email: jemarch@gnu.org
+  - Maintainer: libga68
+    email: jemarch@gnu.org
+  - WriteAfter
+  - DCO: jemarch@gnu.org
+  account: jemarch
+- sn: Markianos-Wright
+  cn: Stamatis Markianos-Wright
+  email:
+  - stam.markianos-wright@arm.com
+  - stammark@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: stammark
+  inactive: true
+- sn: Marlier
+  cn: Patrick Marlier
+  email:
+  - patrick.marlier@gmail.com
+  - pmarlier@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pmarlier
+  inactive: true
+- sn: Martin
+  cn: Simon Martin
+  email:
+  - simartin@users.sourceforge.net
+  - simartin@gcc.gnu.org
+  - simon@nasilyan.com
+  roles:
+  - WriteAfter
+  account: simartin
+- sn: Martinez
+  cn: Alejandro Martinez
+  email:
+  - alejandro.martinezvicente@arm.com
+  - alejandro@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: alejandro
+  inactive: true
+- sn: Mathew
+  cn: Ranjit Mathew
+  email:
+  - rmathew@hotmail.com
+  - rmathew@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rmathew
+  inactive: true
+- sn: Matos
+  cn: Paulo Matos
+  email:
+  - pmatos@linki.tools
+  - pmatos@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pmatos
+  inactive: true
+- sn: Matsui
+  cn: Ken Matsui
+  email:
+  - kmatsui@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kmatsui
+- sn: Matz
+  cn: Michael Matz
+  email:
+  - matz@suse.de
+  - matz@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: matz
+- sn: McGary
+  cn: Greg McGary
+  email:
+  - gkm@gnu.org
+  - gkm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gkm
+  inactive: true
+- sn: McGrath
+  cn: Roland McGrath
+  email:
+  - roland@hack.frob.com
+  - roland@gcc.gnu.org
+  - mcgrathr@google.com
+  roles:
+  - WriteAfter
+  account: roland
+- sn: McKinlay
+  cn: Bryce McKinlay
+  email:
+  - mckinlay@redhat.com
+  - bryce@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bryce
+  inactive: true
+- sn: Meakin
+  cn: Karl Meakin
+  email:
+  - karl.meakin@arm.com
+  - karmea01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: karmea01
+- sn: Megacz
+  cn: Adam Megacz
+  email:
+  - adam@xwt.org
+  - megacz@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: megacz
+  inactive: true
+- sn: Mei
+  cn: Bingfeng Mei
+  email:
+  - bmei@broadcom.com
+  - meibf@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: meibf
+  inactive: true
+- sn: Meissner
+  cn: Michael Meissner
+  email:
+  - gnu@the-meissners.org
+  - meissner@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: scheduler (+ haifa)
+  - WriteAfter
+  account: meissner
+  inactive: true
+- sn: Melcr
+  cn: Josef Melcr
+  email:
+  - josef.melcr@suse.com
+  - jmelcr@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jmelcr
+- sn: Merrill
+  cn: Jason Merrill
+  email:
+  - jason@redhat.com
+  - jason@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: c++
+  - Maintainer: libcpp
+  - Maintainer: '*gimpl*'
+  - Maintainer: dwarf debugging code
+  - WriteAfter
+  account: jason
+- sn: Meyering
+  cn: Jim Meyering
+  email:
+  - jim@meyering.net
+  - meyering@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: meyering
+  inactive: true
+- sn: Michlmayr
+  cn: Martin Michlmayr
+  email:
+  - tbm@cyrius.com
+  - tbm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tbm
+  inactive: true
+- sn: Miller
+  cn: David S. Miller
+  email:
+  - davem@redhat.com
+  - davem@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: sparc port
+  - Maintainer: jump.cc
+  - WriteAfter
+  account: davem
+  inactive: true
+- sn: Millward
+  cn: Lee Millward
+  email:
+  - lee.millward@gmail.com
+  - lmillward@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: lmillward
+  inactive: true
+- sn: Mir
+  cn: Immad Mir
+  email:
+  - mir@sourceware.org
+  - mir@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: mir@sourceware.org
+  account: mir
+  inactive: true
+- sn: Miranda
+  cn: Cupertino Miranda
+  email:
+  - cupertino.miranda@oracle.com
+  - cupermir@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cupermir
+- sn: Mladjenovic
+  cn: Dragan Mladjenovic
+  email:
+  - Dragan.Mladjenovic@syrmia.com
+  - draganm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: draganm
+  inactive: true
+- sn: Modra
+  cn: Alan Modra
+  email:
+  - amodra@gmail.com
+  - amodra@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: amodra
+- sn: Moene
+  cn: Toon Moene
+  email:
+  - toon@moene.org
+  - toon@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: toon
+- sn: Monakov
+  cn: Alexander Monakov
+  email:
+  - amonakov@ispras.ru
+  - amonakov@gcc.gnu.org
+  roles:
+  - Reviewer: selective scheduling
+  - WriteAfter
+  account: amonakov
+- sn: Monteiro
+  cn: Pietro Monteiro
+  email:
+  - pietro@sociotechnical.xyz
+  - pietro@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pietro
+- sn: Moore
+  cn: Catherine Moore
+  email:
+  - clm@codesourcery.com
+  - clm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: clm
+  inactive: true
+- sn: Morin
+  cn: Mikael Morin
+  email:
+  - mikael@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: mikael
+- sn: Morrison
+  cn: James A. Morrison
+  email:
+  - phython@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: phython
+  inactive: true
+- sn: Moses
+  cn: Brooks Moses
+  email:
+  - bmoses@google.com
+  - brooks@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: brooks
+  inactive: true
+- sn: Mueller
+  cn: Dirk Mueller
+  email:
+  - dmueller@suse.de
+  - mueller@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: mueller
+  inactive: true
+- sn: Muldoon
+  cn: Phil Muldoon
+  email:
+  - pmuldoon@redhat.com
+  - pmuldoon@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pmuldoon
+  inactive: true
+- sn: Mulley
+  cn: Gaius Mulley
+  email:
+  - gaiusmod2@gmail.com
+  - gaius@gcc.gnu.org
+  roles:
+  - Maintainer: Modula-2 front end
+  - WriteAfter
+  - DCO: gaiusmod2@gmail.com
+  account: gaius
+- sn: Müllner
+  cn: Christoph Müllner
+  email:
+  - christoph.muellner@vrull.eu
+  - cmuellner@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cmuellner
+- sn: Munnangi
+  cn: Shreya Munnangi
+  email:
+  - smunnang@qti.qualcomm.com
+  - smunnangi1@ventanamicro.com
+  roles:
+  - DCO: smunnang@qti.qualcomm.com
+  - DCO: smunnangi1@ventanamicro.com
+- sn: Munroe
+  cn: Steven Munroe
+  email:
+  - munroesj52@gmail.com
+  - munroesj@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: munroesj
+- sn: Muyter
+  cn: Philippe De Muyter
+  email:
+  - phdm@macqel.be
+  - phdm@gcc.gnu.org
+  roles:
+  - Maintainer: m68k-motorola-sysv port
+  - WriteAfter
+  account: phdm
+  inactive: true
+- sn: Myers
+  cn: Joseph Myers
+  email:
+  - josmyers@redhat.com
+  - jsm28@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: C front end/ISO C99
+  - Maintainer: libcpp
+  - Maintainer: docs co-maintainer
+  - Maintainer: docstring relicensing
+  - Maintainer: i18n
+  - Maintainer: option handling
+  - Maintainer: soft-fp
+  - Reviewer: driver
+  - WriteAfter
+  account: jsm28
+- sn: Myers
+  cn: Nathan Myers
+  email:
+  - ncm@cantrip.org
+  - ncm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ncm
+- sn: Nagy
+  cn: Szabolcs Nagy
+  email:
+  - nsz@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: nsz@gcc.gnu.org
+  account: nsz
+  inactive: true
+- sn: Nascimento
+  cn: Victor Do Nascimento
+  email:
+  - victor.donascimento@arm.com
+  - victorldn@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: victorldn
+- sn: Neill
+  cn: Quentin Neill
+  email:
+  - quentin.neill.gnu@gmail.com
+  - qneill@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: qneill
+  inactive: true
+- sn: Nemet
+  cn: Adam Nemet
+  email:
+  - adambnemet@gmail.com
+  - nemet@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: nemet
+  inactive: true
+- sn: Nerode
+  cn: Nathanael Nerode
+  email:
+  - neroden@gcc.gnu.org
+  roles:
+  - Maintainer: build machinery (*.in)
+  - WriteAfter
+  account: neroden
+  inactive: true
+- sn: Neumann
+  cn: Thomas Neumann
+  email:
+  - tneumann@users.sourceforge.net
+  - tneumann@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tneumann
+  inactive: true
+- sn: Nicolaescu
+  cn: Dan Nicolaescu
+  email:
+  - dann@ics.uci.edu
+  - dann@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dann
+  inactive: true
+- sn: Nilsen
+  cn: Kelvin Nilsen
+  email:
+  - kelvin.nilsen@gmail.com
+  - kelvin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kelvin
+  inactive: true
+- sn: Nilsson
+  cn: Hans-Peter Nilsson
+  email:
+  - hp@axis.com
+  - hp@bitrange.com
+  - hp@gcc.gnu.org
+  roles:
+  - Maintainer: cris port
+  - Maintainer: mmix port
+    email: hp@bitrange.com
+  - WriteAfter
+  account: hp
+- sn: Norris
+  cn: James Norris
+  email:
+  - jnorris@codesourcery.com
+  roles:
+  - WriteAfter
+  inactive: true
+- sn: Novillo
+  cn: Diego Novillo
+  email:
+  - dnovillo@google.com
+  - dnovillo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dnovillo
+  inactive: true
+- sn: Nuzman
+  cn: Dorit Nuzman
+  email:
+  - dorit@il.ibm.com
+  - dorit@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dorit
+  inactive: true
+- sn: O'Brien
+  cn: David O'Brien
+  email:
+  - obrien@FreeBSD.org
+  - obrien@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: obrien
+  inactive: true
+- sn: O'Donell
+  cn: Carlos O'Donell
+  email:
+  - carlos@redhat.com
+  - carlos@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: carlos
+- sn: O'Gorman
+  cn: Peter O'Gorman
+  email:
+  - pogma@thewrittenword.com
+  - pogma@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pogma
+  inactive: true
+- sn: O'Neill
+  cn: Patrick O'Neill
+  email:
+  - patrick@rivosinc.com
+  - poneill@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: poneill
+- sn: Obrzut
+  cn: Braden Obrzut
+  email:
+  - admin@maniacsvault.net
+  - blzut3@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: blzut3
+  inactive: true
+- sn: Oi
+  cn: Tsukasa Oi
+  email:
+  - research_trasio@irq.a4lg.com
+  - a4lg@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: a4lg
+- sn: Oliva
+  cn: Alexandre Oliva
+  email:
+  - aoliva@gcc.gnu.org
+  - oliva@adacore.com
+  roles:
+  - Maintainer: frv port
+  - Maintainer: mn10300 port
+  - Maintainer: sh port
+  - Maintainer: build machinery (*.in)
+  - WriteAfter
+  account: aoliva
+- sn: Ornstein
+  cn: Andrea Ornstein
+  email:
+  - andrea.ornstein@st.com
+  - andreao@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: andreao
+  inactive: true
+- sn: Orth
+  cn: Rainer Orth
+  email:
+  - ro@CeBiTec.Uni-Bielefeld.DE
+  - ro@gcc.gnu.org
+  roles:
+  - Maintainer: solaris
+  - Maintainer: testsuite
+  - WriteAfter
+  account: ro
+- sn: Ostapenko
+  cn: Maxim Ostapenko
+  email:
+  - m.ostapenko@samsung.com
+  - chefmax@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: chefmax
+  inactive: true
+- sn: Palanisamy
+  cn: Jeevitha Palanisamy
+  email:
+  - jeevitha@linux.ibm.com
+  - jeevitha@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jeevitha
+  aliases:
+  - Jeevitha
+- sn: Palka
+  cn: Patrick Palka
+  email:
+  - ppalka@gcc.gnu.org
+  - ppalka@redhat.com
+  roles:
+  - Reviewer: c++
+  - WriteAfter
+  account: ppalka
+- sn: Park
+  cn: Seongbae Park
+  email:
+  - seongbae.park@gmail.com
+  - spark@gcc.gnu.org
+  roles:
+  - Reviewer: dataflow
+  - Reviewer: register allocation
+  - WriteAfter
+  account: spark
+  inactive: true
+- sn: Parmar
+  cn: Kishan Parmar
+  email:
+  - kishan@linux.ibm.com
+  - kishan@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kishan
+- sn: Parvathaneni
+  cn: Srinath Parvathaneni
+  email:
+  - srinath.parvathaneni@arm.com
+  - sripar01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sripar01
+- sn: Patel
+  cn: Devang Patel
+  email:
+  - dpatel@apple.com
+  - dpatel@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dpatel
+  inactive: true
+- sn: Patry
+  cn: Pierre-Emmanuel Patry
+  email:
+  - pierre-emmanuel.patry@embecosm.com
+  - pep@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: pierre-emmanuel.patry@embecosm.com
+  account: pep
+- sn: Pavenis
+  cn: Andris Pavenis
+  email:
+  - andris.pavenis@iki.fi
+  - andris@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: andris
+  inactive: true
+- sn: Pereira
+  cn: Fernando Pereira
+  email:
+  - pronesto@gmail.com
+  - pronesto@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pronesto
+  inactive: true
+- sn: Pero
+  cn: Nicola Pero
+  email:
+  - nicola.pero@meta-innovation.com
+  - nicola@gcc.gnu.org
+  roles:
+  - Maintainer: libobjc
+  - WriteAfter
+  account: nicola
+  inactive: true
+- sn: Perta
+  cn: Sebastian Perta
+  email:
+  - sebastian.perta@renesas.com
+  - sebastianperta@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sebastianperta
+  inactive: true
+- sn: Peryt
+  cn: Sebastian Peryt
+  email:
+  - sebastian.peryt@intel.com
+  - speryt@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: speryt
+  inactive: true
+- sn: Pettersson
+  cn: Mikael Pettersson
+  email:
+  - mikpelinux@gmail.com
+  - mikpe@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: mikpelinux@gmail.com
+  account: mikpe
+- sn: Pfau
+  cn: Johannes Pfau
+  email:
+  - johannespfau@gmail.com
+  - jpfau@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jpfau
+  inactive: true
+- sn: Pfeifer
+  cn: Gerald Pfeifer
+  email:
+  - gerald@pfeifer.com
+  - gerald@gcc.gnu.org
+  roles:
+  - Maintainer: docs co-maintainer
+  - Maintainer: docstring relicensing
+  - Maintainer: web pages
+  - WriteAfter
+  account: gerald
+- sn: Phatak
+  cn: Kaushik Phatak
+  email:
+  - kaushik.phatak@kpitcummins.com
+  - kaushikp@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kaushikp
+  inactive: true
+- sn: Pinski
+  cn: Andrew Pinski
+  email:
+  - andrew.pinski@oss.qualcomm.com
+  - pinskia@gmail.com
+  - andrew.pinski@qualcomm.com
+  - pinskia@gcc.gnu.org
+  - quic_apinski@quicinc.com
+  roles:
+  - Global
+  - Maintainer: libobjc
+    email: pinskia@gmail.com
+  - Reviewer: aarch64 port
+  - WriteAfter: andrew.pinski@qualcomm.com
+  - DCO: andrew.pinski@oss.qualcomm.com
+  - DCO: quic_apinski@quicinc.com
+  account: pinskia
+- sn: Pitre
+  cn: Nicolas Pitre
+  email:
+  - nico@cam.org
+  - nico@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: nico
+  inactive: true
+- sn: Ploujnikov
+  cn: Michael Ploujnikov
+  email:
+  - michael.ploujnikov@oracle.com
+  - plouj@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: plouj
+  inactive: true
+- sn: Pluzhnikov
+  cn: Paul Pluzhnikov
+  email:
+  - ppluzhnikov@google.com
+  - ppluzhnikov@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ppluzhnikov
+  inactive: true
+- sn: Polacek
+  cn: Marek Polacek
+  email:
+  - polacek@redhat.com
+  - mpolacek@gcc.gnu.org
+  roles:
+  - Reviewer: C front end
+  - WriteAfter
+  account: mpolacek
+- sn: Pop
+  cn: Antoniu Pop
+  email:
+  - antoniu.pop@gmail.com
+  - apop@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: apop
+  inactive: true
+- sn: Pop
+  cn: Sebastian Pop
+  email:
+  - sebpop@gmail.com
+  - spop@gcc.gnu.org
+  - spop@nvidia.com
+  roles:
+  - Maintainer: scev, data dependence
+  - Maintainer: tree browser/unparser
+  - Reviewer: Graphite
+  - WriteAfter
+  account: spop
+- sn: Poulhiès
+  cn: Marc Poulhiès
+  email:
+  - poulhies@adacore.com
+  - dkm@gcc.gnu.org
+  roles:
+  - Maintainer: Ada front end
+  - WriteAfter
+  account: dkm
+- sn: Poyarekar
+  cn: Siddhesh Poyarekar
+  email:
+  - siddhesh@gotplt.org
+  - siddhesh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: siddhesh@gotplt.org
+  account: siddhesh
+- sn: Praveen
+  cn: Vidya Praveen
+  email:
+  - vidyapraveen@arm.com
+  - vp@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vp
+  inactive: true
+- sn: Preud'homme
+  cn: Thomas Preud'homme
+  email:
+  - thomas.preudhomme@celest.fr
+  - thopre01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: thopre01
+  inactive: true
+- sn: Priour
+  cn: Benjamin Priour
+  email:
+  - priour.be@gmail.com
+  - vultkayn@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vultkayn
+- sn: Prus
+  cn: Vladimir Prus
+  email:
+  - vladimir@codesourcery.com
+  - vprus@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vprus
+  inactive: true
+- sn: Qadeer
+  cn: Hafiz Abid Qadeer
+  email:
+  - abidh@codesourcery.com
+  - abidh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: abidh
+- sn: Qi
+  cn: Yao Qi
+  email:
+  - yao@codesourcery.com
+  - qiyao@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: qiyao
+  inactive: true
+- sn: Qu
+  cn: Xianmiao Qu
+  email:
+  - cooper.qu@linux.alibaba.com
+  - xianmiao@gcc.gnu.org
+  roles:
+  - Maintainer: c-sky port
+  - WriteAfter
+  account: xianmiao
+- sn: Quinn
+  cn: Jerry Quinn
+  email:
+  - jlquinn@optonline.net
+  - jlquinn@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jlquinn
+  inactive: true
+- sn: Radhakrishnan
+  cn: Ramana Radhakrishnan
+  email:
+  - ramanara@nvidia.com
+  - ramana@gcc.gnu.org
+  roles:
+  - Maintainer: arm port
+  - WriteAfter
+  - DCO: ramanara@nvidia.com
+  account: ramana
+- sn: Rahimi
+  cn: Navid Rahimi
+  email:
+  - navidr@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: navidr@gcc.gnu.org
+  account: navidr
+  inactive: true
+- sn: Raj
+  cn: Rishi Raj
+  email:
+  - rishiraj45035@gmail.com
+  - rshraj45035@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: rishiraj45035@gmail.com
+  account: rshraj45035
+  inactive: true
+- sn: Raman
+  cn: Easwaran Raman
+  email:
+  - eraman@google.com
+  - eraman@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: eraman
+  inactive: true
+- sn: Ramsay
+  cn: Joe Ramsay
+  email:
+  - joe.ramsay@arm.com
+  - joeramsay@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: joeramsay
+- sn: Ranns
+  cn: Nina Ranns
+  email:
+  - dinka.ranns@gmail.com
+  - ninaranns@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ninaranns
+- sn: Rasmussen
+  cn: Rolf Rasmussen
+  email:
+  - rolfwr@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rolfwr
+  inactive: true
+- sn: Reese
+  cn: Fritz Reese
+  email:
+  - fritzoreese@gmail.com
+  - foreese@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: foreese
+  inactive: true
+- sn: Reichelt
+  cn: Volker Reichelt
+  email:
+  - v.reichelt@netcologne.de
+  - reichelt@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: reichelt
+  inactive: true
+- sn: Rennecke
+  cn: Joern Rennecke
+  email:
+  - gnu@amylaar.uk
+  - amylaar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: amylaar
+- sn: Reutner-Fischer
+  cn: Bernhard Reutner-Fischer
+  email:
+  - rep.dot.nop@gmail.com
+  - aldot@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aldot
+- sn: Richards
+  cn: Alfie Richards
+  email:
+  - alfie.richards@arm.com
+  - alfierichards@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: alfierichards
+- sn: Riegel
+  cn: Torvald Riegel
+  email:
+  - triegel@redhat.com
+  - torvald@gcc.gnu.org
+  roles:
+  - Maintainer: libitm
+  - WriteAfter
+  account: torvald
+  inactive: true
+- sn: Rix
+  cn: Tom Rix
+  email:
+  - trix@redhat.com
+  - trix@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: trix
+  inactive: true
+- sn: Rodat
+  cn: Pierre-Marie de Rodat
+  email:
+  - derodat@adacore.com
+  - pmderodat@gcc.gnu.org
+  roles:
+  - Maintainer: Ada front end
+  - WriteAfter
+  account: pmderodat
+  aliases:
+  - Pierre Marie de Rodat
+- sn: Rodgers
+  cn: Thomas Rodgers
+  email:
+  - trodgers@redhat.com
+  - rodgertq@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rodgertq
+- sn: Rodrigues
+  cn: Craig Rodrigues
+  email:
+  - rodrigc@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rodrigc
+  inactive: true
+- sn: Rohou
+  cn: Erven Rohou
+  email:
+  - erven.rohou@inria.fr
+  - erven@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: erven
+  inactive: true
+- sn: Rosen
+  cn: Ira Rosen
+  email:
+  - irar@il.ibm.com
+  - irar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: irar
+  inactive: true
+- sn: Roux
+  cn: Yvan Roux
+  email:
+  - yvan.roux@linaro.org
+  - yroux@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: yroux
+  inactive: true
+- sn: Rozenfeld
+  cn: Eugene Rozenfeld
+  email:
+  - erozenfeld.pro@gmail.com
+  - erozen@gcc.gnu.org
+  - erozen@microsoft.com
+  roles:
+  - Maintainer: AutoFDO
+  - WriteAfter
+  account: erozen
+- sn: Rozycki
+  cn: Maciej W. Rozycki
+  email:
+  - macro@orcam.me.uk
+  - macro@gcc.gnu.org
+  roles:
+  - Maintainer: vax port
+  - WriteAfter
+  account: macro
+- sn: Rupp
+  cn: Douglas Rupp
+  email:
+  - douglas.b.rupp@gmail.com
+  - rupp@gcc.gnu.org
+  roles:
+  - Maintainer: VMS
+  - WriteAfter
+  account: rupp
+  inactive: true
+- sn: Rus
+  cn: Silvius Rus
+  email:
+  - rus@google.com
+  - rus@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rus
+  inactive: true
+- sn: Sachs
+  cn: Matthew Sachs
+  email:
+  - msachs@apple.com
+  - matthewg@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: matthewg
+  inactive: true
+- sn: Saini
+  cn: Ankur Saini
+  email:
+  - arsenic@sourceware.org
+  - arsenic@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: arsenic
+  inactive: true
+- sn: Sandanagobalane
+  cn: Hariharan Sandanagobalane
+  email:
+  - hariharan.gcc@gmail.com
+  - hariharans@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hariharans
+  inactive: true
+- sn: Sandiford
+  cn: Richard Sandiford
+  email:
+  - rdsandiford@googlemail.com
+  - rsandifo@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: gen* on machine desc
+  - Reviewer: wide-int
+  - WriteAfter
+  account: rsandifo
+- sn: Sandoe
+  cn: Iain Sandoe
+  email:
+  - iain@sandoe.co.uk
+  - iains@gcc.gnu.org
+  roles:
+  - Maintainer: darwin port
+  - Maintainer: objective-c/c++
+  - WriteAfter
+  account: iains
+- sn: Sands
+  cn: Duncan Sands
+  email:
+  - baldrick@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: baldrick
+  inactive: true
+- sn: Saraswati
+  cn: Sujoy Saraswati
+  email:
+  - sujoy.saraswati@hpe.com
+  - ssaraswati@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ssaraswati
+  inactive: true
+- sn: Saunders
+  cn: Trevor Saunders
+  email:
+  - tbsaunde+gcc@tbsaunde.org
+  - tbsaunde@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: tbsaunde+gcc@tbsaunde.org
+  account: tbsaunde
+  inactive: true
+- sn: Sawdey
+  cn: Aaron Sawdey
+  email:
+  - acsawdey@linux.ibm.com
+  - acsawdey@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: acsawdey
+  inactive: true
+- sn: Sayle
+  cn: Roger Sayle
+  email:
+  - roger@nextmovesoftware.com
+  - sayle@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sayle
+- sn: Schlüter
+  cn: Tobias Schlüter
+  email:
+  - tobias.schlueter@physik.uni-muenchen.de
+  - tobi@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: tobi
+  inactive: true
+- sn: Schmidt
+  cn: Bernd Schmidt
+  email:
+  - bernds_cb1@t-online.de
+  - bernds@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: c6x port
+  - WriteAfter
+  account: bernds
+  inactive: true
+- sn: Schmidt
+  cn: Bill Schmidt
+  email:
+  - bill.schmidt@fastmail.com
+  roles:
+  - DCO: bill.schmidt@fastmail.com
+  inactive: true
+- sn: Schmidt
+  cn: Will Schmidt
+  email:
+  - will_schmidt@vnet.ibm.com
+  - willschm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: willschm
+  inactive: true
+- sn: Schmitz
+  cn: Jennifer Schmitz
+  email:
+  - jschmitz@mailbox.org
+  - jschmitz@gcc.gnu.org
+  - jschmitz@nvidia.com
+  roles:
+  - WriteAfter
+  account: jschmitz
+- sn: Schulze Frielinghaus
+  cn: Stefan Schulze Frielinghaus
+  email:
+  - stefansf@linux.ibm.com
+  - stefansf@gcc.gnu.org
+  roles:
+  - Maintainer: s390 port
+  - WriteAfter
+  account: stefansf
+- sn: Schwab
+  cn: Andreas Schwab
+  email:
+  - schwab@linux-m68k.org
+  - schwab@gcc.gnu.org
+  - schwab@suse.de
+  roles:
+  - Maintainer: m68k port
+  - WriteAfter
+  account: schwab
+- sn: Schwarz
+  cn: Tilo Schwarz
+  email:
+  - tilo@tilo-schwarz.de
+  - tiloschwarz@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tiloschwarz
+  inactive: true
+- sn: Schwinge
+  cn: Thomas Schwinge
+  email:
+  - tschwinge@baylibre.com
+  - thomas@schwinge.name
+  - tschwinge@gcc.gnu.org
+  roles:
+  - Maintainer: nvptx port
+  - Maintainer: GNU/Hurd
+    email: thomas@schwinge.name
+  - Maintainer: libgomp (OpenACC)
+  - Maintainer: OpenACC
+  - WriteAfter: thomas@schwinge.name
+  account: tschwinge
+- sn: Sebor
+  cn: Martin Sebor
+  email:
+  - msebor@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: msebor
+  inactive: true
+- sn: Seketeli
+  cn: Dodji Seketeli
+  email:
+  - dodji@redhat.com
+  - dodji@gcc.gnu.org
+  roles:
+  - Maintainer: diagnostic messages
+  - Maintainer: line map
+  - Reviewer: libsanitizer, asan.cc
+  - WriteAfter
+  account: dodji
+  inactive: true
+- sn: Seldal
+  cn: Svein Seldal
+  email:
+  - svein@dev.seldal.com
+  - sveinse@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sveinse
+  inactive: true
+- sn: Selvaraj
+  cn: Senthil Kumar Selvaraj
+  email:
+  - saaadhu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: saaadhu
+- sn: Serebryany
+  cn: Kostya Serebryany
+  email:
+  - kcc@google.com
+  - kcc@gcc.gnu.org
+  roles:
+  - Reviewer: libsanitizer, asan.cc
+  - WriteAfter
+  account: kcc
+  inactive: true
+- sn: Seufer
+  cn: Thiemo Seufer
+  email:
+  - ths@networkno.de
+  - ths@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ths
+  inactive: true
+- sn: Seurer
+  cn: Bill Seurer
+  email:
+  - seurer@linux.vnet.ibm.com
+  - seurer@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: seurer
+  inactive: true
+- sn: Shang
+  cn: Yunhai Shang
+  email:
+  - yunhai@linux.alibaba.com
+  - shangyunhai@gcc.gnu.org
+  roles:
+  - Maintainer: c-sky port
+  - WriteAfter
+  account: shangyunhai
+  inactive: true
+- sn: Shead
+  cn: Nathaniel Shead
+  email:
+  - nathanieloshead@gmail.com
+  - nshead@gcc.gnu.org
+  - nathanieloshead@gmail.org
+  roles:
+  - WriteAfter
+  - DCO: nathanieloshead@gmail.org
+  account: nshead
+- sn: Shen
+  cn: Tim Shen
+  email:
+  - timshen@google.com
+  - timshen@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: timshen
+  inactive: true
+- sn: Sherrill
+  cn: Joel Sherrill
+  email:
+  - joel@oarcorp.com
+  - joel@gcc.gnu.org
+  - joel@rtems.org
+  roles:
+  - Maintainer: RTEMS Ports
+  - WriteAfter
+  account: joel
+- sn: Sherwood
+  cn: David Sherwood
+  email:
+  - david.sherwood@arm.com
+  - davids@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: davids
+  inactive: true
+- sn: Sidwell
+  cn: Nathan Sidwell
+  email:
+  - nathan@acm.org
+  - nathan@gcc.gnu.org
+  roles:
+  - Maintainer: c++
+  - Maintainer: libcpp
+  - Maintainer: gcov
+  - WriteAfter
+  - DCO: nathan@acm.org
+  account: nathan
+- sn: Singhai
+  cn: Sharad Singhai
+  email:
+  - singhai@google.com
+  - singhai@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: singhai
+  inactive: true
+- sn: Singler
+  cn: Johannes Singler
+  email:
+  - singler@kit.edu
+  - singler@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: singler
+  inactive: true
+- sn: Sirl
+  cn: Franz Sirl
+  email:
+  - franz.sirl-kernel@lauterbach.com
+  - sirl@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sirl
+- sn: Sjodin
+  cn: Jan Sjodin
+  email:
+  - jan.sjodin@amd.com
+  - jsjodin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jsjodin
+  inactive: true
+- sn: Smigiel
+  cn: Trevor Smigiel
+  email:
+  - trevor_smigiel@playstation.sony.com
+  - tsmigiel@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tsmigiel
+  inactive: true
+- sn: Smith-Rowland
+  cn: Edward Smith-Rowland
+  email:
+  - esmithrowland@gmail.com
+  - emsr@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: esmithrowland@gmail.com
+  account: emsr
+  inactive: true
+- sn: Sokolov
+  cn: Anatoly Sokolov
+  email:
+  - aesok@dol.ru
+  - aesok@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aesok
+  inactive: true
+- sn: Sokolov
+  cn: Michael Sokolov
+  email:
+  - msokolov@ivan.Harhan.ORG
+  - msokolov@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: msokolov
+  inactive: true
+- sn: Sonar
+  cn: Jayant Sonar
+  email:
+  - rsonar.jayant@gmail.com
+  - jayants@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jayants
+  inactive: true
+- sn: Song
+  cn: Fangrui Song
+  email:
+  - maskray@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: maskray@gcc.gnu.org
+  account: maskray
+- sn: Stallman
+  cn: Richard Stallman
+  email:
+  - rms@gnu.org
+  - rms@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rms
+  inactive: true
+- sn: Starynkevitch
+  cn: Basile Starynkevitch
+  email:
+  - basile@starynkevitch.net
+  - bstarynk@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: bstarynk
+- sn: Staszak
+  cn: Jakub Staszak
+  email:
+  - kuba@et.pl
+  - kuba@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kuba
+  inactive: true
+- sn: Stott
+  cn: Graham Stott
+  email:
+  - graham.stott@btinternet.com
+  - grahams@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: grahams
+  inactive: true
+- sn: Stubbs
+  cn: Andrew Stubbs
+  email:
+  - ams@baylibre.com
+  - ams@gcc.gnu.org
+  roles:
+  - Maintainer: amdgcn port
+  - WriteAfter
+  account: ams
+- sn: Stump
+  cn: Mike Stump
+  email:
+  - mikestump@comcast.net
+  - mrs@gcc.gnu.org
+  roles:
+  - Maintainer: darwin port
+  - Maintainer: objective-c/c++
+  - Maintainer: testsuite
+  - Reviewer: wide-int
+  - WriteAfter
+  account: mrs
+- sn: Sturm
+  cn: Jeff Sturm
+  email:
+  - jsturm@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jsturm
+  inactive: true
+- sn: Su
+  cn: YunQiang Su
+  email:
+  - syq@gcc.gnu.org
+  - yunqiang@isrc.iscas.ac.cn
+  roles:
+  - Maintainer: mips port
+  - WriteAfter
+  account: syq
+- sn: Suchanek
+  cn: Robert Suchanek
+  email:
+  - rsuchy84@gmail.com
+  - rts@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: rts
+  inactive: true
+- sn: Supers1ngular
+  cn: Supers1ngular
+  email:
+  - supers1ngular@baylibre.com
+  - supers1ngular@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: supers1ngular
+- sn: Sutton
+  cn: Andrew Sutton
+  email:
+  - andrew.n.sutton@gmail.com
+  - asutton@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: asutton
+  inactive: true
+- sn: Svelto
+  cn: Gabriele Svelto
+  email:
+  - gabriele.svelto@st.com
+  - gsvelto@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gsvelto
+  inactive: true
+- sn: Svensson
+  cn: Torbjörn Svensson
+  email:
+  - torbjorn.svensson@foss.st.com
+  - azoff@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: azoff
+- sn: Tabacu
+  cn: Toma Tabacu
+  email:
+  - toma.tabacu@gmail.com
+  - tomtab@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tomtab
+  inactive: true
+- sn: Tahir
+  cn: Omar Tahir
+  email:
+  - omar.tahir@arm.com
+  - omatah@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: omatah
+  inactive: true
+- sn: Tallam
+  cn: Sriraman Tallam
+  email:
+  - tmsriram@google.com
+  - tmsriram@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tmsriram
+  inactive: true
+- sn: Tang
+  cn: Chung-Lin Tang
+  email:
+  - cltang@baylibre.com
+  - cltang@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: cltang
+- sn: Tardieu
+  cn: Samuel Tardieu
+  email:
+  - sam@rfc1149.net
+  - sam@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: sam
+  inactive: true
+- sn: Taylor
+  cn: Ian Lance Taylor
+  email:
+  - ian@airs.com
+  - ian@gcc.gnu.org
+  - iant@golang.org
+  roles:
+  - Global
+  - Maintainer: go
+  - Maintainer: fp-bit
+  - Maintainer: libbacktrace
+  - Maintainer: libgcc
+  - Maintainer: libgo
+  - Maintainer: libiberty
+  - Maintainer: middle-end
+  - WriteAfter
+  account: ian
+- sn: Tebbs
+  cn: Sam Tebbs
+  email:
+  - samuel.tebbs@gmail.com
+  - samtebbs@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: samtebbs
+  inactive: true
+- sn: Telidevulapalli
+  cn: Vijay Telidevulapalli
+  email:
+  - vijay@linux.ibm.com
+  - vtelidev@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vtelidev
+  aliases:
+  - Vijay Shankar
+- sn: Temirbulatov
+  cn: Dinar Temirbulatov
+  email:
+  - dtemirbulatov@gmail.com
+  - dinar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dinar
+  inactive: true
+- sn: Thomas
+  cn: Matt Thomas
+  email:
+  - matt@3am-software.com
+  - matt@gcc.gnu.org
+  roles:
+  - Maintainer: vax port
+  - WriteAfter
+  account: matt
+  inactive: true
+- sn: Thomas
+  cn: Paul Thomas
+  email:
+  - pault@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: pault
+- sn: Thomas
+  cn: Philipp Thomas
+  email:
+  - pth@suse.de
+  - pthomas@gcc.gnu.org
+  roles:
+  - Maintainer: i18n
+  - WriteAfter
+  account: pthomas
+  inactive: true
+- sn: Thorpe
+  cn: Jason Thorpe
+  email:
+  - thorpej@netbsd.org
+  - thorpej@gcc.gnu.org
+  roles:
+  - Maintainer: netbsd
+  - WriteAfter
+  account: thorpej
+  inactive: true
+- sn: Thorup
+  cn: Kresten Krab Thorup
+  email:
+  - krab@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: krab
+  inactive: true
+- sn: Tice
+  cn: Caroline Tice
+  email:
+  - cmtice@google.com
+  - ctice@gcc.gnu.org
+  roles:
+  - Maintainer: libvtv
+  - WriteAfter
+  account: ctice
+  inactive: true
+- sn: Tietz
+  cn: Kai Tietz
+  email:
+  - ktietz70@googlemail.com
+  - ktietz@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ktietz
+  inactive: true
+- sn: Tkachov
+  cn: Kyrylo Tkachov
+  email:
+  - ktkachov@nvidia.com
+  - ktkachov@gcc.gnu.org
+  roles:
+  - Maintainer: aarch64 port
+  - WriteAfter
+  - DCO: ktkachov@nvidia.com
+  account: ktkachov
+- sn: Tobler
+  cn: Andreas Tobler
+  email:
+  - andreast@gcc.gnu.org
+  roles:
+  - Maintainer: freebsd
+  - WriteAfter
+  account: andreast
+  inactive: true
+- sn: Tocar
+  cn: Ilya Tocar
+  email:
+  - tocarip@gmail.com
+  - tocarip@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: tocarip
+  inactive: true
+- sn: Tomner
+  cn: Petter Tomner
+  email:
+  - tomner@bahnhof.se
+  - tomner@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: tomner@bahnhof.se
+  account: tomner
+  inactive: true
+- sn: Tomsich
+  cn: Philipp Tomsich
+  email:
+  - philipp.tomsich@vrull.eu
+  - ptomsich@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ptomsich
+- sn: Towner
+  cn: Daniel Towner
+  email:
+  - dant@picochip.com
+  - dwtowner@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dwtowner
+  inactive: true
+- sn: Trifunovic
+  cn: Konrad Trifunovic
+  email:
+  - konrad.trifunovic@inria.fr
+  - trifunovic@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: trifunovic
+  inactive: true
+- sn: Trippelsdorf
+  cn: Markus Trippelsdorf
+  email:
+  - markus@trippelsdorf.de
+  - trippels@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: trippels
+  inactive: true
+- sn: Trofimovich
+  cn: Sergei Trofimovich
+  email:
+  - slyfox@gcc.gnu.org
+  - siarheit@google.com
+  roles:
+  - WriteAfter
+  account: slyfox
+- sn: Tromey
+  cn: Tom Tromey
+  email:
+  - tromey@redhat.com
+  - tromey@gcc.gnu.org
+  - tromey@adacore.com
+  roles:
+  - Reviewer: libcpp
+  - WriteAfter
+  account: tromey
+- sn: Tsimbalist
+  cn: Igor Tsimbalist
+  email:
+  - igor.v.tsimbalist@intel.com
+  - itsimbal@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: itsimbal
+  inactive: true
+- sn: Uecker
+  cn: Martin Uecker
+  email:
+  - uecker@gcc.gnu.org
+  - uecker@tugraz.at
+  roles:
+  - WriteAfter
+  - DCO: uecker@gcc.gnu.org
+  account: uecker
+- sn: Ung
+  cn: David Ung
+  email:
+  - davidu@mips.com
+  - davidu@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: davidu
+  inactive: true
+- sn: Vachharajani
+  cn: Neil Vachharajani
+  email:
+  - nvachhar@gmail.com
+  - nvachhar@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: nvachhar
+  inactive: true
+- sn: Van Hees
+  cn: Kris Van Hees
+  email:
+  - kris.van.hees@oracle.com
+  - kvanhees@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kvanhees
+  inactive: true
+- sn: VandeVondele
+  cn: Joost VandeVondele
+  email:
+  - joost.vandevondele@mat.ethz.ch
+  - vondele@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vondele
+  inactive: true
+- sn: Vehreschild
+  cn: Andre Vehreschild
+  email:
+  - vehre@gmx.de
+  - vehre@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: vehre
+- sn: Velenko
+  cn: Alex Velenko
+  email:
+  - alex.velenko@arm.com
+  - avelenko@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: avelenko
+  inactive: true
+- sn: Verbin
+  cn: Ilya Verbin
+  email:
+  - iverbin@gmail.com
+  - iverbin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: iverbin
+  inactive: true
+- sn: Vieira
+  cn: Andre Vieira
+  email:
+  - andre.simoesdiasvieira@arm.com
+  - avieira@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: avieira
+  aliases:
+  - Andre Simoes Dias Vieira
+- sn: Villemoes
+  cn: Rasmus Villemoes
+  email:
+  - rv@rasmusvillemoes.dk
+  - villemoes@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: villemoes
+- sn: Vivekanandarajah
+  cn: Kugan Vivekanandarajah
+  email:
+  - kvivekananda@nvidia.com
+  - kugan@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: kvivekananda@nvidia.com
+  account: kugan
+- sn: Volkov
+  cn: Artemiy Volkov
+  email:
+  - artemiy.volkov@arm.com
+  - artemiyv@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: artemiyv
+- sn: Vollweiler
+  cn: Marcel Vollweiler
+  email:
+  - marcel@codesourcery.com
+  - marcel@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: marcel
+  inactive: true
+- sn: Voutilainen
+  cn: Ville Voutilainen
+  email:
+  - ville.voutilainen@gmail.com
+  - ville@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: ville
+- sn: Vries
+  cn: Tom de Vries
+  email:
+  - tdevries@suse.de
+  - vries@gcc.gnu.org
+  roles:
+  - Maintainer: nvptx port
+  - WriteAfter
+  account: vries
+- sn: Vukicevic
+  cn: Nenad Vukicevic
+  email:
+  - nenad@intrepid.com
+  - nenadv@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: nenadv
+  inactive: true
+- sn: Vyukov
+  cn: Dmitry Vyukov
+  email:
+  - dvyukov@google.com
+  - dvyukov@gcc.gnu.org
+  roles:
+  - Reviewer: libsanitizer, asan.cc
+  - WriteAfter
+  account: dvyukov
+  inactive: true
+- sn: Waffl3x
+  cn: Waffl3x
+  email:
+  - waffl3x@baylibre.com
+  - waffl3x@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: waffl3x
+- sn: Wakely
+  cn: Jonathan Wakely
+  email:
+  - jwakely@redhat.com
+  - redi@gcc.gnu.org
+  roles:
+  - Maintainer: c++ runtime libs
+  - WriteAfter
+  - DCO: jwakely@redhat.com
+  account: redi
+- sn: Walfridsson
+  cn: Krister Walfridsson
+  email:
+  - krister.walfridsson@gmail.com
+  - kristerw@gcc.gnu.org
+  roles:
+  - Maintainer: netbsd
+  - WriteAfter
+  account: kristerw
+- sn: Wang
+  cn: Feng Wang
+  email:
+  - fengwang@nudt.edu.cn
+  - fengwang@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fengwang
+  inactive: true
+- sn: Wang
+  cn: Feng Wang
+  email:
+  - wangfeng@eswincomputing.com
+  - fengwang1792@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fengwang1792
+- sn: Wang
+  cn: Hongyu Wang
+  email:
+  - hongyu.wang@intel.com
+  - hongyuw@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: hongyuw
+- sn: Wang
+  cn: Jiong Wang
+  email:
+  - jiong.wang@arm.com
+  - jiwang@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jiwang
+  inactive: true
+- sn: Waterman
+  cn: Andrew Waterman
+  email:
+  - andrew@sifive.com
+  - aswaterman@gcc.gnu.org
+  roles:
+  - Maintainer: riscv port
+  - WriteAfter
+  account: aswaterman
+- sn: Webb
+  cn: Stephen M. Webb
+  email:
+  - stephen.webb@bregmasoft.com
+  - smw@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: smw
+  inactive: true
+- sn: Wehle
+  cn: John Wehle
+  email:
+  - john@feith.com
+  - wehle@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: wehle
+  inactive: true
+- sn: Weigand
+  cn: Ulrich Weigand
+  email:
+  - uweigand@de.ibm.com
+  - uweigand@gcc.gnu.org
+  - ulrich.weigand@de.ibm.com
+  roles:
+  - Maintainer: s390 port
+  - Maintainer: reload
+  - WriteAfter
+  account: uweigand
+- sn: Weil
+  cn: Janus Weil
+  email:
+  - janus@gcc.gnu.org
+  roles:
+  - Reviewer: Fortran
+  - WriteAfter
+  account: janus
+  inactive: true
+- sn: Weimer
+  cn: Florian Weimer
+  email:
+  - fweimer@redhat.com
+  - fw@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fw
+- sn: Weinberg
+  cn: Zack Weinberg
+  email:
+  - zackw@panix.com
+  - zack@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: zack
+  inactive: true
+- sn: Westbrooks
+  cn: Alexander Westbrooks
+  email:
+  - alexanderw@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: alexanderw@gcc.gnu.org
+  account: alexanderw
+  inactive: true
+- sn: Wielaard
+  cn: Mark Wielaard
+  email:
+  - mark@gcc.gnu.org
+  - mark@klomp.org
+  roles:
+  - WriteAfter
+  account: mark
+- sn: Wienskoski
+  cn: Edmar Wienskoski
+  email:
+  - edmar@freescale.com
+  - edmarwjr@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: edmarwjr
+  inactive: true
+- sn: Wild
+  cn: Ollie Wild
+  email:
+  - aaw@google.com
+  - aaw@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: aaw
+  inactive: true
+- sn: Wildenhues
+  cn: Ralf Wildenhues
+  email:
+  - Ralf.Wildenhues@gmx.de
+  - rwild@gcc.gnu.org
+  roles:
+  - Maintainer: build machinery (*.in)
+  - WriteAfter
+  account: rwild
+  inactive: true
+- sn: Williams
+  cn: Kevin Williams
+  email:
+  - kevin.williams@inria.fr
+  - kwilliam@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kwilliam
+  inactive: true
+- sn: Wilson
+  cn: Jim Wilson
+  email:
+  - wilson@tuliptree.org
+  - jim.wilson.gcc@gmail.com
+  - wilson@gcc.gnu.org
+  roles:
+  - Global
+  - Maintainer: riscv port
+    email: jim.wilson.gcc@gmail.com
+  - Maintainer: debugging code
+  - Maintainer: scheduler (+ haifa)
+  - WriteAfter: jim.wilson.gcc@gmail.com
+  account: wilson
+  inactive: true
+- sn: Wirkus
+  cn: Przemyslaw Wirkus
+  email:
+  - przemyslaw.wirkus@arm.com
+  - wirkus@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: wirkus
+  inactive: true
+- sn: Wood
+  cn: Carlo Wood
+  email:
+  - carlo@alinoe.com
+  - carlo@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: carlo
+  inactive: true
+- sn: Woodruff
+  cn: Jackson Woodruff
+  email:
+  - jackson.woodruff@arm.com
+  - jcw@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jcw
+  inactive: true
+- sn: Wright
+  cn: Jonathan Wright
+  email:
+  - jonathan.wright@arm.com
+  - jonwri01@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jonwri01
+  inactive: true
+- sn: Wu
+  cn: Chung-Ju Wu
+  email:
+  - jasonwucj@gmail.com
+  - jasonwucj@gcc.gnu.org
+  roles:
+  - Maintainer: nds32 port
+  - WriteAfter
+  - DCO: jasonwucj@gmail.com
+  account: jasonwucj
+- sn: Wu
+  cn: Le-Chun Wu
+  email:
+  - lcwu@google.com
+  - lcwu@gcc.gnu.org
+  roles:
+  - Reviewer: Plugin
+  - WriteAfter
+  account: lcwu
+  inactive: true
+- sn: Xi
+  cn: Ruoyao Xi
+  email:
+  - xry111@xry111.site
+  - xry111@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: xry111
+  aliases:
+  - Xi Ruoyao
+- sn: Xing
+  cn: Mingjie Xing
+  email:
+  - mingjie.xing@gmail.com
+  - xmj@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: xmj
+  inactive: true
+- sn: Xu
+  cn: Chenghua Xu
+  email:
+  - xuchenghua@loongson.cn
+  - paul.hua.gm@gmail.com
+  - paulhua@gcc.gnu.org
+  roles:
+  - Maintainer: LoongArch port
+  - WriteAfter: paul.hua.gm@gmail.com
+  account: paulhua
+- sn: Xu
+  cn: Li Xu
+  email:
+  - xuli1@eswincomputing.com
+  - xuli@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: xuli
+  aliases:
+  - xuli
+- sn: Xue
+  cn: Feng Xue
+  email:
+  - fxue@os.amperecomputing.com
+  - fxue@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fxue
+- sn: Yang
+  cn: Canqun Yang
+  email:
+  - canqun@nudt.edu.cn
+  - canqun@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: canqun
+  inactive: true
+- sn: Yang
+  cn: Fei Yang
+  email:
+  - felix.yang@huawei.com
+  - fyang@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: fyang
+  inactive: true
+- sn: Yasskin
+  cn: Jeffrey Yasskin
+  email:
+  - jyasskin@google.com
+  - jyasskin@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jyasskin
+  inactive: true
+- sn: Ye
+  cn: Joey Ye
+  email:
+  - joey.ye@arm.com
+  - jye2@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jye2
+  inactive: true
+- sn: Yeung
+  cn: Kwok Cheung Yeung
+  email:
+  - kcyeung@baylibre.com
+  - kcy@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: kcy
+- sn: Yong
+  cn: Jonathan Yong
+  email:
+  - 10walls@gmail.com
+  - jyong@gcc.gnu.org
+  roles:
+  - Maintainer: cygwin, mingw-w64
+  - WriteAfter
+  account: jyong
+- sn: Yorsh
+  cn: Greta Yorsh
+  email:
+  - greta.yorsh@arm.com
+  - gretay@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: gretay
+  inactive: true
+- sn: Yukhin
+  cn: Kirill Yukhin
+  email:
+  - kirill.yukhin@gmail.com
+  - kyukhin@gcc.gnu.org
+  roles:
+  - Maintainer: i386 vector ISA extns
+  - WriteAfter
+  account: kyukhin
+  inactive: true
+- sn: Yuste
+  cn: David Yuste
+  email:
+  - david.yuste@gmail.com
+  - dyuste@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: dyuste
+  inactive: true
+- sn: Zadeck
+  cn: Kenneth Zadeck
+  email:
+  - zadeck@naturalbridge.com
+  - zadeck@gcc.gnu.org
+  roles:
+  - Reviewer: dataflow
+  - Reviewer: register allocation
+  - Reviewer: wide-int
+  - WriteAfter
+  account: zadeck
+  inactive: true
+- sn: Zanella
+  cn: Adhemerval Zanella
+  email:
+  - azanella@linux.vnet.ibm.com
+  - azanella@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: azanella
+  inactive: true
+- sn: Zeng
+  cn: Xiao Zeng
+  email:
+  - zengxiao@eswincomputing.com
+  - zeng@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: zeng
+- sn: Zhang
+  cn: Dennis Zhang
+  email:
+  - dennis.zhang@arm.com
+  - xczhang@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: xczhang
+  inactive: true
+- sn: Zhang
+  cn: Jie Zhang
+  email:
+  - jzhang918@gmail.com
+  - jiez@gcc.gnu.org
+  roles:
+  - Maintainer: bfin port
+  - WriteAfter
+  account: jiez
+  inactive: true
+- sn: Zhang
+  cn: Yufeng Zhang
+  email:
+  - yufeng.zhang@arm.com
+  - yufeng@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: yufeng
+  inactive: true
+- sn: Zhao
+  cn: Qing Zhao
+  email:
+  - qing.zhao69@gmail.com
+  - qinzhao@gcc.gnu.org
+  - qing.zhao@oracle.com
+  roles:
+  - WriteAfter
+  account: qinzhao
+- sn: Zhao
+  cn: Shujing Zhao
+  email:
+  - pearly.zhao@oracle.com
+  - pzhao@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: pzhao
+  inactive: true
+- sn: Zheng
+  cn: Pengxuan Zheng
+  email:
+  - pengxuan.zheng@oss.qualcomm.com
+  - pzheng@gcc.gnu.org
+  - quic_pzheng@quicinc.com
+  roles:
+  - WriteAfter
+  - DCO: pengxuan.zheng@oss.qualcomm.com
+  - DCO: quic_pzheng@quicinc.com
+  account: pzheng
+- sn: Zhong
+  cn: Juzhe Zhong
+  email:
+  - juzhe.zhong@rivai.ai
+  - juzhe@gcc.gnu.org
+  roles:
+  - Reviewer: riscv port
+  - WriteAfter
+  account: juzhe
+- sn: Zhuykov
+  cn: Roman Zhuykov
+  email:
+  - zhroma@ispras.ru
+  - zhroma@gcc.gnu.org
+  roles:
+  - Maintainer: modulo-scheduler
+  - WriteAfter
+  account: zhroma
+  inactive: true
+- sn: Ziegler
+  cn: Jon Ziegler
+  email:
+  - jonz@apple.com
+  - jonz@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: jonz
+  inactive: true
+- sn: Zinsly
+  cn: Raphael Zinsly
+  email:
+  - rzinsly@qti.qualcomm.com
+  - rzinsly@gcc.gnu.org
+  - rzinsly@ventanamicro.com
+  - raphael.zinsly@oss.qualcomm.com
+  roles:
+  - WriteAfter
+  - DCO: rzinsly@qti.qualcomm.com
+  - DCO: rzinsly@ventanamicro.com
+  account: rzinsly
+  aliases:
+  - Raphael Moreira Zinsly
+- sn: Zippel
+  cn: Roman Zippel
+  email:
+  - zippel@linux-m68k.org
+  - zippel@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: zippel
+  inactive: true
+- sn: Zissulescu
+  cn: Claudiu Zissulescu
+  email:
+  - claziss@gmail.com
+  - claziss@gcc.gnu.org
+  roles:
+  - Maintainer: arc port
+  - WriteAfter
+  account: claziss
+- sn: Zlomek
+  cn: Josef Zlomek
+  email:
+  - josef.zlomek@email.cz
+  - zlomek@gcc.gnu.org
+  roles:
+  - WriteAfter
+  account: zlomek
+  inactive: true
+subsystems:
+- name: '*gimpl*'
+  class: Subsystem
+  labels: []
+- name: '*vrp, ranger'
+  class: Subsystem
+  labels: []
+- name: Ada front end
+  class: Lang
+  labels: []
+- name: Algol 68
+  class: Lang
+  labels: []
+- name: Android sub-port
+  class: OS
+  labels: []
+- name: AutoFDO
+  class: Subsystem
+  labels: []
+- name: C front end
+  labels: []
+- name: C front end/ISO C99
+  class: Lang
+  labels: []
+- name: COBOL front end
+  class: Lang
+  labels: []
+- name: CTF, BTF
+  labels: []
+- name: CTF, BTF, bpf port
+  labels: []
+- name: D front end
+  class: Lang
+  labels: []
+- name: DJGPP
+  class: OS
+  labels: []
+- name: Fortran
+  labels: []
+- name: GNU/Hurd
+  class: OS
+  labels: []
+- name: Graphite
+  labels: []
+- name: LTO
+  labels: []
+- name: LTO plugin
+  labels: []
+- name: LoongArch port
+  class: CPU
+  labels: []
+- name: Modula-2 front end
+  class: Lang
+  labels: []
+- name: OpenACC
+  class: Subsystem
+  labels: []
+- name: OpenMP
+  class: Subsystem
+  labels: []
+- name: Plugin
+  labels: []
+- name: RTEMS Ports
+  class: OS
+  labels: []
+- name: RTL optimizers
+  class: Subsystem
+  labels: []
+- name: Rust
+  class: Lang
+  labels: []
+- name: libgrust
+  class: Subsystem
+  labels: []
+- name: VMS
+  class: OS
+  labels: []
+- name: VxWorks ports
+  class: OS
+  labels: []
+- name: aarch64 ldp/stp
+  class: CPU
+  labels: []
+- name: aarch64 port
+  class: CPU
+  labels: []
+- name: aix
+  class: OS
+  labels: []
+- name: alpha port
+  class: CPU
+  labels: []
+- name: amdgcn port
+  class: CPU
+  labels: []
+- name: arc port
+  class: CPU
+  labels: []
+- name: arm port
+  class: CPU
+  labels: []
+- name: arm port (MVE)
+  labels: []
+- name: avr port
+  class: CPU
+  labels: []
+- name: bfin port
+  class: CPU
+  labels: []
+- name: bpf port
+  class: CPU
+  labels: []
+- name: build machinery (*.in)
+  class: Subsystem
+  labels: []
+- name: c++
+  class: Lang
+  labels: []
+- name: c++ runtime libs
+  class: Subsystem
+  labels: []
+- name: c++ runtime libs special modes
+  class: Subsystem
+  labels: []
+- name: c-sky port
+  class: CPU
+  labels: []
+- name: c6x port
+  class: CPU
+  labels: []
+- name: caller-save.cc
+  class: Subsystem
+  labels: []
+- name: callgraph
+  class: Subsystem
+  labels: []
+- name: config.sub/config.guess
+  class: Subsystem
+  labels: []
+- name: cris port
+  class: CPU
+  labels: []
+- name: cygwin, mingw-w64
+  class: OS
+  labels: []
+- name: darwin port
+  class: OS
+  labels: []
+- name: dataflow
+  labels: []
+- name: debugging code
+  class: Subsystem
+  labels: []
+- name: diagnostic messages
+  class: Subsystem
+  labels: []
+- name: docs co-maintainer
+  class: Subsystem
+  labels: []
+- name: docstring relicensing
+  class: Subsystem
+  labels: []
+- name: driver
+  labels: []
+- name: dwarf debugging code
+  class: Subsystem
+  labels: []
+- name: fixincludes
+  class: Subsystem
+  labels: []
+- name: forge integration
+  class: Subsystem
+  labels: []
+- name: fp-bit
+  class: Subsystem
+  labels: []
+- name: fr30 port
+  class: CPU
+  labels: []
+- name: freebsd
+  class: OS
+  labels: []
+- name: frv port
+  class: CPU
+  labels: []
+- name: ft32 port
+  class: CPU
+  labels: []
+- name: gcov
+  class: Subsystem
+  labels: []
+- name: gcse.cc
+  class: Subsystem
+  labels: []
+- name: gdbhooks.py
+  class: Subsystem
+  labels: []
+- name: gen* on machine desc
+  class: Subsystem
+  labels: []
+- name: global opt framework
+  class: Subsystem
+  labels: []
+- name: go
+  class: Lang
+  labels: []
+- name: h8 port
+  class: CPU
+  labels: []
+- name: hppa port
+  class: CPU
+  labels: []
+- name: hpux
+  class: OS
+  labels: []
+- name: i18n
+  class: Subsystem
+  labels: []
+- name: i386 port
+  class: CPU
+  labels: []
+- name: i386 vector ISA extns
+  class: CPU
+  labels: []
+- name: instruction combiner
+  class: Subsystem
+  labels: []
+- name: iq2000 port
+  class: CPU
+  labels: []
+- name: jit
+  class: Subsystem
+  labels: []
+- name: jump.cc
+  class: Subsystem
+  labels: []
+- name: libbacktrace
+  class: Subsystem
+  labels: []
+- name: libcpp
+  class: Subsystem
+  labels: []
+- name: libga68
+  class: Subsystem
+  labels: []
+- name: libgcc
+  class: Subsystem
+  labels: []
+- name: libgo
+  class: Subsystem
+  labels: []
+- name: libgomp
+  class: Subsystem
+  labels: []
+- name: libgomp (OpenACC)
+  class: Subsystem
+  labels: []
+- name: libiberty
+  class: Subsystem
+  labels: []
+- name: libitm
+  class: Subsystem
+  labels: []
+- name: libobjc
+  class: Subsystem
+  labels: []
+- name: libphobos
+  class: Subsystem
+  labels: []
+- name: libquadmath
+  class: Subsystem
+  labels: []
+- name: libsanitizer, asan.cc
+  labels: []
+- name: libvtv
+  class: Subsystem
+  labels: []
+- name: line map
+  class: Subsystem
+  labels: []
+- name: lm32 port
+  class: CPU
+  labels: []
+- name: loop infrastructure
+  class: Subsystem
+  labels: []
+- name: loop ivopts
+  class: Subsystem
+  labels: []
+- name: loop optimizer
+  class: Subsystem
+  labels: []
+- name: m32r port
+  class: CPU
+  labels: []
+- name: m68k port
+  class: CPU
+  labels: []
+- name: m68k port (?)
+  class: CPU
+  labels: []
+- name: m68k-motorola-sysv port
+  class: CPU
+  labels: []
+- name: mcore port
+  class: CPU
+  labels: []
+- name: microblaze
+  class: CPU
+  labels: []
+- name: middle-end
+  class: Subsystem
+  labels: []
+- name: mips port
+  class: CPU
+  labels: []
+- name: mmix port
+  class: CPU
+  labels: []
+- name: mn10300 port
+  class: CPU
+  labels: []
+- name: modulo-scheduler
+  class: Subsystem
+  labels: []
+- name: moxie port
+  class: CPU
+  labels: []
+- name: msp430 port
+  class: CPU
+  labels: []
+- name: nds32 port
+  class: CPU
+  labels: []
+- name: netbsd
+  class: OS
+  labels: []
+- name: nvptx port
+  class: CPU
+  labels: []
+- name: objective-c/c++
+  class: Lang
+  labels: []
+- name: option handling
+  class: Subsystem
+  labels: []
+- name: or1k port
+  class: CPU
+  labels: []
+- name: pair fusion
+  class: Subsystem
+  labels: []
+- name: pdp11 port
+  class: CPU
+  labels: []
+- name: powerpcspe port
+  class: CPU
+  labels: []
+- name: predict.def
+  class: Subsystem
+  labels: []
+- name: profile feedback
+  class: Subsystem
+  labels: []
+- name: pru port
+  class: CPU
+  labels: []
+- name: register allocation
+  class: Subsystem
+  labels: []
+- name: reload
+  class: Subsystem
+  labels: []
+- name: reorg
+  class: Subsystem
+  labels: []
+- name: riscv port
+  class: CPU
+  labels: []
+- name: rs6000 vector extns
+  class: CPU
+  labels: []
+- name: rs6000/powerpc port
+  class: CPU
+  labels: []
+- name: rx port
+  class: CPU
+  labels: []
+- name: s390 port
+  class: CPU
+  labels: []
+- name: scev, data dependence
+  class: Subsystem
+  labels: []
+- name: scheduler (+ haifa)
+  class: Subsystem
+  labels: []
+- name: selective scheduling
+  labels: []
+- name: sh port
+  class: CPU
+  labels: []
+- name: sh-linux-gnu
+  class: OS
+  labels: []
+- name: soft-fp
+  class: Subsystem
+  labels: []
+- name: solaris
+  class: OS
+  labels: []
+- name: sparc port
+  class: CPU
+  labels: []
+- name: static analyzer
+  class: Subsystem
+  labels: []
+- name: testsuite
+  class: Subsystem
+  labels: []
+- name: tree browser/unparser
+  class: Subsystem
+  labels: []
+- name: tree-ssa
+  class: Subsystem
+  labels: []
+- name: v850 port
+  class: CPU
+  labels: []
+- name: vax port
+  class: CPU
+  labels: []
+- name: vectorizer (+ tree-if-conv)
+  class: Subsystem
+  labels: []
+- name: visium port
+  class: CPU
+  labels: []
+- name: web pages
+  class: Subsystem
+  labels: []
+- name: wide-int
+  labels: []
+- name: x86-64 port
+  class: CPU
+  labels: []
+- name: xstormy16 port
+  class: CPU
+  labels: []
+- name: xtensa port
+  class: CPU
+  labels: []

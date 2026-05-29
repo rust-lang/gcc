@@ -17,31 +17,44 @@
 load_lib "target-supports.exp"
 
 proc gcc_src_run_maintainers_verify_sh {} {
-    set script check-MAINTAINERS.py
+    set script gen-MAINTAINERS.py
 
     global srcdir
     set rootdir $srcdir/../..
     set contrib $rootdir/contrib
     set maintainers $rootdir/MAINTAINERS
+    set maintainers_yml $rootdir/MAINTAINERS.yml
 
     if { ![check_effective_target_recent_python3] } {
       unsupported "$script recent python3 is missing"
       return
     }
 
-    if { ![check_effective_target_python3_module "unidecode"] } {
-      unsupported "$script 'unidecode' python3 module is missing"
-      return
+    foreach pylib {"unidecode" "jsonschema" "yaml"} {
+	if { ![check_effective_target_python3_module $pylib] } {
+	    unsupported "$script '$pylib' python3 module is missing"
+	    return
+	}
     }
 
-
-    set result [remote_exec host $contrib/$script $maintainers]
+    # This will generate a new copy of the MAINTAINERS data from the
+    # YAML data after performing some sanity checks on the input.  There
+    # are two failure modes to consider - the YAML is invalid and the
+    # generated result does not match the expected MAINTAINERS file.
+    set result [remote_exec host $contrib/$script "-o MAINTAINERS.tst $maintainers_yml"]
     set status [lindex $result 0]
     if { $status == 0 } then {
-	pass "$script"
+	set result [remote_exec host "diff" "-u $maintainers MAINTAINERS.tst"]
+	set status [lindex $result 0]
+	if { $status == 0 } then {
+	    pass "$script"
+	} else {
+	    send_log "$result\n"
+	    fail "$script: $maintainers not updated correctly"
+	}
     } else {
 	send_log "$result\n"
-	fail "$script"
+	fail "$script: generate failed"
     }
 }
 
