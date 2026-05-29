@@ -95,3 +95,5 @@ if (TARGET_80387)
   ADD_TARGET_INFO ("target_feature", "x87");
 if (TARGET_MOVRS)
   ADD_TARGET_INFO ("target_feature", "movrs");
+if (TARGET_AVX512VP2INTERSECT)
+  ADD_TARGET_INFO ("target_feature", "avx512vp2intersect");
