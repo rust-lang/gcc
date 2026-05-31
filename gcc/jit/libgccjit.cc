@@ -4814,8 +4814,6 @@ gcc_jit_extended_asm_add_output_operand (gcc_jit_extended_asm *ext_asm,
   /* asm_symbolic_name can be NULL.  */
   RETURN_IF_FAIL (constraint, ctxt, loc, "NULL constraint");
   RETURN_IF_FAIL (dest, ctxt, loc, "NULL dest");
-  RETURN_IF_FAIL (!ext_asm->is_goto (), ctxt, loc,
-		  "cannot add output operand to asm goto");
   ext_asm->add_output_operand (asm_symbolic_name, constraint, dest);
 }
 
