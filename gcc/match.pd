@@ -8659,10 +8659,11 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
    (with { tree t = TREE_TYPE (@0), cpx = build_complex_type (t); }
     (out (imagpart (IFN_MUL_OVERFLOW:cpx @0 @1)) { build_zero_cst (t); })))))
 
-/* Similarly, for unsigned operands, (((type) A * B) >> prec) != 0 where type
-   is at least twice as wide as type of A and B, simplify to
-   __builtin_mul_overflow (A, B, <unused>).  */
+/* Similarly, for unsigned operands, (((type) A * B) >> prec) != 0
+   (or == 0) where type is at least twice as wide as type of A and B,
+   canonicalize to the following ((utype) A * B) > max (or <= max) pattern.  */
 (for cmp (eq ne)
+     out (le gt)
  (simplify
   (cmp (rshift (mult:s (convert@3 @0) (convert @1)) INTEGER_CST@2)
        integer_zerop)
@@ -8674,11 +8675,33 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
        && tree_fits_uhwi_p (@2)
        && tree_to_uhwi (@2) == TYPE_PRECISION (TREE_TYPE (@0))
        && types_match (@0, @1)
+       && TYPE_MAX_VALUE (TREE_TYPE (@0)))
+   (with { tree utype = unsigned_type_for (TREE_TYPE (@3)); }
+    (out (mult:utype (convert:utype @0) (convert:utype @1))
+	 { fold_convert (utype, TYPE_MAX_VALUE (TREE_TYPE (@0))); })))))
+
+/* For unsigned operands, ((type) A * B) > max where type is at least twice as wide
+   as the type of unsigned A and B.
+   Simplify it to __builtin_mul_overflow (A, B, <unused>). */
+(for cmp (gt le)
+     out (ne eq)
+ (simplify
+  (cmp (mult:s (convert@3 @0) (convert @1)) INTEGER_CST@2)
+  (if (INTEGRAL_TYPE_P (TREE_TYPE (@0))
+       && INTEGRAL_TYPE_P (TREE_TYPE (@3))
+       && TYPE_UNSIGNED (TREE_TYPE (@0))
+       && TYPE_UNSIGNED (TREE_TYPE (@3))
+       && (TYPE_PRECISION (TREE_TYPE (@3))
+	   >= 2 * TYPE_PRECISION (TREE_TYPE (@0)))
+       && TYPE_MAX_VALUE (TREE_TYPE (@0))
+       && (wi::to_widest (@2)
+	   == wi::to_widest (TYPE_MAX_VALUE (TREE_TYPE (@0))))
+       && types_match (@0, @1)
        && type_has_mode_precision_p (TREE_TYPE (@0))
        && (optab_handler (umulv4_optab, TYPE_MODE (TREE_TYPE (@0)))
 	   != CODE_FOR_nothing))
    (with { tree t = TREE_TYPE (@0), cpx = build_complex_type (t); }
-    (cmp (imagpart (IFN_MUL_OVERFLOW:cpx @0 @1)) { build_zero_cst (t); })))))
+    (out (imagpart (IFN_MUL_OVERFLOW:cpx @0 @1)) { build_zero_cst (t); })))))
 
 /* Demote operands of IFN_{ADD,SUB,MUL}_OVERFLOW.  */
 (for ovf (IFN_ADD_OVERFLOW IFN_SUB_OVERFLOW IFN_MUL_OVERFLOW)
