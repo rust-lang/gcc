@@ -41,8 +41,13 @@
 # include <ext/concurrence.h> // __gnu_cxx::__mutex
 #endif
 
-#if defined(_GLIBCXX_HAVE_READLINK) && defined(_GLIBCXX_HAVE_UNISTD_H)
-# include <unistd.h>  // readlink
+#ifdef _GLIBCXX_HAVE_UNISTD_H
+# include <unistd.h> // _XOPEN_VERSION
+#endif
+#if defined _GLIBCXX_USE_REALPATH && _XOPEN_VERSION >= 700
+# include <stdlib.h>   // malloc, free, realpath
+#else
+# include <filesystem> // filesystem::canonicalize
 #endif
 
 #ifdef _AIX
@@ -2098,58 +2103,33 @@ constinit tzdb_list::_Node::NumLeapSeconds tzdb_list::_Node::num_leap_seconds;
     // to have a way to force a re-read.
 
 #if !defined(_AIX) && !defined(_GLIBCXX_HAVE_WINDOWS_H)
-#if defined(_GLIBCXX_HAVE_READLINK) && defined(_GLIBCXX_HAVE_UNISTD_H)
-    string_view str;
-    char buf[128]; // strlen("../usr/share/zoneinfo/...") is usually < 55
-    string dynbuf;
     // /etc/localtime should be a symlink that ends with a zone name,
     // e.g. /etc/localtime -> /usr/share/zoneinfo/Europe/London
     // https://www.freedesktop.org/software/systemd/man/latest/localtime.html
     // This should work on GNU/Linux, macOS, NetBSD, and OpenBSD.
-    // Some FreeBSD systems also use a symlink for /etc/localtime.
-    // Use readlink directly to avoid std::filesystem overhead.
-    if (auto n = ::readlink("/etc/localtime", buf, sizeof(buf)); n > 0)
+    // Some FreeBSD systems also use a symlink for /etc/localtime (since 15.0).
+
+    // N.B. we do not support dangling symlinks here. If that becomes necessary
+    // then after realpath fails we could fallback to using
+    // filesystem::weakly_canonical(filesystem::read_symlink("etc/localtime")).
+
+    string_view str;
+#if defined _GLIBCXX_USE_REALPATH && _XOPEN_VERSION >= 700
+    unique_ptr<char[], void(*)(void*)> cbuf{ nullptr, &::free };
+    // Use realpath directly to avoid std::filesystem overhead.
+    // We use realpath not readlink to resolve multiple levels of symlinks.
+    if (char* p = ::realpath("/etc/localtime", nullptr))
       {
-	if (static_cast<size_t>(n) < sizeof(buf))
-	  str = string_view(buf, n);
-	else [[unlikely]]
-	  {
-	    // We read the symlink but it didn't fit in buf[], use dynbuf.
-	    do
-	      {
-		n *= 2;
-		dynbuf.__resize_and_overwrite(n, [](char* p, size_t len) {
-		  auto n2 = ::readlink("/etc/localtime", p, len);
-		  if (n2 == -1) // symlink removed or replaced by file?!
-		    __throw_runtime_error("tzdb: error reading /etc/localtime");
-		  const size_t r = n2;
-		  return r < len ? r : 0;
-		});
-	      }
-	    while (dynbuf.empty());
-	    str = dynbuf;
-	  }
+	cbuf.reset(p);
+	str = p;
       }
+#else
+    string sbuf = std::filesystem::canonical("/etc/localtime").string();
+    str = sbuf;
+#endif
 
-    if (!str.empty())
+    if (!str.empty() && str != "/etc/localtime")
       {
-	// Remove any redundant slashes so we can match zone names.
-	// e.g. /usr/share/zoneinfo/Europe//London is a valid symlink,
-	// but won't match against "Europe/London".
-	if (auto pos = str.rfind("//"); pos != str.npos) [[unlikely]]
-	  {
-	    if (str.data() != dynbuf.data())
-	      dynbuf = str;
-	    string::size_type spos = pos;
-	    do
-	      {
-		dynbuf.erase(spos, 1);
-		spos = dynbuf.rfind("//", spos);
-	      }
-	    while (spos != dynbuf.npos);
-	    str = dynbuf;
-	  }
-
 	// Check the trailing components of the path against known zone names.
 	// Valid IANA times zones can have one, two, or three parts, e.g.
 	// "UTC", "Europe/London", and "America/Indiana/Indianapolis".
@@ -2175,10 +2155,10 @@ constinit tzdb_list::_Node::NumLeapSeconds tzdb_list::_Node::num_leap_seconds;
 				     str.substr(pos + 1)))
 	  return tz;
       }
-#endif
+
     // Otherwise, look for a file naming the time zone.
     string_view files[] {
-      "/etc/timezone",    // Debian derivates
+      "/etc/timezone",    // Debian derivates, non-systemd Gentoo
       "/var/db/zoneinfo", // FreeBSD
     };
     for (auto f : files)
