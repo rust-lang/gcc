@@ -7601,7 +7601,15 @@ aarch64_function_arg_alignment (machine_mode mode, const_tree type,
 	  *abi_break_gcc_14 = TYPE_ALIGN (type);
 	  type = TYPE_MAIN_VARIANT (TREE_TYPE (type));
 	}
-      gcc_assert (!TYPE_USER_ALIGN (type));
+      /* Ignore any user-specified alignment: the AAPCS64 uses the
+	 type's natural alignment for scalars and vectors.  We normally
+	 strip user alignment by taking the TYPE_MAIN_VARIANT above, but
+	 an attribute that affects type identity (such as may_alias) can
+	 make a type its own main variant while still recording the user
+	 alignment, so handle that case explicitly here (PR124146).  For
+	 a scalar or vector the natural alignment is that of its mode.  */
+      if (TYPE_USER_ALIGN (type))
+	return GET_MODE_ALIGNMENT (mode);
       return TYPE_ALIGN (type);
     }
 
