@@ -801,13 +801,31 @@ ssa_lazy_cache::clear ()
 
 // --------------------------------------------------------------------------
 
+// A cache timestamp has two components.
+//
+// STORED and CALC are maintained separately.  STORED is updated only when
+// the cached value actually changes, while CALC is updated every time the
+// value is recalculated.
+//
+// This allows stale values to be recalculated without forcing dependent
+// values to be recalculated as well.  If a recalculation produces the same
+// value, only CALC changes and the STORED timestamp remains unchanged,
+// indicating that the observable value has not changed.
 
-// This class will manage the timestamps for each ssa_name.
-// When a value is calculated, the timestamp is set to the current time.
-// Current time is then incremented.  Any dependencies will already have
-// been calculated, and will thus have older timestamps.
-// If one of those values is ever calculated again, it will get a newer
-// timestamp, and the "current_p" check will fail.
+struct time_stamp
+{
+  unsigned stored;	// Timestamp of last time value was SET.
+  unsigned calc;	// Timestamp when the value was calcuclated last.
+};
+
+// Manage dependency timestamps for SSA names.
+//
+// Each SSA name records when its value last changed (stored) and when it
+// was last recalculated (calc).  Dependencies are current if their stored
+// timestamps are no newer than the dependent value.  Recalculating a value
+// without changing it updates only the calc timestamp, avoiding unnecessary
+// invalidation of dependent values.
+// always_current is managed by setting the calcualted timestamp to 0.
 
 class temporal_cache
 {
@@ -815,13 +833,15 @@ public:
   temporal_cache ();
   ~temporal_cache ();
   bool current_p (tree name, tree dep1, tree dep2) const;
-  void set_timestamp (tree name);
-  void set_always_current (tree name, bool value);
+  void set_timestamp_stored (tree name);
+  void set_timestamp_calc (tree name);
+  void set_always_current (tree name);
   bool always_current_p (tree name) const;
 private:
-  int temporal_value (unsigned ssa) const;
-  int m_current_time;
-  vec <int> m_timestamp;
+  unsigned temporal_value_stored (unsigned ssa) const;
+  unsigned temporal_value_calc (unsigned ssa) const;
+  unsigned m_current_time;
+  vec <struct time_stamp> m_timestamp;
 };
 
 inline
@@ -829,7 +849,7 @@ temporal_cache::temporal_cache ()
 {
   m_current_time = 1;
   m_timestamp.create (0);
-  m_timestamp.safe_grow_cleared (num_ssa_names);
+  m_timestamp.safe_grow_cleared (num_ssa_names + 1);
 }
 
 inline
@@ -838,17 +858,31 @@ temporal_cache::~temporal_cache ()
   m_timestamp.release ();
 }
 
-// Return the timestamp value for SSA, or 0 if there isn't one.
+// Return the timestamp value for SSA when it was last stored to
+// or 0 if there isn't one.
 
-inline int
-temporal_cache::temporal_value (unsigned ssa) const
+inline unsigned
+temporal_cache::temporal_value_stored (unsigned ssa) const
 {
   if (ssa >= m_timestamp.length ())
     return 0;
-  return abs (m_timestamp[ssa]);
+  return m_timestamp[ssa].stored;
 }
 
-// Return TRUE if the timestamp for NAME is newer than any of its dependents.
+// Return the timestamp value for SSA when it was last calculated
+// or 0 if there isn't one.
+
+inline unsigned
+temporal_cache::temporal_value_calc (unsigned ssa) const
+{
+  if (ssa >= m_timestamp.length ())
+    return 0;
+  return m_timestamp[ssa].calc;
+}
+
+// Return TRUE if the timestamp for when NAME was calculated is newer
+// than the last time any of its dependents were stored.  This indicates
+// it dos not need to be calculated again.
 // Up to 2 dependencies can be checked.
 
 bool
@@ -858,41 +892,52 @@ temporal_cache::current_p (tree name, tree dep1, tree dep2) const
     return true;
 
   // Any non-registered dependencies will have a value of 0 and thus be older.
-  // Return true if time is newer than either dependent.
-  int ts = temporal_value (SSA_NAME_VERSION (name));
-  if (dep1 && ts < temporal_value (SSA_NAME_VERSION (dep1)))
+  // Return true if the last time this was calculated is newer than either
+  // dependent value.
+  unsigned ts = temporal_value_calc (SSA_NAME_VERSION (name));
+  if (dep1 && ts < temporal_value_stored (SSA_NAME_VERSION (dep1)))
     return false;
-  if (dep2 && ts < temporal_value (SSA_NAME_VERSION (dep2)))
+  if (dep2 && ts < temporal_value_stored (SSA_NAME_VERSION (dep2)))
     return false;
 
   return true;
 }
 
-// This increments the global timer and sets the timestamp for NAME.
+// This increments the global timer and sets both timestamps for NAME.
 
 inline void
-temporal_cache::set_timestamp (tree name)
+temporal_cache::set_timestamp_stored (tree name)
 {
   unsigned v = SSA_NAME_VERSION (name);
   if (v >= m_timestamp.length ())
     m_timestamp.safe_grow_cleared (num_ssa_names + 20);
-  m_timestamp[v] = ++m_current_time;
+  m_timestamp[v].stored = ++m_current_time;
+  m_timestamp[v].calc = m_current_time;
 }
 
-// Set the timestamp to 0, marking it as "always up to date".
+// This increments the global timer and sets the calculated timestamp for NAME.
 
 inline void
-temporal_cache::set_always_current (tree name, bool value)
+temporal_cache::set_timestamp_calc (tree name)
 {
   unsigned v = SSA_NAME_VERSION (name);
   if (v >= m_timestamp.length ())
     m_timestamp.safe_grow_cleared (num_ssa_names + 20);
+  m_timestamp[v].calc = ++m_current_time;
+}
 
-  int ts = abs (m_timestamp[v]);
-  // If this does not have a timestamp, create one.
-  if (ts == 0)
-    ts = ++m_current_time;
-  m_timestamp[v] = value ? -ts : ts;
+// Set the calculated timestamp to 0, marking it as "always up to date".
+
+inline void
+temporal_cache::set_always_current (tree name)
+{
+  unsigned v = SSA_NAME_VERSION (name);
+  if (v >= m_timestamp.length ())
+    m_timestamp.safe_grow_cleared (num_ssa_names + 20);
+  // If stored timestamp hasn't been set, set it now.
+  if (m_timestamp[v].stored == 0)
+    m_timestamp[v].stored = ++m_current_time;
+  m_timestamp[v].calc = 0;
 }
 
 // Return true if NAME is always current.
@@ -903,7 +948,7 @@ temporal_cache::always_current_p (tree name) const
   unsigned v = SSA_NAME_VERSION (name);
   if (v >= m_timestamp.length ())
     return false;
-  return m_timestamp[v] <= 0;
+  return m_timestamp[v].calc == 0;
 }
 
 // --------------------------------------------------------------------------
@@ -1124,7 +1169,7 @@ ranger_cache::get_global_range (vrange &r, tree name, bool &current_p)
 
   // If the existing value was not current, mark it as always current.
   if (!current_p)
-    m_temporal->set_always_current (name, true);
+    m_temporal->set_always_current (name);
   return had_global;
 }
 
@@ -1134,7 +1179,7 @@ ranger_cache::get_global_range (vrange &r, tree name, bool &current_p)
 void
 ranger_cache::update_consumers (tree name)
 {
-  m_temporal->set_timestamp (name);
+  m_temporal->set_timestamp_stored (name);
 }
 
 //  Set the global range of NAME to R and give it a timestamp.
@@ -1142,14 +1187,10 @@ ranger_cache::update_consumers (tree name)
 void
 ranger_cache::set_global_range (tree name, const vrange &r, bool changed)
 {
-  // Setting a range always clears the always_current flag.
-  m_temporal->set_always_current (name, false);
   if (!changed)
     {
-      // If there are dependencies, make sure this is not out of date.
-      if (!m_temporal->current_p (name, gori_ssa ()->depend1 (name),
-				 gori_ssa ()->depend2 (name)))
-	m_temporal->set_timestamp (name);
+      // If the value did not change, simply update the calculated timestamp.
+      m_temporal->set_timestamp_calc (name);
       return;
     }
   if (m_globals.set_range (name, r))
@@ -1177,7 +1218,9 @@ ranger_cache::set_global_range (tree name, const vrange &r, bool changed)
 
   if (r.singleton_p ())
     gori_ssa ()->set_range_invariant (name);
-  m_temporal->set_timestamp (name);
+
+  // update the stored and calucalted timestamp now.
+  m_temporal->set_timestamp_stored (name);
 }
 
 //  Provide lookup for the gori-computes class to access the best known range
