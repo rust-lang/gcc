@@ -697,8 +697,6 @@
    (set_attr "exec" "none")
    (set_attr "laneselect" "write")])
 
-; FIXME: 64bit operations really should be splitters, but I am not sure how
-; to represent vertical subregs.
 (define_insn "*vec_set<mode>"
   [(set (match_operand:V_2REG 0 "register_operand"		   "= v")
 	(vec_merge:V_2REG
@@ -711,6 +709,21 @@
   "v_writelane_b32 %L0, %L1, %2\;v_writelane_b32 %H0, %H1, %2"
   [(set_attr "type" "vmult")
    (set_attr "length" "16")
+   (set_attr "exec" "none")
+   (set_attr "laneselect" "write")])
+
+(define_insn "*vec_set<mode>"
+  [(set (match_operand:V_4REG 0 "register_operand"		   "= v")
+	(vec_merge:V_4REG
+	  (vec_duplicate:V_4REG
+	    (match_operand:<SCALAR_MODE> 1 "register_operand"	   " Sv"))
+	  (match_operand:V_4REG 3 "gcn_register_or_unspec_operand" " U0")
+	  (ashift (const_int 1)
+		  (match_operand:SI 2 "gcn_alu_operand"		   "SvB"))))]
+  ""
+  "v_writelane_b32 %L0, %L1, %2\;v_writelane_b32 %H0, %H1, %2\;v_writelane_b32 %J0, %J1, %2\;v_writelane_b32 %K0, %K1, %2"
+  [(set_attr "type" "vmult")
+   (set_attr "length" "32")
    (set_attr "exec" "none")
    (set_attr "laneselect" "write")])
 
