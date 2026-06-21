@@ -182,7 +182,7 @@ Rust                    Philip Herron           <herron.philip@googlemail.com>
 *gimpl*                 Jason Merrill           <jason@redhat.com>
 *vrp, ranger            Aldy Hernandez          <aldy@quesejoda.com>
 *vrp, ranger            Andrew MacLeod          <amacleod@redhat.com>
-AutoFDO                 Eugene Rozenfeld        <erozen@microsoft.com>
+AutoFDO                 Eugene Rozenfeld        <erozenfeld.pro@gmail.com>
 build machinery (*.in)  Paolo Bonzini           <bonzini@gnu.org>
 build machinery (*.in)  Nathanael Nerode        <neroden@gcc.gnu.org>
 build machinery (*.in)  Alexandre Oliva         <aoliva@gcc.gnu.org>
@@ -792,7 +792,7 @@ Craig Rodrigues                 rodrigc         <rodrigc@gcc.gnu.org>
 Erven Rohou                     erven           <erven.rohou@inria.fr>
 Ira Rosen                       irar            <irar@il.ibm.com>
 Yvan Roux                       yroux           <yvan.roux@linaro.org>
-Eugene Rozenfeld                erozen          <erozen@microsoft.com>
+Eugene Rozenfeld                erozen          <erozenfeld.pro@gmail.com>
 Maciej W. Rozycki               macro           <macro@orcam.me.uk>
 Douglas Rupp                    rupp            <douglas.b.rupp@gmail.com>
 Silvius Rus                     rus             <rus@google.com>
