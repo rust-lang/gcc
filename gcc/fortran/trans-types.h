@@ -52,6 +52,9 @@ extern GTY(()) tree logical_false_node;
    It must be the same as the corresponding definition in gfortran.h.  */
 extern GTY(()) tree gfc_charlen_type_node;
 
+/* An integral type with bounds [0, GFC_MAX_DIMENSIONS] suitable to hold an
+   array rank, or an array dimension index.  */
+extern GTY(()) tree gfc_array_dim_rank_type;
 
 /* The following flags give us information on the correspondence of
    real (and complex) kinds with C floating-point types long double

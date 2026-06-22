@@ -3974,7 +3974,8 @@ gfc_trans_select_rank_cases (gfc_code * code)
   /* Calculate the switch expression.  */
   gfc_init_se (&se, NULL);
   gfc_conv_expr_descriptor (&se, code->expr1);
-  rank = gfc_conv_descriptor_rank (se.expr);
+  rank = fold_convert_loc (input_location, signed_char_type_node,
+			   gfc_conv_descriptor_rank (se.expr));
   rank = gfc_evaluate_now (rank, &block);
   symbol_attribute attr = gfc_expr_attr (code->expr1);
   if (!attr.pointer && !attr.allocatable)
@@ -3983,16 +3984,16 @@ gfc_trans_select_rank_cases (gfc_code * code)
 	 rank = (rank == 0 || ubound[rank-1] != -1) ? rank : -1.  */
       cond = fold_build2_loc (input_location, EQ_EXPR, logical_type_node,
 			      rank, build_int_cst (TREE_TYPE (rank), 0));
-      tmp = fold_build2_loc (input_location, MINUS_EXPR, gfc_array_index_type,
-			     fold_convert (gfc_array_index_type, rank),
-			     gfc_index_one_node);
+      tmp = fold_build2_loc (input_location, MINUS_EXPR, signed_char_type_node,
+			     rank, build_one_cst (signed_char_type_node));
       tmp = gfc_conv_descriptor_ubound_get (se.expr, tmp);
       tmp = fold_build2_loc (input_location, NE_EXPR, logical_type_node,
 			     tmp, build_int_cst (TREE_TYPE (tmp), -1));
       cond = fold_build2_loc (input_location, TRUTH_ORIF_EXPR,
 			      logical_type_node, cond, tmp);
-      tmp = fold_build3_loc (input_location, COND_EXPR, TREE_TYPE (rank),
-			     cond, rank, build_int_cst (TREE_TYPE (rank), -1));
+      tmp = fold_build3_loc (input_location, COND_EXPR, signed_char_type_node,
+			     cond, rank,
+			     build_minus_one_cst (signed_char_type_node));
       rank = gfc_evaluate_now (tmp, &block);
     }
   TREE_USED (code->exit_label) = 0;

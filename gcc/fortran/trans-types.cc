@@ -55,6 +55,7 @@ along with GCC; see the file COPYING3.  If not see
 /* array of structs so we don't have to worry about xmalloc or free */
 CInteropKind_t c_interop_kinds_table[ISOCBINDING_NUMBER];
 
+tree gfc_array_dim_rank_type;
 tree gfc_array_index_type;
 tree gfc_array_range_type;
 tree gfc_character1_type_node;
@@ -164,7 +165,7 @@ tree get_dtype_type_node (void)
       suppress_warning (field);
       field = gfc_add_field_to_struct_1 (dtype_node,
 					 get_identifier ("rank"),
-					 signed_char_type_node, &dtype_chain);
+					 gfc_array_dim_rank_type, &dtype_chain);
       suppress_warning (field);
       field = gfc_add_field_to_struct_1 (dtype_node,
 					 get_identifier ("type"),
@@ -1225,6 +1226,12 @@ gfc_init_types (void)
   /* Character lengths are of type size_t, except signed.  */
   gfc_charlen_int_kind = get_int_kind_from_node (size_type_node);
   gfc_charlen_type_node = gfc_get_int_type (gfc_charlen_int_kind);
+
+  gfc_array_dim_rank_type
+		= build_range_type (signed_char_type_node,
+				    build_zero_cst (signed_char_type_node),
+				    build_int_cst (signed_char_type_node,
+						   GFC_MAX_DIMENSIONS));
 
   /* Fortran kind number of size_type_node (size_t). This is used for
      the _size member in vtables.  */

@@ -159,7 +159,7 @@ gfc_conv_descriptor_rank (tree desc)
   dtype = gfc_conv_descriptor_dtype (desc);
   tmp = gfc_advance_chain (TYPE_FIELDS (TREE_TYPE (dtype)), GFC_DTYPE_RANK);
   gcc_assert (tmp != NULL_TREE
-	      && TREE_TYPE (tmp) == signed_char_type_node);
+	      && TREE_TYPE (tmp) == gfc_array_dim_rank_type);
   return fold_build3_loc (input_location, COMPONENT_REF, TREE_TYPE (tmp),
 			  dtype, tmp, NULL_TREE);
 }

@@ -65,5 +65,6 @@ tree gfc_build_const (tree, tree);
 /* Integer constants 0..GFC_MAX_DIMENSIONS.  */
 extern GTY(()) tree gfc_rank_cst[GFC_MAX_DIMENSIONS + 1];
 
-#define gfc_index_zero_node gfc_rank_cst[0]
-#define gfc_index_one_node gfc_rank_cst[1]
+/* Integer constants 0 and 1, of array index type.  */
+extern GTY(()) tree gfc_index_zero_node;
+extern GTY(()) tree gfc_index_one_node;

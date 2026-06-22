@@ -3405,10 +3405,10 @@ gfc_conv_variable (gfc_se * se, gfc_expr * expr)
       tree dim, lower, upper, cond;
       char *msg;
 
-      dim = fold_convert (signed_char_type_node,
+      dim = fold_convert (gfc_array_dim_rank_type,
 			  gfc_conv_descriptor_rank (se->expr));
-      dim = fold_build2_loc (input_location, MINUS_EXPR, signed_char_type_node,
-			     dim, build_int_cst (signed_char_type_node, 1));
+      dim = fold_build2_loc (input_location, MINUS_EXPR,
+			     gfc_array_dim_rank_type, dim, gfc_rank_cst[1]);
       lower = gfc_conv_descriptor_lbound_get (se->expr, dim);
       upper = gfc_conv_descriptor_ubound_get (se->expr, dim);
 
@@ -6277,11 +6277,12 @@ gfc_conv_gfc_desc_to_cfi_desc (gfc_se *parmse, gfc_expr *e, gfc_symbol *fsym)
   gfc_add_modify (&block, tmp,
 		  build_int_cst (TREE_TYPE (tmp), CFI_VERSION));
   if (e->rank < 0)
-    rank = fold_convert (signed_char_type_node, gfc_conv_descriptor_rank (gfc));
+    rank = gfc_conv_descriptor_rank (gfc);
   else
-    rank = build_int_cst (signed_char_type_node, e->rank);
+    rank = gfc_rank_cst[e->rank];
   tmp = gfc_get_cfi_desc_rank (cfi);
-  gfc_add_modify (&block, tmp, rank);
+  gfc_add_modify (&block, tmp,
+		  fold_convert (TREE_TYPE (tmp), rank));
   int itype = CFI_type_other;
   if (e->ts.f90_type == BT_VOID)
     itype = (e->ts.u.derived->intmod_sym_id == ISOCBINDING_FUNPTR
@@ -6491,7 +6492,7 @@ gfc_conv_gfc_desc_to_cfi_desc (gfc_se *parmse, gfc_expr *e, gfc_symbol *fsym)
   if (e->rank != 0)
     {
       /* Loop: for (i = 0; i < rank; ++i).  */
-      tree idx = gfc_create_var (TREE_TYPE (rank), "idx");
+      tree idx = gfc_create_var (gfc_array_dim_rank_type, "idx");
       /* Loop body.  */
       stmtblock_t loop_body;
       gfc_init_block (&loop_body);
@@ -6516,9 +6517,8 @@ gfc_conv_gfc_desc_to_cfi_desc (gfc_se *parmse, gfc_expr *e, gfc_symbol *fsym)
       gfc_add_modify (&loop_body, gfc_get_cfi_dim_sm (cfi, idx), tmp);
 
       /* Generate loop.  */
-      gfc_simple_for_loop (&block2, idx, build_int_cst (TREE_TYPE (idx), 0),
-			   rank, LT_EXPR, build_int_cst (TREE_TYPE (idx), 1),
-			   gfc_finish_block (&loop_body));
+      gfc_simple_for_loop (&block2, idx, gfc_rank_cst[0], rank, LT_EXPR,
+			   gfc_rank_cst[1], gfc_finish_block (&loop_body));
 
       if (e->expr_type == EXPR_VARIABLE
 	  && e->ref
@@ -6600,7 +6600,7 @@ done:
       /* Calculate offset + set lbound, ubound and stride.  */
       gfc_conv_descriptor_offset_set (&block2, gfc, gfc_index_zero_node);
       /* Loop: for (i = 0; i < rank; ++i).  */
-      tree idx = gfc_create_var (TREE_TYPE (rank), "idx");
+      tree idx = gfc_create_var (gfc_array_dim_rank_type, "idx");
       /* Loop body.  */
       stmtblock_t loop_body;
       gfc_init_block (&loop_body);
@@ -6632,9 +6632,8 @@ done:
 			     gfc_conv_descriptor_offset_get (gfc), tmp);
       gfc_conv_descriptor_offset_set (&loop_body, gfc, tmp);
       /* Generate loop.  */
-      gfc_simple_for_loop (&block2, idx, build_int_cst (TREE_TYPE (idx), 0),
-			   rank, LT_EXPR, build_int_cst (TREE_TYPE (idx), 1),
-			   gfc_finish_block (&loop_body));
+      gfc_simple_for_loop (&block2, idx, gfc_rank_cst[0], rank, LT_EXPR,
+			   gfc_rank_cst[1], gfc_finish_block (&loop_body));
     }
 
   if (e->ts.type == BT_CHARACTER && !e->ts.u.cl->length)
@@ -10472,7 +10471,7 @@ gfc_trans_structure_assign (tree dest, gfc_expr * expr, bool init, bool coarray)
 	      size = build_zero_cst (size_type_node);
 	      desc = field;
 	      gfc_add_modify (&block, gfc_conv_descriptor_rank (desc),
-			      build_int_cst (signed_char_type_node, rank));
+			      gfc_rank_cst[rank]);
 	    }
 	  else
 	    {

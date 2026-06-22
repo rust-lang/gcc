@@ -2123,17 +2123,16 @@ gfc_omp_get_array_size (location_t loc, tree desc, gimple_seq *seq)
   tree extent = build_decl (loc, VAR_DECL, create_tmp_var_name ("extent"),
 			    gfc_array_index_type);
   tree idx = build_decl (loc, VAR_DECL, create_tmp_var_name ("idx"),
-			 signed_char_type_node);
+			 gfc_array_dim_rank_type);
 
-  tree begin = build_zero_cst (signed_char_type_node);
+  tree begin = gfc_rank_cst[0];
   tree end;
   if (GFC_TYPE_ARRAY_AKIND (TREE_TYPE (desc)) == GFC_ARRAY_ASSUMED_SHAPE_CONT
       || GFC_TYPE_ARRAY_AKIND (TREE_TYPE (desc)) == GFC_ARRAY_ASSUMED_SHAPE)
     end = gfc_conv_descriptor_rank (desc);
   else
-    end = build_int_cst (signed_char_type_node,
-			 GFC_TYPE_ARRAY_RANK (TREE_TYPE (desc)));
-  tree step = build_int_cst (signed_char_type_node, 1);
+    end = gfc_rank_cst[GFC_TYPE_ARRAY_RANK (TREE_TYPE (desc))];
+  tree step = gfc_rank_cst[1];
 
   /* size = 0
      for (idx = 0; idx < rank; idx++)

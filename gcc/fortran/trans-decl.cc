@@ -7603,14 +7603,16 @@ gfc_conv_cfi_to_gfc (stmtblock_t *init, stmtblock_t *finally,
   if (sym->as->rank < 0)
     {
       /* Set gfc->dtype.rank, if assumed-rank.  */
-      rank = gfc_get_cfi_desc_rank (cfi);
+      rank = fold_convert_loc (input_location, gfc_array_dim_rank_type,
+			       gfc_get_cfi_desc_rank (cfi));
       gfc_add_modify (&block, gfc_conv_descriptor_rank (gfc_desc), rank);
     }
   else if (!GFC_DESCRIPTOR_TYPE_P (TREE_TYPE (gfc_desc)))
     /* In that case, the CFI rank and the declared rank can differ.  */
-    rank = gfc_get_cfi_desc_rank (cfi);
+    rank = fold_convert_loc (input_location, gfc_array_dim_rank_type,
+			     gfc_get_cfi_desc_rank (cfi));
   else
-    rank = build_int_cst (signed_char_type_node, sym->as->rank);
+    rank = gfc_rank_cst[sym->as->rank];
 
   /* With bind(C), the standard requires that both Fortran callers and callees
      handle noncontiguous arrays passed to an dummy with 'contiguous' attribute
@@ -7657,7 +7659,7 @@ gfc_conv_cfi_to_gfc (stmtblock_t *init, stmtblock_t *finally,
 
       /* for (i = 1; i < rank; ++i)
 	   cond &&= dim[i].sm != (dv->dim[i - 1].sm * dv->dim[i - 1].extent) */
-      idx = gfc_create_var (TREE_TYPE (rank), "idx");
+      idx = gfc_create_var (gfc_array_dim_rank_type, "idx");
       stmtblock_t loop_body;
       gfc_init_block (&loop_body);
       tmp = fold_build2_loc (input_location, MINUS_EXPR, TREE_TYPE (idx),
@@ -7707,7 +7709,7 @@ gfc_conv_cfi_to_gfc (stmtblock_t *init, stmtblock_t *finally,
 	   {
 	     shift = 0;
 	     tmpidx = idx
-	     for (dim = 0; dim < rank; ++dim)
+	     for (d = 0; d < rank; ++d)
 		{
 		  shift += (tmpidx % extent[d]) * sm[d]
 		  tmpidx = tmpidx / extend[d]
@@ -7722,7 +7724,7 @@ gfc_conv_cfi_to_gfc (stmtblock_t *init, stmtblock_t *finally,
       gfc_add_modify (&loop_body, tmpidx, idx);
       stmtblock_t inner_loop;
       gfc_init_block (&inner_loop);
-      tree dim = gfc_create_var (TREE_TYPE (rank), "dim");
+      tree dim = gfc_create_var (gfc_array_dim_rank_type, "dim");
       /* shift += (tmpidx % extent[d]) * sm[d] */
       tmp = fold_build2_loc (input_location, TRUNC_MOD_EXPR,
 			     size_type_node, tmpidx,
@@ -7740,9 +7742,8 @@ gfc_conv_cfi_to_gfc (stmtblock_t *init, stmtblock_t *finally,
       gfc_add_modify (&inner_loop, tmpidx,
 		      fold_build2_loc (input_location, TRUNC_DIV_EXPR,
 				       size_type_node, tmpidx, tmp));
-      gfc_simple_for_loop (&loop_body, dim, build_zero_cst (TREE_TYPE (rank)),
-			   rank, LT_EXPR, build_int_cst (TREE_TYPE (dim), 1),
-			   gfc_finish_block (&inner_loop));
+      gfc_simple_for_loop (&loop_body, dim, gfc_rank_cst[0], rank, LT_EXPR,
+			   gfc_rank_cst[1], gfc_finish_block (&inner_loop));
       /* Assign.  */
       tmp = fold_convert (pchar_type_node, gfc_get_cfi_desc_base_addr (cfi));
       tmp = fold_build2 (POINTER_PLUS_EXPR, pchar_type_node, tmp, shift);
@@ -7825,7 +7826,7 @@ gfc_conv_cfi_to_gfc (stmtblock_t *init, stmtblock_t *finally,
       }
 
   /* Loop: for (i = 0; i < rank; ++i).  */
-  idx = gfc_create_var (TREE_TYPE (rank), "idx");
+  idx = gfc_create_var (gfc_array_dim_rank_type, "idx");
 
   /* Loop body.  */
   stmtblock_t loop_body;
@@ -7944,7 +7945,7 @@ done:
 	   {
 	     shift = 0;
 	     tmpidx = idx
-	     for (dim = 0; dim < rank; ++dim)
+	     for (d = 0; d < rank; ++d)
 		{
 		  shift += (tmpidx % extent[d]) * sm[d]
 		  tmpidx = tmpidx / extend[d]
@@ -7961,7 +7962,7 @@ done:
 	  gfc_add_modify (&loop_body, tmpidx, idx);
 	  stmtblock_t inner_loop;
 	  gfc_init_block (&inner_loop);
-	  tree dim = gfc_create_var (TREE_TYPE (rank), "dim");
+	  tree dim = gfc_create_var (gfc_array_dim_rank_type, "dim");
 	  /* shift += (tmpidx % extent[d]) * sm[d] */
 	  tmp = fold_convert (size_type_node,
 			      gfc_get_cfi_dim_extent (cfi, dim));
@@ -7980,10 +7981,8 @@ done:
 	  gfc_add_modify (&inner_loop, tmpidx,
 			  fold_build2_loc (input_location, TRUNC_DIV_EXPR,
 					   size_type_node, tmpidx, tmp));
-	  gfc_simple_for_loop (&loop_body, dim,
-			       build_zero_cst (TREE_TYPE (rank)), rank, LT_EXPR,
-			       build_int_cst (TREE_TYPE (dim), 1),
-			       gfc_finish_block (&inner_loop));
+	  gfc_simple_for_loop (&loop_body, dim, gfc_rank_cst[0], rank, LT_EXPR,
+			       gfc_rank_cst[1], gfc_finish_block (&inner_loop));
 	  /* Assign.  */
 	  tree rhs;
 	  tmp = fold_convert (pchar_type_node,
@@ -8050,7 +8049,7 @@ done:
   gfc_init_block (&block2);
 
   /* Loop: for (i = 0; i < rank; ++i).  */
-  idx = gfc_create_var (TREE_TYPE (rank), "idx");
+  idx = gfc_create_var (gfc_array_dim_rank_type, "idx");
 
   /* Loop body.  */
   gfc_init_block (&loop_body);
@@ -8071,9 +8070,8 @@ done:
   gfc_add_modify (&loop_body, gfc_get_cfi_dim_sm (cfi, idx), tmp);
 
   /* Generate loop.  */
-  gfc_simple_for_loop (&block2, idx, build_zero_cst (TREE_TYPE (idx)),
-		       rank, LT_EXPR, build_int_cst (TREE_TYPE (idx), 1),
-		       gfc_finish_block (&loop_body));
+  gfc_simple_for_loop (&block2, idx, gfc_rank_cst[0], rank, LT_EXPR,
+		       gfc_rank_cst[1], gfc_finish_block (&loop_body));
   /* if (gfc->data != NULL) { block2 }.  */
   tmp = gfc_get_cfi_desc_base_addr (cfi),
   tmp = fold_build2_loc (input_location, NE_EXPR, boolean_type_node,

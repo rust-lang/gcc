@@ -8678,15 +8678,16 @@ gfc_tree_array_size (stmtblock_t *block, tree desc, gfc_expr *expr, tree dim)
   gcc_assert (GFC_DESCRIPTOR_TYPE_P (TREE_TYPE (desc)));
   enum gfc_array_kind akind = GFC_TYPE_ARRAY_AKIND (TREE_TYPE (desc));
   if (expr == NULL || expr->rank < 0)
-    rank = fold_convert (signed_char_type_node,
-			 gfc_conv_descriptor_rank (desc));
+    rank = gfc_conv_descriptor_rank (desc);
   else
-    rank = build_int_cst (signed_char_type_node, expr->rank);
+    rank = gfc_rank_cst[expr->rank];
 
   if (dim || (expr && expr->rank == 1))
     {
-      if (!dim)
-	dim = gfc_index_zero_node;
+      if (dim)
+	dim = fold_convert_loc (input_location, gfc_array_dim_rank_type, dim);
+      else
+	dim = gfc_rank_cst[0];
       tree ubound = gfc_conv_descriptor_ubound_get (desc, dim);
       tree lbound = gfc_conv_descriptor_lbound_get (desc, dim);
 
@@ -8703,11 +8704,11 @@ gfc_tree_array_size (stmtblock_t *block, tree desc, gfc_expr *expr, tree dim)
       if (akind == GFC_ARRAY_ASSUMED_RANK_CONT
 	  || akind == GFC_ARRAY_ASSUMED_RANK)
 	{
-	  tmp = fold_build2_loc (input_location, MINUS_EXPR, signed_char_type_node,
-				 rank, build_int_cst (signed_char_type_node, 1));
+	  tmp = fold_build2_loc (input_location, MINUS_EXPR,
+				 gfc_array_dim_rank_type, rank,
+				 gfc_rank_cst[1]);
 	  cond = fold_build2_loc (input_location, EQ_EXPR, boolean_type_node,
-				  fold_convert (signed_char_type_node, dim),
-				  tmp);
+				  dim, tmp);
 	  tmp = fold_build2_loc (input_location, EQ_EXPR, boolean_type_node,
 				 gfc_conv_descriptor_ubound_get (desc, dim),
 				 build_int_cst (gfc_array_index_type, -1));
@@ -8730,10 +8731,10 @@ gfc_tree_array_size (stmtblock_t *block, tree desc, gfc_expr *expr, tree dim)
   gfc_init_block (&loop_body);
 
   /* Loop: for (i = 0; i < rank; ++i).  */
-  tree idx = gfc_create_var (signed_char_type_node, "idx");
+  tree idx = gfc_create_var (gfc_array_dim_rank_type, "idx");
   /* Loop body.  */
   /* #if (assumed-rank + !allocatable && !pointer)
-       if (idx == rank - 1 && dim[idx].ubound == -1)
+       if (idx + 1 == rank && dim[idx].ubound == -1)
 	 extent = -1;
        else
      #endif
@@ -8744,10 +8745,10 @@ gfc_tree_array_size (stmtblock_t *block, tree desc, gfc_expr *expr, tree dim)
   cond = NULL_TREE;
   if (akind == GFC_ARRAY_ASSUMED_RANK_CONT || akind == GFC_ARRAY_ASSUMED_RANK)
     {
-      tmp = fold_build2_loc (input_location, MINUS_EXPR, signed_char_type_node,
-			     rank, build_int_cst (signed_char_type_node, 1));
+      tmp = fold_build2_loc (input_location, PLUS_EXPR,
+			     gfc_array_dim_rank_type, idx, gfc_rank_cst[1]);
       cond = fold_build2_loc (input_location, EQ_EXPR, boolean_type_node,
-				  idx, tmp);
+			      tmp, rank);
       tmp = fold_build2_loc (input_location, EQ_EXPR, boolean_type_node,
 			     gfc_conv_descriptor_ubound_get (desc, idx),
 			     build_int_cst (gfc_array_index_type, -1));
@@ -9113,7 +9114,7 @@ gfc_conv_array_parameter (gfc_se *se, gfc_expr *expr, bool g77,
 	      gfc_add_modify (&block, gfc_conv_descriptor_dtype (arr),
 			      gfc_conv_descriptor_dtype (se->expr));
 	      gfc_add_modify (&block, gfc_conv_descriptor_rank (arr),
-			      build_int_cst (signed_char_type_node, 1));
+			      gfc_rank_cst[1]);
 	      gfc_conv_descriptor_span_set (&block, arr,
 					    gfc_conv_descriptor_span_get (arr));
 	      gfc_conv_descriptor_offset_set (&block, arr, gfc_index_zero_node);
@@ -9276,9 +9277,7 @@ gfc_conv_array_parameter (gfc_se *se, gfc_expr *expr, bool g77,
 
 	      if (expr->rank == -1)
 		{
-		  tree idx = gfc_create_var (TREE_TYPE (gfc_conv_descriptor_rank
-							(old_desc)),
-					     "idx");
+		  tree idx = gfc_create_var (gfc_array_dim_rank_type, "idx");
 		  tree stride = gfc_create_var (gfc_array_index_type, "stride");
 		  stmtblock_t loop_body;
 

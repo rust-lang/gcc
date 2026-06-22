@@ -35,6 +35,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "target-memory.h"
 
 tree gfc_rank_cst[GFC_MAX_DIMENSIONS + 1];
+tree gfc_index_zero_node;
+tree gfc_index_one_node;
 
 /* Build a constant with given type from an int_cst.  */
 
@@ -194,7 +196,10 @@ gfc_init_constants (void)
   int n;
 
   for (n = 0; n <= GFC_MAX_DIMENSIONS; n++)
-    gfc_rank_cst[n] = build_int_cst (gfc_array_index_type, n);
+    gfc_rank_cst[n] = build_int_cst (gfc_array_dim_rank_type, n);
+
+  gfc_index_zero_node = build_zero_cst (gfc_array_index_type);
+  gfc_index_one_node = build_one_cst (gfc_array_index_type);
 }
 
 /* Converts a GMP integer into a backend tree node.  */
