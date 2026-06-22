@@ -3371,21 +3371,25 @@ build/gencfn-macros.o : gencfn-macros.cc $(BCONFIG_H) $(SYSTEM_H)	\
 # since they need to run on this machine
 # even if GCC is being compiled to run on some other machine.
 
+# We append to the genFOO variables so that target make fragments can
+# add programs to them (those includes have already been included).
+# Example: riscv/t-riscv
+
 # All these programs use the RTL reader ($(BUILD_RTL)).
-genprogrtl = attr attr-common attrtab automata codes conditions config emit \
+genprogrtl += attr attr-common attrtab automata codes conditions config emit \
 	     extract flags mddump opinit output peep preds recog target-def
 $(genprogrtl:%=build/gen%$(build_exeext)): $(BUILD_RTL)
 
 # All these programs use the MD reader ($(BUILD_MD)).
-genprogmd = $(genprogrtl) mddeps constants enums
+genprogmd += $(genprogrtl) mddeps constants enums
 $(genprogmd:%=build/gen%$(build_exeext)): $(BUILD_MD)
 
 # All these programs need to report errors.
-genprogerr = $(genprogmd) genrtl modes gtype hooks cfn-macros condmd
+genprogerr += $(genprogmd) genrtl modes gtype hooks cfn-macros condmd
 $(genprogerr:%=build/gen%$(build_exeext)): $(BUILD_ERRORS)
 
 # Remaining build programs.
-genprog = $(genprogerr) check checksum match
+genprog += $(genprogerr) check checksum match
 
 # These programs need libs over and above what they get from the above list.
 build/genautomata$(build_exeext) : BUILD_LIBS += -lm
