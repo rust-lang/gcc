@@ -67,6 +67,7 @@
 #endif
 
 #if USE_ATOMIC_SHARED_PTR && ! USE_ATOMIC_LIST_HEAD
+// Cannot use atomic<shared_ptr<T>> without lock-free atomic<T*>.
 # error Unsupported combination
 #endif
 
@@ -200,6 +201,10 @@ namespace std::chrono
 
     // This is here because _Node is a friend so can call private constructor.
     static const leap_second fixed_leaps[];
+
+    // This is a member so that it can access fixed_leaps.
+    struct NumLeapSeconds;
+    static NumLeapSeconds num_leap_seconds;
   };
 
   // Implementation of the private constructor used for the singleton object.
@@ -1301,11 +1306,84 @@ namespace
   // The expiry date corresponding to the list above.
   // tzdata 2026a leapseconds list expires at 2026-12-28 00:00:00 UTC
   constexpr seconds fixed_expiry{1798416000u};
-
-  // This holds the most up-to-date number of leap seconds known at runtime.
-  // Initially zero, updated when _S_read_leap_seconds() is called.
-  constinit atomic<unsigned> num_leap_seconds{0};
 }
+
+// This holds the most up-to-date number of leap seconds known at runtime.
+// Initially zero, updated when _S_read_leap_seconds() is called.
+struct tzdb_list::_Node::NumLeapSeconds
+{
+  // Called by __recent_leap_second_info to read num_leap_seconds.
+  unsigned
+  get()
+  {
+#if ATOMIC_INT_LOCK_FREE == 2
+    atomic_ref<unsigned> ref(count);
+    auto num = ref.load(memory_order::relaxed);
+
+    if (num == std::size(_Node::fixed_leaps))
+      // A leapseconds file has been read and has no new leap seconds.
+      return num;
+
+    if (num == 0)
+      // No leapseconds file has been read yet.
+      return 0;
+
+    // The tzdb_list has been initialized and contains a tzdb object with
+    // new leap seconds, which the caller is going to use.
+    // The relaxed load above does not synchronize with anything, so to
+    // ensure that the get_tzdb_list() in the caller will see a tzdb object
+    // set by _S_replace_head, we load num_leap_seconds again with acquire
+    // ordering:
+    return ref.load(memory_order::acquire);
+#else
+    lock_guard<mutex> l(list_mutex()); // This ensures acquire ordering.
+    return count;
+#endif
+  }
+
+  // Called by __recent_leap_second_info to set num_leap_seconds when
+  // we have determined there are no new leap seconds in a leapseconds file.
+  void
+  set_to_fixed_size()
+  {
+#if ATOMIC_INT_LOCK_FREE == 2
+    atomic_ref<unsigned> ref(count);
+    unsigned expected = 0;
+    ref.compare_exchange_strong(expected, std::size(_Node::fixed_leaps),
+				memory_order::relaxed);
+#else
+    lock_guard<mutex> l(list_mutex());
+    if (count == 0)
+      count = std::size(_Node::fixed_leaps);
+#endif
+  }
+
+  // Called by _Node::_S_replace_head
+  // The two versions are named differently so that caller has to be explicit
+  // about which version it calls, based on whether the mutex is held.
+#if ATOMIC_INT_LOCK_FREE == 2
+  void
+  set_atomically(unsigned val)
+  {
+    atomic_ref<unsigned> ref(count);
+    // The release op here synchronizes with the acquire op in get().
+    ref.store(val, memory_order::release);
+  }
+#else
+  void
+  set_locked(unsigned val, const lock_guard<mutex>&)
+  {
+    // XXX The only caller of this function locks list_mutex() so we would
+    // deadlock if we locked it again here.
+    count = val;
+  }
+#endif
+
+private:
+  unsigned count = 0;
+};
+
+constinit tzdb_list::_Node::NumLeapSeconds tzdb_list::_Node::num_leap_seconds;
 
   namespace __detail
   {
@@ -1368,19 +1446,11 @@ namespace
 
       constexpr auto num_fixed_leaps = std::size(_Node::fixed_leaps);
 
-      auto num_leaps = num_leap_seconds.load(memory_order::relaxed);
+      auto num_leaps = _Node::num_leap_seconds.get();
       if (num_leaps == num_fixed_leaps)
 	// A leapseconds file has been read and has no new leap seconds:
 	return update_info(_Node::fixed_leaps);
-      else if (num_leaps != 0)
-	// The tzdb_list has been initialized and contains a tzdb object
-	// with new leap seconds, which we want to use here.
-	// The relaxed load above does not synchronize with anything, so to
-	// ensure that the get_tzdb_list() below will see a tzdb object set
-	// by _S_replace_head, we load num_leap_seconds again with acquire
-	// ordering:
-	(void) num_leap_seconds.load(memory_order::acquire);
-      else
+      else if (num_leaps == 0)
 	{
 	  // The tzdb_list has not been initialized yet, so we don't know
 	  // the correct number of leap seconds.
@@ -1389,11 +1459,9 @@ namespace
 	  // to parse all of tzdata.zi and initialize a whole tzdb object.
 	  if (_Node::_S_read_leap_seconds().first.size() == num_fixed_leaps)
 	    {
-	      // There are no new leap seconds. remember that so that the next
+	      // There are no new leap seconds. Remember that so that the next
 	      // call to this function can just use fixed_leaps.
-	      num_leap_seconds.compare_exchange_strong(num_leaps,
-						       num_fixed_leaps,
-						       memory_order::relaxed);
+	      _Node::num_leap_seconds.set_to_fixed_size();
 	      return update_info(_Node::fixed_leaps);
 	    }
 	  // else there are new leap seconds. We init tzdb_list so that the
@@ -1525,8 +1593,13 @@ namespace
 	new_head_ptr->next = curr;
       }
     // XXX small window here where _S_head_cache still points to previous tzdb.
+    _S_cache_list_head(new_head_ptr);
+
+    // This allows __recent_leap_second_info() to know that it can use
+    // get_tzdb_list()->begin()->leap_seconds to get new leap seconds.
+    num_leap_seconds.set_atomically(new_head_ptr->db.leap_seconds.size());
 #else
-    lock_guard<mutex> l(list_mutex());
+    lock_guard<mutex> lock(list_mutex());
     if (const _Node* h = _S_head_owner.get())
       {
 	if (h->db.version == new_head_ptr->db.version)
@@ -1534,14 +1607,10 @@ namespace
 	new_head_ptr->next = _S_head_owner;
       }
     _S_head_owner = std::move(new_head);
-#endif
     _S_cache_list_head(new_head_ptr);
 
-    // This allows __recent_leap_second_info() to know that it can use
-    // get_tzdb_list()->begin()->leap_seconds to get new leap seconds.
-    // The release op here synchronizes with the acquire op there.
-    num_leap_seconds.store(new_head_ptr->db.leap_seconds.size(),
-			   memory_order::release);
+    num_leap_seconds.set_locked(new_head_ptr->db.leap_seconds.size(), lock);
+#endif
 
     return new_head_ptr->db;
   }
