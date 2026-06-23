@@ -4404,12 +4404,12 @@ namespace __format
       template<typename _Visitor>
 	_GLIBCXX_CONSTEXPR_FORMAT decltype(auto)
 	visit(this basic_format_arg __arg, _Visitor&& __vis)
-	{ return __arg._M_visit_user(std::forward<_Visitor>(__vis), __arg._M_type); }
+	{ return __arg._M_visit_user(std::forward<_Visitor>(__vis)); }
 
       template<typename _Res, typename _Visitor>
 	_GLIBCXX_CONSTEXPR_FORMAT _Res
 	visit(this basic_format_arg __arg, _Visitor&& __vis)
-	{ return __arg._M_visit_user(std::forward<_Visitor>(__vis), __arg._M_type); }
+	{ return __arg._M_visit_user(std::forward<_Visitor>(__vis)); }
 #endif
 
     private:
@@ -4622,13 +4622,17 @@ namespace __format
 	friend consteval __format::_Arg_t
 	__format::__to_arg_t_enum() noexcept;
 
+      [[__gnu__::__noinline__]]
+      handle
+      _M_handle_unrecognized() const;
+
       template<typename _Visitor>
 	_GLIBCXX_CONSTEXPR_FORMAT decltype(auto)
-	_M_visit(_Visitor&& __vis, __format::_Arg_t __type)
+	_M_visit(_Visitor&& __vis)
 	{
-	  using namespace __format;
-	  switch (__type)
+	  switch (_M_type)
 	  {
+	    using enum __format::_Arg_t;
 	    case _Arg_none:
 	      return std::forward<_Visitor>(__vis)(_M_val._M_none);
 	    case _Arg_bool:
@@ -4693,13 +4697,17 @@ namespace __format
 	      return std::forward<_Visitor>(__vis)(_M_val._M_u128);
 #endif
 	    default:
-	      __builtin_unreachable();
+	      // Call exported definition of _M_handle_unrecognized from
+	      // libstdc++.so, that should recognize new _Arg_t values and
+	      // return basic_format_arg, containing a handle to that value.
+	      handle __h = _M_handle_unrecognized();
+	      return std::forward<_Visitor>(__vis)(__h);
 	  }
 	}
 
       template<typename _Visitor>
 	_GLIBCXX_CONSTEXPR_FORMAT decltype(auto)
-	_M_visit_user(_Visitor&& __vis, __format::_Arg_t __type)
+	_M_visit_user(_Visitor&& __vis)
 	{
 	  return _M_visit([&__vis]<typename _Tp>(_Tp& __val) -> decltype(auto)
 	    {
@@ -4716,7 +4724,7 @@ namespace __format
 		 handle __h(__val);
 		 return std::forward<_Visitor>(__vis)(__h);
 	       }
-	   }, __type);
+	  });
 	}
     };
 
@@ -4724,9 +4732,7 @@ namespace __format
     _GLIBCXX26_DEPRECATED_SUGGEST("std::basic_format_arg::visit")
     inline _GLIBCXX_CONSTEXPR_FORMAT decltype(auto)
     visit_format_arg(_Visitor&& __vis, basic_format_arg<_Context> __arg)
-    {
-      return __arg._M_visit_user(std::forward<_Visitor>(__vis), __arg._M_type);
-    }
+    { return __arg._M_visit_user(std::forward<_Visitor>(__vis)); }
 
 /// @cond undocumented
 namespace __format
@@ -4734,9 +4740,7 @@ namespace __format
   template<typename _Visitor, typename _Ctx>
     inline _GLIBCXX_CONSTEXPR_FORMAT decltype(auto)
     __visit_format_arg(_Visitor&& __vis, basic_format_arg<_Ctx> __arg)
-    {
-      return __arg._M_visit(std::forward<_Visitor>(__vis), __arg._M_type);
-    }
+    { return __arg._M_visit(std::forward<_Visitor>(__vis)); }
 
   struct _WidthPrecVisitor
   {
@@ -5069,6 +5073,26 @@ namespace __format
       advance_to(iterator __it) { _M_out = std::move(__it); }
     };
 
+#if _GLIBCXX_EXTERN_TEMPLATE
+   // The defintion _M_handle_unrecognized is placed in format-inst.cc
+   // source file, to ensure that it will not be inlined by compiler.
+   extern template basic_format_arg<format_context>::handle
+     basic_format_arg<format_context>::_M_handle_unrecognized() const;
+# ifdef _GLIBCXX_USE_WCHAR_T
+   extern template basic_format_arg<wformat_context>::handle
+     basic_format_arg<wformat_context>::_M_handle_unrecognized() const;
+# endif
+#else
+  template<typename _Context>
+    typename basic_format_arg<_Context>::handle
+    basic_format_arg<_Context>::_M_handle_unrecognized() const
+    {
+      // If _M_type corresponds to a new value of _Arg_t introduced after
+      // GCC 16, this function should return a handle that refers to the 
+      // union member of _M_val corresponding to that _Arg_t value.	    
+      __throw_format_error("format error: unrecognized argument type");
+    }
+#endif
 
 /// @cond undocumented
 namespace __format
