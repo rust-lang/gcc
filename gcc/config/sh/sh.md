@@ -5664,6 +5664,22 @@
 					   (const_string "double")
 					   (const_string "none")))])
 
+;; LRA will try to satisfy the constraints in match_scratch for the memory
+;; displacements and it will make issues on this target.  Use R0 as a scratch
+;; register for the constant load.
+(define_insn "movdf_i4_F_z"
+  [(set (match_operand:DF 0 "fp_arith_reg_operand" "=d")
+	(match_operand:DF 1 "const_double_operand" "F"))
+   (use (reg:SI FPSCR_MODES_REG))
+   (clobber (reg:SI R0_REG))]
+  "TARGET_FPU_DOUBLE && sh_lra_p ()"
+  "#"
+  [(set_attr "type" "pcfload")
+   (set (attr "length") (if_then_else (eq_attr "fmovd" "yes") (const_int 4) (const_int 8)))
+   (set (attr "fp_mode") (if_then_else (eq_attr "fmovd" "yes")
+					   (const_string "double")
+					   (const_string "none")))])
+
 ;; Moving DFmode between fp/general registers through memory
 ;; (the top of the stack) is faster than moving through fpul even for
 ;; little endian.  Because the type of an instruction is important for its
@@ -5802,6 +5818,14 @@
    && true_regnum (operands[0]) == true_regnum (operands[1])"
   [(set (match_dup 0) (match_dup 0))]
   "")
+
+(define_split
+  [(set (match_operand:SF 0 "register_operand")
+	(match_operand:SF 1 "register_operand"))
+   (use (reg:SI FPSCR_MODES_REG))]
+  "TARGET_SH2E && sh_lra_p () && reload_completed
+   && true_regnum (operands[0]) == true_regnum (operands[1])"
+  [(set (match_dup 0) (match_dup 0))])
 
 ;; fmovd substitute post-reload splits
 (define_split
@@ -6047,6 +6071,14 @@
   prepare_move_operands (operands, DFmode);
   if (TARGET_FPU_DOUBLE)
     {
+      if (sh_lra_p ()
+	  && (GET_CODE (operands[1]) == CONST_DOUBLE
+	  && REG_P (operands[0])))
+	{
+	  emit_insn (gen_movdf_i4_F_z (operands[0], operands[1]));
+	  DONE;
+	}
+
       emit_insn (gen_movdf_i4 (operands[0], operands[1]));
       DONE;
     }
@@ -6172,15 +6204,17 @@
       (const_string "none")
       (const_string "none")])])
 
-(define_insn_and_split "movsf_ie_ra"
+;; LRA will try to satisfy the constraints in match_scratch for the memory
+;; displacements and that doesn't work well.  Hence movsf_ie_ra is split
+;; into multiple patterns below to avoid those issues while 'lra_in_progress'.
+(define_insn "movsf_ie_ra"
   [(set (match_operand:SF 0 "general_movdst_operand"
-	 			"=f,r,f,f,fy,f,m, r,r,m,f,y,y,rf,r,y,<,y,y")
+				"=f,r,f,f,f,m, r,r,m,f,y,y,r,y,<,y,y")
 	(match_operand:SF 1 "general_movsrc_operand"
-				" f,r,G,H,FQ,m,f,FQ,m,r,y,f,>,fr,y,r,y,>,y"))
-   (use (reg:SI FPSCR_MODES_REG))
-   (clobber (match_scratch:SF 2 "=r,r,X,X,&z,r,r, X,r,r,r,r,r, y,r,r,r,r,r"))
-   (const_int 0)]
-  "TARGET_SH2E
+				" f,r,G,H,m,f,FQ,m,r,y,f,>,y,r,y,>,y"))
+   (use (reg:SI FPSCR_MODES_REG))]
+  "TARGET_SH2E && sh_lra_p ()
+   && ! sh_movsf_ie_y_split_p (operands[0], operands[1])
    && (arith_reg_operand (operands[0], SFmode)
        || fpul_operand (operands[0], SFmode)
        || arith_reg_operand (operands[1], SFmode)
@@ -6190,7 +6224,6 @@
 	mov	%1,%0
 	fldi0	%0
 	fldi1	%0
-	#
 	fmov.s	%1,%0
 	fmov.s	%1,%0
 	mov.l	%1,%0
@@ -6199,31 +6232,19 @@
 	fsts	fpul,%0
 	flds	%1,fpul
 	lds.l	%1,%0
-	#
 	sts	%1,%0
 	lds	%1,%0
 	sts.l	%1,%0
 	lds.l	%1,%0
 	! move optimized away"
-  "reload_completed
-   && sh_movsf_ie_ra_split_p (operands[0], operands[1], operands[2])"
-  [(const_int 0)]
-{
-  if (! rtx_equal_p (operands[0], operands[1]))
-    {
-      emit_insn (gen_movsf_ie (operands[2], operands[1]));
-      emit_insn (gen_movsf_ie (operands[0], operands[2]));
-    }
-}
-  [(set_attr "type" "fmove,move,fmove,fmove,pcfload,fload,fstore,pcload,load,
-		     store,fmove,fmove,load,*,fpul_gp,gp_fpul,fstore,load,nil")
-   (set_attr "late_fp_use" "*,*,*,*,*,*,yes,*,*,*,*,*,*,*,yes,*,yes,*,*")
+  [(set_attr "type" "fmove,move,fmove,fmove,fload,fstore,pcload,load,
+		     store,fmove,fmove,load,fpul_gp,gp_fpul,fstore,load,nil")
+   (set_attr "late_fp_use" "*,*,*,*,*,yes,*,*,*,*,*,*,yes,*,yes,*,*")
    (set_attr_alternative "length"
      [(const_int 2)
       (const_int 2)
       (const_int 2)
       (const_int 2)
-      (const_int 4)
       (if_then_else (match_operand 1 "displacement_mem_operand")
 		    (const_int 4) (const_int 2))
       (if_then_else (match_operand 0 "displacement_mem_operand")
@@ -6236,7 +6257,6 @@
       (const_int 2)
       (const_int 2)
       (const_int 2)
-      (const_int 4)
       (const_int 2)
       (const_int 2)
       (const_int 2)
@@ -6248,12 +6268,10 @@
       (const_string "none")
       (const_string "single")
       (const_string "single")
-      (const_string "none")
       (if_then_else (eq_attr "fmovd" "yes")
 		    (const_string "single") (const_string "none"))
       (if_then_else (eq_attr "fmovd" "yes")
 		    (const_string "single") (const_string "none"))
-      (const_string "none")
       (const_string "none")
       (const_string "none")
       (const_string "none")
@@ -6266,12 +6284,73 @@
       (const_string "none")
       (const_string "none")])])
 
+(define_insn_and_split "movsf_ie_rffr"
+  [(set (match_operand:SF 0 "arith_reg_dest" "=f,r,rf")
+	(match_operand:SF 1 "arith_reg_operand" "f,r,fr"))
+   (use (reg:SI FPSCR_MODES_REG))
+   (clobber (match_scratch:SF 2 "=X,X,y"))]
+  "TARGET_SH2E && sh_lra_p ()"
+  "@
+	fmov	%1,%0
+	mov	%1,%0
+	#"
+  "reload_completed
+   && (FP_REGISTER_P (REGNO (operands[0]))
+       != FP_REGISTER_P (REGNO (operands[1])))"
+  [(const_int 0)]
+{
+  emit_insn (gen_movsf_ie_ra (operands[2], operands[1]));
+  emit_insn (gen_movsf_ie_ra (operands[0], operands[2]));
+}
+  [(set_attr "type" "fmove,move,*")
+   (set_attr_alternative "length"
+     [(const_int 2)
+      (const_int 2)
+      (const_int 4)])
+   (set_attr_alternative "fp_mode"
+     [(if_then_else (eq_attr "fmovd" "yes")
+		    (const_string "single") (const_string "none"))
+      (const_string "none")
+      (const_string "none")])])
+
+(define_insn "movsf_ie_F_z"
+  [(set (match_operand:SF 0 "fp_arith_reg_operand" "=f")
+	(match_operand:SF 1 "const_double_operand" "F"))
+   (use (reg:SI FPSCR_MODES_REG))
+   (clobber (reg:SI R0_REG))]
+  "TARGET_SH2E && sh_lra_p ()"
+  "#"
+  [(set_attr "type" "pcfload")
+   (set_attr "length" "4")])
+
+(define_insn "movsf_ie_Q_z"
+  [(set (match_operand:SF 0 "fpul_operand" "=y")
+	(match_operand:SF 1 "pc_relative_load_operand" "Q"))
+   (use (reg:SI FPSCR_MODES_REG))
+   (clobber (reg:SI R0_REG))]
+  "TARGET_SH2E && sh_lra_p ()"
+  "#"
+  [(set_attr "type" "pcfload")
+   (set_attr "length" "4")])
+
+(define_insn "movsf_ie_y"
+  [(set (match_operand:SF 0 "arith_reg_dest" "=fr")
+	(match_operand:SF 1 "arith_reg_operand" "rf"))
+   (use (reg:SI FPSCR_MODES_REG))
+   (clobber (reg:SI FPUL_REG))]
+  "TARGET_SH2E && sh_lra_p ()"
+  "#"
+  [(set_attr "type" "*")
+   (set_attr "length" "4")])
+
 (define_split
   [(set (match_operand:SF 0 "register_operand" "")
 	(match_operand:SF 1 "register_operand" ""))
    (use (reg:SI FPSCR_MODES_REG))
    (clobber (reg:SI FPUL_REG))]
-  "TARGET_SH1"
+  "TARGET_SH1
+   && ! fpul_operand (operands[0], SFmode)
+   && ! fpul_operand (operands[1], SFmode)"
   [(parallel [(set (reg:SF FPUL_REG) (match_dup 1))
 	      (use (reg:SI FPSCR_MODES_REG))
 	      (clobber (scratch:SI))])
@@ -6288,11 +6367,42 @@
   prepare_move_operands (operands, SFmode);
   if (TARGET_SH2E)
     {
-      if (lra_in_progress)
+      if (sh_lra_p ())
 	{
 	  if (GET_CODE (operands[0]) == SCRATCH)
 	    DONE;
-	  emit_insn (gen_movsf_ie_ra (operands[0], operands[1]));
+	  /* reg from/to multiword subreg may be splitted to several reg from/to
+	     subreg of SImode by subreg1 pass.  This confuses our splitted
+	     movsf logic for LRA and will end up in bad code or ICE.  Use a special
+	     pattern so that LRA can optimize this case.  */
+	  if (! lra_in_progress && ! reload_completed
+	      && sh_movsf_ie_subreg_multiword_p (operands[0], operands[1]))
+	    {
+	      emit_insn (gen_movsf_ie_rffr (operands[0], operands[1]));
+	      DONE;
+	    }
+	  if (GET_CODE (operands[1]) == CONST_DOUBLE
+	      &&  ! satisfies_constraint_G (operands[1])
+	      &&  ! satisfies_constraint_H (operands[1])
+	      && REG_P (operands[0]))
+	    {
+	      if (lra_in_progress)
+	        emit_insn (gen_movsf_ie (operands[0], operands[1]));
+	      else
+	        emit_insn (gen_movsf_ie_F_z (operands[0], operands[1]));
+	    }
+	  else if (REG_P (operands[0]) && REGNO (operands[0]) == FPUL_REG
+		   && satisfies_constraint_Q (operands[1]))
+	    emit_insn (gen_movsf_ie_Q_z (operands[0], operands[1]));
+	  else if (sh_movsf_ie_y_split_p (operands[0], operands[1]))
+	    {
+	      if (lra_in_progress)
+		emit_insn (gen_movsf_ie (operands[0], operands[1]));
+	      else
+		emit_insn (gen_movsf_ie_y (operands[0], operands[1]));
+	    }
+	  else
+	    emit_insn (gen_movsf_ie_ra (operands[0], operands[1]));
 	  DONE;
 	}
 

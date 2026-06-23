@@ -4831,6 +4831,7 @@ broken_move (rtx_insn *insn)
 		   we changed this to do a constant load.  In that case
 		   we don't have an r0 clobber, hence we must use fldi.  */
 		&& (TARGET_FMOVD
+		    || sh_lra_p ()
 		    || (GET_CODE (XEXP (XVECEXP (PATTERN (insn), 0, 2), 0))
 			== SCRATCH))
 		&& REG_P (SET_DEST (pat))
@@ -11472,30 +11473,37 @@ sh_legitimize_address_displacement (rtx *offset1, rtx *offset2,
   return false;
 }
 
-/* Return true if movsf insn should be split with an additional
-   register.  */
+/* Return true if movsf insn should be split with an fpul register.  */
 bool
-sh_movsf_ie_ra_split_p (rtx op0, rtx op1, rtx op2)
+sh_movsf_ie_y_split_p (rtx op0, rtx op1)
 {
-  /* op0 == op1 */
-  if (rtx_equal_p (op0, op1))
+  /* f, r */
+  if (REG_P (op0)
+      && (SUBREG_P (op1) && GET_MODE (SUBREG_REG (op1)) == SImode))
     return true;
-  /* fy, FQ, reg */
-  if (GET_CODE (op1) == CONST_DOUBLE
-      && ! satisfies_constraint_G (op1)
-      && ! satisfies_constraint_H (op1)
-      && REG_P (op0)
-      && REG_P (op2))
+  /* r, f */
+  if (REG_P (op1)
+      && (SUBREG_P (op0) && GET_MODE (SUBREG_REG (op0)) == SImode))
     return true;
-  /* f, r, y */
-  if (REG_P (op0) && FP_REGISTER_P (REGNO (op0))
-      && REG_P (op1) && GENERAL_REGISTER_P (REGNO (op1))
-      && REG_P (op2) && (REGNO (op2) == FPUL_REG))
+
+  return false;
+}
+
+/* Return true if it moves reg from/to subreg of multiword mode.  */
+bool
+sh_movsf_ie_subreg_multiword_p (rtx op0, rtx op1)
+{
+  if (REG_P (op0)
+      && (SUBREG_P (op1)
+	  && (GET_MODE (SUBREG_REG (op1)) == SCmode
+	      || GET_MODE (SUBREG_REG (op1)) == DImode
+	      || GET_MODE (SUBREG_REG (op1)) == TImode)))
     return true;
-  /* r, f, y */
-  if (REG_P (op1) && FP_REGISTER_P (REGNO (op1))
-      && REG_P (op0) && GENERAL_REGISTER_P (REGNO (op0))
-      && REG_P (op2) && (REGNO (op2) == FPUL_REG))
+  if (REG_P (op1)
+      && (SUBREG_P (op0)
+	  && (GET_MODE (SUBREG_REG (op0)) == SCmode
+	      || GET_MODE (SUBREG_REG (op0)) == DImode
+	      || GET_MODE (SUBREG_REG (op0)) == TImode)))
     return true;
 
   return false;
