@@ -1722,6 +1722,7 @@ namespace __format
 	    case _Pres_c:
 	      return _M_format_character(_S_to_character(__i), __fc);
 #endif
+	    default: // Fallback for _Pres_type values introduces in later versions.
 	    case _Pres_none:
 	      // Should not reach here with _Pres_none for bool or charT, so:
 	      [[fallthrough]];
@@ -1741,8 +1742,6 @@ namespace __format
 		for (auto __p = __start; __p != __res.ptr; ++__p)
 		  *__p = __format::__toupper_numeric(*__p);
 	      break;
-	    default:
-	      __builtin_unreachable();
 	  }
 
 	  if (_M_spec._M_alt && __base_prefix.size())
@@ -2172,12 +2171,11 @@ namespace __format
 	      __use_prec = true;
 	      __fmt = chars_format::general;
 	      break;
+	    default: // Fallback for _Pres_type values introduces in later versions.
 	    case _Pres_none:
 	      if (__use_prec)
 		__fmt = chars_format::general;
 	      break;
-	    default:
-	      __builtin_unreachable();
 	  }
 
 	  // Write value into buffer using std::to_chars.
