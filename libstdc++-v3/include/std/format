@@ -495,8 +495,7 @@ namespace __format
     _Pres_c = 2, _Pres_x, _Pres_X, _Pres_d, _Pres_o, _Pres_b, _Pres_B,
     // Presentation types for floating-point types
     _Pres_g = 1, _Pres_G, _Pres_a, _Pres_A, _Pres_e, _Pres_E, _Pres_f, _Pres_F,
-    // For pointers, the value are same as hexadecimal presentations for integers
-    _Pres_p = _Pres_x, _Pres_P = _Pres_X,
+      _Pres_p, _Pres_P,
     _Pres_max = 0xf,
   };
   using enum _Pres_type;
@@ -1751,7 +1750,6 @@ namespace __format
 	    }
 	  __start = __format::__put_sign(__i, _M_spec._M_sign, __start - 1);
 
-
 	  string_view __narrow_str(__start, __res.ptr - __start);
 	  size_t __prefix_len = __start_digits - __start;
 	  if constexpr (is_same_v<char, _CharT>)
@@ -2128,23 +2126,29 @@ namespace __format
 	  if (__use_prec)
 	    __prec = _M_spec._M_get_precision(__fc);
 
-	  char* __start = __buf + 1; // reserve space for sign
-	  char* __end = __buf + sizeof(__buf);
-
 	  chars_format __fmt{};
 	  bool __upper = false;
 	  bool __trailing_zeros = false;
 	  char __expc = 'e';
+	  size_t __offset = 1; // reserve space for sign
 
 	  switch (_M_spec._M_type)
 	  {
+	    case _Pres_P:
+	      if (__builtin_isfinite(__v))
+	        __offset += 2; // reserve space for prefix
+	      [[fallthrough]];
 	    case _Pres_A:
 	      __upper = true;
 	      __expc = 'P';
+	      __fmt = chars_format::hex;
+	      break;
+	    case _Pres_p:
+	      if (__builtin_isfinite(__v))
+	        __offset += 2; // reserve space for prefix
 	      [[fallthrough]];
 	    case _Pres_a:
-	      if (_M_spec._M_type != _Pres_A)
-		__expc = 'p';
+	      __expc = 'p';
 	      __fmt = chars_format::hex;
 	      break;
 	    case _Pres_E:
@@ -2178,6 +2182,9 @@ namespace __format
 	      break;
 	  }
 
+	  char* __start = __buf + __offset;
+	  char* __end = __buf + sizeof(__buf);
+
 	  // Write value into buffer using std::to_chars.
 	  auto __to_chars = [&](char* __b, char* __e) {
 	    if (__use_prec)
@@ -2195,7 +2202,7 @@ namespace __format
 	    {
 	      // If the buffer is too small it's probably because of a large
 	      // precision, or a very large value in fixed format.
-	      size_t __guess = 8 + __prec;
+	      size_t __guess = 7 + __offset + __prec;
 	      if (__fmt == chars_format::fixed) // +ddd.prec
 		{
 		  if constexpr (is_same_v<_Fp, float> || is_same_v<_Fp, double>
@@ -2226,28 +2233,36 @@ namespace __format
 		  // instantiated with it, was fixed in ABI 18 (G++ 13).  Since
 		  // <format> was new in G++ 13, and is experimental, that
 		  // isn't a problem.
-		  auto __overwrite = [&__to_chars, &__res] (char* __p, size_t __n)
+		  auto __overwrite = [&__to_chars, &__res, __offset] (char* __p, size_t __n)
 		  {
-		    __res = __to_chars(__p + 1, __p + __n - 1);
+		    __res = __to_chars(__p + __offset, __p + __n - __offset);
 		    return __res.ec == errc{} ? __res.ptr - __p : 0;
 		  };
 
 		  __dynbuf.__resize_and_overwrite(__dynbuf.capacity() * 2,
 						  __overwrite);
-		  __start = __dynbuf.data() + 1; // reserve space for sign
+		  __start = __dynbuf.data() + __offset; // reserve space for sign and prefix
 		  __end = __dynbuf.data() + __dynbuf.size();
 		}
 	      while (__builtin_expect(__res.ec == errc::value_too_large, 0));
 	  }
 
-	  // Use uppercase for 'A', 'E', and 'G' formats.
+          if (__offset == 3)
+	    {
+	      __start -= 2;
+	      if (__builtin_signbit(__v))
+	        ranges::copy(string_view("-0x"), __start);
+	      else
+	        ranges::copy(string_view("0x"), __start);
+	    }
+
+	  // Use uppercase for 'A', 'P', 'E', and 'G' formats.
 	  if (__upper)
 	    {
 	      for (char* __p = __start; __p != __res.ptr; ++__p)
 		*__p = __format::__toupper_numeric(*__p);
 	    }
 
-	  bool __have_sign = true;
 	  // Add sign for non-negative values.
 	  if (!__builtin_signbit(__v))
 	    {
@@ -2256,7 +2271,7 @@ namespace __format
 	      else if (_M_spec._M_sign == _Sign_space)
 		*--__start = ' ';
 	      else
-		__have_sign = false;
+		--__offset;
 	    }
 
 	  string_view __narrow_str(__start, __res.ptr - __start);
@@ -2280,9 +2295,9 @@ namespace __format
 		  if (__trailing_zeros)
 		    {
 		      // Find number of digits after first significant figure.
-		      if (__s[__have_sign] != '0')
+		      if (__s[__offset] != '0')
 			// A string like "D.D" or "-D.DDD"
-			__sigfigs = __p - __have_sign - 1;
+			__sigfigs = __p - __offset - 1;
 		      else
 			// A string like "0.D" or "-0.0DD".
 			// Safe to assume there is a non-zero digit, because
@@ -2296,7 +2311,7 @@ namespace __format
 		  if (__p == __s.npos)
 		    __p = __s.size();
 		  __d = __p; // Position where '.' should be inserted.
-		  __sigfigs = __d - __have_sign;
+		  __sigfigs = __d - __offset;
 		}
 
 	      if (__trailing_zeros && __prec != 0)
@@ -2360,7 +2375,7 @@ namespace __format
 
 	  if (_M_spec._M_localized && __builtin_isfinite(__v))
 	    {
-	      auto __s = _M_localize(__str, __expc, __fc.locale());
+	      auto __s = _M_localize(__str, __expc, __offset, __fc.locale());
 	      if (!__s.empty())
 		__str = __wstr = std::move(__s);
 	    }
@@ -2381,11 +2396,10 @@ namespace __format
 	      if (_M_spec._M_zero_fill && __builtin_isfinite(__v))
 		{
 		  __fill_char = _CharT('0');
-		  // Write sign before zero filling.
-		  if (!__format::__is_xdigit(__narrow_str[0]))
+		  if (__offset > 0)
 		    {
-		      *__out++ = __str[0];
-		      __str.remove_prefix(1);
+		      __out = __format::__write(__out, __str.substr(0, __offset));
+		      __str.remove_prefix(__offset);
 		    }
 		}
 	      else
@@ -2398,7 +2412,7 @@ namespace __format
       // Locale-specific format.
       basic_string<_CharT>
       _M_localize(basic_string_view<_CharT> __str, char __expc,
-		  const locale& __loc) const
+		  int __offset, const locale& __loc) const
       {
 	basic_string<_CharT> __lstr;
 
@@ -2446,16 +2460,12 @@ namespace __format
 	  __e = __str.size();
 	const size_t __r = __str.size() - __e; // Length of remainder.
 	auto __overwrite = [&](_CharT* __p, size_t) {
+	  // Copy any +/- sign and "0x" prefix
+	  ranges::copy_n(__str.data(), __offset, __p); 
 	  // Apply grouping to the digits before the radix or exponent.
-	  int __off = 0;
-	  if (auto __c = __str.front(); __c == '-' || __c == '+' || __c == ' ')
-	    {
-	      *__p = __c;
-	      __off = 1;
-	    }
-	  auto __end = std::__add_grouping(__p + __off, __np.thousands_sep(),
+	  auto __end = std::__add_grouping(__p + __offset, __np.thousands_sep(),
 					   __grp.data(), __grp.size(),
-					   __str.data() + __off,
+					   __str.data() + __offset,
 					   __str.data() + __e);
 	  if (__r) // If there's a fractional part or exponent
 	    {
@@ -2486,25 +2496,25 @@ namespace __format
       __formatter_ptr() noexcept
       : _M_spec()
       {
-	_M_spec._M_type = _Pres_p;
+	_M_spec._M_type = _Pres_x;
 	_M_spec._M_alt = true;
       }
 
       constexpr
       __formatter_ptr(_Spec<_CharT> __spec) noexcept
       : _M_spec(__spec)
-      { _M_set_default(_Pres_p); }
+      { _M_set_default(); }
 
       constexpr typename basic_format_parse_context<_CharT>::iterator
-      parse(basic_format_parse_context<_CharT>& __pc, _Pres_type __type = _Pres_p)
+      parse(basic_format_parse_context<_CharT>& __pc)
       {
 	__format::_Spec<_CharT> __spec{};
 	const auto __last = __pc.end();
 	auto __first = __pc.begin();
 
-	auto __finalize = [this, &__spec, __type] {
+	auto __finalize = [this, &__spec] {
 	  _M_spec = __spec;
-	  _M_set_default(__type);
+	  _M_set_default();
 	};
 
 	auto __finished = [&] {
@@ -2537,15 +2547,15 @@ namespace __format
 
 	if (*__first == 'p')
 	  {
-	    __spec._M_type = _Pres_p;
-	    __spec._M_alt = !__spec._M_alt;
+	    __spec._M_type = _Pres_x;
+	    __spec._M_alt = true;
 	    ++__first;
 	  }
 #if __glibcxx_format >= 202304L
 	else if (*__first == 'P')
 	  {
-	    __spec._M_type = _Pres_P;
-	    __spec._M_alt = !__spec._M_alt;
+	    __spec._M_type = _Pres_X;
+	    __spec._M_alt = true;
 	    ++__first;
 	  }
 #endif
@@ -2570,12 +2580,12 @@ namespace __format
     private:
       [[__gnu__::__always_inline__]]
       constexpr void
-      _M_set_default(_Pres_type __type)
+      _M_set_default()
       {
-	if (_M_spec._M_type == _Pres_none && __type != _Pres_none)
+	if (_M_spec._M_type == _Pres_none)
 	{
-	  _M_spec._M_type = __type;
-	  _M_spec._M_alt = !_M_spec._M_alt;
+	  _M_spec._M_type = _Pres_x;
+	  _M_spec._M_alt = true;
 	}
       }
 
