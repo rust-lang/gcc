@@ -155,3 +155,9 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
 trim_trailing_whitespace = true
+
+# Yaml
+[*.y{,a}ml]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
