@@ -209,7 +209,7 @@ static void gnu_runtime_01_initialize (void)
   objc_selector_type = build_pointer_type (type);
 
   /* SEL typedef.  */
-  type = lang_hooks.decls.pushdecl (build_decl (input_location,
+  type = lang_hooks.decls.pushdecl (objc_build_decl (input_location,
 						TYPE_DECL,
 						objc_selector_name,
 						objc_selector_type));
@@ -890,7 +890,7 @@ objc_add_static_instance (tree constructor, tree class_decl)
     }
 
   snprintf (buf, BUFSIZE, "_OBJC_INSTANCE_%d", num_static_inst++);
-  decl = build_decl (input_location,
+  decl = objc_build_decl (input_location,
 		     VAR_DECL, get_identifier (buf), class_decl);
   TREE_STATIC (decl) = 1;
   DECL_ARTIFICIAL (decl) = 1;
@@ -953,7 +953,7 @@ build_module_initializer_routine (void)
   push_lang_context (lang_name_c); /* extern "C" */
 #endif
 
-  objc_push_parm (build_decl (input_location,
+  objc_push_parm (objc_build_decl (input_location,
 			      PARM_DECL, NULL_TREE, void_type_node));
 #ifdef OBJCPLUS
   objc_start_function (get_identifier (TAG_GNUINIT),
@@ -1757,9 +1757,9 @@ handle_class_ref (tree chain)
 
   sprintf (string, "__objc_class_name_%s", name);
 
-  /* Make a decl for this name, so we can use its address in a tree.  */
-  decl = build_decl (input_location,
-		     VAR_DECL, get_identifier (string), TREE_TYPE (integer_zero_node));
+  /* Make a forward declaration for this name, so we can use its address.  */
+  decl = objc_build_decl (input_location, VAR_DECL,
+			  get_identifier (string), integer_type_node);
   DECL_EXTERNAL (decl) = 1;
   TREE_PUBLIC (decl) = 1;
   DECL_CONTEXT (decl) = NULL_TREE;

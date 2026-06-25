@@ -374,7 +374,7 @@ static void next_runtime_02_initialize (void)
 					   get_identifier (TAG_SELECTOR)));
 
   /* SEL typedef.  */
-  type = lang_hooks.decls.pushdecl (build_decl (input_location,
+  type = lang_hooks.decls.pushdecl (objc_build_decl (input_location,
 						TYPE_DECL,
 						objc_selector_name,
 						objc_selector_type));
@@ -1940,7 +1940,7 @@ next_runtime_abi_02_build_const_string_constructor (location_t loc, tree string,
   CONSTRUCTOR_APPEND_ELT (v, fields, build_int_cst (NULL_TREE, length));
   constructor = objc_build_constructor (internal_const_str_type, v);
 
-  var = build_decl (input_location, CONST_DECL, NULL, TREE_TYPE (constructor));
+  var = objc_build_decl (input_location, CONST_DECL, NULL, TREE_TYPE (constructor));
   DECL_INITIAL (var) = constructor;
   TREE_STATIC (var) = 1;
   DECL_CONTEXT (var) = NULL;

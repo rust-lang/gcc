@@ -272,12 +272,12 @@ objc_create_temporary_var (tree type, const char *name)
 
   if (name != NULL)
     {
-      decl = build_decl (input_location,
+      decl = objc_build_decl (input_location,
 			 VAR_DECL, get_identifier (name), type);
     }
   else
     {
-      decl = build_decl (input_location,
+      decl = objc_build_decl (input_location,
 			 VAR_DECL, NULL_TREE, type);
     }
   TREE_USED (decl) = 1;
@@ -2230,7 +2230,7 @@ objc_build_struct (tree klass, tree fields, tree super_name)
     {
       /* Prepend a packed variant of the base class into the layout.  This
 	 is necessary to preserve ObjC ABI compatibility.  */
-      tree base = build_decl (input_location,
+      tree base = objc_build_decl (input_location,
 			      FIELD_DECL, NULL_TREE, super);
       tree field = TYPE_FIELDS (super);
 
@@ -3110,19 +3110,19 @@ synth_module_prologue (void)
   objc_selector_name = get_identifier (SEL_TYPEDEF_NAME);
 
   /* Declare the 'id', 'instancetype' and 'Class' typedefs.  */
-  type = lang_hooks.decls.pushdecl (build_decl (input_location,
+  type = lang_hooks.decls.pushdecl (objc_build_decl (input_location,
 						TYPE_DECL,
 						objc_object_name,
 						objc_object_type));
   suppress_warning (type);
 
-  type = lang_hooks.decls.pushdecl (build_decl (input_location,
+  type = lang_hooks.decls.pushdecl (objc_build_decl (input_location,
 						TYPE_DECL,
 						objc_instancetype_name,
 						objc_instancetype_type));
   suppress_warning (type);
 
-  type = lang_hooks.decls.pushdecl (build_decl (input_location,
+  type = lang_hooks.decls.pushdecl (objc_build_decl (input_location,
 						TYPE_DECL,
 						objc_class_name,
 						objc_class_type));
@@ -3234,13 +3234,13 @@ static tree
 objc_build_internal_const_str_type (void)
 {
   tree type = (*lang_hooks.types.make_type) (RECORD_TYPE);
-  tree fields = build_decl (input_location,
+  tree fields = objc_build_decl (input_location,
 			    FIELD_DECL, NULL_TREE, ptr_type_node);
-  tree field = build_decl (input_location,
+  tree field = objc_build_decl (input_location,
 			   FIELD_DECL, NULL_TREE, ptr_type_node);
 
   DECL_CHAIN (field) = fields; fields = field;
-  field = build_decl (input_location,
+  field = objc_build_decl (input_location,
 		      FIELD_DECL, NULL_TREE, unsigned_type_node);
   DECL_CHAIN (field) = fields; fields = field;
   /* NB: The finish_builtin_struct() routine expects FIELD_DECLs in
@@ -4345,7 +4345,7 @@ objc_begin_catch_clause (tree decl)
      else
        {
 	 /* The parser passed in a PARM_DECL, but what we really want is a VAR_DECL.  */
-	 decl = build_decl (input_location,
+	 decl = objc_build_decl (input_location,
 			    VAR_DECL, DECL_NAME (decl), TREE_TYPE (decl));
        }
      lang_hooks.decls.pushdecl (decl);
@@ -8455,7 +8455,7 @@ objc_push_parm (tree parm)
   /* If the parameter type has been decayed, a new PARM_DECL needs to be
      built as well.  */
   if (type != TREE_TYPE (parm))
-    parm = build_decl (input_location, PARM_DECL, DECL_NAME (parm), type);
+    parm = objc_build_decl (input_location, PARM_DECL, DECL_NAME (parm), type);
 
   DECL_ARG_TYPE (parm)
     = lang_hooks.types.type_promotes_to (TREE_TYPE (parm));
@@ -8527,11 +8527,11 @@ synth_self_and_ucmd_args (void)
     self_type = objc_object_type;
 
   /* id self; */
-  objc_push_parm (build_decl (input_location,
+  objc_push_parm (objc_build_decl (input_location,
 			      PARM_DECL, self_id, self_type));
 
   /* SEL _cmd; */
-  objc_push_parm (build_decl (input_location,
+  objc_push_parm (objc_build_decl (input_location,
 			      PARM_DECL, ucmd_id, objc_selector_type));
 }
 
@@ -8576,7 +8576,7 @@ start_method_def (tree method, tree expr)
       tree type = TREE_VALUE (TREE_TYPE (parmlist));
       tree parm;
 
-      parm = build_decl (input_location,
+      parm = objc_build_decl (input_location,
 			 PARM_DECL, KEYWORD_ARG_NAME (parmlist), type);
       decl_attributes (&parm, DECL_ATTRIBUTES (parmlist), 0);
       objc_push_parm (parm);
@@ -8813,7 +8813,7 @@ objc_start_function (tree name, tree type, tree attrs,
 #endif
 		     )
 {
-  tree fndecl = build_decl (input_location,
+  tree fndecl = objc_build_decl (input_location,
 			    FUNCTION_DECL, name, type);
 
 #ifdef OBJCPLUS
@@ -8836,7 +8836,7 @@ objc_start_function (tree name, tree type, tree attrs,
   push_scope ();
   declare_parm_level ();
   DECL_RESULT (current_function_decl)
-    = build_decl (input_location,
+    = objc_build_decl (input_location,
 		  RESULT_DECL, NULL_TREE,
 		  TREE_TYPE (TREE_TYPE (current_function_decl)));
   DECL_ARTIFICIAL (DECL_RESULT (current_function_decl)) = 1;
@@ -8993,7 +8993,7 @@ get_super_receiver (void)
       bool inst_meth;
       if (!UOBJC_SUPER_decl)
       {
-	UOBJC_SUPER_decl = build_decl (input_location,
+	UOBJC_SUPER_decl = objc_build_decl (input_location,
 				       VAR_DECL, get_identifier (TAG_SUPER),
 				       objc_super_template);
 	/* This prevents `unused variable' warnings when compiling with -Wall.  */

@@ -90,7 +90,7 @@ build_sized_array_type (tree base_type, int size)
 static tree
 create_field_decl (tree type, const char *name)
 {
-  return build_decl (input_location,
+  return objc_build_decl (input_location,
 		     FIELD_DECL, get_identifier (name), type);
 }
 
@@ -113,7 +113,7 @@ tree
 start_var_decl (tree type, const char *name)
 {
   tree name_id = get_identifier (name);
-  tree var = build_decl (input_location, VAR_DECL, name_id, type);
+  tree var = objc_build_decl (input_location, VAR_DECL, name_id, type);
   DECL_INITIAL (var) = error_mark_node;  /* A real initializer is coming... */
   TREE_STATIC (var) = 1;
   DECL_IGNORED_P (var) = 1;
