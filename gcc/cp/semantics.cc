@@ -14286,10 +14286,13 @@ trait_expr_value (cp_trait_kind kind, tree type1, tree type2)
    If TYPE is a non-union class type, it must be complete.
 
    When KIND == 4:
-   If TYPE is a class type, it must be complete.  */
+   If TYPE is a class type, it must be complete.
+
+   If COMPLAIN is not tf_none, we permerror and return false if that doesn't
+   produce a hard error.  */
 
 static bool
-check_trait_type (tree type, int kind = 1)
+check_trait_type (tree type, int kind, tsubst_flags_t complain)
 {
   if (type == NULL_TREE)
     return true;
@@ -14297,7 +14300,7 @@ check_trait_type (tree type, int kind = 1)
   if (TREE_CODE (type) == TREE_VEC)
     {
       for (tree arg : tree_vec_range (type))
-	if (!check_trait_type (arg, kind))
+	if (!check_trait_type (arg, kind, complain))
 	  return false;
       return true;
     }
@@ -14316,9 +14319,12 @@ check_trait_type (tree type, int kind = 1)
 
   type = complete_type (strip_array_types (type));
   if (!COMPLETE_TYPE_P (type)
-      && cxx_incomplete_type_diagnostic (NULL_TREE, type,
-					 diagnostics::kind::permerror)
-      && !flag_permissive)
+      /* If we're not emitting error messages, always return false for
+	 incomplete types.  */
+      && (complain == tf_none
+	  || (cxx_incomplete_type_diagnostic (NULL_TREE, type,
+					      diagnostics::kind::permerror)
+	      && !flag_permissive)))
     return false;
   return true;
 }
@@ -14388,7 +14394,8 @@ finish_structured_binding_size (location_t loc, tree type,
 /* Process a trait expression.  */
 
 tree
-finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2)
+finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2,
+		   tsubst_flags_t complain/*=tf_warning_or_error*/)
 {
   if (type1 == error_mark_node
       || type2 == error_mark_node)
@@ -14426,7 +14433,7 @@ finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2)
     case CPTK_IS_DESTRUCTIBLE:
     case CPTK_IS_NOTHROW_DESTRUCTIBLE:
     case CPTK_IS_TRIVIALLY_DESTRUCTIBLE:
-      if (!check_trait_type (type1))
+      if (!check_trait_type (type1, /*kind=*/1, complain))
 	return error_mark_node;
       break;
 
@@ -14437,7 +14444,7 @@ finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2)
     case CPTK_IS_TRIVIALLY_COPYABLE:
     case CPTK_IS_STRUCTURAL:
     case CPTK_HAS_UNIQUE_OBJ_REPRESENTATIONS:
-      if (!check_trait_type (type1, /* kind = */ 2))
+      if (!check_trait_type (type1, /* kind = */ 2, complain))
 	return error_mark_node;
       break;
 
@@ -14445,7 +14452,7 @@ finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2)
     case CPTK_IS_EMPTY:
     case CPTK_IS_POLYMORPHIC:
     case CPTK_HAS_VIRTUAL_DESTRUCTOR:
-      if (!check_trait_type (type1, /* kind = */ 3))
+      if (!check_trait_type (type1, /* kind = */ 3, complain))
 	return error_mark_node;
       break;
 
@@ -14454,7 +14461,7 @@ finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2)
     case CPTK_IS_AGGREGATE:
     case CPTK_IS_FINAL:
     case CPTK_IS_IMPLICIT_LIFETIME:
-      if (!check_trait_type (type1, /* kind = */ 4))
+      if (!check_trait_type (type1, /* kind = */ 4, complain))
 	return error_mark_node;
       break;
 
@@ -14475,8 +14482,8 @@ finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2)
     case CPTK_IS_ASSIGNABLE:
     case CPTK_IS_NOTHROW_ASSIGNABLE:
     case CPTK_IS_TRIVIALLY_ASSIGNABLE:
-      if (!check_trait_type (type1)
-	  || !check_trait_type (type2))
+      if (!check_trait_type (type1, /*kind=*/1, complain)
+	  || !check_trait_type (type2, /*kind=*/1, complain))
 	return error_mark_node;
       break;
 
@@ -14484,14 +14491,14 @@ finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2)
     case CPTK_IS_POINTER_INTERCONVERTIBLE_BASE_OF:
       if (NON_UNION_CLASS_TYPE_P (type1) && NON_UNION_CLASS_TYPE_P (type2)
 	  && !same_type_ignoring_top_level_qualifiers_p (type1, type2)
-	  && !complete_type_or_else (type2, NULL_TREE))
+	  && !complete_type_or_maybe_complain (type2, NULL_TREE, complain))
 	/* We already issued an error.  */
 	return error_mark_node;
       break;
 
     case CPTK_IS_VIRTUAL_BASE_OF:
       if (NON_UNION_CLASS_TYPE_P (type1) && NON_UNION_CLASS_TYPE_P (type2)
-	  && !complete_type_or_else (type2, NULL_TREE))
+	  && !complete_type_or_maybe_complain (type2, NULL_TREE, complain))
 	/* We already issued an error.  */
 	return error_mark_node;
       break;
@@ -14528,17 +14535,17 @@ finish_trait_expr (location_t loc, cp_trait_kind kind, tree type1, tree type2)
       return maybe_wrap_with_location (type_order_value (type1, type2), loc);
 
     case CPTK_STRUCTURED_BINDING_SIZE:
-      return finish_structured_binding_size (loc, type1, tf_warning_or_error);
+      return finish_structured_binding_size (loc, type1, complain);
 
     case CPTK_IS_LAYOUT_COMPATIBLE:
       if (!array_of_unknown_bound_p (type1)
 	  && TREE_CODE (type1) != VOID_TYPE
-	  && !complete_type_or_else (type1, NULL_TREE))
+	  && !complete_type_or_maybe_complain (type1, NULL_TREE, complain))
 	/* We already issued an error.  */
 	return error_mark_node;
       if (!array_of_unknown_bound_p (type2)
 	  && TREE_CODE (type2) != VOID_TYPE
-	  && !complete_type_or_else (type2, NULL_TREE))
+	  && !complete_type_or_maybe_complain (type2, NULL_TREE, complain))
 	/* We already issued an error.  */
 	return error_mark_node;
       break;
