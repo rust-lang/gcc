@@ -39,4 +39,4 @@ extern void abort(void);
 @end
 
 /* { dg-final { scan-assembler "\t.section __OBJC, __image_info.*\n\t.align.*\nL_OBJC_ImageInfo.*:\n\t.long\t0\n\t.long\t1"  { target { *-*-darwin* && { ! lp64 } } } } } */
-/* { dg-final { scan-assembler "\t.section __DATA, __objc_imageinfo.*\n\t.align.*\nL_OBJC_ImageInfo.*:\n\t.long\t0\n\t.long\t17" { target { *-*-darwin* && { lp64 } } } } } */
+/* { dg-final { scan-assembler "\t.section __DATA, __objc_imageinfo.*\n\t.align.*\nL_OBJC_ImageInfo.*:\n\t.long\t0\n\t.long\t1" { target { *-*-darwin* && { lp64 } } } } } */
