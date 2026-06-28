@@ -5537,15 +5537,15 @@ one_element_array_type_p (const_tree type)
 }
 
 /* Determine whether TYPE is a zero-length array type "[0]".  */
-static bool
+bool
 zero_length_array_type_p (const_tree type)
 {
-  if (TREE_CODE (type) == ARRAY_TYPE)
-    if (tree type_size = TYPE_SIZE_UNIT (type))
-      if ((integer_zerop (type_size))
-	   && TYPE_DOMAIN (type) != NULL_TREE
-	   && TYPE_MAX_VALUE (TYPE_DOMAIN (type)) == NULL_TREE)
-	return true;
+  if (TREE_CODE (type) == ARRAY_TYPE
+      && COMPLETE_TYPE_P (type)
+      && TYPE_DOMAIN (type) != NULL_TREE
+      && (TYPE_MAX_VALUE (TYPE_DOMAIN (type)) == NULL_TREE
+	  || integer_all_onesp (TYPE_MAX_VALUE (TYPE_DOMAIN (type)))))
+    return true;
   return false;
 }
 
@@ -7588,8 +7588,16 @@ grokdeclarator (const struct c_declarator *declarator,
 						 ENCODE_QUAL_ADDR_SPACE (as));
 		if (array_parm_vla_unspec_p)
 		  type = c_build_array_type_unspecified (type);
+		/* The GCC extension for zero-length arrays differs from
+		   ISO flexible array members in that sizeof yields
+		   zero.  */
+		else if (size && integer_zerop (size))
+		  type = c_build_array_type_zero_size (type);
 		else
 		  type = c_build_array_type (type, itype);
+
+		if (!valid_array_size_p (loc, type, name))
+		  type = error_mark_node;
 	      }
 
 	    if (array_parm_vla_unspec_p)
@@ -7608,23 +7616,6 @@ grokdeclarator (const struct c_declarator *declarator,
 		size_varies = true;
 	      }
 
-	    if (type != error_mark_node)
-	      {
-		/* The GCC extension for zero-length arrays differs from
-		   ISO flexible array members in that sizeof yields
-		   zero.  */
-		if (size && integer_zerop (size))
-		  {
-		    gcc_assert (itype);
-		    type = build_distinct_type_copy (TYPE_MAIN_VARIANT (type));
-		    TYPE_SIZE (type) = bitsize_zero_node;
-		    TYPE_SIZE_UNIT (type) = size_zero_node;
-		    SET_TYPE_STRUCTURAL_EQUALITY (type);
-		  }
-
-		if (!valid_array_size_p (loc, type, name))
-		  type = error_mark_node;
-	      }
 
 	    gcc_assert (type == error_mark_node
 			|| flexible_array_member

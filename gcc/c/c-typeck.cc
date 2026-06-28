@@ -392,8 +392,7 @@ c_verify_type (tree type)
       if (!TYPE_STRUCTURAL_EQUALITY_P (type)
 	  && TYPE_STRUCTURAL_EQUALITY_P (TREE_TYPE (type)))
 	return false;
-
-     default:
+    default:
        break;
     }
 
@@ -420,6 +419,29 @@ c_verify_type (tree type)
 	  if (!C_TYPE_VARIABLE_SIZE (type))
 	    return false;
 	  if (!C_TYPE_VARIABLY_MODIFIED (type))
+	    return false;
+	}
+
+      /* va_list violates this, accept such types here.  */
+      if (!COMPLETE_TYPE_P (TREE_TYPE (type)))
+	return true;
+
+      if (COMPLETE_TYPE_P (type))
+	{
+	  /* If the size is unknown, it can not be complete.  */
+	  if (NULL_TREE == TYPE_DOMAIN (type))
+	    return false;
+
+	  /* Zero-length arrays must have size zero.  */
+	  if (zero_length_array_type_p (type)
+	      && !integer_zerop (TYPE_SIZE (type)))
+	    return false;
+	}
+      else
+	{
+	  /* If not complete but has a domain, it must be a FAM.  */
+	  if (NULL_TREE != TYPE_DOMAIN (type)
+	      && !flexible_array_member_type_p (type))
 	    return false;
 	}
     default:
@@ -507,7 +529,6 @@ c_build_array_type (tree type, tree domain)
   return c_set_type_bits (ret, type);
 }
 
-
 /* Build an array type of unspecified size.  */
 tree
 c_build_array_type_unspecified (tree type)
@@ -517,6 +538,20 @@ c_build_array_type_unspecified (tree type)
   return c_build_array_type (type, build_index_type (upper));
 }
 
+/* Build an array type of zero size.  */
+tree
+c_build_array_type_zero_size (tree type)
+{
+  /* The GCC extension for zero-length arrays differs from
+     ISO flexible array members in that sizeof yields
+     zero.  */
+  type = c_build_array_type (type, build_index_type (NULL_TREE));
+  type = build_distinct_type_copy (TYPE_MAIN_VARIANT (type));
+  TYPE_SIZE (type) = bitsize_zero_node;
+  TYPE_SIZE_UNIT (type) = size_zero_node;
+  SET_TYPE_STRUCTURAL_EQUALITY (type);
+  return type;
+}
 
 tree
 c_build_type_attribute_qual_variant (tree type, tree attrs, int quals)
@@ -824,17 +859,16 @@ composite_type_internal (tree t1, tree t2, tree cond,
 	gcc_assert (!TYPE_QUALS_NO_ADDR_SPACE (t1)
 		    && !TYPE_QUALS_NO_ADDR_SPACE (t2));
 
-	bool t1_complete = COMPLETE_TYPE_P (t1);
-	bool t2_complete = COMPLETE_TYPE_P (t2);
-
-	bool d1_zero = d1 == NULL_TREE || !TYPE_MAX_VALUE (d1);
-	bool d2_zero = d2 == NULL_TREE || !TYPE_MAX_VALUE (d2);
+	bool d1_zero = zero_length_array_type_p (t1)
+		       || flexible_array_member_type_p (t1);
+	bool d2_zero = zero_length_array_type_p (t2)
+		       || flexible_array_member_type_p (t2);
 
 	bool d1_variable = top_array_vla_p (t1);
 	bool d2_variable = top_array_vla_p (t2);
 
-	bool use1 = d1 && (d2_variable || d2_zero || !d1_variable);
-	bool use2 = d2 && (d1_variable || d1_zero || !d2_variable);
+	bool use1 = d1 && (d2_variable || !d2 || d2_zero || !d1_variable);
+	bool use2 = d2 && (d1_variable || !d1 || d1_zero || !d2_variable);
 
 	/* If the first is an unspecified size pick the other one.  */
 	if (d2_variable && c_type_unspecified_p (t1))
@@ -889,24 +923,18 @@ composite_type_internal (tree t1, tree t2, tree cond,
 	int quals = TYPE_QUALS (strip_array_types (elt));
 	tree unqual_elt = c_build_qualified_type (elt, TYPE_UNQUALIFIED);
 
-	t1 = c_build_array_type (unqual_elt, td);
+	if ((!d1 || d1_zero) && (!d2 || d2_zero) && (d1 || d2))
+	  t1 = c_build_array_type_zero_size (unqual_elt);
+	else
+	  t1 = c_build_array_type (unqual_elt, td);
 
 	/* Check that a type which has a varying outermost dimension
-	   got marked has having a variable size.  */
+	   got marked as having a variable size.  */
 	bool varsize = (d1_variable && d2_variable)
-		       || (d1_variable && !t2_complete)
-		       || (d2_variable && !t1_complete);
+		       || (d1_variable && !d2)
+		       || (d2_variable && !d1);
 	gcc_checking_assert (!varsize || C_TYPE_VARIABLE_SIZE (t1));
 
-	/* Ensure a composite type involving a zero-length array type
-	   is a zero-length type not an incomplete type.  */
-	if (d1_zero && d2_zero
-	    && (t1_complete || t2_complete)
-	    && !COMPLETE_TYPE_P (t1))
-	  {
-	    TYPE_SIZE (t1) = bitsize_zero_node;
-	    TYPE_SIZE_UNIT (t1) = size_zero_node;
-	  }
 	t1 = c_build_qualified_type (t1, quals);
 	return c_build_type_attribute_variant (t1, attributes);
       }
@@ -1809,9 +1837,6 @@ comptypes_internal (const_tree type1, const_tree type2,
 	if (d1 == NULL_TREE || d2 == NULL_TREE || d1 == d2)
 	  return true;
 
-	bool d1_zero = !TYPE_MAX_VALUE (d1);
-	bool d2_zero = !TYPE_MAX_VALUE (d2);
-
 	bool d1_variable = top_array_vla_p (t1);
 	bool d2_variable = top_array_vla_p (t2);
 
@@ -1819,10 +1844,19 @@ comptypes_internal (const_tree type1, const_tree type2,
 	  data->different_types_p = true;
 	if (d1_variable || d2_variable)
 	  return true;
+
+	bool d1_zero = zero_length_array_type_p (t1)
+		       || flexible_array_member_type_p (t1);
+
+	bool d2_zero = zero_length_array_type_p (t2)
+		       || flexible_array_member_type_p (t2);
+
 	if (d1_zero && d2_zero)
 	  return true;
-	if (d1_zero || d2_zero
-	    || !tree_int_cst_equal (TYPE_MIN_VALUE (d1), TYPE_MIN_VALUE (d2))
+	if (d1_zero || d2_zero)
+	  return false;
+
+	if (!tree_int_cst_equal (TYPE_MIN_VALUE (d1), TYPE_MIN_VALUE (d2))
 	    || !tree_int_cst_equal (TYPE_MAX_VALUE (d1), TYPE_MAX_VALUE (d2)))
 	  return false;
 

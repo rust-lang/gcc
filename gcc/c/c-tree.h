@@ -846,6 +846,7 @@ c_type_unspecified_p (tree t)
 	 && integer_zerop (TREE_OPERAND (TYPE_MAX_VALUE (TYPE_DOMAIN (t)), 1));
 }
 
+extern bool zero_length_array_type_p (const_tree type);
 extern bool char_type_p (tree);
 extern tree c_type_tag (const_tree t);
 extern tree c_objc_common_truthvalue_conversion (location_t, tree,
@@ -960,6 +961,7 @@ extern tree c_build_type_attribute_variant (tree ntype, tree attrs);
 extern tree c_build_pointer_type (tree type);
 extern tree c_build_array_type (tree type, tree domain);
 extern tree c_build_array_type_unspecified (tree type);
+extern tree c_build_array_type_zero_size (tree type);
 extern tree c_build_function_type (tree type, tree args, bool no = false);
 extern tree c_build_pointer_type_for_mode (tree type, machine_mode mode, bool m);
 
