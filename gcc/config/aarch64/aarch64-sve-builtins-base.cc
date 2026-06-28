@@ -1311,6 +1311,25 @@ public:
   CONSTEXPR svext_bhw_impl (scalar_int_mode from_mode)
     : m_from_mode (from_mode) {}
 
+  gimple *
+  fold (gimple_folder &f) const override
+  {
+    /* For unsigned types this is a zero-extend, i.e. a bitwise AND with a
+       constant mask.  The _x form and an all-true _z already lower to that
+       AND; fold the merging form with an all-true predicate to it too, since
+       the predicate makes the inactive operand dead.  */
+    if (f.pred != PRED_m
+	|| !f.type_suffix (0).unsigned_p
+	|| !is_ptrue (f.gp_value (f.call), f.type_suffix (0).element_bytes))
+      return NULL;
+
+    tree op = gimple_call_arg (f.call, 2);
+    tree mask = build_int_cstu (TREE_TYPE (TREE_TYPE (f.lhs)),
+				GET_MODE_MASK (m_from_mode));
+    tree mask_vec = build_vector_from_val (TREE_TYPE (f.lhs), mask);
+    return gimple_build_assign (f.lhs, BIT_AND_EXPR, op, mask_vec);
+  }
+
   rtx
   expand (function_expander &e) const override
   {
