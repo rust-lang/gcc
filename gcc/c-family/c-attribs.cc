@@ -2963,7 +2963,7 @@ handle_counted_by_attribute (tree *node, tree name,
     }
   /* This attribute only applies to a C99 flexible array member type.  */
   else if (TREE_CODE (TREE_TYPE (decl)) == ARRAY_TYPE
-	   && !c_flexible_array_member_type_p (TREE_TYPE (decl)))
+	   && !flexible_array_member_type_p (TREE_TYPE (decl)))
     {
       error_at (DECL_SOURCE_LOCATION (decl),
 		"%qE attribute is not allowed for a non-flexible"

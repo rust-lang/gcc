@@ -265,7 +265,7 @@ c_incomplete_type_error (location_t loc, const_tree value, const_tree type)
 	case ARRAY_TYPE:
 	  if (TYPE_DOMAIN (type))
 	    {
-	      if (TYPE_MAX_VALUE (TYPE_DOMAIN (type)) == NULL)
+	      if (flexible_array_member_type_p (type))
 		{
 		  error_at (loc, "invalid use of flexible array member");
 		  return;
@@ -3089,7 +3089,7 @@ check_counted_by_attribute (location_t loc, tree ref)
   tree subdatum = TREE_OPERAND (ref, 1);
   tree sub_type = TREE_TYPE (subdatum);
 
-  if (!c_flexible_array_member_type_p (sub_type)
+  if (!flexible_array_member_type_p (sub_type)
       && TREE_CODE (sub_type) != POINTER_TYPE)
     return;
 
@@ -3137,7 +3137,7 @@ build_counted_by_ref (tree datum, tree subdatum,
 		      tree *counted_by_type)
 {
   tree sub_type = TREE_TYPE (subdatum);
-  if (!c_flexible_array_member_type_p (sub_type)
+  if (!flexible_array_member_type_p (sub_type)
       && TREE_CODE (sub_type) != POINTER_TYPE)
     return NULL_TREE;
 
@@ -3232,10 +3232,10 @@ build_access_with_size_for_counted_by (location_t loc, tree ref,
 				       tree counted_by_ref,
 				       tree counted_by_type)
 {
-  gcc_assert (c_flexible_array_member_type_p (TREE_TYPE (ref))
+  gcc_assert (flexible_array_member_type_p (TREE_TYPE (ref))
 	      || TREE_CODE (TREE_TYPE (ref)) == POINTER_TYPE);
 
-  bool is_fam = c_flexible_array_member_type_p (TREE_TYPE (ref));
+  bool is_fam = flexible_array_member_type_p (TREE_TYPE (ref));
 
   /* The result type of the call is a pointer to the flexible array type;
      or is the original pointer type to the pointer field with counted_by.  */
@@ -3285,7 +3285,7 @@ handle_counted_by_for_component_ref (location_t loc, tree ref)
   tree subdatum = TREE_OPERAND (ref, 1);
   tree counted_by_type = NULL_TREE;
 
-  if (!(c_flexible_array_member_type_p (TREE_TYPE (ref))
+  if (!(flexible_array_member_type_p (TREE_TYPE (ref))
 	|| TREE_CODE (TREE_TYPE (ref)) == POINTER_TYPE))
     return ref;
 
@@ -9944,7 +9944,7 @@ digest_init (location_t init_loc, tree decl, tree type, tree init,
 	  expr.m_decimal = 0;
 	  maybe_warn_string_init (init_loc, type, expr);
 
-	  if (TYPE_DOMAIN (type) && !TYPE_MAX_VALUE (TYPE_DOMAIN (type)))
+	  if (flexible_array_member_type_p (type))
 	    pedwarn_init (init_loc, OPT_Wpedantic,
 			  "initialization of a flexible array member");
 
@@ -10915,12 +10915,9 @@ pop_init_level (location_t loc, int implicit,
 
   p = constructor_stack;
 
-  /* Error for initializing a flexible array member, or a zero-length
-     array member in an inappropriate context.  */
+  /* Error for initializing a flexible array member.  */
   if (constructor_type && constructor_fields
-      && TREE_CODE (constructor_type) == ARRAY_TYPE
-      && TYPE_DOMAIN (constructor_type)
-      && !TYPE_MAX_VALUE (TYPE_DOMAIN (constructor_type)))
+      && flexible_array_member_type_p (constructor_type))
     {
       /* Silently discard empty initializations.  The parser will
 	 already have pedwarned for empty brackets for C17 and earlier.  */

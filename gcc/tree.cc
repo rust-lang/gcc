@@ -15137,6 +15137,22 @@ default_is_empty_record (const_tree type)
   return is_empty_type (TYPE_MAIN_VARIANT (type));
 }
 
+
+/* Determine whether TYPE is an ISO C99 flexible array member type "[]".  */
+
+bool
+flexible_array_member_type_p (const_tree type)
+{
+  if (TREE_CODE (type) == ARRAY_TYPE
+      && TYPE_SIZE (type) == NULL_TREE
+      && TYPE_DOMAIN (type) != NULL_TREE
+      && TYPE_MAX_VALUE (TYPE_DOMAIN (type)) == NULL_TREE)
+    return true;
+
+  return false;
+}
+
+
 /* Determine whether TYPE is a structure with a flexible array member,
    or a union containing such a structure (possibly recursively).  */
 
@@ -15153,12 +15169,7 @@ flexible_array_type_p (const_tree type)
 	  last = x;
       if (last == NULL_TREE)
 	return false;
-      if (TREE_CODE (TREE_TYPE (last)) == ARRAY_TYPE
-	  && TYPE_SIZE (TREE_TYPE (last)) == NULL_TREE
-	  && TYPE_DOMAIN (TREE_TYPE (last)) != NULL_TREE
-	  && TYPE_MAX_VALUE (TYPE_DOMAIN (TREE_TYPE (last))) == NULL_TREE)
-	return true;
-      return false;
+       return flexible_array_member_type_p (TREE_TYPE (last));
     case UNION_TYPE:
       for (x = TYPE_FIELDS (type); x != NULL_TREE; x = DECL_CHAIN (x))
 	{
