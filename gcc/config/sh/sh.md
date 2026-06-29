@@ -6484,6 +6484,186 @@
 }
   [(set_attr "type" "load")])
 
+
+;; Like DFmode values, V2SF lives in an even fp reg pair and also needs its
+;; set of move insns or else LRA will try to ferry it through GENERAL_REGS
+;; and fail in a reload cycle because it's prohibited by
+;; sh_can_change_mode_class.
+(define_expand "movv2sf"
+  [(set (match_operand:V2SF 0 "general_movdst_operand")
+	(match_operand:V2SF 1 "general_movsrc_operand"))]
+  "TARGET_FPU_ANY"
+{
+  prepare_move_operands (operands, V2SFmode);
+  emit_insn (gen_movv2sf_i (operands[0], operands[1]));
+  DONE;
+})
+
+;; V2SF is not allowed in general registers (see sh_hard_regno_mode_ok),
+;; so only fp-reg and memory alternatives are provided.
+;; After RA split it into 2x fmov.s.
+(define_insn "movv2sf_i"
+  [(set (match_operand:V2SF 0 "general_movdst_operand" "=f,f,m")
+	(match_operand:V2SF 1 "general_movsrc_operand" " f,m,f"))
+   (use (reg:SI FPSCR_MODES_REG))]
+  "TARGET_FPU_ANY
+   && (fp_arith_reg_operand (operands[0], V2SFmode)
+       || fp_arith_reg_operand (operands[1], V2SFmode))"
+  "#"
+  [(set_attr "type" "move")
+   (set_attr "fp_mode" "single")
+   (set_attr "length" "8")])
+
+(define_split
+  [(set (match_operand:V2SF 0 "register_operand")
+	(match_operand:V2SF 1 "register_operand"))
+   (use (reg:SI FPSCR_MODES_REG))]
+  "TARGET_FPU_ANY && reload_completed
+   && FP_REGISTER_P (true_regnum (operands[0]))
+   && FP_REGISTER_P (true_regnum (operands[1]))"
+  [(const_int 0)]
+{
+  int dst = true_regnum (operands[0]);
+  int src = true_regnum (operands[1]);
+
+  /* The register pairs are even-aligned and therefore either identical or
+     disjoint, so the order of the two halves does not matter.  A dst == src
+     no-op move decomposes into two self fmov.s which the existing no-op move
+     splits clean up.  */
+  emit_insn (gen_movsf_ie (gen_rtx_REG (SFmode, dst + SH_REG_MSW_OFFSET),
+			   gen_rtx_REG (SFmode, src + SH_REG_MSW_OFFSET)));
+  emit_insn (gen_movsf_ie (gen_rtx_REG (SFmode, dst + SH_REG_LSW_OFFSET),
+			   gen_rtx_REG (SFmode, src + SH_REG_LSW_OFFSET)));
+  DONE;
+})
+
+;; FIXME: This is essentially a copy of DFmode move split.
+(define_split
+  [(set (match_operand:V2SF 0 "register_operand")
+	(match_operand:V2SF 1 "memory_operand"))
+   (use (reg:SI FPSCR_MODES_REG))]
+  "TARGET_FPU_ANY && reload_completed
+   && FP_REGISTER_P (true_regnum (operands[0]))"
+  [(const_int 0)]
+{
+  int regno = true_regnum (operands[0]);
+  rtx addr, insn;
+  rtx mem2 = change_address (operands[1], SFmode, NULL_RTX);
+  rtx reg0 = gen_rtx_REG (SFmode, regno + SH_REG_MSW_OFFSET);
+  rtx reg1 = gen_rtx_REG (SFmode, regno + SH_REG_LSW_OFFSET);
+
+  operands[1] = copy_rtx (mem2);
+  addr = XEXP (mem2, 0);
+
+  switch (GET_CODE (addr))
+    {
+    case REG:
+      /* If the register is an arithmetic register we can fall through to the
+	 REG+DISP case below.  Otherwise we have to use a combination of
+	 POST_INC and REG addressing.  */
+      if (! arith_reg_operand (operands[1], SFmode))
+	{
+	  XEXP (mem2, 0) = addr = gen_rtx_POST_INC (SImode, addr);
+	  insn = emit_insn (gen_movsf_ie (reg0, mem2));
+	  add_reg_note (insn, REG_INC, XEXP (addr, 0));
+
+	  emit_insn (gen_movsf_ie (reg1, operands[1]));
+
+	  if (REGNO (XEXP (addr, 0)) == STACK_POINTER_REGNUM)
+	    emit_insn (gen_push_e (reg0));
+	  else
+	    emit_insn (gen_addsi3 (XEXP (operands[1], 0), XEXP (operands[1], 0),
+				   GEN_INT (-4)));
+	  break;
+	}
+      /* Fall through.  */
+
+    case PLUS:
+      emit_insn (gen_movsf_ie (reg0, operands[1]));
+      operands[1] = copy_rtx (operands[1]);
+      XEXP (operands[1], 0) = plus_constant (Pmode, addr, 4);
+      emit_insn (gen_movsf_ie (reg1, operands[1]));
+      break;
+
+    case POST_INC:
+      insn = emit_insn (gen_movsf_ie (reg0, operands[1]));
+      add_reg_note (insn, REG_INC, XEXP (addr, 0));
+
+      insn = emit_insn (gen_movsf_ie (reg1, operands[1]));
+      add_reg_note (insn, REG_INC, XEXP (addr, 0));
+      break;
+
+    default:
+      debug_rtx (addr);
+      gcc_unreachable ();
+    }
+
+  DONE;
+})
+
+;; FIXME: This is essentially a copy of DFmode move split.
+(define_split
+  [(set (match_operand:V2SF 0 "memory_operand")
+	(match_operand:V2SF 1 "register_operand"))
+   (use (reg:SI FPSCR_MODES_REG))]
+  "TARGET_FPU_ANY && reload_completed
+   && FP_REGISTER_P (true_regnum (operands[1]))"
+  [(const_int 0)]
+{
+  int regno = true_regnum (operands[1]);
+  rtx insn, addr;
+  rtx reg0 = gen_rtx_REG (SFmode, regno + SH_REG_MSW_OFFSET);
+  rtx reg1 = gen_rtx_REG (SFmode, regno + SH_REG_LSW_OFFSET);
+
+  operands[0] = copy_rtx (operands[0]);
+  PUT_MODE (operands[0], SFmode);
+  addr = XEXP (operands[0], 0);
+
+  switch (GET_CODE (addr))
+    {
+    case REG:
+      /* If the register is an arithmetic register we can fall through to the
+	 REG+DISP case below.  Otherwise we have to use a combination of REG
+	 and PRE_DEC addressing.  */
+      if (! arith_reg_operand (operands[0], SFmode))
+	{
+	  emit_insn (gen_addsi3 (addr, addr, GEN_INT (4)));
+	  emit_insn (gen_movsf_ie (operands[0], reg1));
+
+	  operands[0] = copy_rtx (operands[0]);
+	  XEXP (operands[0], 0) = addr = gen_rtx_PRE_DEC (SImode, addr);
+
+	  insn = emit_insn (gen_movsf_ie (operands[0], reg0));
+	  add_reg_note (insn, REG_INC, XEXP (addr, 0));
+	  break;
+	}
+      /* Fall through.  */
+
+    case PLUS:
+      emit_insn (gen_movsf_ie (operands[0], reg0));
+
+      operands[0] = copy_rtx (operands[0]);
+      XEXP (operands[0], 0) = plus_constant (Pmode, addr, 4);
+
+      emit_insn (gen_movsf_ie (operands[0], reg1));
+      break;
+
+    case PRE_DEC:
+      insn = emit_insn (gen_movsf_ie (operands[0], reg1));
+      add_reg_note (insn, REG_INC, XEXP (addr, 0));
+
+      insn = emit_insn (gen_movsf_ie (operands[0], reg0));
+      add_reg_note (insn, REG_INC, XEXP (addr, 0));
+      break;
+
+    default:
+      debug_rtx (addr);
+      gcc_unreachable ();
+    }
+
+  DONE;
+})
+
 (define_expand "movsf"
   [(set (match_operand:SF 0 "general_movdst_operand" "")
         (match_operand:SF 1 "general_movsrc_operand" ""))]

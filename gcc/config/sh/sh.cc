@@ -3579,7 +3579,7 @@ sh_max_mov_insn_displacement (machine_mode mode, bool consider_sh2a)
   /* SH2A supports FPU move insns with 12 bit displacements.
      Other variants to do not support any kind of displacements for
      FPU move insns.  */
-  if (! consider_sh2a && TARGET_FPU_ANY && GET_MODE_CLASS (mode) == MODE_FLOAT)
+  if (! consider_sh2a && TARGET_FPU_ANY && FLOAT_MODE_P (mode))
     return 0;
   else
     {
@@ -10579,8 +10579,10 @@ sh_hard_regno_mode_ok (unsigned int regno, machine_mode mode)
 
   if (mode == V2SFmode)
     {
-      if (((FP_REGISTER_P (regno) && (regno - FIRST_FP_REG) % 2 == 0)
-	   || GENERAL_REGISTER_P (regno)))
+      /* V2SF may not live in general registers when optimizing, see
+	 sh_can_change_mode_class.  Keep it out of general regs so that it's
+	 always treated as fp reg pair.  */
+      if (FP_REGISTER_P (regno) && (regno - FIRST_FP_REG) % 2 == 0)
 	return true;
       else
 	return false;
