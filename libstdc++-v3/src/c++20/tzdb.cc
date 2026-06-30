@@ -694,6 +694,147 @@ namespace std::chrono
       }
 #endif
     };
+
+    const Rule*
+    find_active_rule(span<const Rule> rules, sys_seconds t, seconds std_offset)
+    {
+      struct Transition {
+	const Rule* rule;
+	sys_seconds when;
+      };
+
+      const year_month_day date(chrono::floor<days>(t));
+      // Expand the search window for a time near the end
+      // of the year which can be pushed to next/previous
+      // year by 'offset'. This assumes that 'offset' is
+      // never greater than 24h.
+      year first_year = date.year(), last_year = date.year();
+      if (std_offset.count() > 0)
+	if (date.month() == December && date.day() == day(31))
+	  ++last_year;
+      if (std_offset.count() < 0)
+	if (date.month() == January && date.day() == day(1))
+	  --first_year;
+
+      // Rule specifying start time as Wall time, should apply
+      // running 'save' accumulated by earlier rules. To handle
+      // that we firstly collect transitions surrounding specified
+      // time t, ignoring the 'save':
+      // * curr_tran - rule active directly before or at t,
+      // * prev_tran - rule transition before curr_tran
+      // * next_tran - rule transition directly after t
+      Transition prev_tran{nullptr, sys_seconds::min()};
+      Transition curr_tran{nullptr, sys_seconds::min()};
+      Transition next_tran{nullptr, sys_seconds::max()};
+      for (const auto& rule : rules)
+	{
+	  if (last_year < rule.from) // Rule doesn't apply yet at time t.
+	    break; // Rules are ordered by 'from' in ascending order.
+
+	  seconds offset{}; // appropriate for at_time::Universal
+	  if (rule.when.indicator == at_time::Wall
+	      || rule.when.indicator == at_time::Standard)
+	    offset = std_offset;
+
+	  // Times at which rule takes affect before (or equal) t,
+	  // and after t, respectively.
+	  sys_seconds start_before = sys_seconds::min();
+	  sys_seconds start_after = sys_seconds::max();
+	  auto for_year = [&](year y)
+	  {
+	    // Time the rule takes effect on year y:
+	    const sys_seconds rule_start = rule.start_time(y, offset);
+	    if (rule_start <= t)
+	      {
+		start_before = rule_start;
+		if (y == last_year && rule.to > y)
+		  start_after = rule.start_time(++y, offset);
+	      }
+	    // Do not override start_after set for first_year
+	    else if (rule_start < start_after)
+	      {
+		start_after = rule_start;
+		if (y == first_year && rule.from < y)
+		  start_before = rule.start_time(--y, offset);
+	      }
+	  };
+
+	  if (first_year > rule.to)
+	    // Rule no longer applies at time t, record last transition
+            start_before = rule.start_time(rule.to, offset);
+	  else if (first_year == last_year)
+	    for_year(first_year);
+	  else
+	   {
+	     // Local time may of t may be in prev/next year.
+	     if (first_year >= rule.from)
+	       for_year(first_year);
+	     if (last_year <= rule.to)
+	       for_year(last_year);
+	   }
+
+	  if (curr_tran.when < start_before)
+	    {
+	      prev_tran = curr_tran;
+	      curr_tran = {&rule, start_before};
+	    }
+	  else if (prev_tran.when < start_before)
+	    prev_tran = {&rule, start_before};
+
+	  if (start_after < next_tran.when)
+	    next_tran = {&rule, start_after};
+	}
+
+      // No rule was active at the time of t, running 'save'
+      // cannot change this output, as we have no save to apply.
+      if (!curr_tran.rule)
+	return nullptr;
+
+      auto cascade_save = [](const Rule* from, Transition& to)
+      {
+	if (!from || from->save == seconds(0))
+	  return false;
+	if (!to.rule || to.rule->when.indicator != at_time::Wall)
+	   return false;
+	to.when -= from->save;
+	return true;
+      };
+
+      if (cascade_save(curr_tran.rule, next_tran))
+	// Running save moved what we considered next_tran to time
+	// before or at t, in that case next_tran is active rule.
+	if (next_tran.when <= t)
+	  return next_tran.rule;
+
+      if (cascade_save(prev_tran.rule, curr_tran))
+	// Running save moved what we consider curr_tran to
+	// time after t, in that case prev_tran is active rule.
+	if (curr_tran.when > t)
+	  return prev_tran.rule;
+
+      return curr_tran.rule;
+    }
+
+    const Rule*
+    find_first_std(span<const Rule> rules)
+    {
+      auto is_std = [](const Rule& rule) { return !rule.save.count(); };
+      // Rules with same name are sorted by 'from' and then 'save' in ascending order.
+      auto it = ranges::find_if(rules, is_std);
+      if (it == rules.end())
+	return nullptr;
+
+      const Rule* first = &*it;
+      const year y = first->from;
+      for (const Rule& next : span<const Rule>(++it, rules.end()))
+	{
+	  if (!is_std(next) || next.from > y)
+	    break;
+	  if (next.start_time(y, {}) < first->start_time(y, {}))
+	    first = &next;
+	}
+      return first;
+    }
   } // namespace
 #endif // TZDB_DISABLED
 
@@ -882,70 +1023,17 @@ namespace std::chrono
 
     if (letters.empty())
       {
-	sys_seconds t = info.begin - seconds(1);
-	const year_month_day date(chrono::floor<days>(t));
-
 	// Try to find a Rule active before this time, to get initial
 	// SAVE and LETTERS values. There may not be a Rule for the period
 	// before the first DST transition, so find the earliest DST->STD
 	// transition and use the LETTERS from that.
-	const Rule* active_rule = nullptr;
-	sys_seconds active_rule_start = sys_seconds::min();
-	const Rule* first_std = nullptr;
-	for (const auto& rule : rules)
-	  {
-	    if (rule.save == minutes(0))
-	      {
-		if (!first_std)
-		  first_std = &rule;
-		else if (rule.from < first_std->from)
-		  first_std = &rule;
-		else if (rule.from == first_std->from)
-		  {
-		    if (rule.start_time(rule.from, {})
-			  < first_std->start_time(first_std->from, {}))
-		      first_std = &rule;
-		  }
-	      }
-
-	    year y = date.year();
-
-	    if (y > rule.to) // rule no longer applies at time t
-	      continue;
-	    if (y < rule.from) // rule doesn't apply yet at time t
-	      continue;
-
-	    sys_seconds rule_start;
-
-	    seconds offset{}; // appropriate for at_time::Universal
-	    if (rule.when.indicator == at_time::Wall)
-	      offset = info.offset;
-	    else if (rule.when.indicator == at_time::Standard)
-	      offset = ri.offset();
-
-	    // Time the rule takes effect this year:
-	    rule_start = rule.start_time(y, offset);
-
-	    if (rule_start >= t && rule.from < y)
-	      {
-		// Try this rule in the previous year.
-		rule_start = rule.start_time(--y, offset);
-	      }
-
-	    if (active_rule_start < rule_start && rule_start < t)
-	      {
-		active_rule_start = rule_start;
-		active_rule = &rule;
-	      }
-	  }
-
-	if (active_rule)
+	if (const Rule* active_rule = find_active_rule(rules, info.begin - seconds(1), ri.offset()))
 	  {
 	    info.offset = ri.offset() + active_rule->save;
 	    info.save = chrono::duration_cast<minutes>(active_rule->save);
 	    letters = active_rule->letters;
 	  }
-	else if (first_std)
+	else if (const Rule* first_std = find_first_std(rules))
 	  letters = first_std->letters;
       }
 
@@ -1826,7 +1914,14 @@ constinit tzdb_list::_Node::NumLeapSeconds tzdb_list::_Node::num_leap_seconds;
 
     ranges::sort(node->db.zones, {}, &time_zone::name);
     ranges::sort(node->db.links, {}, &time_zone_link::name);
-    ranges::stable_sort(node->rules, {}, &Rule::name);
+    ranges::sort(node->rules, [](const Rule& lhs, const Rule& rhs)
+    {
+      if (auto result = lhs.name <=> rhs.name; result != 0)
+	return result < 0;
+      if (auto result = lhs.from <=> rhs.from; result != 0)
+	return result < 0;
+      return lhs.save < rhs.save;
+    });
 
     return Node::_S_replace_head(std::move(head), std::move(node));
 #else
@@ -2414,7 +2509,7 @@ constinit tzdb_list::_Node::NumLeapSeconds tzdb_list::_Node::num_leap_seconds;
 	    {
 	      if (c = in.get(); c == '<' || c == '>')
 		if (in.get() == '=')
-	          if (unsigned d; (in >> d) && (d <= 31)) [[likely]]
+		  if (unsigned d; (in >> d) && (d <= 31)) [[likely]]
 		    {
 		      on.kind = c == '<' ? LessEq : GreaterEq;
 		      on.day_of_week = w.wd.c_encoding();
