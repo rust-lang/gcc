@@ -67,12 +67,19 @@ public:
   range_query &const_query ();
 protected:
   bool fold_range_internal (vrange &r, gimple *s, tree name);
-  void prefill_name (vrange &r, tree name);
+  struct prefill_frame
+  {
+    tree name;
+    unsigned next_op;
+  };
+  vec<prefill_frame> m_prefill_stack;
+  bool prefill_name (tree name);
   void prefill_stmt_dependencies (tree ssa);
   ranger_cache m_cache;
   range_tracer tracer;
   basic_block current_bb;
   vec<tree> m_stmt_list;
+  bitmap m_active_prefill;
   friend class path_range_query;
 };
 

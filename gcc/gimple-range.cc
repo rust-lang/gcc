@@ -51,6 +51,8 @@ gimple_ranger::gimple_ranger (bool use_imm_uses) :
   m_stmt_list.create (0);
   m_stmt_list.safe_grow (num_ssa_names);
   m_stmt_list.truncate (0);
+  m_prefill_stack.create (0);
+  m_active_prefill = BITMAP_ALLOC (NULL);
 
   // Ensure the not_executable flag is clear everywhere.
   if (flag_checking)
@@ -68,6 +70,8 @@ gimple_ranger::gimple_ranger (bool use_imm_uses) :
 
 gimple_ranger::~gimple_ranger ()
 {
+  BITMAP_FREE (m_active_prefill);
+  m_prefill_stack.release ();
   m_stmt_list.release ();
 }
 
@@ -375,31 +379,46 @@ gimple_ranger::range_of_stmt (vrange &r, gimple *s, tree name)
   return res;
 }
 
+// Return true if NAME has not been calculated yet and is pushed onto
+// the prefill to be processed.
 
-// Check if NAME is a dependency that needs resolving, and push it on the
-// stack if so.  R is a scratch range.
-
-inline void
-gimple_ranger::prefill_name (vrange &r, tree name)
+inline bool
+gimple_ranger::prefill_name (tree name)
 {
   if (!gimple_range_ssa_p (name))
-    return;
+    return false;
+
+  unsigned v = SSA_NAME_VERSION (name);
+
+  // Already active cycle.  Use seeded value and do not chase it.
+  if (bitmap_bit_p (m_active_prefill, v))
+    return false;
+
+  // Process only range-ops and PHIs.
   gimple *stmt = SSA_NAME_DEF_STMT (name);
   if (!gimple_range_op_handler::supported_p (stmt) && !is_a<gphi *> (stmt))
-    return;
+    return false;
 
-  // If this op has not been processed yet, then push it on the stack
-  if (!m_cache.get_global_range (r, name))
-    {
-      bool current;
-      // Set the global cache value and mark as alway_current.
-      m_cache.get_global_range (r, name, current);
-      m_stmt_list.safe_push (name);
-    }
+  // Already calculated.
+  value_range r (TREE_TYPE (name));
+  if (m_cache.get_global_range (r, name))
+    return false;
+
+  bool current;
+  // Seed the initial cache value to avoid cycles.
+  m_cache.get_global_range (r, name, current);
+
+  bitmap_set_bit (m_active_prefill, v);
+  m_prefill_stack.safe_push ({ name, 0 });
+  return true;
 }
 
-// This routine will seed the global cache with most of the dependencies of
-// NAME.  This prevents excessive call depth through the normal API.
+
+// This Prefills the global cache with the dependencies of SSA before it is
+// evaluated.  Dependencies are traversed iteratively in depth-first order,
+// ensuring each operand is calculated and cached before the statement which
+// uses it.  This avoids deep recursion through the normal range_of_stmt /
+// range_of_expr interfaces while preserving the natural dependency ordering.
 
 void
 gimple_ranger::prefill_stmt_dependencies (tree ssa)
@@ -407,55 +426,28 @@ gimple_ranger::prefill_stmt_dependencies (tree ssa)
   if (SSA_NAME_IS_DEFAULT_DEF (ssa))
     return;
 
-  unsigned idx;
   gimple *stmt = SSA_NAME_DEF_STMT (ssa);
   gcc_checking_assert (stmt);
   if (!gimple_bb (stmt))
     return;
 
-  // Only pre-process range-ops and phis.
+  // Process only range-ops and PHIs.
   if (!gimple_range_op_handler::supported_p (stmt) && !is_a<gphi *> (stmt))
     return;
 
-  // Mark where on the stack we are starting.
-  unsigned start = m_stmt_list.length ();
-  m_stmt_list.safe_push (ssa);
+  unsigned idx = tracer.header ("ROS dependence fill\n");
 
-  idx = tracer.header ("ROS dependence fill\n");
+  bitmap_set_bit (m_active_prefill, SSA_NAME_VERSION (ssa));
+  m_prefill_stack.safe_push ({ ssa, 0 });
 
-  // Loop until back at the start point.
-  while (m_stmt_list.length () > start)
+  while (!m_prefill_stack.is_empty ())
     {
-      tree name = m_stmt_list.last ();
-      // NULL is a marker which indicates the next name in the stack has now
-      // been fully resolved, so we can fold it.
-      if (!name)
-	{
-	  // Pop the NULL, then pop the name.
-	  m_stmt_list.pop ();
-	  name = m_stmt_list.pop ();
-	  // Don't fold initial request, it will be calculated upon return.
-	  if (m_stmt_list.length () > start)
-	    {
-	      // Fold and save the value for NAME.
-	      stmt = SSA_NAME_DEF_STMT (name);
-	      value_range r (TREE_TYPE (name));
-	      fold_range_internal (r, stmt, name);
-	      // Make sure we don't lose any current global info.
-	      value_range tmp (TREE_TYPE (name));
-	      m_cache.get_global_range (tmp, name);
-	      bool changed = tmp.intersect (r);
-	      m_cache.set_global_range (name, tmp, changed);
-	    }
-	  continue;
-	}
-
-      // Add marker indicating previous NAME in list should be folded
-      // when we get to this NULL.
-      m_stmt_list.safe_push (NULL_TREE);
+      prefill_frame &frame = m_prefill_stack.last ();
+      tree name = frame.name;
       stmt = SSA_NAME_DEF_STMT (name);
 
-      if (idx)
+      // Print the ROS (Range Of Stmt) data the first time it is seen.
+      if (idx && frame.next_op == 0)
 	{
 	  tracer.print (idx, "ROS dep fill (");
 	  print_generic_expr (dump_file, name, TDF_SLIM);
@@ -463,40 +455,56 @@ gimple_ranger::prefill_stmt_dependencies (tree ssa)
 	  print_gimple_stmt (dump_file, stmt, 0, TDF_SLIM);
 	}
 
-      gphi *phi = dyn_cast <gphi *> (stmt);
-      if (phi)
+      if (gphi *phi = dyn_cast <gphi *> (stmt))
 	{
-	  value_range r (TREE_TYPE (gimple_phi_result (phi)));
-	  for (unsigned x = 0; x < gimple_phi_num_args (phi); x++)
-	    prefill_name (r, gimple_phi_arg_def (phi, x));
+	  while (frame.next_op < gimple_phi_num_args (phi))
+	    {
+	      tree op = gimple_phi_arg_def (phi, frame.next_op++);
+	      if (prefill_name (op))
+		break;
+	    }
 	}
       else
 	{
 	  gimple_range_op_handler handler (stmt);
-	  if (handler)
+	  while (handler && frame.next_op < 2)
 	    {
-	      tree op = handler.operand2 ();
-	      if (op)
-		{
-		  value_range r (TREE_TYPE (op));
-		  prefill_name (r, op);
-		}
-	      op = handler.operand1 ();
-	      if (op)
-		{
-		  value_range r (TREE_TYPE (op));
-		  prefill_name (r, op);
-		}
+	      tree op = (frame.next_op++ == 0) ? handler.operand2 ()
+					       : handler.operand1 ();
+	      if (!op)
+		continue;
+	      if (prefill_name (op))
+		break;
 	    }
 	}
+
+      // If the same name is not top of stack, keep processing.
+      if (m_prefill_stack.last ().name != name)
+	continue;
+
+      // All dependencies have been handled.  Pop and fold.
+      m_prefill_stack.pop ();
+      bitmap_clear_bit (m_active_prefill, SSA_NAME_VERSION (name));
+
+      // Do not fold the original request.  The caller will calculate it.
+      if (name == ssa)
+	continue;
+
+      value_range r (TREE_TYPE (name));
+      fold_range_internal (r, stmt, name);
+
+      value_range tmp (TREE_TYPE (name));
+      m_cache.get_global_range (tmp, name);
+      bool changed = tmp.intersect (r);
+      m_cache.set_global_range (name, tmp, changed);
     }
+
   if (idx)
     {
       unsupported_range r;
       tracer.trailer (idx, "ROS ", false, ssa, r);
     }
 }
-
 
 // This routine will invoke the gimple fold_stmt routine, providing context to
 // range_of_expr calls via an private internal API.
