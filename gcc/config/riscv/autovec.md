@@ -2436,7 +2436,7 @@
   "TARGET_VECTOR && !HONOR_SNANS (<MODE>mode)"
 {
   REAL_VALUE_TYPE rv;
-  real_inf (&rv, true);
+  real_nan (&rv, "", 1, VOIDmode);
   rtx f = const_double_from_real_value (rv, <VEL>mode);
   riscv_vector::expand_reduction (UNSPEC_REDUC_MAX,
 				  UNSPEC_REDUC_MAX_VL0_SAFE,
@@ -2451,7 +2451,7 @@
   "TARGET_VECTOR && !HONOR_SNANS (<MODE>mode)"
 {
   REAL_VALUE_TYPE rv;
-  real_inf (&rv, false);
+  real_nan (&rv, "", 1, VOIDmode);
   rtx f = const_double_from_real_value (rv, <VEL>mode);
   riscv_vector::expand_reduction (UNSPEC_REDUC_MIN,
 				  UNSPEC_REDUC_MIN_VL0_SAFE,
