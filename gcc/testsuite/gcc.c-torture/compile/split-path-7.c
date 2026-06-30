@@ -1,5 +1,3 @@
-/* { dg-do compile } */
-/* { dg-options "-O2 -fsplit-paths -fno-tree-cselim -fno-ssa-phiopt -fno-tree-sink -fdump-tree-split-paths-details -w" } */
 
 
 struct _reent
@@ -91,4 +89,3 @@ linit ()
 	}
     }
 }
-/* { dg-final { scan-tree-dump-times "Duplicating join block" 0 "split-paths" } } */

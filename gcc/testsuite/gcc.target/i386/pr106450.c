@@ -1,5 +1,5 @@
 /* { dg-do compile { target int128 } } */
-/* { dg-options "-O2 -fsplit-paths" } */
+/* { dg-options "-O2" } */
 
 __int128 n;
 

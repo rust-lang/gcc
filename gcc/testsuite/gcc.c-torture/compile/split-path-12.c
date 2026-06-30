@@ -1,5 +1,3 @@
-/* { dg-do compile } */
-/* { dg-options "-O2 -fsplit-paths -fdump-tree-split-paths-details " } */
 
 double
 foo(double *d1, double *d2, double *d3, int num, double *ip)
@@ -18,4 +16,3 @@ foo(double *d1, double *d2, double *d3, int num, double *ip)
 
 /* Split-paths shouldn't do anything here, if there's a diamond it would
    be if-convertible.  */
-/* { dg-final { scan-tree-dump-not "Duplicating join block" "split-paths" } } */

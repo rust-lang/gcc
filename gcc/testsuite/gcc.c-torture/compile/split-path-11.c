@@ -1,5 +1,3 @@
-/* { dg-do compile } */
-/* { dg-options "-O2 -fno-tree-vectorize -fsplit-paths -fdump-tree-split-paths-details -w" } */
 
 void foo(unsigned long long *M)
 {
@@ -11,4 +9,3 @@ void foo(unsigned long long *M)
     }
 }
 
-/* { dg-final { scan-tree-dump-times "join point for if-convertible" 1 "split-paths" } } */

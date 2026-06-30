@@ -351,7 +351,6 @@ along with GCC; see the file COPYING3.  If not see
       NEXT_PASS (pass_cse_reciprocals);
       NEXT_PASS (pass_reassoc, false /* early_p */);
       NEXT_PASS (pass_strength_reduction);
-      NEXT_PASS (pass_split_paths);
       NEXT_PASS (pass_tracer);
       NEXT_PASS (pass_fre, false /* may_iterate */);
       /* After late FRE we rewrite no longer addressed locals into SSA

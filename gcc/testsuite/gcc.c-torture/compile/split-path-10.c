@@ -1,6 +1,4 @@
 /* PR tree-optimization/79389  */
-/* { dg-do compile } */
-/* { dg-options "-O3 -fdump-tree-split-paths-details" } */
 
 typedef struct
 {
@@ -46,4 +44,3 @@ double MonteCarlo_integrate(int Num_samples)
   return ((double) under_curve / Num_samples) * 4.0;
 }
 
-/* { dg-final { scan-tree-dump-times "Duplicating join block" 0 "split-paths" } } */

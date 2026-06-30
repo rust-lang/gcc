@@ -3388,8 +3388,8 @@ Common Var(flag_tree_vrp) Init(0) Optimization
 Perform Value Range Propagation on trees.
 
 fsplit-paths
-Common Var(flag_split_paths) Init(0) Optimization
-Split paths leading to loop backedges.
+Common Ignore
+Does nothing.  Preserved for backward compatibility.
 
 funconstrained-commons
 Common Var(flag_unconstrained_commons) Optimization

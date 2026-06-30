@@ -1,5 +1,3 @@
-/* { dg-do compile } */
-/* { dg-options "-O2 -fsplit-paths -fno-tree-cselim -fno-ssa-phiopt -fdump-tree-split-paths-details -fno-finite-loops -fno-tree-dominator-opts -fno-tree-vrp -w" } */
 
 struct __sFILE
 {
@@ -75,4 +73,3 @@ lookharder (char *string)
     }
 }
 
-/* { dg-final { scan-tree-dump-times "Duplicating join block" 2 "split-paths" } } */

@@ -1,6 +1,4 @@
-/* { dg-do run } */
 /* Note both PHI-OPT and the loop if conversion pass converts the inner if to be branchless using min/max. */
-/* { dg-options "-O2 -fsplit-paths -fdump-tree-split-paths-details --param max-jump-thread-duplication-stmts=20 -fno-ssa-phiopt -fno-tree-loop-if-convert" } */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,4 +65,3 @@ main()
   return 0;
 }
 
-/* { dg-final { scan-tree-dump "Duplicating join block" "split-paths" } } */

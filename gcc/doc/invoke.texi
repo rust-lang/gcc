@@ -676,7 +676,7 @@ Objective-C and Objective-C++ Dialects}.
 -fsemantic-interposition  -fshrink-wrap  -fshrink-wrap-separate
 -fsignaling-nans
 -fsingle-precision-constant  -fsplit-ivs-in-unroller  -fsplit-loops
--fspeculatively-call-stored-functions  -fsplit-paths
+-fspeculatively-call-stored-functions
 -fsplit-wide-types  -fsplit-wide-types-early  -fssa-backprop  -fssa-phiopt
 -fstdarg-opt  -fstore-merging  -fstrict-aliasing -fipa-strict-aliasing
 -fthread-jumps  -ftracer  -ftree-bit-ccp
@@ -13626,7 +13626,6 @@ by @option{-O2} and also turns on the following optimization flags:
 -fpeel-loops
 -fpredictive-commoning
 -fsplit-loops
--fsplit-paths
 -ftree-loop-distribution
 -ftree-partial-pre
 -funswitch-loops
@@ -15469,9 +15468,8 @@ enabled.
 @opindex fsplit-paths
 @opindex fno-split-paths
 @item -fsplit-paths
-Split paths leading to loop backedges.  This can improve dead code
-elimination and common subexpression elimination.  This is enabled by
-default at @option{-O3} and above.
+This option is deprecated and does nothing.  It is accepted only for
+backward compatibility.
 
 @opindex fsplit-ivs-in-unroller
 @opindex fno-split-ivs-in-unroller

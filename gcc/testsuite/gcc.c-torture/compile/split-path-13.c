@@ -1,5 +1,3 @@
-/* { dg-do compile } */
-/* { dg-options "-O2 -fsplit-paths -fdump-tree-split-paths-details " } */
 /* PR tree-optimization/112402 */
 /* This is similar to split-path-2.c but instead of the add
    being inside both sides, we have a constant. */
@@ -22,5 +20,4 @@ foo(signed char *p, int n)
   return s;
 }
 
-/* { dg-final { scan-tree-dump "appears to be a join point for if-convertible" "split-paths" } } */
 

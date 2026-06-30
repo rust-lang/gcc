@@ -1542,7 +1542,6 @@ OBJS = \
 	gimple-ssa-isolate-paths.o \
 	gimple-ssa-nonnull-compare.o \
 	gimple-ssa-sccopy.o \
-	gimple-ssa-split-paths.o \
 	gimple-ssa-store-merging.o \
 	gimple-ssa-strength-reduction.o \
 	gimple-ssa-sprintf.o \

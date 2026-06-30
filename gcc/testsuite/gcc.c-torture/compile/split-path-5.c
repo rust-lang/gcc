@@ -1,5 +1,3 @@
-/* { dg-do compile } */
-/* { dg-options "-O2 -fsplit-paths -fdump-tree-split-paths-details -w" } */
 
 const extern signed char *__ctype_ptr__;
 typedef unsigned char uchar;
@@ -41,4 +39,3 @@ bmhi_init (const signed char *pattern)
     }
 }
 
-/* { dg-final { scan-tree-dump-times "join point for if-convertible" 1 "split-paths" } } */
