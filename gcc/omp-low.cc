@@ -8825,7 +8825,9 @@ lower_omp_single_simple (gomp_single *single_stmt, gimple_seq *pre_p)
   gimple *call, *cond;
   tree lhs, decl;
 
-  decl = builtin_decl_explicit (BUILT_IN_GOMP_SINGLE_START);
+  decl = builtin_decl_explicit (flag_openmp_ompt
+				  ? BUILT_IN_GOMP_SINGLE_START_WITH_END
+				  : BUILT_IN_GOMP_SINGLE_START);
   lhs = create_tmp_var (TREE_TYPE (TREE_TYPE (decl)));
   call = gimple_build_call (decl, 0);
   gimple_call_set_lhs (call, lhs);
@@ -8962,6 +8964,15 @@ lower_omp_single (gimple_stmt_iterator *gsi_p, omp_context *ctx)
   gimple *g = gimple_build_omp_return (nowait);
   gimple_seq_add_stmt (&bind_body_tail, g);
   maybe_add_implicit_barrier_cancel (ctx, g, &bind_body_tail);
+
+  if (flag_openmp_ompt && !ctx->record_type)
+    {
+      /* Insert call to GOMP_single_end.  */
+      tree decl = builtin_decl_explicit (BUILT_IN_GOMP_SINGLE_END);
+      gimple *stmt = gimple_build_call (decl, 0);
+      gimple_seq_add_stmt (&bind_body_tail, stmt);
+    }
+
   if (ctx->record_type)
     {
       gimple_stmt_iterator gsi = gsi_start (bind_body_tail);
@@ -9137,6 +9148,14 @@ lower_omp_master (gimple_stmt_iterator *gsi_p, omp_context *ctx)
   gimple_omp_set_body (stmt, maybe_catch_exception (gimple_omp_body (stmt)));
   gimple_bind_add_seq (bind, gimple_omp_body (stmt));
   gimple_omp_set_body (stmt, NULL);
+
+  if (flag_openmp_ompt)
+    {
+      /* Insert call to GOMP_masked_end at the end of the body.  */
+      tree decl = builtin_decl_explicit (BUILT_IN_GOMP_MASKED_END);
+      gcall *g = gimple_build_call (decl, 0);
+      gimple_bind_add_stmt (bind, g);
+    }
 
   gimple_bind_add_stmt (bind, gimple_build_label (lab));
 

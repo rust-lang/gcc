@@ -271,18 +271,6 @@ GOMP_cancel (int which, bool do_cancel)
   return true;
 }
 
-/* For a worksharing-loop construct with static schedule, return the thread ID
-   and number of threads packed into a single complex value.  */
-
-_Complex int
-GOMP_loop_static_worksharing (void)
-{
-  struct gomp_team *team = gomp_thread ()->ts.team;
-  unsigned tid = gomp_thread ()->ts.team_id;
-  unsigned nthreads = team ? team->nthreads : 1;
-  return nthreads + tid * 1I;
-}
-
 /* Return true if the current thread number equals TID.
    Used to implement the masked construct's filter clause.  */
 
@@ -291,6 +279,12 @@ GOMP_has_masked_thread_num (int tid)
 {
   return tid == gomp_thread ()->ts.team_id;
 }
+
+/* Stub for OMPT callback enabled by -fopenmp-ompt.  */
+
+void
+GOMP_masked_end (void)
+{}
 
 /* The public OpenMP API for thread and team related inquiries.  */
 

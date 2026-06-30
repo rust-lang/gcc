@@ -1186,3 +1186,38 @@ GOMP_loop_ordered_guided_next (long *istart, long *iend)
   return gomp_loop_ordered_guided_next (istart, iend);
 }
 #endif
+
+/* For a worksharing-loop construct with static schedule, return the thread ID
+   and number of threads packed into a single complex value.  */
+
+_Complex int
+GOMP_loop_static_worksharing (void)
+{
+  struct gomp_team *team = gomp_thread ()->ts.team;
+  unsigned tid = gomp_thread ()->ts.team_id;
+  unsigned nthreads = team ? team->nthreads : 1;
+  return nthreads + tid * 1I;
+}
+
+/* OMPT variant enabled by -fopenmp-ompt.  */
+
+_Complex int
+GOMP_loop_static_worksharing_start (void)
+{
+  struct gomp_team *team = gomp_thread ()->ts.team;
+  unsigned tid = gomp_thread ()->ts.team_id;
+  unsigned nthreads = team ? team->nthreads : 1;
+  return nthreads + tid * 1I;
+}
+
+/* Stub for OMPT callback enabled by -fopenmp-ompt-detailed.  */
+
+void
+GOMP_loop_static_worksharing_dispatch (void)
+{}
+
+/* Stub for OMPT callback enabled by -fopenmp-ompt.  */
+
+void
+GOMP_loop_static_worksharing_end (void)
+{}

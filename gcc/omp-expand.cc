@@ -5201,10 +5201,14 @@ expand_omp_for_static_nochunk (struct omp_region *region,
   switch (gimple_omp_for_kind (fd->for_stmt))
     {
     case GF_OMP_FOR_KIND_FOR:
-      decl = builtin_decl_explicit (BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING);
+      decl = builtin_decl_explicit (
+	flag_openmp_ompt ? BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_START
+			 : BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING);
       break;
     case GF_OMP_FOR_KIND_DISTRIBUTE:
-      decl = builtin_decl_explicit (BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING);
+      decl = builtin_decl_explicit (
+	flag_openmp_ompt ? BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_START
+			 : BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING);
       break;
     default:
       gcc_unreachable ();
@@ -5576,8 +5580,53 @@ expand_omp_for_static_nochunk (struct omp_region *region,
 						   cont_bb, body_bb);
     }
 
-  /* Replace the GIMPLE_OMP_RETURN with a barrier, or nothing.  */
+  if (flag_openmp_ompt_detailed)
+    {
+      /* Insert call to GOMP_*_static_worksharing_dispatch at the end of
+	 seq_start_bb.  */
+      gsi = gsi_last_nondebug_bb (seq_start_bb);
+      tree decl;
+      switch (gimple_omp_for_kind (fd->for_stmt))
+	{
+	case GF_OMP_FOR_KIND_FOR:
+	  decl = builtin_decl_explicit (
+	    BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_DISPATCH);
+	  break;
+	case GF_OMP_FOR_KIND_DISTRIBUTE:
+	  decl = builtin_decl_explicit (
+	    BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_DISPATCH);
+	  break;
+	default:
+	  gcc_unreachable ();
+	}
+      gcall *g = gimple_build_call (decl, 0);
+      gsi_insert_before (&gsi, g, GSI_SAME_STMT);
+    }
+
   gsi = gsi_last_nondebug_bb (exit_bb);
+  if (flag_openmp_ompt)
+    {
+      /* Insert call to GOMP_*_static_worksharing_end at the end of exit_bb.
+       */
+      tree decl;
+      switch (gimple_omp_for_kind (fd->for_stmt))
+	{
+	case GF_OMP_FOR_KIND_FOR:
+	  decl
+	    = builtin_decl_explicit (BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_END);
+	  break;
+	case GF_OMP_FOR_KIND_DISTRIBUTE:
+	  decl = builtin_decl_explicit (
+	    BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_END);
+	  break;
+	default:
+	  gcc_unreachable ();
+	}
+      gcall *g = gimple_build_call (decl, 0);
+      gsi_insert_after (&gsi, g, GSI_SAME_STMT);
+    }
+
+  /* Replace the GIMPLE_OMP_RETURN with a barrier, or nothing.  */
   if (!gimple_omp_return_nowait_p (gsi_stmt (gsi)))
     {
       t = gimple_omp_return_lhs (gsi_stmt (gsi));
@@ -5646,6 +5695,7 @@ expand_omp_for_static_nochunk (struct omp_region *region,
       exit3_bb = split_block (exit2_bb, g)->dest;
       gsi = gsi_after_labels (exit3_bb);
     }
+
   gsi_remove (&gsi, true);
 
   /* Connect all the blocks.  */
@@ -5969,10 +6019,14 @@ expand_omp_for_static_chunk (struct omp_region *region,
   switch (gimple_omp_for_kind (fd->for_stmt))
     {
     case GF_OMP_FOR_KIND_FOR:
-      decl = builtin_decl_explicit (BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING);
+      decl = builtin_decl_explicit (
+	flag_openmp_ompt ? BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_START
+			 : BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING);
       break;
     case GF_OMP_FOR_KIND_DISTRIBUTE:
-      decl = builtin_decl_explicit (BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING);
+      decl = builtin_decl_explicit (
+	flag_openmp_ompt ? BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_START
+			 : BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING);
       break;
     default:
       gcc_unreachable ();
@@ -6303,8 +6357,30 @@ expand_omp_for_static_chunk (struct omp_region *region,
       gsi_insert_after (&gsi, assign_stmt, GSI_CONTINUE_LINKING);
     }
 
-  /* Replace the GIMPLE_OMP_RETURN with a barrier, or nothing.  */
   gsi = gsi_last_nondebug_bb (exit_bb);
+  if (flag_openmp_ompt)
+    {
+      /* Insert call to GOMP_*_static_worksharing_end at the end of exit_bb.
+       */
+      tree decl;
+      switch (gimple_omp_for_kind (fd->for_stmt))
+	{
+	case GF_OMP_FOR_KIND_FOR:
+	  decl
+	    = builtin_decl_explicit (BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_END);
+	  break;
+	case GF_OMP_FOR_KIND_DISTRIBUTE:
+	  decl = builtin_decl_explicit (
+	    BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_END);
+	  break;
+	default:
+	  gcc_unreachable ();
+	}
+      gcall *g = gimple_build_call (decl, 0);
+      gsi_insert_after (&gsi, g, GSI_SAME_STMT);
+    }
+
+  /* Replace the GIMPLE_OMP_RETURN with a barrier, or nothing.  */
   if (!gimple_omp_return_nowait_p (gsi_stmt (gsi)))
     {
       t = gimple_omp_return_lhs (gsi_stmt (gsi));
@@ -6339,6 +6415,29 @@ expand_omp_for_static_chunk (struct omp_region *region,
       gsi_insert_after (&gsi, g, GSI_SAME_STMT);
     }
   gsi_remove (&gsi, true);
+
+  if (flag_openmp_ompt_detailed)
+    {
+      /* Insert call to GOMP_*_static_worksharing_dispatch at the end of
+	 seq_start_bb.  */
+      gsi = gsi_last_nondebug_bb (seq_start_bb);
+      tree decl;
+      switch (gimple_omp_for_kind (fd->for_stmt))
+	{
+	case GF_OMP_FOR_KIND_FOR:
+	  decl = builtin_decl_explicit (
+	    BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_DISPATCH);
+	  break;
+	case GF_OMP_FOR_KIND_DISTRIBUTE:
+	  decl = builtin_decl_explicit (
+	    BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_DISPATCH);
+	  break;
+	default:
+	  gcc_unreachable ();
+	}
+      gcall *g = gimple_build_call (decl, 0);
+      gsi_insert_before (&gsi, g, GSI_SAME_STMT);
+    }
 
   /* Connect the new blocks.  */
   find_edge (iter_part_bb, seq_start_bb)->flags = EDGE_TRUE_VALUE;

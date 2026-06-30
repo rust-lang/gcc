@@ -485,12 +485,21 @@ GOMP_6.0.1 {
 GOMP_6.0.2 {
   global:
 	GOMP_has_masked_thread_num;
+	GOMP_masked_end;
 	GOMP_loop_static_worksharing;
+	GOMP_loop_static_worksharing_start;
+	GOMP_loop_static_worksharing_dispatch;
+	GOMP_loop_static_worksharing_end;
 	GOMP_distribute_static_worksharing;
+	GOMP_distribute_static_worksharing_start;
+	GOMP_distribute_static_worksharing_dispatch;
+	GOMP_distribute_static_worksharing_end;
 	GOMP_barrier_ext;
 	GOMP_barrier_cancel_ext;
 	GOMP_reduction_start;
 	GOMP_reduction_end;
+	GOMP_single_start_with_end;
+	GOMP_single_end;
 } GOMP_6.0.1;
 
 OACC_2.0 {

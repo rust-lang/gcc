@@ -2503,6 +2503,14 @@ fomit-frame-pointer
 Common Var(flag_omit_frame_pointer) Optimization
 When possible do not generate stack frames.
 
+fopenmp-ompt
+Common Var(flag_openmp_ompt) EnabledBy(fopenmp-ompt-detailed)
+Emit additional calls into libgomp, enabling OMPT callbacks before and after some OpenMP worksharing constructs.
+
+fopenmp-ompt-detailed
+Common Var(flag_openmp_ompt_detailed)
+Like -fopenmp-ompt, and emit additional calls into libgomp, enabling OMPT dispatch callbacks.
+
 fopenmp-target-simd-clone
 Common Alias(fopenmp-target-simd-clone=,any,none)
 

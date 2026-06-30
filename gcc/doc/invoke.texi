@@ -323,7 +323,8 @@ Objective-C and Objective-C++ Dialects}.
 @xref{OpenMP and OpenACC Options,,Options Controlling OpenMP and OpenACC}.
 @gccoptlist{-foffload=@var{arg}  -foffload-options=@var{arg}
 -fopenacc  -fopenacc-dim=@var{geom}
--fopenmp  -fopenmp-simd  -fopenmp-target-simd-clone@r{[}=@var{device-type}@r{]}}
+-fopenmp  -fopenmp-simd  -fopenmp-ompt  -fopenmp-ompt-detailed
+-fopenmp-target-simd-clone@r{[}=@var{device-type}@r{]}}
 
 @item Diagnostic Message Formatting Options
 @xref{Diagnostic Message Formatting Options,,Options to Control Diagnostic Messages Formatting}.
@@ -5600,6 +5601,24 @@ Fortran.  In fixed source form Fortran, the sentinels can also start with
 @samp{c} or @samp{*}.  Other OpenMP directives are ignored.  Unless
 @option{-fopenmp} is additionally specified, the @code{loop} region binds
 to the current task region, independent of the specified @code{bind} clause.
+
+@opindex fopenmp-ompt
+@opindex fno-openmp-ompt
+@cindex OpenMP OMPT
+@item -fopenmp-ompt
+Emit additional calls into libgomp, enabling OMPT callbacks around some OpenMP
+worksharing constructs (namely statically scheduled @code{for} and
+@code{distribute}, @code{single}, @code{masked} and @code{master}), so that an
+OMPT tool can observe their start and end.  Requires @option{-fopenmp}.
+
+@opindex fopenmp-ompt-detailed
+@opindex fno-openmp-ompt-detailed
+@cindex OpenMP OMPT
+@item -fopenmp-ompt-detailed
+Like @option{-fopenmp-ompt}, and additionally emit calls into libgomp, enabling
+OMPT dispatch callbacks that get called at the beginning of each workshare chunk
+for statically scheduled @code{for} and @code{distribute}.  Requires
+@option{-fopenmp}.
 
 @opindex fopenmp-target-simd-clone
 @opindex fno-openmp-target-simd-clone

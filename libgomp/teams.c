@@ -70,6 +70,29 @@ GOMP_distribute_static_worksharing (void)
   return nteams + tid * 1I;
 }
 
+/* OMPT variant enabled by -fopenmp-ompt.  */
+
+_Complex int
+GOMP_distribute_static_worksharing_start (void)
+{
+  struct gomp_thread *thr = gomp_thread ();
+  unsigned tid = thr->team_num;
+  unsigned nteams = thr->num_teams + 1;
+  return nteams + tid * 1I;
+}
+
+/* Stub for OMPT callback enabled by -fopenmp-ompt-detailed.  */
+
+void
+GOMP_distribute_static_worksharing_dispatch (void)
+{}
+
+/* Stub for OMPT callback enabled by -fopenmp-ompt.  */
+
+void
+GOMP_distribute_static_worksharing_end (void)
+{}
+
 int
 omp_get_num_teams (void)
 {
