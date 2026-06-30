@@ -949,4 +949,20 @@ sat_u_mul_##NT##_from_##WT##_fmt_18 (NT a, NT b) \
 #define RUN_SAT_U_MUL_FMT_18_WRAP(NT, WT, a, b) \
   RUN_SAT_U_MUL_FMT_18(NT, WT, a, b)
 
+#define DEF_SAT_U_MUL_FMT_19(NT, WT)                \
+NT __attribute__((noinline))                        \
+sat_u_mul_##NT##_from_##WT##_fmt_19 (NT a, NT b)    \
+{                                                   \
+  WT x = (WT)a * (WT)b;                             \
+  NT lo = (NT)x;                                    \
+  bool non_overflow_p = x >> (sizeof(NT) * 8) == 0; \
+  return !non_overflow_p ? -1 : lo;                 \
+}
+
+#define DEF_SAT_U_MUL_FMT_19_WRAP(NT, WT) DEF_SAT_U_MUL_FMT_19(NT, WT)
+#define RUN_SAT_U_MUL_FMT_19(NT, WT, a, b) \
+  sat_u_mul_##NT##_from_##WT##_fmt_19 (a, b)
+#define RUN_SAT_U_MUL_FMT_19_WRAP(NT, WT, a, b) \
+  RUN_SAT_U_MUL_FMT_19(NT, WT, a, b)
+
 #endif
