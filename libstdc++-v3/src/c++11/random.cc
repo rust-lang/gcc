@@ -390,14 +390,35 @@ namespace std _GLIBCXX_VISIBILITY(default)
     }
 #endif // _GLIBCXX_USE_CRT_RAND_S
 
+#ifdef USE_RDRAND
+    // For the default device on Hygon prefer RDRAND (faster than RDSEED for
+    // bulk generation); an explicit "rdseed" token still selects rdseed below.
+    if (which == any)
+    {
+      unsigned int eax, ebx, ecx, edx;
+      if (__get_cpuid_max(0, &ebx) > 0 && ebx == signature_HYGON_ebx)
+	{
+	  // CPUID.01H:ECX.RDRAND[bit 30]
+	  __cpuid(1, eax, ebx, ecx, edx);
+	  if (ecx & bit_RDRND)
+	    {
+	      _M_func = &__x86_rdrand;
+	      return;
+	    }
+	}
+    }
+#endif // USE_RDRAND
+
 #ifdef USE_RDSEED
     if (which & rdseed)
     {
       unsigned int eax, ebx, ecx, edx;
       // Check availability of cpuid and, for now at least, also the
-      // CPU signature for Intel and AMD.
+      // CPU signature for Intel, AMD and Hygon.
       if (__get_cpuid_max(0, &ebx) > 0
-	  && (ebx == signature_INTEL_ebx || ebx == signature_AMD_ebx))
+	  && (ebx == signature_INTEL_ebx
+	      || ebx == signature_AMD_ebx
+	      || ebx == signature_HYGON_ebx))
 	{
 	  // CPUID.(EAX=07H, ECX=0H):EBX.RDSEED[bit 18]
 	  __cpuid_count(7, 0, eax, ebx, ecx, edx);
@@ -425,9 +446,11 @@ namespace std _GLIBCXX_VISIBILITY(default)
     {
       unsigned int eax, ebx, ecx, edx;
       // Check availability of cpuid and, for now at least, also the
-      // CPU signature for Intel and AMD.
+      // CPU signature for Intel, AMD and Hygon.
       if (__get_cpuid_max(0, &ebx) > 0
-	  && (ebx == signature_INTEL_ebx || ebx == signature_AMD_ebx))
+	  && (ebx == signature_INTEL_ebx
+	      || ebx == signature_AMD_ebx
+	      || ebx == signature_HYGON_ebx))
 	{
 	  // CPUID.01H:ECX.RDRAND[bit 30]
 	  __cpuid(1, eax, ebx, ecx, edx);
