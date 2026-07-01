@@ -13775,6 +13775,8 @@ diagnose_non_c_class_typedef_for_linkage (tree type, tree orig)
 static bool
 maybe_diagnose_non_c_class_typedef_for_linkage (tree type, tree orig, tree t)
 {
+  if (!COMPLETE_TYPE_P (t))
+    return false;
   if (!BINFO_BASE_BINFOS (TYPE_BINFO (t))->is_empty ())
     {
       auto_diagnostic_group d;
