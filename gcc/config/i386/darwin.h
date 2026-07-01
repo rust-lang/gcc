@@ -105,7 +105,7 @@ along with GCC; see the file COPYING3.  If not see
 #undef ASM_SPEC
 #define ASM_SPEC \
 "%{static} -arch %(darwin_arch) " \
- ASM_OPTIONS ASM_MMACOSX_VERSION_MIN_SPEC EXTRA_ASM_OPTS \
+ ASM_MMACOSX_VERSION_MIN_SPEC EXTRA_ASM_OPTS \
 "%{!force_cpusubtype_ALL:-force_cpusubtype_ALL} "
 
 #undef ENDFILE_SPEC

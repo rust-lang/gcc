@@ -232,6 +232,15 @@ See the file @file{sun3.h} for an example of this.
 Do not define this macro if it does not need to do anything.
 @end defmac
 
+@defmac ASM_V_SPEC
+A C string constant that tells the GCC driver how to translate the
+@option{-v}, @option{-w}, and @option{-I} options into their assembler
+equivalents.
+
+Only define this macro if the default, which matches GNU as, isn't
+appropriate.
+@end defmac
+
 @defmac ASM_FINAL_SPEC
 A C string constant that tells the GCC driver program how to
 run any programs which cleanup after the normal assembler.

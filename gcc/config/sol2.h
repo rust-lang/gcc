@@ -142,7 +142,7 @@ along with GCC; see the file COPYING3.  If not see
 /* It's safe to pass -s always, even if -g is not used.  Those options are
    handled by both Sun as and GNU as.  */
 #define ASM_SPEC_BASE \
-"%{v:-V} %{Qy:} %{!Qn:-Qy} %{Ym,*} -s %(asm_cpu)"
+"%{Qy:} %{!Qn:-Qy} %{Ym,*} -s %(asm_cpu)"
 
 #define ASM_PIC_SPEC " %{" FPIE_OR_FPIC_SPEC ":-K PIC}"
 
@@ -446,9 +446,14 @@ along with GCC; see the file COPYING3.  If not see
 #undef TARGET_ASM_ASSEMBLE_VISIBILITY
 #define TARGET_ASM_ASSEMBLE_VISIBILITY solaris_assemble_visibility
 
-#define AS_NEEDS_DASH_FOR_PIPED_INPUT
+/* Handle gcc -v/-w options.  There's no point including -I: while as accepts
+   it, it's only useful in combination with -P which invokes cpp.  Instead, gas
+   uses -I for the .include directive, but as doesn't understand that.  */
+#define ASM_V_SPEC "%{v:-V} %{w:-n}"
 
+#define AS_NEEDS_DASH_FOR_PIPED_INPUT
 #endif
+
 /* Solaris has an implementation of __enable_execute_stack.  */
 #define HAVE_ENABLE_EXECUTE_STACK
 

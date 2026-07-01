@@ -1603,12 +1603,6 @@
 #endif
 
 
-/* Define to 1 if using GNU as. */
-#ifndef USED_FOR_TARGET
-#undef HAVE_GNU_AS
-#endif
-
-
 /* Define if your system supports gnu indirect functions. */
 #ifndef USED_FOR_TARGET
 #undef HAVE_GNU_INDIRECT_FUNCTION

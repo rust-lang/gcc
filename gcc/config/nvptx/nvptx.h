@@ -31,9 +31,8 @@
 #define OPTION_DEFAULT_SPECS \
   { "arch", "%{!misa=*:-misa=%(VALUE)}" }, \
 
-/* Assembler supports '-v' option; handle similar to
-   '../../gcc.cc:asm_options', 'HAVE_GNU_AS'.  */
-#define ASM_SPEC "%{v}"
+/* Assembler only supports '-v' option.  */
+#define ASM_V_SPEC "%{v}"
 
 #define STARTFILE_SPEC "%{mmainkernel:crt0.o%s}"
 

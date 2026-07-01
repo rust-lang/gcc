@@ -13123,13 +13123,6 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-gnu_as_bool=`if test x"$gas" = x"yes"; then echo 1; else echo 0; fi`
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_GNU_AS $gnu_as_bool
-_ACEOF
-
-
 count=a
 for f in $host_xm_file; do
 	count=${count}x
@@ -21972,7 +21965,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 21975 "configure"
+#line 21968 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22078,7 +22071,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 22081 "configure"
+#line 22074 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H

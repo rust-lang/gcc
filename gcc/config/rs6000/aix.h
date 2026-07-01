@@ -177,6 +177,10 @@
 #undef ASM_DEFAULT_SPEC
 #define ASM_DEFAULT_SPEC ""
 
+#ifdef HAVE_AIX_AS
+#define ASM_V_SPEC "%{v} %{w:-W}"
+#endif
+
 /* Tell the assembler to assume that all undefined names are external.
 
    Don't do this until the fixed IBM assembler is more generally available.

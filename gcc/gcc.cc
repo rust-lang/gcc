@@ -709,6 +709,12 @@ proper position among the other output files.  */
 #define ASM_SPEC ""
 #endif
 
+/* config.h can define ASM_V_SPEC to pass equivalents of -v, -w (no warnings),
+   and -I to the assembler.  */
+#ifndef ASM_V_SPEC
+#define ASM_V_SPEC "%{v} %{w:-W} %{I*}"
+#endif
+
 /* config.h can define ASM_FINAL_SPEC to run a post processor after
    the assembler has run.  */
 #ifndef ASM_FINAL_SPEC
@@ -1327,12 +1333,8 @@ static const char *cc1_options =
 
 static const char *asm_options =
 "%{-target-help:%:print-asm-header()} "
-#if HAVE_GNU_AS
-/* If GNU AS is used, then convert -w (no warnings), -I, and -v
-   to the assembler equivalents.  */
-"%{v} %{w:-W} %{I*} "
-#endif
-"%(asm_debug_option)"
+ASM_V_SPEC
+" %(asm_debug_option)"
 ASM_COMPRESS_DEBUG_SPEC
 "%a %Y %{c:%W{o*}%{!o*:-o %w%b%O}}%{!c:-o %d%w%u%O}";
 

@@ -663,21 +663,12 @@ extern GTY(()) int darwin_ms_struct;
 #define ASM_MMACOSX_VERSION_MIN_SPEC " %<asm_macosx_version_min=* "
 #endif
 
-#if HAVE_GNU_AS
-/* The options are added in gcc.cc for this case.  */
-#define ASM_OPTIONS ""
-#else
-/* When we detect that we're cctools or llvm as, we need to insert the right
-   additional options.  Actually, currently these are the same as GAS.  */
-#define ASM_OPTIONS "%{v} %{w:-W} %{I*}"
-#endif
-
 #define AS_NEEDS_DASH_FOR_PIPED_INPUT
 
 /* Default Darwin ASM_SPEC, very simple. */
 #define ASM_SPEC \
 "%{static} -arch %(darwin_arch) " \
-ASM_OPTIONS ASM_MMACOSX_VERSION_MIN_SPEC
+ASM_MMACOSX_VERSION_MIN_SPEC
 
 #define ASM_DEBUG_SPEC  ""
 #undef  ASM_DEBUG_OPTION_SPEC
