@@ -7826,6 +7826,21 @@ simplify_context::simplify_ternary_operation (rtx_code code, machine_mode mode,
 		  if (!(sel & ~sel0 & mask) && !side_effects_p (XEXP (op0, 1)))
 		    return simplify_gen_ternary (code, mode, mode,
 						 XEXP (op0, 0), op1, op2);
+
+		  /* Replace (vec_merge (vec_merge a b m) a n) with
+		     (vec_merge a b (m|~n)).  */
+		  if (rtx_equal_p (XEXP (op0, 0), op1)
+		      && ! side_effects_p (op1))
+		    return simplify_gen_ternary (code, mode, mode,
+						 op1, XEXP (op0, 1),
+						 GEN_INT ((sel0 | ~sel) & mask));
+		  /* Replace (vec_merge (vec_merge b a m) a n) with
+		     (vec_merge b a (m&n)).  */
+		  if (rtx_equal_p (XEXP (op0, 1), op1)
+		      && ! side_effects_p (op1))
+		    return simplify_gen_ternary (code, mode, mode,
+						 XEXP (op0, 0), op1,
+						 GEN_INT (sel & sel0 & mask));
 		}
 	    }
 	  if (GET_CODE (op1) == VEC_MERGE)
@@ -7840,6 +7855,22 @@ simplify_context::simplify_ternary_operation (rtx_code code, machine_mode mode,
 		  if (!(~sel & ~sel1 & mask) && !side_effects_p (XEXP (op1, 1)))
 		    return simplify_gen_ternary (code, mode, mode,
 						 op0, XEXP (op1, 0), op2);
+
+		  /* Replace (vec_merge a (vec_merge a b m) n) with
+		     (vec_merge a b (m|n)).  */
+		  if (rtx_equal_p (XEXP (op1, 0), op0)
+		      && ! side_effects_p (op0))
+		    return simplify_gen_ternary (code, mode, mode,
+						 op0, XEXP (op1, 1),
+						 GEN_INT ((sel | sel1) & mask));
+
+		  /* Replace (vec_merge a (vec_merge b a m) n) with
+		     (vec_merge a b (~m|n)).  */
+		  if (rtx_equal_p (XEXP (op1, 1), op0)
+		      && ! side_effects_p (op0))
+		    return simplify_gen_ternary (code, mode, mode,
+						 op0, XEXP (op1, 0),
+						 GEN_INT ((sel | ~sel1) & mask));
 		}
 	    }
 
