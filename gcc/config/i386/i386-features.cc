@@ -863,6 +863,16 @@ general_scalar_chain::compute_convert_gain ()
 		}
 	      break;
 
+	    case ZERO_EXTEND:
+	      /* mov eax (6 bytes) vs movd xmm0 (8 bytes). */
+	      /* mov eax; xor edx,edx (7 bytes).  */
+	      if (speed_p)
+		igain += COSTS_N_INSNS (ix86_cost->int_load[2]
+					- ix86_cost->sse_load[0]) / 2;
+	      else
+		igain += COSTS_N_BYTES (TARGET_64BIT ? -2 : -1);
+	      break;
+
 	    default:
 	      gcc_unreachable ();
 	    }
@@ -1586,6 +1596,11 @@ general_scalar_chain::convert_insn (rtx_insn *insn)
 	  rtx par = gen_rtx_PARALLEL (VOIDmode, vec);
 	  src = gen_rtx_VEC_SELECT (vmode, XEXP (src, 0), par);
 	}
+      break;
+
+    case ZERO_EXTEND:
+      /* *zero_extendsidi2 becomes *vec_setv2di_0_zero_extendsi_1.  */
+      src = gen_rtx_VEC_CONCAT (V2DImode, src, const0_rtx);
       break;
 
     default:
@@ -2498,6 +2513,13 @@ general_scalar_to_vector_candidate_p (rtx_insn *insn, enum machine_mode mode)
 	     && GET_CODE (XEXP (src, 1)) == PARALLEL
 	     && XVECLEN (XEXP (src, 1), 0) == 1
 	     && CONST_INT_P (XVECEXP (XEXP (src, 1), 0, 0));
+
+    case ZERO_EXTEND:
+      /* *zero_extendsidi2 becomes *vec_setv2di_0_zero_extendsi_1.  */
+      return mode == DImode
+	     && REG_P (dst)
+	     && GET_MODE (XEXP (src, 0)) == SImode
+	     && MEM_P (XEXP (src, 0));
 
     default:
       return false;
