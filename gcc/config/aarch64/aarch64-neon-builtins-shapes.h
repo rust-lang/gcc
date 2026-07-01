@@ -20,10 +20,12 @@
 #ifndef GCC_AARCH64_NEON_BUILTINS_SHAPES_H
 #define GCC_AARCH64_NEON_BUILTINS_SHAPES_H
 
-namespace aarch64_acle::shapes {
+namespace aarch64_acle {
+  namespace shapes {
 #define DEF_NEON_FUNCTION(NAME, TYPES, SHAPE_ARGS) \
-  extern const aarch64_acle::function_shape *const SHAPE_NAME (NAME, TYPES);
+    extern const aarch64_acle::function_shape *const SHAPE_NAME (NAME, TYPES);
 #include "aarch64-neon-builtins.def"
+  }
 }
 
 #endif

@@ -125,10 +125,12 @@ struct neon_shape : public function_shape
   tree resolve (function_resolver &) const override { gcc_unreachable (); }
 };
 
-namespace aarch64_acle::shapes {
+namespace aarch64_acle {
+  namespace shapes {
 #define DEF_NEON_FUNCTION(NAME, TYPES, SHAPE_ARGS)			\
-  static constexpr const neon_shape OBJ_NAME (NAME, TYPES) SHAPE_ARGS;	\
-  const aarch64_acle::function_shape *SHAPE_NAME (NAME, TYPES)		\
-    = &OBJ_NAME (NAME, TYPES);
+    static constexpr const neon_shape OBJ_NAME (NAME, TYPES) SHAPE_ARGS;\
+    const aarch64_acle::function_shape *SHAPE_NAME (NAME, TYPES)	\
+      = &OBJ_NAME (NAME, TYPES);
 #include "aarch64-neon-builtins.def"
+  }
 }

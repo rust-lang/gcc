@@ -20,10 +20,12 @@
 #ifndef GCC_AARCH64_NEON_BUILTINS_BASE_H
 #define GCC_AARCH64_NEON_BUILTINS_BASE_H
 
-namespace aarch64_acle::functions {
+namespace aarch64_acle {
+  namespace functions {
 #define DEF_NEON_FUNCTION(NAME, ...) \
-  extern const aarch64_acle::function_base *const NAME;
+    extern const aarch64_acle::function_base *const NAME;
 #include "aarch64-neon-builtins.def"
+  }
 }
 
 #endif
