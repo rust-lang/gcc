@@ -646,7 +646,8 @@ fs::create_directory(const path& p, const path& attributes,
 #endif
 }
 
-#ifdef _GLIBCXX_FILESYSTEM_IS_WINDOWS
+#if defined(_GLIBCXX_FILESYSTEM_IS_WINDOWS) \
+    && defined(SYMBOLIC_LINK_FLAG_DIRECTORY)
 namespace
 {
   void
@@ -654,7 +655,6 @@ namespace
 			 const fs::file_type target_type,
 			 std::error_code& ec) noexcept
   {
-#ifdef SYMBOLIC_LINK_FLAG_DIRECTORY // Implies CreateSymbolicLinkW support.
     DWORD symlink_type = target_type == fs::file_type::directory
 			 ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0;
     // Windows can't handle relative symlinks with non-preferred slashes.
@@ -686,9 +686,6 @@ namespace
       ec.clear();
     else
       ec = std::__last_system_error();
-#else
-    ec = std::make_error_code(std::errc::function_not_supported);
-#endif
   }
 }
 #endif
@@ -707,10 +704,13 @@ void
 fs::create_directory_symlink(const path& to, const path& new_symlink,
 			     error_code& ec) noexcept
 {
-#ifdef _GLIBCXX_FILESYSTEM_IS_WINDOWS
+#ifdef _GLIBCXX_HAVE_SYMLINK
+  create_symlink(to, new_symlink, ec);
+#elif defined(_GLIBCXX_FILESYSTEM_IS_WINDOWS) \
+    && defined(SYMBOLIC_LINK_FLAG_DIRECTORY)
   windows_create_symlink(to, new_symlink, file_type::directory, ec);
 #else
-  create_symlink(to, new_symlink, ec);
+  ec = std::make_error_code(std::errc::function_not_supported);
 #endif
 }
 
@@ -763,7 +763,8 @@ fs::create_symlink(const path& to, const path& new_symlink,
     ec.assign(errno, std::generic_category());
   else
     ec.clear();
-#elif _GLIBCXX_FILESYSTEM_IS_WINDOWS
+#elif defined(_GLIBCXX_FILESYSTEM_IS_WINDOWS) \
+    && defined(SYMBOLIC_LINK_FLAG_DIRECTORY)
   windows_create_symlink(to, new_symlink, file_type::regular, ec);
 #else
   ec = std::make_error_code(std::errc::function_not_supported);
