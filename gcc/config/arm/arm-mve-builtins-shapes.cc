@@ -372,9 +372,10 @@ half_type_suffix (function_resolver &r,
 
 /* Declare the function shape NAME, pointing it to an instance
    of class <NAME>_def.  */
-#define SHAPE(NAME) \
-  static CONSTEXPR const NAME##_def NAME##_obj; \
-  namespace shapes { const function_shape *const NAME = &NAME##_obj; }
+#define SHAPE(NAME)							\
+  static CONSTEXPR const NAME##_def NAME##_obj;				\
+  namespace shapes { const function_shape *const NAME = &NAME##_obj; }	\
+  extern int __require_trailing_semicolon ATTRIBUTE_UNUSED
 
 /* Base class for functions that are not overloaded.  */
 struct nonoverloaded_base : public function_shape
@@ -467,7 +468,7 @@ struct binary_def : public overloaded_base<0>
     return r.resolve_uniform (2);
   }
 };
-SHAPE (binary)
+SHAPE (binary);
 
 /* <[u]int32>_t vfoo[_<t0>](<T0>_t, <T0>_t)
 
@@ -494,7 +495,7 @@ struct binary_acc_int32_def : public overloaded_base<0>
     return r.resolve_uniform (2);
   }
 };
-SHAPE (binary_acc_int32)
+SHAPE (binary_acc_int32);
 
 /* <[u]int64>_t vfoo[_<t0>](<T0>_t, <T0>_t)
 
@@ -517,7 +518,7 @@ struct binary_acc_int64_def : public overloaded_base<0>
     return r.resolve_uniform (2);
   }
 };
-SHAPE (binary_acc_int64)
+SHAPE (binary_acc_int64);
 
 /* <[u]int32>_t vfoo[_<t0>]([u]int32_t, <T0>_t, <T0>_t)
 
@@ -559,7 +560,7 @@ struct binary_acca_int32_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_acca_int32)
+SHAPE (binary_acca_int32);
 
 /* [u]int64_t vfoo[_<t0>]([u]int64_t, <T0>_t, <T0>_t)
 
@@ -602,7 +603,7 @@ struct binary_acca_int64_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_acca_int64)
+SHAPE (binary_acca_int64);
 
 /* <T0>_t vfoo[_n_t0](<T0>_t, int32_t)
 
@@ -629,7 +630,7 @@ struct binary_imm32_def : public overloaded_base<0>
     return r.resolve_uniform (1, 1);
   }
 };
-SHAPE (binary_imm32)
+SHAPE (binary_imm32);
 
 /* <T0>_t vfoo[_n_t0](<T0>_t, const int)
 
@@ -665,7 +666,7 @@ struct binary_rshift_def : public overloaded_base<0>
     return c.require_immediate_range (1, 1, bits);
   }
 };
-SHAPE (binary_rshift)
+SHAPE (binary_rshift);
 
 
 /* <uT0>_t vfoo[_n_t0](<T0>_t, int)
@@ -721,7 +722,7 @@ struct binary_lshift_unsigned_def : public overloaded_base<0>
   }
 
 };
-SHAPE (binary_lshift_unsigned)
+SHAPE (binary_lshift_unsigned);
 
 /* <uT0>_t vfoo[_t0](<uT0>_t, <T0>_t)
 
@@ -760,7 +761,7 @@ struct binary_maxamina_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_maxamina)
+SHAPE (binary_maxamina);
 
 /* <uS0>_t vfoo[_<t0>](<uS0>_t, <T0>_t)
 
@@ -790,7 +791,7 @@ struct binary_maxavminav_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_maxavminav)
+SHAPE (binary_maxavminav);
 
 /* <S0>_t vfoo[_<t0>](<S0>_t, <T0>_t)
 
@@ -820,7 +821,7 @@ struct binary_maxvminv_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_maxvminv)
+SHAPE (binary_maxvminv);
 
 /* <T0:half>_t vfoo[_t0](<T0:half>_t, <T0>_t)
 
@@ -854,7 +855,7 @@ struct binary_move_narrow_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_move_narrow)
+SHAPE (binary_move_narrow);
 
 /* <uT0:half>_t vfoo[_t0](<uT0:half>_t, <T0>_t)
 
@@ -888,7 +889,7 @@ struct binary_move_narrow_unsigned_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_move_narrow_unsigned)
+SHAPE (binary_move_narrow_unsigned);
 
 /* <T0>_t vfoo[_t0](<T0>_t, <T0>_t)
    <T0>_t vfoo[_n_t0](<T0>_t, <S0>_t)
@@ -920,7 +921,7 @@ struct binary_opt_n_def : public overloaded_base<0>
     return r.resolve_uniform_opt_n (2);
   }
 };
-SHAPE (binary_opt_n)
+SHAPE (binary_opt_n);
 
 /* <T0>_t vfoo[t0](<T0>_t, <T0>_t)
    <T0>_t vfoo[_n_t0](<T0>_t, <S0>_t)
@@ -986,7 +987,7 @@ struct binary_orrq_def : public overloaded_base<0>
     return r.finish_opt_n_resolution (i, 0, type);
   }
 };
-SHAPE (binary_orrq)
+SHAPE (binary_orrq);
 
 /* <T0>_t vfoo[t0](<T0>_t, <T0>_t)
    <T0>_t vfoo[_n_t0](<T0>_t, int32_t)
@@ -1047,7 +1048,7 @@ struct binary_round_lshift_def : public overloaded_base<0>
     return r.finish_opt_n_resolution (i, 0, type, TYPE_signed);
   }
 };
-SHAPE (binary_round_lshift)
+SHAPE (binary_round_lshift);
 
 /* <T0>_t vfoo[_t0](<T0>_t, <T0>_t)
    <T0>_t vfoo_n[_t0](<T0>_t, const int)
@@ -1104,7 +1105,7 @@ struct binary_lshift_def : public overloaded_base<0>
     return c.require_immediate_range (1, 0, bits - 1);
   }
 };
-SHAPE (binary_lshift)
+SHAPE (binary_lshift);
 
 /* Used with the above form, but only for the MODE_r case which does
    not always support the same set of predicates as MODE_none and
@@ -1145,7 +1146,7 @@ struct binary_lshift_r_def : public overloaded_base<0>
     return r.finish_opt_n_resolution (i, 0, type, TYPE_signed);
   }
 };
-SHAPE (binary_lshift_r)
+SHAPE (binary_lshift_r);
 
 /* <T0:half>_t vfoo[_n_t0](<T0:half>_t, <T0>_t, const int)
 
@@ -1190,7 +1191,7 @@ struct binary_rshift_narrow_def : public overloaded_base<0>
     return c.require_immediate_range (2, 1, bits / 2);
   }
 };
-SHAPE (binary_rshift_narrow)
+SHAPE (binary_rshift_narrow);
 
 /* <uT0:half>_t vfoo[_n_t0](<uT0:half>_t, <T0>_t, const int)
 
@@ -1236,7 +1237,7 @@ struct binary_rshift_narrow_unsigned_def : public overloaded_base<0>
   }
 
 };
-SHAPE (binary_rshift_narrow_unsigned)
+SHAPE (binary_rshift_narrow_unsigned);
 
 /* <T0:twice>_t vfoo[_t0](<T0>_t, <T0>_t)
 
@@ -1276,7 +1277,7 @@ struct binary_widen_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_widen)
+SHAPE (binary_widen);
 
 /* <T0:twice>_t vfoo[_t0](<T0>_t, <T0>_t)
 
@@ -1325,7 +1326,7 @@ struct binary_widen_poly_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (binary_widen_poly)
+SHAPE (binary_widen_poly);
 
 /* <T0:twice>_t vfoo[_n_t0](<T0>_t, const int)
 
@@ -1376,7 +1377,7 @@ struct binary_widen_n_def : public overloaded_base<0>
   }
 
 };
-SHAPE (binary_widen_n)
+SHAPE (binary_widen_n);
 
 /* <T0:twice>_t vfoo[_t0](<T0>_t, <T0>_t)
    <T0:twice>_t vfoo[_n_t0](<T0>_t, <S0>_t)
@@ -1423,7 +1424,7 @@ struct binary_widen_opt_n_def : public overloaded_base<0>
     return r.finish_opt_n_resolution (last_arg, 0, type);
   }
 };
-SHAPE (binary_widen_opt_n)
+SHAPE (binary_widen_opt_n);
 
 /* Shape for comparison operations that operate on
    uniform types.
@@ -1450,7 +1451,7 @@ struct cmp_def : public overloaded_base<0>
     return r.resolve_uniform_opt_n (2);
   }
 };
-SHAPE (cmp)
+SHAPE (cmp);
 
 /* <T0>xN_t vfoo[_t0](uint64_t, uint64_t)
 
@@ -1466,7 +1467,7 @@ struct create_def : public nonoverloaded_base
     build_all (b, "v0,su64,su64", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (create)
+SHAPE (create);
 
 /* <S0>_t vfoo[_t0](<T0>_t, const int)
 
@@ -1507,7 +1508,7 @@ struct getq_lane_def : public overloaded_base<0>
   }
 
 };
-SHAPE (getq_lane)
+SHAPE (getq_lane);
 
 /* <T0>[xN]_t vfoo_t0().
    <T0>[xN]_t vfoo(<T0>_t).
@@ -1556,7 +1557,7 @@ struct inherent_def : public overloaded_base<0>
   }
 
 };
-SHAPE (inherent)
+SHAPE (inherent);
 
 /* <T0>_t vfoo[_t0](const <s0>_t *)
 
@@ -1590,7 +1591,7 @@ struct load_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (load)
+SHAPE (load);
 
 /* <T0>_t foo_t0 (const <X>_t *)
 
@@ -1608,7 +1609,7 @@ struct load_ext_def : public nonoverloaded_base
     build_all (b, "t0,al", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (load_ext)
+SHAPE (load_ext);
 
 /* Base class for load_ext_gather_offset and load_ext_gather_shifted_offset,
    which differ only in the units of the displacement.  */
@@ -1665,7 +1666,7 @@ struct load_gather_base_def : public nonoverloaded_base
     return c.require_immediate_range_multiple (1, -bound, bound, multiple);
   }
 };
-SHAPE (load_gather_base)
+SHAPE (load_gather_base);
 
 /* <T0>_t vfoo[_t0](<X>_t const *, <Y>_t)
 
@@ -1706,7 +1707,7 @@ struct load_ext_gather_offset_def : public load_ext_gather
     return r.resolve_to (mode, type);
   }
 };
-SHAPE (load_ext_gather_offset)
+SHAPE (load_ext_gather_offset);
 
 /* <T0>_t vfoo[_t0](<T0>_t)
    <T0>_t vfoo_n_t0(<sT0>_t)
@@ -1755,7 +1756,7 @@ struct mvn_def : public overloaded_base<0>
     return r.finish_opt_n_resolution (last_arg, 0, type);
   }
 };
-SHAPE (mvn)
+SHAPE (mvn);
 
 /* int32_t foo(int32_t, int32_t)
 
@@ -1770,7 +1771,7 @@ struct scalar_s32_shift_def : public nonoverloaded_base
     build_all (b, "ss32,ss32,ss32", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (scalar_s32_shift)
+SHAPE (scalar_s32_shift);
 
 /* int32_t foo(int32_t, const int)
 
@@ -1793,7 +1794,7 @@ struct scalar_s32_shift_imm_def : public nonoverloaded_base
     return c.require_immediate_range (1, 1, 32);
   }
 };
-SHAPE (scalar_s32_shift_imm)
+SHAPE (scalar_s32_shift_imm);
 
 /* uint32_t foo(uint32_t, int32_t)
 
@@ -1808,7 +1809,7 @@ struct scalar_u32_shift_def : public nonoverloaded_base
     build_all (b, "su32,su32,ss32", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (scalar_u32_shift)
+SHAPE (scalar_u32_shift);
 
 /* uint32_t foo(uint32_t, const int)
 
@@ -1831,7 +1832,7 @@ struct scalar_u32_shift_imm_def : public nonoverloaded_base
     return c.require_immediate_range (1, 1, 32);
   }
 };
-SHAPE (scalar_u32_shift_imm)
+SHAPE (scalar_u32_shift_imm);
 
 /* int64_t foo(int64_t, int32_t)
 
@@ -1846,7 +1847,7 @@ struct scalar_s64_shift_def : public nonoverloaded_base
     build_all (b, "ss64,ss64,ss32", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (scalar_s64_shift)
+SHAPE (scalar_s64_shift);
 
 /* int64_t foo(int64_t, const int)
 
@@ -1869,7 +1870,7 @@ struct scalar_s64_shift_imm_def : public nonoverloaded_base
     return c.require_immediate_range (1, 1, 32);
   }
 };
-SHAPE (scalar_s64_shift_imm)
+SHAPE (scalar_s64_shift_imm);
 
 /* uint64_t foo(uint64_t, int32_t)
 
@@ -1884,7 +1885,7 @@ struct scalar_u64_shift_def : public nonoverloaded_base
     build_all (b, "su64,su64,ss32", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (scalar_u64_shift)
+SHAPE (scalar_u64_shift);
 
 /* uint64_t foo(uint64_t, const int)
 
@@ -1907,7 +1908,7 @@ struct scalar_u64_shift_imm_def : public nonoverloaded_base
     return c.require_immediate_range (1, 1, 32);
   }
 };
-SHAPE (scalar_u64_shift_imm)
+SHAPE (scalar_u64_shift_imm);
 
 /* <T0>_t vfoo[_t0](<S0>_t, <T0>_t, const_int)
 
@@ -1947,7 +1948,7 @@ struct setq_lane_def : public overloaded_base<0>
     return c.require_immediate_range (2, 0, num_lanes - 1);
   }
 };
-SHAPE (setq_lane)
+SHAPE (setq_lane);
 
 /* void vfoo[_t0](<X>_t *, <T0>[xN]_t)
 
@@ -1986,7 +1987,7 @@ struct store_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (store)
+SHAPE (store);
 
 /* Base class for store_scatter_offset and store_scatter_shifted_offset, which
    differ only in the units of the displacement.  Also used by
@@ -2050,7 +2051,7 @@ struct store_scatter_offset_def : public store_scatter
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (store_scatter_offset)
+SHAPE (store_scatter_offset);
 
 /* void vfoo[_t0](<Y>_t, const int, <T0>_t)
 
@@ -2115,7 +2116,7 @@ struct store_scatter_base_def : public store_scatter
     return c.require_immediate_range_multiple (1, -bound, bound, multiple);
   }
 };
-SHAPE (store_scatter_base)
+SHAPE (store_scatter_base);
 
 /* <T0>_t vfoo[_t0](<T0>_t, <T0>_t, <T0>_t)
 
@@ -2141,7 +2142,7 @@ struct ternary_def : public overloaded_base<0>
     return r.resolve_uniform_opt_n (3);
   }
 };
-SHAPE (ternary)
+SHAPE (ternary);
 
 /* <T0>_t vfoo[_t0](<T0>_t, <T0>_t, const int)
 
@@ -2179,7 +2180,7 @@ struct ternary_lshift_def : public overloaded_base<0>
     return c.require_immediate_range (2, 0, bits - 1);
   }
 };
-SHAPE (ternary_lshift)
+SHAPE (ternary_lshift);
 
 /* <T0>_t vfoo[_n_t0](<T0>_t, <T0>_t, <S0>_t)
 
@@ -2206,7 +2207,7 @@ struct ternary_n_def : public overloaded_base<0>
     return r.resolve_uniform (2, 1);
   }
 };
-SHAPE (ternary_n)
+SHAPE (ternary_n);
 
 /* <T0>_t vfoo[_t0](<T0>_t, <T0>_t, <T0>_t)
    <T0>_t vfoo[_n_t0](<T0>_t, <T0>_t, <S0>_t)
@@ -2236,7 +2237,7 @@ struct ternary_opt_n_def : public overloaded_base<0>
     return r.resolve_uniform_opt_n (3);
   }
 };
-SHAPE (ternary_opt_n)
+SHAPE (ternary_opt_n);
 
 /* <T0>_t vfoo[_t0](<T0>_t, <T0>_t, const int)
 
@@ -2274,7 +2275,7 @@ struct ternary_rshift_def : public overloaded_base<0>
     return c.require_immediate_range (2, 1, bits);
   }
 };
-SHAPE (ternary_rshift)
+SHAPE (ternary_rshift);
 
 /* <T0>_t vfoo[_t0](<T0>_t)
 
@@ -2301,7 +2302,7 @@ struct unary_def : public overloaded_base<0>
     return r.resolve_unary ();
   }
 };
-SHAPE (unary)
+SHAPE (unary);
 
 /* <S0:twice>_t vfoo[_<t0>](<T0>_t)
 
@@ -2329,7 +2330,7 @@ struct unary_acc_def : public overloaded_base<0>
     return r.resolve_unary ();
   }
 };
-SHAPE (unary_acc)
+SHAPE (unary_acc);
 
 /* <T0>_t foo_t0[_t1](<T1>_t)
 
@@ -2357,7 +2358,7 @@ struct unary_convert_def : public overloaded_base<1>
     return r.resolve_unary ();
   }
 };
-SHAPE (unary_convert)
+SHAPE (unary_convert);
 
 /* [u]int32_t vfoo[_<t0>](<T0>_t)
 
@@ -2384,7 +2385,7 @@ struct unary_int32_def : public overloaded_base<0>
     return r.resolve_uniform (1);
   }
 };
-SHAPE (unary_int32)
+SHAPE (unary_int32);
 
 /* [u]int32_t vfoo[_<t0>]([u]int32_t, <T0>_t)
 
@@ -2425,7 +2426,7 @@ struct unary_int32_acc_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (unary_int32_acc)
+SHAPE (unary_int32_acc);
 
 /* <T0>_t vfoo[_n]_t0(<S0>_t)
 
@@ -2478,7 +2479,7 @@ struct unary_n_def : public overloaded_base<0>
     return r.resolve_unary_n ();
   }
 };
-SHAPE (unary_n)
+SHAPE (unary_n);
 
 /* <T0:twice>_t vfoo[_t0](<T0>_t)
 
@@ -2522,7 +2523,7 @@ struct unary_widen_def : public overloaded_base<0>
     return r.report_no_such_form (type);
   }
 };
-SHAPE (unary_widen)
+SHAPE (unary_widen);
 
 /* <S0:twice>_t vfoo[_<t0>](<S0:twice>_t, <T0>_t)
 
@@ -2556,7 +2557,7 @@ struct unary_widen_acc_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (unary_widen_acc)
+SHAPE (unary_widen_acc);
 
 /* <T0>_t vfoo[_t0](T0, T0, uint32_t*)
 
@@ -2592,7 +2593,7 @@ struct vadc_vsbc_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (vadc_vsbc)
+SHAPE (vadc_vsbc);
 
 /* mve_pred16_t foo_t0(uint32_t)
 
@@ -2608,7 +2609,7 @@ struct vctp_def : public nonoverloaded_base
     build_all (b, "p,su32", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (vctp)
+SHAPE (vctp);
 
 /* <T0>_t foo_t0[_t1](<T1>_t)
    <T0>_t foo_t0_n[_t1](<T1>_t, const int)
@@ -2708,7 +2709,7 @@ struct vcvt_def : public overloaded_base<0>
     return c.require_immediate_range (1, 1, bits);
   }
 };
-SHAPE (vcvt)
+SHAPE (vcvt);
 
 /* float16x8_t foo_f16_f32(float16x8_t, float32x4_t)
 
@@ -2725,7 +2726,7 @@ struct vcvt_f16_f32_def : public nonoverloaded_base
     build_all (b, "v0,v0,v1", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (vcvt_f16_f32)
+SHAPE (vcvt_f16_f32);
 
 /* float32x4_t foo_f32_f16(float16x8_t)
 
@@ -2743,7 +2744,7 @@ struct vcvt_f32_f16_def : public nonoverloaded_base
     build_all (b, "v0,v1", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (vcvt_f32_f16)
+SHAPE (vcvt_f32_f16);
 
 /* <T0>_t foo_t0[_t1](<T1>_t)
 
@@ -2802,7 +2803,7 @@ struct vcvtx_def : public overloaded_base<0>
     return r.report_no_such_form (from_type);
   }
 };
-SHAPE (vcvtx)
+SHAPE (vcvtx);
 
 /* <T0>_t vfoo[_n]_t0(uint32_t, const int)
    <T0>_t vfoo[_wb]_t0(uint32_t *, const int)
@@ -2887,7 +2888,7 @@ struct viddup_def : public overloaded_base<0>
     return c.require_immediate_one_of (1, 1, 2, 4, 8);
   }
 };
-SHAPE (viddup)
+SHAPE (viddup);
 
 /* <T0>_t vfoo[_n]_t0(uint32_t, uint32_t, const int)
    <T0>_t vfoo[_wb]_t0(uint32_t *, uint32_t, const int)
@@ -2975,7 +2976,7 @@ struct vidwdup_def : public overloaded_base<0>
     return c.require_immediate_one_of (2, 1, 2, 4, 8);
   }
 };
-SHAPE (vidwdup)
+SHAPE (vidwdup);
 
 /* mve_pred16_t foo_t0(mve_pred16_t)
 
@@ -2990,7 +2991,7 @@ struct vpnot_def : public nonoverloaded_base
     build_all (b, "p,p", group, MODE_none, preserve_user_namespace);
   }
 };
-SHAPE (vpnot)
+SHAPE (vpnot);
 
 /* <T0>_t vfoo[_t0](<T0>_t, <T0>_t, mve_pred16_t)
 
@@ -3029,7 +3030,7 @@ struct vpsel_def : public overloaded_base<0>
     return r.resolve_to (r.mode_suffix_id, type);
   }
 };
-SHAPE (vpsel)
+SHAPE (vpsel);
 
 /* <T0>_t vfoo[_t0](T0, uint32_t* , const int)
 
@@ -3073,7 +3074,7 @@ struct vshlc_def : public overloaded_base<0>
     return c.require_immediate_range (2, 1, 32);
   }
 };
-SHAPE (vshlc)
+SHAPE (vshlc);
 
 } /* end namespace arm_mve */
 
