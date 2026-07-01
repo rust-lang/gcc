@@ -41,6 +41,7 @@
 
 #include <type_traits>
 #include <bits/move.h>
+#include <bits/inplace_tags.h>
 #ifdef __glibcxx_constant_wrapper // C++ >= 26
 #  include <bits/invoke.h>
 #endif
@@ -548,44 +549,6 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     _IotaArray<_Num, _Tp, integer_sequence<_Tp, _Is...>>[_Num] = {_Is...};
 #endif // __integer_pack
 #endif // __cpp_structured_bindings >= 202411L
-
-#if __cplusplus >= 201703L
-
-  struct in_place_t {
-    explicit in_place_t() = default;
-  };
-
-  inline constexpr in_place_t in_place{};
-
-  template<typename _Tp> struct in_place_type_t
-  {
-    explicit in_place_type_t() = default;
-  };
-
-  template<typename _Tp>
-    inline constexpr in_place_type_t<_Tp> in_place_type{};
-
-  template<size_t _Idx> struct in_place_index_t
-  {
-    explicit in_place_index_t() = default;
-  };
-
-  template<size_t _Idx>
-    inline constexpr in_place_index_t<_Idx> in_place_index{};
-
-  template<typename>
-    inline constexpr bool __is_in_place_type_v = false;
-
-  template<typename _Tp>
-    inline constexpr bool __is_in_place_type_v<in_place_type_t<_Tp>> = true;
-
-  template<typename>
-    inline constexpr bool __is_in_place_index_v = false;
-
-  template<size_t _Nm>
-    inline constexpr bool __is_in_place_index_v<in_place_index_t<_Nm>> = true;
-
-#endif // C++17
 
 #if _GLIBCXX_USE_BUILTIN_TRAIT(__type_pack_element)
   template<size_t _Np, typename... _Types>

@@ -138,6 +138,7 @@ bits_freestanding = \
 	${bits_srcdir}/enable_special_members.h \
 	${bits_srcdir}/functexcept.h \
 	${bits_srcdir}/functional_hash.h \
+	${bits_srcdir}/inplace_tags.h \
 	${bits_srcdir}/intcmp.h \
 	${bits_srcdir}/invoke.h \
 	${bits_srcdir}/iosfwd.h \
@@ -152,6 +153,7 @@ bits_freestanding = \
 	${bits_srcdir}/memoryfwd.h \
 	${bits_srcdir}/monostate.h \
 	${bits_srcdir}/move.h \
+	${bits_srcdir}/optional_ref.h \
 	${bits_srcdir}/ostream.h \
 	${bits_srcdir}/out_ptr.h \
 	${bits_srcdir}/predefined_ops.h \

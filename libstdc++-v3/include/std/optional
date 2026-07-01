@@ -51,6 +51,7 @@
 #include <bits/enable_special_members.h>
 #include <bits/exception_defines.h>
 #include <bits/functional_hash.h>
+#include <bits/optional_ref.h>  // nullopt_t, optional<_Tp&>
 #include <bits/stl_construct.h> // _Construct
 #include <bits/utility.h> // in_place_t
 #if __cplusplus > 201703L
@@ -76,28 +77,6 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
    *  @addtogroup utilities
    *  @{
    */
-
-  template<typename _Tp>
-    class optional;
-
-  /// Tag type to disengage optional objects.
-  struct nullopt_t
-  {
-    // Do not user-declare default constructor at all for
-    // optional_value = {} syntax to work.
-    // nullopt_t() = delete;
-
-    // Used for constructing nullopt.
-    enum class _Construct { _Token };
-
-    // Must be constexpr for nullopt_t to be literal.
-    explicit constexpr nullopt_t(_Construct) noexcept { }
-  };
-
-  /// Tag to disengage optional objects.
-  inline constexpr nullopt_t nullopt { nullopt_t::_Construct::_Token };
-
-  template<typename _Fn> struct _Optional_func { _Fn& _M_f; };
 
   /**
    *  @brief Exception class thrown when a disengaged optional object is
@@ -794,17 +773,6 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 #if __cpp_concepts && __cpp_conditional_explicit && __glibcxx_remove_cvref
 # define _GLIBCXX_USE_CONSTRAINTS_FOR_OPTIONAL 1
 #endif
-
-  template<typename _Tp>
-    inline constexpr bool __is_valid_contained_type_for_optional =
-      (
-#if __cpp_lib_optional >= 202506L
-	is_lvalue_reference_v<_Tp> ||
-#endif
-	(is_object_v<_Tp> && is_destructible_v<_Tp> && !is_array_v<_Tp>)
-      )
-      && !is_same_v<remove_cv_t<remove_reference_t<_Tp>>, nullopt_t>
-      && !is_same_v<remove_cv_t<remove_reference_t<_Tp>>, in_place_t>;
 
   /**
     * @brief Class template for optional values.
@@ -1505,334 +1473,95 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     };
 
 #if __cpp_lib_optional >= 202506L // C++26
+#ifdef __cpp_lib_optional_range_support
   template<typename _Tp>
-    class optional<_Tp&>;
+    constexpr auto
+    optional<_Tp&>::begin() const noexcept
+      requires is_object_v<_Tp> && (!is_unbounded_array_v<_Tp>)
+    { return __gnu_cxx::__normal_iterator<_Tp*, optional>(_M_val); }
 
   template<typename _Tp>
-    constexpr bool __is_optional_ref_v = false;
-
-  template<typename _Tp>
-    constexpr bool __is_optional_ref_v<optional<_Tp&>> = true;
-
-  template<typename _Tp>
-    struct __optional_ref_base
-    {};
-
-#ifdef __cpp_lib_optional_range_support // >= C++26
-  template<typename _Tp>
-    struct __optional_ref_base<_Tp[]>
-    {};
-
-  template<typename _Tp>
-    requires is_object_v<_Tp>
-    struct __optional_ref_base<_Tp>
-    {
-      using iterator = __gnu_cxx::__normal_iterator<_Tp*, optional<_Tp&>>;
-    };
+    constexpr auto
+    optional<_Tp&>::end() const noexcept
+      requires is_object_v<_Tp> && (!is_unbounded_array_v<_Tp>)
+    { return begin() + has_value(); }
 #endif // __cpp_lib_optional_range_support
 
   template<typename _Tp>
-    class optional<_Tp&> : public __optional_ref_base<_Tp>
+    constexpr _Tp&
+    optional<_Tp&>::value() const
     {
-      static_assert(__is_valid_contained_type_for_optional<_Tp&>);
-
-    public:
-      using value_type = _Tp;
-
-      // Constructors.
-      constexpr optional() noexcept = default;
-      constexpr optional(nullopt_t) noexcept : optional() {}
-      constexpr optional(const optional&) noexcept = default;
-
-      template<typename _Arg>
-	requires is_constructible_v<_Tp&, _Arg>
-	  && (!reference_constructs_from_temporary_v<_Tp&, _Arg>)
-	explicit constexpr
-	optional(in_place_t, _Arg&& __arg)
-	{
-	  __convert_ref_init_val(std::forward<_Arg>(__arg));
-	}
-
-      template<typename _Up>
-	requires (!is_same_v<remove_cvref_t<_Up>, optional>)
-	  && (!is_same_v<remove_cvref_t<_Up>, in_place_t>)
-	  && is_constructible_v<_Tp&, _Up>
-	  && (!reference_constructs_from_temporary_v<_Tp&, _Up>)
-	explicit(!is_convertible_v<_Up, _Tp&>)
-	constexpr
-	optional(_Up&& __u)
-	noexcept(is_nothrow_constructible_v<_Tp&, _Up>)
-	{
-	  __convert_ref_init_val(std::forward<_Up>(__u));
-	}
-
-      template<typename _Up>
-	requires (!is_same_v<remove_cvref_t<_Up>, optional>)
-	  && (!is_same_v<remove_cvref_t<_Up>, in_place_t>)
-	  && is_constructible_v<_Tp&, _Up>
-	  && reference_constructs_from_temporary_v<_Tp&, _Up>
-	explicit(!is_convertible_v<_Up, _Tp&>)
-	constexpr
-	optional(_Up&& __u) = delete;
-
-      // optional<U> &
-      template<typename _Up>
-	requires (!is_same_v<remove_cv_t<_Tp>, optional<_Up>>)
-	  && (!is_same_v<_Tp&, _Up>)
-	  && is_constructible_v<_Tp&, _Up&>
-	  && (!reference_constructs_from_temporary_v<_Tp&, _Up&>)
-	explicit(!is_convertible_v<_Up&, _Tp&>)
-	constexpr
-	optional(optional<_Up>& __rhs)
-	noexcept(is_nothrow_constructible_v<_Tp&, _Up&>)
-	{
-	  if (__rhs)
-	    __convert_ref_init_val(__rhs._M_fwd());
-	}
-
-      template<typename _Up>
-	requires (!is_same_v<remove_cv_t<_Tp>, optional<_Up>>)
-	  && (!is_same_v<_Tp&, _Up>)
-	  && is_constructible_v<_Tp&, _Up&>
-	  && reference_constructs_from_temporary_v<_Tp&, _Up&>
-	explicit(!is_convertible_v<_Up&, _Tp&>)
-	constexpr
-	optional(optional<_Up>& __rhs) = delete;
-
-      // const optional<U>&
-      template<typename _Up>
-	requires (!is_same_v<remove_cv_t<_Tp>, optional<_Up>>)
-	  && (!is_same_v<_Tp&, _Up>)
-	  && is_constructible_v<_Tp&, const _Up&>
-	  && (!reference_constructs_from_temporary_v<_Tp&, const _Up&>)
-	explicit(!is_convertible_v<const _Up&, _Tp&>)
-	constexpr
-	optional(const optional<_Up>& __rhs)
-	noexcept(is_nothrow_constructible_v<_Tp&, _Up&>)
-	{
-	  if (__rhs)
-	    __convert_ref_init_val(__rhs._M_fwd());
-	}
-
-      template<typename _Up>
-	requires (!is_same_v<remove_cv_t<_Tp>, optional<_Up>>)
-	  && (!is_same_v<_Tp&, _Up>)
-	  && is_constructible_v<_Tp&, const _Up&>
-	  && reference_constructs_from_temporary_v<_Tp&, const _Up&>
-	explicit(!is_convertible_v<const _Up&, _Tp&>)
-	constexpr
-	optional(const optional<_Up>& __rhs) = delete;
-
-      // optional<U>&&
-      template<typename _Up>
-	requires (!is_same_v<remove_cv_t<_Tp>, optional<_Up>>)
-	  && (!is_same_v<_Tp&, _Up>)
-	  && is_constructible_v<_Tp&, _Up>
-	  && (!reference_constructs_from_temporary_v<_Tp&, _Up>)
-	explicit(!is_convertible_v<_Up, _Tp&>)
-	constexpr
-	optional(optional<_Up>&& __rhs)
-	noexcept(is_nothrow_constructible_v<_Tp&, _Up>)
-	{
-	  if (__rhs)
-	    __convert_ref_init_val(std::move(__rhs)._M_fwd());
-	}
-
-      template<typename _Up>
-	requires (!is_same_v<remove_cv_t<_Tp>, optional<_Up>>)
-	  && (!is_same_v<_Tp&, _Up>)
-	  && is_constructible_v<_Tp&, _Up>
-	  && reference_constructs_from_temporary_v<_Tp&, _Up>
-	explicit(!is_convertible_v<_Up, _Tp&>)
-	constexpr
-	optional(optional<_Up>&& __rhs) = delete;
-
-      // const optional<U>&&
-      template<typename _Up>
-	requires (!is_same_v<remove_cv_t<_Tp>, optional<_Up>>)
-	  && (!is_same_v<_Tp&, _Up>)
-	  && is_constructible_v<_Tp&, const _Up>
-	  && (!reference_constructs_from_temporary_v<_Tp&, _Up>)
-	explicit(!is_convertible_v<const _Up, _Tp&>)
-	constexpr
-	optional(const optional<_Up>&& __rhs)
-	noexcept(is_nothrow_constructible_v<_Tp&, const _Up>)
-	{
-	  if (__rhs)
-	    __convert_ref_init_val(std::move(__rhs)._M_fwd());
-	}
-
-      template<typename _Up>
-	requires (!is_same_v<remove_cv_t<_Tp>, optional<_Up>>)
-	  && (!is_same_v<_Tp&, _Up>)
-	  && is_constructible_v<_Tp&, const _Up>
-	  && reference_constructs_from_temporary_v<_Tp&, const _Up>
-	explicit(!is_convertible_v<const _Up, _Tp&>)
-	constexpr
-	optional(const optional<_Up>&& __rhs) = delete;
-
-      constexpr ~optional() = default;
-
-      // Assignment.
-      constexpr optional& operator=(nullopt_t) noexcept
-      {
-	_M_val = nullptr;
-	return *this;
-      }
-
-      constexpr optional& operator=(const optional&) noexcept = default;
-
-      template<typename _Up>
-	requires is_constructible_v<_Tp&, _Up>
-	  && (!reference_constructs_from_temporary_v<_Tp&, _Up>)
-	constexpr _Tp&
-	emplace(_Up&& __u)
-	noexcept(is_nothrow_constructible_v<_Tp&, _Up>)
-	{
-	  __convert_ref_init_val(std::forward<_Up>(__u));
-	  // _GLIBCXX_RESOLVE_LIB_DEFECTS
-	  // 4300. Missing Returns: element in optional<T&>::emplace
-	  return *_M_val;
-	}
-
-      // Swap.
-      constexpr void swap(optional& __rhs) noexcept
-      { std::swap(_M_val, __rhs._M_val); }
-
-#ifdef __cpp_lib_optional_range_support // >= C++26
-      // Iterator support.
-      constexpr auto begin() const noexcept
-	requires is_object_v<_Tp> && (!is_unbounded_array_v<_Tp>)
-      { return __gnu_cxx::__normal_iterator<_Tp*, optional>(_M_val); }
-
-      constexpr auto end() const noexcept
-	requires is_object_v<_Tp> && (!is_unbounded_array_v<_Tp>)
-      { return begin() + has_value(); }
-#endif // __cpp_lib_optional_range_support
-
-      // Observers.
-      constexpr _Tp* operator->() const noexcept
-      {
-	__glibcxx_assert(_M_val); // hardened precondition
-	return _M_val;
-      }
-
-      constexpr _Tp& operator*() const noexcept
-      {
-	__glibcxx_assert(_M_val); // hardened precondition
+      if (_M_val)
 	return *_M_val;
-      }
+      __throw_bad_optional_access();
+    }
 
-      constexpr explicit operator bool() const noexcept
+  template<typename _Tp>
+    template<typename _Up>
+      requires is_object_v<_Tp> && (!is_array_v<_Tp>)
+      constexpr decay_t<_Tp>
+      optional<_Tp&>::value_or(_Up&& __u) const
       {
-	return _M_val;
-      }
-
-      constexpr bool has_value() const noexcept
-      {
-	return _M_val;
-      }
-
-      constexpr _Tp& value() const
-      {
+	using _Xp = remove_cv_t<_Tp>;
+	static_assert(is_convertible_v<_Tp&, _Xp>);
+	static_assert(is_convertible_v<_Up, _Xp>);
 	if (_M_val)
 	  return *_M_val;
-	__throw_bad_optional_access();
+	return std::forward<_Up>(__u);
       }
 
-      // _GLIBCXX_RESOLVE_LIB_DEFECTS
-      // 4304. std::optional<NonReturnable&> is ill-formed due to value_or
-      template<typename _Up = remove_cv_t<_Tp>>
-	requires is_object_v<_Tp> && (!is_array_v<_Tp>)
-	constexpr decay_t<_Tp>
-	value_or(_Up&& __u) const
-	{
-	  using _Xp = remove_cv_t<_Tp>;
-	  static_assert(is_convertible_v<_Tp&, _Xp>);
-	  static_assert(is_convertible_v<_Up, _Xp>);
-	  if (_M_val)
-	    return *_M_val;
-	  return std::forward<_Up>(__u);
-	}
-
-      // Monadic operations.
-      template<typename _Fn>
-	constexpr auto
-	and_then(_Fn&& __f) const
-	{
-	  using _Up = remove_cvref_t<invoke_result_t<_Fn, _Tp&>>;
-	  static_assert(__is_optional_v<_Up>,
-			"the function passed to std::optional<T&>::and_then "
-			"must return a std::optional");
-	  if (has_value())
-	    return std::__invoke(std::forward<_Fn>(__f), *_M_val);
-	  else
-	    return _Up();
-	}
-
-      template<typename _Fn>
-	constexpr
-	optional<remove_cv_t<invoke_result_t<_Fn, _Tp&>>>
-	transform(_Fn&& __f) const
-	{
-	  using _Up = remove_cv_t<invoke_result_t<_Fn, _Tp&>>;
-	  if (has_value())
-	    return optional<_Up>(_Optional_func<_Fn>{__f}, *_M_val);
-	  else
-	    return optional<_Up>();
-	}
-
-      template<typename _Fn>
-	requires invocable<_Fn>
-	constexpr
-	optional
-	or_else(_Fn&& __f) const
-	{
-	  static_assert(is_same_v<remove_cvref_t<invoke_result_t<_Fn>>, optional>,
-			"the function passed to std::optional<T&>::or_else "
-			"must return a std::optional<T&>");
-	  // _GLIBCXX_RESOLVE_LIB_DEFECTS
-	  // 4367. Improve optional<T&>::or_else
-	  if (has_value())
-	    return *this;
-	  else
-	    return std::forward<_Fn>(__f)();
-	}
-
-      // Modifiers.
-      constexpr void reset() noexcept
+  template<typename _Tp>
+    template<typename _Fn>
+      constexpr auto
+      optional<_Tp&>::and_then(_Fn&& __f) const
       {
-	_M_val = nullptr;
+        using _Up = remove_cvref_t<invoke_result_t<_Fn, _Tp&>>;
+        static_assert(__is_optional_v<_Up>,
+                      "the function passed to std::optional<T&>::and_then "
+                      "must return a std::optional");
+        if (has_value())
+          return std::__invoke(std::forward<_Fn>(__f), *_M_val);
+        else
+          return _Up();
       }
 
-    private:
-      _Tp *_M_val = nullptr;
+  template<typename _Tp>
+    template<typename _Fn>
+      constexpr optional<remove_cv_t<invoke_result_t<_Fn, _Tp&>>>
+      optional<_Tp&>::transform(_Fn&& __f) const
+      {
+        using _Up = remove_cv_t<invoke_result_t<_Fn, _Tp&>>;
+        if (has_value())
+          return optional<_Up>(_Optional_func<_Fn>{__f}, *_M_val);
+        else
+          return optional<_Up>();
+      }
 
-      [[__gnu__::__always_inline__]]
-      constexpr _Tp&
-      _M_fwd() const noexcept
-      { return *_M_val; }
+  template<typename _Tp>
+    template<typename _Fn>
+      requires is_invocable_v<_Fn>
+      constexpr optional<_Tp&>
+      optional<_Tp&>::or_else(_Fn&& __f) const
+      {
+        static_assert(is_same_v<remove_cvref_t<invoke_result_t<_Fn>>, optional>,
+                      "the function passed to std::optional<T&>::or_else "
+                      "must return a std::optional<T&>");
+        // _GLIBCXX_RESOLVE_LIB_DEFECTS
+        // 4367. Improve optional<T&>::or_else
+        if (has_value())
+          return *this;
+        else
+          return std::forward<_Fn>(__f)();
+      }
 
-      template<typename _Up> friend class optional;
-
-      template<typename _Up>
-	constexpr
-	void
-	__convert_ref_init_val(_Up&& __u)
-	noexcept
-	{
-	  _Tp& __r(std::forward<_Up>(__u));
-	  _M_val = std::addressof(__r);
-	}
-
-      template<typename _Fn, typename _Value>
-	explicit constexpr
-	optional(_Optional_func<_Fn> __f, _Value&& __v)
-	{
-	  _Tp& __r = std::__invoke(std::forward<_Fn>(__f._M_f), std::forward<_Value>(__v));
-	  _M_val = std::addressof(__r);
-	}
-    };
+  template<typename _Tp>
+    template<typename _Fn, typename _Value>
+      constexpr
+      optional<_Tp&>::optional(_Optional_func<_Fn> __f, _Value&& __v)
+      {
+        _Tp& __r = std::__invoke(std::forward<_Fn>(__f._M_f), std::forward<_Value>(__v));
+        _M_val = std::addressof(__r);
+      }
 #endif // __cpp_lib_optional >= 202506L
 
   template<typename _Tp>
