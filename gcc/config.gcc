@@ -55,10 +55,6 @@
 #			$default_gnu_indirect_function is set to
 #			"no" except for targets which are known to be OK.
 #
-#  gas_flag		One of yes, no or "" depending on whether GNU as was
-#			explicitly requested, explicitly not requested or
-#			unspecified.
-#
 #  gnu_ld_flag		One of yes, no or "" depending on whether GNU ld was
 #			explicitly requested, explicitly not requested or
 #			unspecified.

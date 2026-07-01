@@ -411,20 +411,12 @@ fi
 # Find default assembler
 # ----------------------
 
-# With GNU as
-AC_ARG_WITH(gnu-as,
-[AS_HELP_STRING([--with-gnu-as], [arrange to work with GNU as])],
-gas_flag="$with_gnu_as",
-gas_flag=)
-
 AC_ARG_WITH(as,
 [AS_HELP_STRING([--with-as], [arrange to use the specified as (full pathname)])],
 DEFAULT_ASSEMBLER="$with_as")
 if test x"${DEFAULT_ASSEMBLER+set}" = x"set"; then
   if test ! -x "$DEFAULT_ASSEMBLER"; then
     AC_MSG_ERROR([cannot execute: $DEFAULT_ASSEMBLER: check --with-as or env. var. DEFAULT_ASSEMBLER])
-  elif $DEFAULT_ASSEMBLER -v < /dev/null 2>&1 | grep GNU > /dev/null; then
-    gas_flag=yes
   fi
   AC_DEFINE_UNQUOTED(DEFAULT_ASSEMBLER,"$DEFAULT_ASSEMBLER",
 	[Define to enable the use of a default assembler.])
@@ -432,11 +424,7 @@ fi
 
 AC_MSG_CHECKING([whether a default assembler was specified])
 if test x"${DEFAULT_ASSEMBLER+set}" = x"set"; then
-  if test x"$gas_flag" != x"yes"; then
-    AC_MSG_RESULT([yes ($DEFAULT_ASSEMBLER)])
-  else
-    AC_MSG_RESULT([yes ($DEFAULT_ASSEMBLER - GNU as)])
-  fi
+  AC_MSG_RESULT([yes ($DEFAULT_ASSEMBLER)])
 else
   AC_MSG_RESULT(no)
 fi

@@ -1176,26 +1176,6 @@ Specify that the @emph{host} executables should be linked with the option
 symbols when the executables are started, and that in turn allows RELRO to
 mark the GOT read-only, resulting in better security.
 
-@item @anchor{with-gnu-as}--with-gnu-as
-Specify that the compiler should assume that the
-assembler it finds is the GNU assembler.  However, this does not modify
-the rules to find an assembler and will result in confusion if the
-assembler found is not actually the GNU assembler.  (Confusion may also
-result if the compiler finds the GNU assembler but has not been
-configured with @option{--with-gnu-as}.)  If you have more than one
-assembler installed on your system, you may want to use this option in
-connection with @option{--with-as=@var{pathname}} or
-@option{--with-build-time-tools=@var{pathname}}.
-
-The following systems are the only ones where it makes a difference
-whether you use the GNU assembler.  On any other system,
-@option{--with-gnu-as} has no effect.
-
-@itemize @bullet
-@item @samp{hppa*-@var{any}-@var{any}}
-@item @samp{*-*-solaris2.11}
-@end itemize
-
 @item @anchor{with-as}--with-as=@var{pathname}
 Specify that the compiler should use the assembler pointed to by
 @var{pathname}, rather than the one found by the standard rules to find
@@ -4375,11 +4355,9 @@ Renesas H8/300 series of processors.
 Only the 64-bit @samp{hppa} target is supported on HP-UX.  Support
 for 32-bit @samp{hppa} was discontinued in GCC 13.
 
-We require using gas on all hppa platforms.
-
-It may be helpful to configure GCC with the
-@uref{./configure.html#with-gnu-as,,@option{--with-gnu-as}} and
-@option{--with-as=@dots{}} options to ensure that GCC can find GAS@.
+We require using gas on all hppa platforms.  It may be helpful to
+configure GCC with the @option{--with-as=@dots{}} option to ensure
+that GCC can find GAS@.
 
 The DCE thread library is not supported, so @option{--enable-threads=dce}
 does not work.
@@ -4426,8 +4404,9 @@ later.
 @anchor{ia64-x-hpux}
 @heading ia64-*-hpux*
 Building GCC on this target requires the GNU Assembler.  The bundled HP
-assembler will not work.  To prevent GCC from using the wrong assembler,
-the option @option{--with-gnu-as} may be necessary.
+assembler will not work.  It may be helpful to configure GCC with
+the @option{--with-as=@dots{}} option to ensure that GCC can find
+GAS@.
 
 @html
 <hr />

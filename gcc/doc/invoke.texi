@@ -27392,8 +27392,6 @@ and GNU/Linux.
 @item -mgnu-as
 @itemx -mno-gnu-as
 Generate (or don't) code for the GNU assembler.  This is the default.
-@c Also, this is the default if the configure option @option{--with-gnu-as}
-@c is used.
 
 @opindex mgnu-ld
 @opindex mno-gnu-ld

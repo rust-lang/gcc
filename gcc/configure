@@ -975,7 +975,6 @@ with_gnu_ld
 with_ld
 with_demangler_in_ld
 with_dsymutil
-with_gnu_as
 with_as
 with_windres
 enable_largefile
@@ -1875,7 +1874,6 @@ Optional Packages:
   --with-demangler-in-ld  try to use demangler in GNU ld
   --with-dsymutil         arrange to use the specified dsymutil (full
                           pathname)
-  --with-gnu-as           arrange to work with GNU as
   --with-as               arrange to use the specified as (full pathname)
   --with-windres          arrange to use the specified windres (full pathname)
   --with-stack-clash-protection-guard-size=size
@@ -4033,16 +4031,6 @@ fi
 # Find default assembler
 # ----------------------
 
-# With GNU as
-
-# Check whether --with-gnu-as was given.
-if test "${with_gnu_as+set}" = set; then :
-  withval=$with_gnu_as; gas_flag="$with_gnu_as"
-else
-  gas_flag=
-fi
-
-
 
 # Check whether --with-as was given.
 if test "${with_as+set}" = set; then :
@@ -4052,8 +4040,6 @@ fi
 if test x"${DEFAULT_ASSEMBLER+set}" = x"set"; then
   if test ! -x "$DEFAULT_ASSEMBLER"; then
     as_fn_error $? "cannot execute: $DEFAULT_ASSEMBLER: check --with-as or env. var. DEFAULT_ASSEMBLER" "$LINENO" 5
-  elif $DEFAULT_ASSEMBLER -v < /dev/null 2>&1 | grep GNU > /dev/null; then
-    gas_flag=yes
   fi
 
 cat >>confdefs.h <<_ACEOF
@@ -4065,13 +4051,8 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether a default assembler was specified" >&5
 $as_echo_n "checking whether a default assembler was specified... " >&6; }
 if test x"${DEFAULT_ASSEMBLER+set}" = x"set"; then
-  if test x"$gas_flag" != x"yes"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes ($DEFAULT_ASSEMBLER)" >&5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes ($DEFAULT_ASSEMBLER)" >&5
 $as_echo "yes ($DEFAULT_ASSEMBLER)" >&6; }
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes ($DEFAULT_ASSEMBLER - GNU as)" >&5
-$as_echo "yes ($DEFAULT_ASSEMBLER - GNU as)" >&6; }
-  fi
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -21965,7 +21946,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 21968 "configure"
+#line 21949 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22071,7 +22052,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 22074 "configure"
+#line 22055 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H

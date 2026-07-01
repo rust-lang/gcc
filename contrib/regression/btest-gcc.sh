@@ -138,7 +138,7 @@ if [ $H_HOST = $H_TARGET ] ; then
     make $dashj all || exit 1
   fi
 else
-  withopt="--with-gnu-ld --with-gnu-as"
+  withopt="--with-gnu-ld"
   case "$H_TARGET" in
     *-linux*) ;;
     *) withopt="$withopt --with-newlib";;

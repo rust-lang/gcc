@@ -99,7 +99,7 @@ LIST = \
   sh-rtems sh-wrs-vxworks sparc-elf \
   sparc-leon-elf sparc-rtems sparc-linux-gnu \
   sparc-leon3-linux-gnuOPT-enable-target=all sparc-netbsdelf \
-  sparc64-sun-solaris2.11OPT-with-gnu-ldOPT-with-gnu-asOPT-enable-threads=posix \
+  sparc64-sun-solaris2.11OPT-with-gnu-ldOPT-enable-threads=posix \
   sparc-wrs-vxworks sparc64-elf sparc64-rtems sparc64-linux \
   sparc64-netbsd sparc64-openbsd \
   v850e1-elf v850e-elf v850-elf v850-rtems vax-linux-gnu \
