@@ -1550,9 +1550,9 @@ See RS/6000 and PowerPC Options.
 -mavxvnni  -mamx-fp8  -mavx512fp16  -mavxifma  -mavxvnniint8
 -mavxneconvert  -mcmpccxadd  -mamx-fp16  -mprefetchi  -mraoint
 -mamx-complex  -mavxvnniint16  -msm3  -msha512  -msm4  -mapxf
--musermsr  -mavx10.1  -mavx10.2  -mamx-avx512  -mamx-tf32  -mmovrs
--mamx-movrs  -mavx512bmm  -mcldemote  -mms-bitfields
--mno-align-stringops  -minline-all-stringops
+-musermsr  -mavx10.1  -mavx10.2  -mamx-avx512  -mmovrs  -mamx-movrs 
+-mavx512bmm
+-mcldemote  -mms-bitfields  -mno-align-stringops  -minline-all-stringops
 -minline-stringops-dynamically  -mstringop-strategy=@var{alg}
 -mkl  -mwidekl
 -mmemcpy-strategy=@var{strategy}  -mmemset-strategy=@var{strategy}
@@ -36178,12 +36178,7 @@ Support USER_MSR built-in functions and code generation.
 @opindex mno-amx-avx512
 @item -mamx-avx512
 Support MMX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2,
-AVX10.1, AVX10.2 and AMX-AVX512 built-in functions and code generation.
-
-@opindex mamx-tf32
-@opindex mno-amx-tf32
-@item -mamx-tf32
-Support AMX-TF32 built-in functions and code generation.
+AVX512F and AMX-AVX512 built-in functions and code generation.
 
 @opindex mamx-fp8
 @opindex mno-amx-fp8

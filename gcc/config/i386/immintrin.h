@@ -134,8 +134,6 @@
 
 #include <amxavx512intrin.h>
 
-#include <amxtf32intrin.h>
-
 #include <amxfp8intrin.h>
 
 #include <prfchwintrin.h>

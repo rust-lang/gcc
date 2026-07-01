@@ -89,7 +89,6 @@ extern void test_sm4 (void)                     __attribute__((__target__("sm4")
 extern void test_user_msr (void)		__attribute__((__target__("usermsr")));
 extern void test_avx10_2 (void)			__attribute__((__target__("avx10.2")));
 extern void test_amx_avx512 (void)		__attribute__((__target__("amx-avx512")));
-extern void test_amx_tf32 (void)		__attribute__((__target__("amx-tf32")));
 extern void test_amx_fp8 (void)                 __attribute__((__target__("amx-fp8")));
 extern void test_movrs (void)			__attribute__((__target__("movrs")));
 extern void test_amx_movrs (void)		__attribute__((__target__("amx-movrs")));
@@ -183,7 +182,6 @@ extern void test_no_sm4 (void)                  __attribute__((__target__("no-sm
 extern void test_no_user_msr (void)		__attribute__((__target__("no-usermsr")));
 extern void test_no_avx10_2 (void)		__attribute__((__target__("no-avx10.2")));
 extern void test_no_amx_avx512 (void)		__attribute__((__target__("no-amx-avx512")));
-extern void test_no_amx_tf32 (void)		__attribute__((__target__("no-amx-tf32")));
 extern void test_no_amx_fp8 (void)              __attribute__((__target__("no-amx-fp8")));
 extern void test_no_movrs (void)		__attribute__((__target__("no-movrs")));
 extern void test_no_amx_movrs (void)		__attribute__((__target__("no-amx-movrs")));

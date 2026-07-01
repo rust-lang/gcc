@@ -16,34 +16,4 @@
    see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
    <http://www.gnu.org/licenses/>.  */
 
-#if !defined _IMMINTRIN_H_INCLUDED
-#error "Never use <amxtf32intrin.h> directly; include <immintrin.h> instead."
-#endif
-
-#ifndef _AMXTF32INTRIN_H_INCLUDED
-#define _AMXTF32INTRIN_H_INCLUDED
-
-#if !defined(__AMX_TF32__)
-#pragma GCC push_options
-#pragma GCC target("amx-tf32")
-#define __DISABLE_AMX_TF32__
-#endif /* __AMX_TF32__ */
-
-#if defined(__x86_64__)
-#define _tile_mmultf32ps_internal(src1_dst,src2,src3)			\
-  __asm__ volatile						    	\
-  ("{tmmultf32ps\t%%tmm%c[_src3], %%tmm%c[_src2], %%tmm%c[_src1_dst]	\
-    |tmmultf32ps\ttmm%c[_src1_dst], tmm%c[_src2], tmm%c[_src3]}"	\
-    :: [_src1_dst]"i"(src1_dst), [_src2]"i"(src2), [_src3]"i"(src3))
-
-#define _tile_mmultf32ps(src1_dst,src2,src3)				\
-  _tile_mmultf32ps_internal (src1_dst, src2, src3)
-
-#endif
-
-#ifdef __DISABLE_AMX_TF32__
-#undef __DISABLE_AMX_TF32__
-#pragma GCC pop_options
-#endif /* __DISABLE_AMX_TF32__ */
-
-#endif /* _AMXTF32INTRIN_H_INCLUDED */
+#error "AMX-TF32 support has been removed since GCC 17."

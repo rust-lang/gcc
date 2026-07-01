@@ -9487,11 +9487,6 @@ Enable/Disable the generation of the AVX10.2 instructions.
 @itemx no-amx-avx512
 Enable/disable the generation of the AMX-AVX512 instructions.
 
-@atindex @code{target("amx-tf32")}, x86
-@item amx-tf32
-@itemx no-amx-tf32
-Enable/disable the generation of the AMX-TF32 instructions.
-
 @atindex @code{target("amx-fp8")}, x86
 @item amx-fp8
 @itemx no-amx-fp8
