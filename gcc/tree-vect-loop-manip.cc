@@ -1355,7 +1355,7 @@ vect_set_loop_condition_normal (loop_vec_info loop_vinfo, edge exit_edge,
   create_iv (init, PLUS_EXPR, step, NULL_TREE, loop,
 	     &incr_gsi, insert_after,
 	     &indx_before_incr, &indx_after_incr,
-	     LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo));
+	     !loop_vinfo || LOOP_VINFO_IV_INCREMENT_INVARIANT_P (loop_vinfo));
 
   indx_after_incr = force_gimple_operand_gsi (&loop_cond_gsi, indx_after_incr,
 					      true, NULL_TREE, true,
