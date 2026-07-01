@@ -1454,23 +1454,26 @@ struct tzdb_list::_Node::NumLeapSeconds
   // Called by _Node::_S_replace_head
   // The two versions are named differently so that caller has to be explicit
   // about which version it calls, based on whether the mutex is held.
-#if ATOMIC_INT_LOCK_FREE == 2
   void
-  set_atomically(unsigned val)
+  set(unsigned val)
   {
+#if ATOMIC_INT_LOCK_FREE == 2
     atomic_ref<unsigned> ref(count);
     // The release op here synchronizes with the acquire op in get().
     ref.store(val, memory_order::release);
-  }
 #else
+    lock_guard<mutex> l(list_mutex());
+    set_locked(val, l);
+#endif
+  }
+
   void
   set_locked(unsigned val, const lock_guard<mutex>&)
   {
-    // XXX The only caller of this function locks list_mutex() so we would
+    // The only caller of this function locks list_mutex() so we would
     // deadlock if we locked it again here.
     count = val;
   }
-#endif
 
 private:
   unsigned count = 0;
@@ -1690,7 +1693,7 @@ constinit tzdb_list::_Node::NumLeapSeconds tzdb_list::_Node::num_leap_seconds;
 
     // This allows __recent_leap_second_info() to know that it can use
     // get_tzdb_list()->begin()->leap_seconds to get new leap seconds.
-    num_leap_seconds.set_atomically(new_head_ptr->db.leap_seconds.size());
+    num_leap_seconds.set(new_head_ptr->db.leap_seconds.size());
 #else
     lock_guard<mutex> lock(list_mutex());
     if (const _Node* h = _S_head_owner.get())
