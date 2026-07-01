@@ -144,8 +144,8 @@ extern void GOMP_loop_end (void);
 extern void GOMP_loop_end_nowait (void);
 extern bool GOMP_loop_end_cancel (void);
 
-extern __complex__ int GOMP_loop_static_worksharing (void);
-extern __complex__ int GOMP_loop_static_worksharing_start (void);
+extern _Complex int GOMP_loop_static_worksharing (unsigned long long);
+extern _Complex int GOMP_loop_static_worksharing_start (unsigned long long);
 extern void GOMP_loop_static_worksharing_dispatch (void);
 extern void GOMP_loop_static_worksharing_end (void);
 
@@ -386,8 +386,8 @@ extern void *GOMP_target_map_indirect_ptr (void *);
 
 extern void GOMP_teams_reg (void (*) (void *), void *, unsigned, unsigned,
 			    unsigned);
-extern __complex__ int GOMP_distribute_static_worksharing (void);
-extern __complex__ int GOMP_distribute_static_worksharing_start (void);
+extern _Complex int GOMP_distribute_static_worksharing (unsigned long long);
+extern _Complex int GOMP_distribute_static_worksharing_start (unsigned long long);
 extern void GOMP_distribute_static_worksharing_dispatch (void);
 extern void GOMP_distribute_static_worksharing_end (void);
 

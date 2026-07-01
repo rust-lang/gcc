@@ -1188,10 +1188,12 @@ GOMP_loop_ordered_guided_next (long *istart, long *iend)
 #endif
 
 /* For a worksharing-loop construct with static schedule, return the thread ID
-   and number of threads packed into a single complex value.  */
+   and number of threads packed into a single complex value. NITER is the total
+   number of iterations.  */
 
 _Complex int
-GOMP_loop_static_worksharing (void)
+GOMP_loop_static_worksharing (unsigned long long niter
+			      __attribute__ ((unused)))
 {
   struct gomp_team *team = gomp_thread ()->ts.team;
   unsigned tid = gomp_thread ()->ts.team_id;
@@ -1202,7 +1204,8 @@ GOMP_loop_static_worksharing (void)
 /* OMPT variant enabled by -fopenmp-ompt.  */
 
 _Complex int
-GOMP_loop_static_worksharing_start (void)
+GOMP_loop_static_worksharing_start (unsigned long long niter
+				    __attribute__ ((unused)))
 {
   struct gomp_team *team = gomp_thread ()->ts.team;
   unsigned tid = gomp_thread ()->ts.team_id;

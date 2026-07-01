@@ -59,10 +59,12 @@ GOMP_teams_reg (void (*fn) (void *), void *data, unsigned int num_teams,
 }
 
 /* For a distribute construct with static schedule, return the team ID and
-   number of teams packed into a single complex value.  */
+   number of teams packed into a single complex value. NITER is the total
+   number of iterations.  */
 
 _Complex int
-GOMP_distribute_static_worksharing (void)
+GOMP_distribute_static_worksharing (unsigned long long
+				    niter __attribute__ ((unused)))
 {
   struct gomp_thread *thr = gomp_thread ();
   unsigned tid = thr->team_num;
@@ -73,7 +75,8 @@ GOMP_distribute_static_worksharing (void)
 /* OMPT variant enabled by -fopenmp-ompt.  */
 
 _Complex int
-GOMP_distribute_static_worksharing_start (void)
+GOMP_distribute_static_worksharing_start (unsigned long long
+					  niter __attribute__ ((unused)))
 {
   struct gomp_thread *thr = gomp_thread ();
   unsigned tid = thr->team_num;

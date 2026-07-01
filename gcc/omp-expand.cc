@@ -5190,42 +5190,6 @@ expand_omp_for_static_nochunk (struct omp_region *region,
 	  release_ssa_name (gimple_assign_lhs (g));
 	}
     }
-  /* Fetch the thread/team id and the number of threads/teams in a single
-     call to GOMP_loop_static_worksharing or GOMP_distribute_static_worksharing.
-     The helper returns both values packed into one complex int, with
-     the id as the imaginary part and the count as the real part.  Returning
-     (rather than writing through pointers) keeps both values as plain SSA
-     names, which lets later passes - notably IPA-CP propagating constants
-     into the outlined kernel - reason about them.  */
-  tree decl;
-  switch (gimple_omp_for_kind (fd->for_stmt))
-    {
-    case GF_OMP_FOR_KIND_FOR:
-      decl = builtin_decl_explicit (
-	flag_openmp_ompt ? BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_START
-			 : BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING);
-      break;
-    case GF_OMP_FOR_KIND_DISTRIBUTE:
-      decl = builtin_decl_explicit (
-	flag_openmp_ompt ? BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_START
-			 : BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING);
-      break;
-    default:
-      gcc_unreachable ();
-    }
-  {
-    tree packed = build_call_expr (decl, 0);
-    packed = force_gimple_operand_gsi (&gsi, packed, true, NULL_TREE,
-				       true, GSI_SAME_STMT);
-    threadid = fold_build1 (IMAGPART_EXPR, integer_type_node, packed);
-    threadid = fold_convert (itype, threadid);
-    threadid = force_gimple_operand_gsi (&gsi, threadid, true, NULL_TREE,
-					 true, GSI_SAME_STMT);
-    nthreads = fold_build1 (REALPART_EXPR, integer_type_node, packed);
-    nthreads = fold_convert (itype, nthreads);
-    nthreads = force_gimple_operand_gsi (&gsi, nthreads, true, NULL_TREE,
-					 true, GSI_SAME_STMT);
-  }
 
   n1 = fd->loop.n1;
   n2 = fd->loop.n2;
@@ -5260,6 +5224,45 @@ expand_omp_for_static_nochunk (struct omp_region *region,
     t = fold_build2 (TRUNC_DIV_EXPR, itype, t, step);
   t = fold_convert (itype, t);
   n = force_gimple_operand_gsi (&gsi, t, true, NULL_TREE, true, GSI_SAME_STMT);
+
+  {
+    /* Fetch the thread/team id and the number of threads/teams in a single
+       call to GOMP_loop_static_worksharing or
+       GOMP_distribute_static_worksharing. The helper returns both values packed
+       into one complex int, with the id as the imaginary part and the count as
+       the real part.  Returning (rather than writing through pointers) keeps
+       both values as plain SSA names, which lets later passes - notably IPA-CP
+       propagating constants into the outlined kernel - reason about them.
+       Also pass the total number of iterations for OMPT.  */
+    tree decl;
+    switch (gimple_omp_for_kind (fd->for_stmt))
+      {
+      case GF_OMP_FOR_KIND_FOR:
+	decl = builtin_decl_explicit (
+	  flag_openmp_ompt ? BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_START
+			   : BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING);
+	break;
+      case GF_OMP_FOR_KIND_DISTRIBUTE:
+	decl = builtin_decl_explicit (
+	  flag_openmp_ompt ? BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_START
+			   : BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING);
+	break;
+      default:
+	gcc_unreachable ();
+      }
+    tree n_ull = fold_convert (long_long_unsigned_type_node, n);
+    tree packed = build_call_expr (decl, 1, n_ull);
+    packed = force_gimple_operand_gsi (&gsi, packed, true, NULL_TREE,
+				       true, GSI_SAME_STMT);
+    threadid = fold_build1 (IMAGPART_EXPR, integer_type_node, packed);
+    threadid = fold_convert (itype, threadid);
+    threadid = force_gimple_operand_gsi (&gsi, threadid, true, NULL_TREE,
+					 true, GSI_SAME_STMT);
+    nthreads = fold_build1 (REALPART_EXPR, integer_type_node, packed);
+    nthreads = fold_convert (itype, nthreads);
+    nthreads = force_gimple_operand_gsi (&gsi, nthreads, true, NULL_TREE,
+					 true, GSI_SAME_STMT);
+  }
 
   q = create_tmp_reg (itype, "q");
   t = fold_build2 (TRUNC_DIV_EXPR, itype, n, nthreads);
@@ -6008,42 +6011,6 @@ expand_omp_for_static_chunk (struct omp_region *region,
 	  release_ssa_name (gimple_assign_lhs (g));
 	}
     }
-  /* Fetch the thread/team id and the number of threads/teams in a single
-     call to GOMP_loop_static_worksharing or GOMP_distribute_static_worksharing.
-     The helper returns both values packed into one complex int, with
-     the id as the imaginary part and the count as the real part.  Returning
-     (rather than writing through pointers) keeps both values as plain SSA
-     names, which lets later passes - notably IPA-CP propagating constants
-     into the outlined kernel - reason about them.  */
-  tree decl;
-  switch (gimple_omp_for_kind (fd->for_stmt))
-    {
-    case GF_OMP_FOR_KIND_FOR:
-      decl = builtin_decl_explicit (
-	flag_openmp_ompt ? BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_START
-			 : BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING);
-      break;
-    case GF_OMP_FOR_KIND_DISTRIBUTE:
-      decl = builtin_decl_explicit (
-	flag_openmp_ompt ? BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_START
-			 : BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING);
-      break;
-    default:
-      gcc_unreachable ();
-    }
-  {
-    tree packed = build_call_expr (decl, 0);
-    packed = force_gimple_operand_gsi (&gsi, packed, true, NULL_TREE,
-				       true, GSI_SAME_STMT);
-    threadid = fold_build1 (IMAGPART_EXPR, integer_type_node, packed);
-    threadid = fold_convert (itype, threadid);
-    threadid = force_gimple_operand_gsi (&gsi, threadid, true, NULL_TREE,
-					 true, GSI_SAME_STMT);
-    nthreads = fold_build1 (REALPART_EXPR, integer_type_node, packed);
-    nthreads = fold_convert (itype, nthreads);
-    nthreads = force_gimple_operand_gsi (&gsi, nthreads, true, NULL_TREE,
-					 true, GSI_SAME_STMT);
-  }
 
   n1 = fd->loop.n1;
   n2 = fd->loop.n2;
@@ -6085,6 +6052,45 @@ expand_omp_for_static_chunk (struct omp_region *region,
   t = fold_convert (itype, t);
   n = force_gimple_operand_gsi (&gsi, t, true, NULL_TREE,
 				true, GSI_SAME_STMT);
+
+  {
+    /* Fetch the thread/team id and the number of threads/teams in a single
+       call to GOMP_loop_static_worksharing or
+       GOMP_distribute_static_worksharing. The helper returns both values packed
+       into one complex int, with the id as the imaginary part and the count as
+       the real part.  Returning (rather than writing through pointers) keeps
+       both values as plain SSA names, which lets later passes - notably IPA-CP
+       propagating constants into the outlined kernel - reason about them.
+       Also pass the total number of iterations for OMPT.  */
+    tree decl;
+    switch (gimple_omp_for_kind (fd->for_stmt))
+      {
+      case GF_OMP_FOR_KIND_FOR:
+	decl = builtin_decl_explicit (
+	  flag_openmp_ompt ? BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_START
+			   : BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING);
+	break;
+      case GF_OMP_FOR_KIND_DISTRIBUTE:
+	decl = builtin_decl_explicit (
+	  flag_openmp_ompt ? BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_START
+			   : BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING);
+	break;
+      default:
+	gcc_unreachable ();
+      }
+    tree n_ull = fold_convert (long_long_unsigned_type_node, n);
+    tree packed = build_call_expr (decl, 1, n_ull);
+    packed = force_gimple_operand_gsi (&gsi, packed, true, NULL_TREE, true,
+				       GSI_SAME_STMT);
+    threadid = fold_build1 (IMAGPART_EXPR, integer_type_node, packed);
+    threadid = fold_convert (itype, threadid);
+    threadid = force_gimple_operand_gsi (&gsi, threadid, true, NULL_TREE, true,
+					 GSI_SAME_STMT);
+    nthreads = fold_build1 (REALPART_EXPR, integer_type_node, packed);
+    nthreads = fold_convert (itype, nthreads);
+    nthreads = force_gimple_operand_gsi (&gsi, nthreads, true, NULL_TREE, true,
+					 GSI_SAME_STMT);
+  }
 
   trip_var = create_tmp_reg (itype, ".trip");
   if (gimple_in_ssa_p (cfun))

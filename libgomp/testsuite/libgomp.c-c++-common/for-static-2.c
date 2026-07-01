@@ -5,7 +5,7 @@
 
 #include "for-static.h"
 
-/* { dg-final { scan-offload-tree-dump-times "GOMP_distribute_static_worksharing_start \\(" 2 "optimized" } } */
-/* { dg-final { scan-offload-tree-dump-times "GOMP_distribute_static_worksharing_end \\(" 2 "optimized" } } */
+/* { dg-final { scan-offload-tree-dump-times "GOMP_distribute_static_worksharing_start \\(\[^\\)\]" 2 "optimized" } } */
+/* { dg-final { scan-offload-tree-dump-times "GOMP_distribute_static_worksharing_end \\(\\)" 2 "optimized" } } */
 /* { dg-final { scan-offload-tree-dump-not "GOMP_distribute_static_worksharing \\(" "optimized" } } */
 /* { dg-final { scan-offload-tree-dump-not "GOMP_distribute_static_worksharing_dispatch" "optimized" } } */

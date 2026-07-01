@@ -8318,17 +8318,18 @@ but since its supposed to remain unchanged, we can also not if we like.
 For @code{schedule(static)} without @code{ordered}, the compiler uses:
 
 @smallexample
-  _Complex int GOMP_loop_static_worksharing (void)
+  _Complex int GOMP_loop_static_worksharing (unsigned long long)
 @end smallexample
 
-which returns the thread id in the real part and the thread count in the imaginary
-part as a single value, avoiding separate @code{omp_get_thread_num} /
+which returns the thread id in the imaginary part and the thread count in the
+real part as a single value, avoiding separate @code{omp_get_thread_num} /
 @code{omp_get_num_threads} calls that OMPT cannot distinguish from user queries.
+For OMPT, the total number of loop iterations is passed as argument.
 
 Similarly, for @code{distribute} constructs:
 
 @smallexample
-  _Complex int GOMP_distribute_static_worksharing (void)
+  _Complex int GOMP_distribute_static_worksharing (unsigned long long)
 @end smallexample
 
 returns the team id and team count.
