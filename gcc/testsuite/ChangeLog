@@ -1,3 +1,266 @@
+2026-06-30  Abhishek Kaushik  <abhishek.kaushik@arm.com>
+
+	* gcc.target/aarch64/sbfiz-widen-mult-1.c: New test.
+
+2026-06-30  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* gcc.target/i386/bt-cmov-1.c (scan-assembler-times): Simplify
+	patterns.  Allow for Solaris as syntax.
+
+2026-06-30  Paul Thomas  <pault@gcc.gnu.org>
+	    Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/121972
+	* gfortran.dg/pdt_86.f03: Add tree dump for counts of frees and
+	mallocs (41 & 31 respectively).
+	* gfortran.dg/pdt_86_reduced.f90: New test to check that the
+	non-PDT version of the leak has gone.
+
+2026-06-30  Robert Dubner  <rdubner@symas.com>
+
+	* cobol.dg/group2/ALLOCATE_Rule_8_OPTION_INITIALIZE_with_figconst.cob: Removed.
+	* cobol.dg/group2/ALLOCATE_Rule_8_OPTION_INITIALIZE_with_figconst.out: Removed.
+
+2026-06-30  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/121972
+	* gfortran.dg/pdt_70.f03: Add a matrix finalizer and update the
+	check of the value of 'flag'.
+
+2026-06-30  Paul-Antoine Arras  <parras@baylibre.com>
+
+	* c-c++-common/gomp/atomic-builtins-1.c: Skip test when sync_int_128 is
+	available.
+	* lib/target-supports.exp (check_effective_target_sync_int_128): Return
+	1 for targets that do not emit a call to __atomic_compare_exchange_16.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* gcc.target/aarch64/neon/vreinterpret.c: New test.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* gcc.target/aarch64/neon/vext.c: New test.
+	* gcc.target/aarch64/neon/vrev.c: New test.
+	* gcc.target/aarch64/neon/vtrn.c: New test.
+	* gcc.target/aarch64/neon/vuzp.c: New test.
+	* gcc.target/aarch64/neon/vzip.c: New test.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* gcc.target/aarch64/neon/vand.c: New test.
+	* gcc.target/aarch64/neon/vbcax.c: New test.
+	* gcc.target/aarch64/neon/vbic.c: New test.
+	* gcc.target/aarch64/neon/vbsl.c: New test.
+	* gcc.target/aarch64/neon/vcls.c: New test.
+	* gcc.target/aarch64/neon/vclz.c: New test.
+	* gcc.target/aarch64/neon/vcnt.c: New test.
+	* gcc.target/aarch64/neon/veor.c: New test.
+	* gcc.target/aarch64/neon/veor3.c: New test.
+	* gcc.target/aarch64/neon/vmvn.c: New test.
+	* gcc.target/aarch64/neon/vorn.c: New test.
+	* gcc.target/aarch64/neon/vorr.c: New test.
+	* gcc.target/aarch64/neon/vrax1.c: New test.
+	* gcc.target/aarch64/neon/vrbit.c: New test.
+	* gcc.target/aarch64/neon/vxar.c: New test.
+	* gcc.target/aarch64/sme/inlining_10.c: Replace `call_vbsl` with
+	`call_vhadd` since `vbsl` is no longer implemented as an
+	`always_inline` function.
+	* gcc.target/aarch64/sme/inlining_11.c: Likewise.
+	* gcc.target/aarch64/target_attr_10.c: Fix expected error message.
+
+2026-06-30  Karl Meakin  <karlwfmeakin@gmail.com>
+
+	* gcc.target/aarch64/simd/mf8_data_2.c: Fix test.
+	* gcc.target/aarch64/simd/fold_to_highpart_6.c: Fix test.
+	* g++.target/aarch64/lane-bound-1.C: Fix test.
+	* gcc.target/aarch64/advsimd-intrinsics/bf16_vect_copy_lane_1.c:
+	Fix test.
+	* gcc.target/aarch64/lane-bound-3.c: Fix test.
+	* gcc.target/aarch64/pr113573.c: Fix test.
+	* gcc.target/aarch64/simd/vset_lane_s16_const_1.c: Fix test.
+	* gcc.target/aarch64/advsimd-intrinsics/vcopy_lane_bf16_indices_1.c,
+	gcc.target/aarch64/advsimd-intrinsics/vcopy_lane_bf16_indices_2.c,
+	gcc.target/aarch64/advsimd-intrinsics/vcopy_laneq_bf16_indices_1.c,
+	gcc.target/aarch64/advsimd-intrinsics/vcopy_laneq_bf16_indices_2.c,
+	gcc.target/aarch64/advsimd-intrinsics/vcopyq_lane_bf16_indices_1.c,
+	gcc.target/aarch64/advsimd-intrinsics/vcopyq_lane_bf16_indices_2.c,
+	gcc.target/aarch64/advsimd-intrinsics/vcopyq_laneq_bf16_indices_1.c,
+	gcc.target/aarch64/advsimd-intrinsics/vcopyq_laneq_bf16_indices_2.c: Replace with...
+	gcc.target/aarch64/advsimd-intrinsics/vcopy_lane_indices.c: ...this.
+	* gcc.target/aarch64/simd/vget_lane_f32_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_f64_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_p16_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_p8_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_s16_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_s32_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_s64_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_s8_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_u16_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_u32_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_u64_indices_1.c,
+	gcc.target/aarch64/simd/vget_lane_u8_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_f32_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_f64_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_p16_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_p8_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_s16_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_s32_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_s64_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_s8_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_u16_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_u32_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_u64_indices_1.c,
+	gcc.target/aarch64/simd/vgetq_lane_u8_indices_1.c: Replace with...
+	* gcc.target/aarch64/simd/vget_lane_indices.c: ...this.
+	* gcc.target/aarch64/neon/arm_neon_test.h(VEC_LEN): New macro.
+	* gcc.target/aarch64/neon/vcopy_lane.c: New test.
+	* gcc.target/aarch64/neon/vdup_lane.c: New test.
+	* gcc.target/aarch64/neon/vget_lane.c: New test.
+	* gcc.target/aarch64/neon/vset_lane.c: New test.
+	* gcc.target/aarch64/advsimd-intrinsics/vcopy_lane_indices.c: New file.
+	* gcc.target/aarch64/neon/vget_high.c: New file.
+	* gcc.target/aarch64/neon/vget_low.c: New file.
+
+2026-06-30  Karl Meakin  <karlwfmeakin@gmail.com>
+
+	* gcc.target/aarch64/advsimd-intrinsics/bf16_dup.c: Fix test.
+	* gcc.target/aarch64/vmov_n_1.c: Fix test.
+	* gcc.target/aarch64/neon/vcombine.c: New test.
+	* gcc.target/aarch64/neon/vcreate.c: New test.
+	* gcc.target/aarch64/neon/vdup.c: New test.
+	* gcc.target/aarch64/neon/vmov_n.c: New test.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* g++.target/aarch64/pr103147-6.C: Fix tests.
+	* g++.target/aarch64/pr117048.C: Fix tests.
+	* gcc.target/aarch64/pr103147-6.c: Fix tests.
+	* gcc.target/aarch64/neon/aarch64-neon.exp: New test.
+	* gcc.target/aarch64/neon/arm_neon_test.h: New test.
+	* gcc.target/aarch64/neon/vadd.c: New test.
+
+2026-06-30  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* gcc.target/riscv/and-synthesis-2.c: New test.
+
+2026-06-30  Jim Tsung-Chun Lin  <jim@andestech.com>
+
+	Backported from master:
+	2026-06-15  Jim Tsung-Chun Lin  <jim@andestech.com>
+
+	* gcc.target/riscv/multilib.exp: New test.
+
+2026-06-30  Mark Zhuang  <zhuangqiubin@linux.spacemit.com>
+
+	* gcc.target/riscv/mcpu-spacemit-a100.c: New test.
+
+2026-06-30  Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* g++.dg/gomp/deprecate-2.C: Remove obsolete 'dg-excess-errors'.
+
+2026-06-30  Alfie Richards  <alfie.richards@arm.com>
+
+	PR target/125838
+	* gcc.target/aarch64/preserve_none_5.c: Update to use AAPCS.
+
+2026-06-30  Chung-Lin Tang  <cltang@baylibre.com>
+
+	* c-c++-common/gomp/uses_allocators-1.c: Adjust test, and move to
+	../../libgomp/testsuite/libgomp.c-c++-common/uses_allocators-1.c
+	* c-c++-common/gomp/uses_allocators-2.c: Move to
+	../../libgomp/testsuite/libgomp.c-c++-common/uses_allocators-2.c
+	* c-c++-common/gomp/uses_allocators-4.c: Adjust test, and move to
+	../../libgomp/testsuite/libgomp.c-c++-common/uses_allocators-4.c
+	* c-c++-common/gomp/uses_allocators-7.c: Move to
+	../../libgomp/testsuite/libgomp.c-c++-common/uses_allocators-7.c
+	* c-c++-common/gomp/uses_allocators-8.c: Move to
+	../../libgomp/testsuite/libgomp.c-c++-common/uses_allocators-8.c
+	* gcc.dg/gomp/deprecate-2.c: Adjust test.
+	* gfortran.dg/gomp/allocate-1.f90: Likewise.
+	* gfortran.dg/gomp/scope-6.f90: Likewise.
+	* g++.dg/gomp/uses_allocators-1.C: Move to
+	../../libgomp/testsuite/libgomp.c++/uses_allocators-1.C.
+
+2026-06-30  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/126008
+	* gcc.dg/torture/pr126008.c: New testcase.
+
+2026-06-30  Christopher Bazley  <chris.bazley@arm.com>
+	    Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* gcc.dg/plugin/poly-int-tests.h: New test cases.
+
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/126007
+	* g++.dg/ext/is_implicit_lifetime3.C: New test.
+
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c/125935
+	* gcc.dg/debug/dwarf2/pr125935-1.c: New test.
+	* gcc.dg/debug/dwarf2/pr125935-2.c: New test.
+	* gcc.dg/debug/dwarf2/pr125935-3.c: New test.
+	* gcc.dg/debug/ctf/ctf-bitfields-3.c: Expect bool rather than _Bool.
+	* gcc.dg/Warray-bounds-65.c: Expect bool in diagnostics instead of
+	_Bool.
+	* gcc.dg/Wbad-function-cast-1.c: Likewise.
+
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/125837
+	* g++.dg/cpp29/feat-cxx29.C (__cpp_pp_embed): Expect 202606L
+	rather than 202502L.
+	* c-c++-common/cpp/embed-18.c: Adjust expected diagnostics.
+	* g++.dg/cpp/embed-30.C: New test.
+	* g++.dg/cpp/embed-31.C: New test.
+	* g++.dg/cpp/embed-32.C: New test.
+
+2026-06-30  Avinash Jayakar  <avinashd@linux.ibm.com>
+	    Surya Kumari Jangala  <jskumari@linux.ibm.com>
+
+	* gcc.target/powerpc/acmp-tst-32bit.c: New test.
+	* gcc.target/powerpc/acmp-tst.c: New test.
+	* gcc.target/powerpc/acmp-tst-indexed.c: New test.
+
+2026-06-30  Avinash Jayakar  <avinashd@linux.ibm.com>
+
+	Revert:
+	2026-06-30  Avinash Jayakar  <avinashd@linux.ibm.com>
+		    Surya Kumari Jangala  <jskumari@linux.ibm.com>
+
+	* gcc.target/powerpc/acmp-tst-32bit.c: New test.
+	* gcc.target/powerpc/acmp-tst.c: New test.
+	* gcc.target/powerpc/acmp-tst-indexed.c: New test.
+
+2026-06-30  Avinash Jayakar  <avinashd@linux.ibm.com>
+	    Surya Kumari Jangala  <jskumari@linux.ibm.com>
+
+	* gcc.target/powerpc/acmp-tst-32bit.c: New test.
+	* gcc.target/powerpc/acmp-tst.c: New test.
+	* gcc.target/powerpc/acmp-tst-indexed.c: New test.
+
+2026-06-30  Xi Ruoyao  <xry111@xry111.site>
+
+	* gcc.target/loongarch/ssp-ilp32.c: New test.
+
+2026-06-30  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/55212
+	* gcc.target/sh/torture/pr55212-c464-3.c: New.
+
+2026-06-30  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/55212
+	* gcc.target/sh/torture/pr55212-c421.c
+
+2026-06-30  Robin Dapp  <robin.dapp@oss.qualcomm.com>
+
+	PR target/125994
+	* gcc.target/riscv/rvv/autovec/pr125994.c: New test.
+
 2026-06-29  Jeff Law  <jeffrey.law@oss.qualcomm.com>
 
 	* gcc.target/riscv/and-synthesis-1.c: New test.

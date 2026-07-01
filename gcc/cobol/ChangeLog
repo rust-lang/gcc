@@ -1,3 +1,101 @@
+2026-06-30  Robert Dubner  <rdubner@symas.com>
+
+	* compare.cc (alpha_compare_figconst): Make the code endian-agnostic.
+	(alpha_compare): Likewise.
+	(numeric_alpha_compare): Likewise.
+	(float_compare): Force proper data comparisons.
+	* genapi.cc (parser_goto): Use improved get_binary_value() routine.
+	(parser_perform_times): Likewise.
+	(internal_perform_through_times): Likewise.
+	(parser_display_internal): Set formal parameter to const.
+	(program_end_stuff): Use get_binary_value().
+	(parser_relop_long): Likewise.
+	(parser_see_stop_run): Likewise.
+	(parser_perform): Set formal parameter to const.
+	(parser_perform_inline_times): Use new get_binary_value().
+	(parser_file_write): Likewise.
+	(parser_file_start): Likewise.
+	(handle_gg_trim): Endian.
+	(parser_trim): Likewise.
+	(field_increment): Use new get_binary_value().
+	(parser_lsearch_start): Likewise.
+	(parser_release): Set formal parameter to const.
+	(parser_match_exception): Use new get_binary_value().
+	(parser_field_attr_set): Set formal parameter to const.
+	* genapi.h (parser_display_internal): Likewise.
+	(parser_perform_times): Likewise.
+	(parser_perform): Likewise.
+	(parser_goto): Likewise.
+	(parser_field_attr_set): Likewise.
+	(parser_file_start): Likewise.
+	(parser_release): Likewise.
+	* gengen.cc (gg_assign): Comment.
+	* genmath.cc (fast_add): New get_binary_value; address aliasing.
+	(fast_subtract): Likewise.
+	(fast_multiply): Likewise.
+	(fast_divide): Likewise.
+	* genutil.cc (get_scaled_rdigits): Set formal parameter to const.
+	(get_scaled_digits): Set formal parameter to const.
+	(get_integer_value): Improved data conversion; make local static.
+	(CHECK_FOR_FRACTIONAL_DIGITS): Moved here from genutil.h.
+	(giv_helper): New get_integer_value helper routine.
+	(get_and_check_refstart_and_reflen): get_binary_value and aliasing.
+	(get_depending_on_value_from_odo): Set some variables to const.
+	(get_data_offset): Use new get_integer_value() routine.
+	(digit): Eliminate as part of improved get_binary_value() conversion.
+	(num_disp_dive): Likewise.
+	(pd_dive): Likewise.
+	(get_pd_value): Likewise.
+	(get_binary_value_tree): Likewise.
+	(get_binary_value): New binary conversion routines.
+	(field_is_super_clean): Likewise.
+	(refer_is_working_storage): Likewise.
+	(is_working_storage): Likewise.
+	(refer_refmod_length): Likewise.
+	(binary_from_FldNumericBin5): Likewise.
+	(binary_from_FldLiteralN): Likewise.
+	(binary_from_FldNumericBinary): Likewise.
+	(binary_from_FldNumericDisplay): Likewise.
+	(binary_from_numdisp): Likewise.
+	(binary_from_comp_3): Likewise.
+	(b_from_c3): Likewise.
+	(binary_from_comp_6): Likewise.
+	(binary_from_FldPacked): Likewise.
+	(binary_from_FldFloat): Likewise.
+	(get_location): Avoid aliasing.
+	(safe_cast): Likewise.
+	(attribute_bit_clear): Set formal parameter to const.
+	(attribute_bit_get): Likewise.
+	(attribute_bit_set): Likewise.
+	(round_this_value): New routine for COBOL rounding.
+	* genutil.h (get_scaled_rdigits): Set formal parameter to const.
+	(get_scaled_digits): Set formal parameter to const.
+	(get_binary_value): Modified declaration.
+	(get_binary_value_tree): Eliminate.
+	(CHECK_FOR_FRACTIONAL_DIGITS): Move to genutil.cc.
+	(get_integer_value): Eliminated declaration.
+	(field_is_super_clean): New declaration.
+	(refer_is_working_storage): Changed to is_working_storage().
+	(is_working_storage): Eliminated.
+	(get_location): New declaration for field_t * overload.
+	(safe_cast): New declaration.
+	(attribute_bit_clear): Set formal parameter to const.
+	(attribute_bit_get): Likewise.
+	(attribute_bit_set): Likewise.
+	* move.cc (copy_little_endian_into_place): Changed to
+	copy_native_into_place().
+	(copy_native_into_place): Endian awareness.
+	(mh_little_endian): Change name to mh_to_binary.
+	(mh_to_binary): Endian awareness.
+	(move_helper): Use mh_to_binary.
+	* parse.y: Comment out code pending a bug fix.
+	* parse_ante.h (cbl_field_t::blank_initial): Endian awareness.
+	* show_parse.h: Make a variable const.
+	* structs.cc (member): Set formal parameter to const.
+	* structs.h (member): Likewise.
+	* util.cc (binary_initial): Endian awareness.
+	(cbl_field_t::encode_numeric): Endian and aliasing awareness.
+
 2026-06-25  Robert Dubner  <rdubner@symas.com>
 
 	* gengen.cc (gg_abs): Use fold_build1().

@@ -1,3 +1,13 @@
+2026-06-30  Chung-Lin Tang  <cltang@baylibre.com>
+
+	* c-typeck.cc (c_finish_omp_clauses): Fix comments.
+
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c/125935
+	* c-decl.cc (c_init_decl_processing): Use "bool" rather than "_Bool"
+	as the name of boolean_type_node for C23+.
+
 2026-06-28  Kevin Stefanov  <kevinstefanov15@gmail.com>
 
 	PR middle-end/125274

@@ -1,3 +1,27 @@
+2026-06-30  Paul Thomas  <pault@gcc.gnu.org>
+	    Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/121972
+	* decl.cc (gfc_get_pdt_instance): A PDT that has a derived type
+	component, which has allocatable components, must be marked as
+	having allocatable components.
+	* resolve.cc (gfc_resolve_ref): Initialize last_pdt from the base
+	symbol's declared type when the expression type is not a PDT.
+
+2026-06-30  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/121972
+	* resolve.cc (gfc_resolve_finalizers): Fix linked-list tail-pointer
+	bug that dropped all but the first two finalizers from a derived
+	type's finalizer list when three or more matched.
+
+2026-06-30  Chung-Lin Tang  <cltang@baylibre.com>
+
+	* trans-array.cc (gfc_conv_array_initializer): Always set PURPOSE
+	when building constructor for get_initialized_tmp_var, adjust test
+	to use integer_zerop instead of != NULL_TREE.
+	* trans-openmp.cc (gfc_trans_omp_clauses): Handle uses_allocators.
+
 2026-06-29  Paul Thomas  <pault@gcc.gnu.org>
 
 	PR fortran/84622

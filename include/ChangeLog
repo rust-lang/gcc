@@ -1,3 +1,7 @@
+2026-06-30  Chung-Lin Tang  <cltang@baylibre.com>
+
+	* gomp-constants.h (enum gomp_map_kind): Add GOMP_MAP_USES_ALLOCATORS.
+
 2026-06-24  Paul-Antoine Arras  <parras@baylibre.com>
 
 	* gomp-constants.h (GOMP_BARRIER_IMPLICIT_PARALLEL): New macro.

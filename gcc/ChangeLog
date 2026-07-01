@@ -1,3 +1,669 @@
+2026-06-30  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/55212
+	* config/sh/predicates.md (simple_mem_operand):
+	Use 'satisfies_constraint_Sra'.
+	(post_inc_mem, pre_dec_mem): Use 'satisfies_constraint_Rab'.
+	* config/sh/constraints.md (Rab, Rai, Sgb): New constraints.
+	(Sua, Sdd, Snd, Ssd, Sbv, Sra, Ara, Add): Use Rab and Rai constraints.
+	* config/sh/sync.md (atomic_mem_operand_0, atomic_mem_operand_1): Reject
+	GBR addresses when hard-llcs atomic mode is enabled.
+
+2026-06-30  Abhishek Kaushik  <abhishek.kaushik@arm.com>
+
+	* config/aarch64/aarch64.cc: Include gimple-fold.h.
+	(aarch64_try_widen_mult_by_pow2): New function.
+	(aarch64_instruction_selection): Call it for conversion assignments.
+
+2026-06-30  Andrew Pinski  <andrew.pinski@oss.qualcomm.com>
+
+	PR tree-optimization/125961
+	* tree-ssa-phiopt.cc (factor_out_conditional_operation): Use
+	remove_phi_node instead of gsi_remove for the phi node.
+	(factor_out_conditional_load): Likewise.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* config/aarch64/aarch64-acle-builtins.h
+	(TYPES_neon_reinterpret1, TYPES_neon_reinterpret,
+	TYPES_neon_reinterpretq1, TYPES_neon_reinterpretq,
+	neon_reinterpret, neon_reinterpretq): New type lists.
+	* config/aarch64/aarch64-builtins.cc (VREINTERPRET_BUILTIN2,
+	VREINTERPRET_BUILTINS1, VREINTERPRET_BUILTINS,
+	VREINTERPRETQ_BUILTIN2, VREINTERPRETQ_BUILTINS1,
+	VREINTERPRETQ_BUILTINS, VREINTERPRET_BUILTIN): Delete macros.
+	(AARCH64_SIMD_VREINTERPRET_BUILTINS): Delete enum member.
+	(aarch64_init_simd_intrinsics): Delete function.
+	(init_arm_neon_builtins): Delete call to
+	`aarch64_init_simd_intrinsics`.
+	(aarch64_general_fold_builtin): Delete case for
+	`AARCH64_SIMD_VREINTERPRET_BUILTINS`.
+	* config/aarch64/aarch64-neon-builtins-base.cc (struct
+	gimple_reinterpret): New struct.
+	(vreinterpret, vreinterpretq): New function bases.
+	* config/aarch64/aarch64-neon-builtins-base.def (vreinterpret,
+	vreinterpretq): New function groups.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* config/aarch64/aarch64-simd-pragma-builtins.def (vext_mf8,
+	vextq_mf8, vrev64_mf8, vrev64q_mf8, vrev32_mf8, vrev32q_mf8,
+	vrev16_mf8, vrev16q_mf8, vtrn1_mf8, vtrn1q_mf8, vtrn2_mf8,
+	vtrn2q_mf8, vtrn_mf8, vtrnq_mf8, vuzp1_mf8, vuzp1q_mf8,
+	vuzp2_mf8, vuzp2q_mf8, vuzp_mf8, vuzpq_mf8, vzip1_mf8,
+	vzip1q_mf8, vzip2_mf8, vzip2q_mf8, vzip_mf8, vzipq_mf8):
+	Delete functions.
+	* config/aarch64/aarch64-sve-builtins-shapes.cc (parse_type):
+	Handle `D` or `Q` followed by `x1,x2,x3,x4` to mean tuple
+	types.
+	* config/aarch64/aarch64-acle-builtins.h (TYPES_bh_poly,
+	TYPES_bhs_neon, TYPES_neon_rev16, TYPES_neon_rev32,
+	TYPES_neon_rev64): New type lists.
+	(bh_poly, bhs_neon, neon_rev16, neon_rev32, neon_rev64):
+	Likewise.
+	* config/aarch64/aarch64-builtins.cc (aarch64_simd_tuple_types):
+	Remove `static` qualifier.
+	* config/aarch64/aarch64-builtins.h (aarch64_simd_tuple_types):
+	New declaration.
+	* config/aarch64/aarch64-neon-builtins-base.cc (build_tuple_get,
+	build_tuple_set): New functions.
+	(class gimple_permute, class gimple_permute_pair): New classes.
+	(ext_mask, rev_mask, trn_mask, uzp_mask, zip_mask): New
+	functions.
+	(vext, vextq, vrev16, vrev16q, vrev32, vrev32q, vtrn1, vtrn1q,
+	btrn2, vtrn2q, vtrn, vtrnq, vuzp1, vuzp1q, vuzp2, vuzp2q, vuzp,
+	vuzpq, vzip1, vzip1q, vzip2, vzip2q, vzip, vzipq): New function
+	bases.
+	* config/aarch64/aarch64-neon-builtins-base.def (vext, vextq,
+	vrev16, vrev16q, vrev32, vrev32q, vrev64, vrev64q, vtrn,
+	vtrn1, vtrn1q, vtrn2, vtrn2q, vtrnq, vuzp, vuzp1, vuzp1q,
+	vuzp2, vuzp2q, vuzpq, vzip, vzip1, vzip1q, vzip2, vzip2q,
+	vzipq): New function groups.
+	* config/aarch64/aarch64-simd-builtins.def (zip1, zip2, uzp1,
+	uzp2, trn1, trn2): Delete builtin functions.
+	* config/aarch64/arm_neon.h (vext_f16, vext_f32, vext_f64,
+	vext_p8, vext_p16, vext_p64, vext_s8, vext_s16, vext_s32,
+	vext_s64, vext_u8, vext_u16, vext_u32, vext_u64, vextq_f16,
+	vextq_f32, vextq_f64, vextq_p8, vextq_p16, vextq_p64,
+	vextq_s8, vextq_s16, vextq_s32, vextq_s64, vextq_u8,
+	vextq_u16, vextq_u32, vextq_u64, vrev16_p8, vrev16_s8,
+	vrev16_u8, vrev16q_p8, vrev16q_s8, vrev16q_u8, vrev32_p8,
+	vrev32_p16, vrev32_s8, vrev32_s16, vrev32_u8, vrev32_u16,
+	vrev32q_p8, vrev32q_p16, vrev32q_s8, vrev32q_s16, vrev32q_u8,
+	vrev32q_u16, vrev64_f16, vrev64_f32, vrev64_p8, vrev64_p16,
+	vrev64_s8, vrev64_s16, vrev64_s32, vrev64_u8, vrev64_u16,
+	vrev64_u32, vrev64q_f16, vrev64q_f32, vrev64q_p8, vrev64q_p16,
+	vrev64q_s8, vrev64q_s16, vrev64q_s32, vrev64q_u8, vrev64q_u16,
+	vrev64q_u32, vtrn1_f16, vtrn1_f32, vtrn1_p8, vtrn1_p16,
+	vtrn1_s8, vtrn1_s16, vtrn1_s32, vtrn1_u8, vtrn1_u16,
+	vtrn1_u32, vtrn1q_f16, vtrn1q_f32, vtrn1q_f64, vtrn1q_p8,
+	vtrn1q_p16, vtrn1q_s8, vtrn1q_s16, vtrn1q_s32, vtrn1q_s64,
+	vtrn1q_u8, vtrn1q_u16, vtrn1q_u32, vtrn1q_p64, vtrn1q_u64,
+	vtrn2_f16, vtrn2_f32, vtrn2_p8, vtrn2_p16, vtrn2_s8,
+	vtrn2_s16, vtrn2_s32, vtrn2_u8, vtrn2_u16, vtrn2_u32,
+	vtrn2q_f16, vtrn2q_f32, vtrn2q_f64, vtrn2q_p8, vtrn2q_p16,
+	vtrn2q_s8, vtrn2q_s16, vtrn2q_s32, vtrn2q_s64, vtrn2q_u8,
+	vtrn2q_u16, vtrn2q_u32, vtrn2q_u64, vtrn2q_p64, vtrn_f16,
+	vtrn_f32, vtrn_p8, vtrn_p16, vtrn_s8, vtrn_s16, vtrn_s32,
+	vtrn_u8, vtrn_u16, vtrn_u32, vtrnq_f16, vtrnq_f32, vtrnq_p8,
+	vtrnq_p16, vtrnq_s8, vtrnq_s16, vtrnq_s32, vtrnq_u8,
+	vtrnq_u16, vtrnq_u32, vuzp1_f16, vuzp1_f32, vuzp1_p8,
+	vuzp1_p16, vuzp1_s8, vuzp1_s16, vuzp1_s32, vuzp1_u8,
+	vuzp1_u16, vuzp1_u32, vuzp1q_f16, vuzp1q_f32, vuzp1q_f64,
+	vuzp1q_p8, vuzp1q_p16, vuzp1q_s8, vuzp1q_s16, vuzp1q_s32,
+	vuzp1q_s64, vuzp1q_u8, vuzp1q_u16, vuzp1q_u32, vuzp1q_u64,
+	vuzp1q_p64, vuzp2_f16, vuzp2_f32, vuzp2_p8, vuzp2_p16,
+	vuzp2_s8, vuzp2_s16, vuzp2_s32, vuzp2_u8, vuzp2_u16,
+	vuzp2_u32, vuzp2q_f16, vuzp2q_f32, vuzp2q_f64, vuzp2q_p8,
+	vuzp2q_p16, vuzp2q_s8, vuzp2q_s16, vuzp2q_s32, vuzp2q_s64,
+	vuzp2q_u8, vuzp2q_u16, vuzp2q_u32, vuzp2q_u64, vuzp2q_p64,
+	vzip1_f16, vzip1_f32, vzip1_p8, vzip1_p16, vzip1_s8,
+	vzip1_s16, vzip1_s32, vzip1_u8, vzip1_u16, vzip1_u32,
+	vzip1q_f16, vzip1q_f32, vzip1q_f64, vzip1q_p8, vzip1q_p16,
+	vzip1q_s8, vzip1q_s16, vzip1q_s32, vzip1q_s64, vzip1q_u8,
+	vzip1q_u16, vzip1q_u32, vzip1q_u64, vzip1q_p64, vzip2_f16,
+	vzip2_f32, vzip2_p8, vzip2_p16, vzip2_s8, vzip2_s16,
+	vzip2_s32, vzip2_u8, vzip2_u16, vzip2_u32, vzip2q_f16,
+	vzip2q_f32, vzip2q_f64, vzip2q_p8, vzip2q_p16, vzip2q_s8,
+	vzip2q_s16, vzip2q_s32, vzip2q_s64, vzip2q_u8, vzip2q_u16,
+	vzip2q_u32, vzip2q_u64, vzip2q_p64): Delete functions.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* config/aarch64/aarch64.md (UNSPEC_BSL): Delete unspec.
+	* config/aarch64/aarch64-simd-pragma-builtins.def (vbsl_mf8,
+	vbslq_mf8): Delete functions.
+	* config/aarch64/aarch64-neon-builtins-base.cc (build_cast): New
+	function.
+	(class gimple_not_rhs, class gimple_bsl, class gimple_rbit,
+	class gimple_eor3, class gimple_bcax, class gimple_rax1, class
+	gimple_xar, class gimple_ifn): New classes.
+	(vand, vandq, vbic, vbicq, vbsl, vbslq, veor, veorq, vmvn,
+	vmvnq, vorn, vornq, vorr, vorrq, vrbit, vrbitq, vbcaxq, veor3q,
+	vrax1q, vxarq, vcls, vclsq, vclz, vclzq, vcnt, vcntq): New
+	function bases.
+	* config/aarch64/aarch64-neon-builtins-shapes.cc (shift): New function.
+	* config/aarch64/aarch64-builtins.cc
+	(aarch64_types_bsl_p_qualifiers,
+	aarch64_types_bsl_s_qualifiers,
+	aarch64_types_bsl_u_qualifiers): Delete unused qualifiers.
+	* config/aarch64/aarch64-simd.md
+	(@aarch64_rbit<mode><vczle><vczbe>): Add `@` modifier so that
+	it is callable from `aarch64-neon-builtins-base.cc`.
+	* config/aarch64/aarch64-acle-builtins.h (TYPES_b_neon,
+	TYPES_b_poly): New type lists.
+	* config/aarch64/aarch64-neon-builtins-base.def (vand, vandq,
+	vbic, vbicq, vbsl, vbslq, veor, veorq, vmvn, vmvnq, vorn,
+	vornq, vorr, vorrq, vrbit, vrbitq, vbcaxq, veor3q, vrax1q,
+	vxarq, vcls, vclsq, vclz, vclzq, vcnt, vcntq): New function
+	groups.
+	* config/aarch64/aarch64-simd-builtins.def (clrsb, clz, ctz,
+	popcount, rbit, simd_bsl): Delete builtin functions.
+	* config/aarch64/arm_neon.h (vbsl_f16, vbsl_f32, vbsl_f64,
+	vbsl_p8, vbsl_p16, vbsl_p64, vbsl_s8, vbsl_s16, vbsl_s32,
+	vbsl_s64, vbsl_u8, vbsl_u16, vbsl_u32, vbsl_u64, vbslq_f16,
+	vbslq_f32, vbslq_f64, vbslq_p8, vbslq_p16, vbslq_s8,
+	vbslq_s16, vbslq_p64, vbslq_s32, vbslq_s64, vbslq_u8,
+	vbslq_u16, vbslq_u32, vbslq_u64, vcls_s8, vcls_s16, vcls_s32,
+	vclsq_s8, vclsq_s16, vclsq_s32, vcls_u8, vcls_u16, vcls_u32,
+	vclsq_u8, vclsq_u16, vclsq_u32, vclz_s8, vclz_s16, vclz_s32,
+	vclz_u8, vclz_u16, vclz_u32, vclzq_s8, vclzq_s16, vclzq_s32,
+	vclzq_u8, vclzq_u16, vclzq_u32, vcnt_p8, vcnt_s8, vcnt_u8,
+	vcntq_p8, vcntq_s8, vcntq_u8, vrbit_p8, vrbit_s8, vrbit_u8,
+	vrbitq_p8, vrbitq_s8, vrbitq_u8, veor3q_u8, veor3q_u16,
+	veor3q_u32, veor3q_u64, veor3q_s8, veor3q_s16, veor3q_s32,
+	veor3q_s64, vrax1q_u64, vxarq_u64, vbcaxq_u8, vbcaxq_u16,
+	vbcaxq_u32, vbcaxq_u64, vbcaxq_s8, vbcaxq_s16, vbcaxq_s32,
+	vbcaxq_s64): Delete functions.
+
+2026-06-30  Karl Meakin  <karlwfmeakin@gmail.com>
+
+	* config/aarch64/aarch64-simd-pragma-builtins.def (
+	vcopy_lane_mf8, vcopyq_lane_mf8, vcopy_laneq_mf8,
+	vcopyq_laneq_mf8, vdup_lane_mf8, vdupq_lane_mf8,
+	vdup_laneq_mf8, vdupq_laneq_mf8, vset_lane_mf8,
+	vsetq_lane_mf8): Delete entries.
+	* config/aarch64/aarch64-builtins.cc
+	(AARCH64_SIMD_VGET_LOW_BUILTINS,
+	AARCH64_SIMD_VGET_HIGH_BUILTINS, VGET_LOW_BUILTIN,
+	VGET_HIGH_BUILTIN): Delete macros.
+	(enum aarch64_builtins): Delete
+	`AARCH64_SIMD_BUILTIN_LANE_CHECK`.
+	(aarch64_init_simd_builtin_functions): Delete code that
+	registers `__builtin_aarch64_im_lane_boundsi`.
+	(aarch64_pragma_builtins_checker::check): Delete cases for
+	`UNSPEC_DUP_LANE`, `UNSPEC_GET_LANE` and `UNSPEC_VEC_COPY`.
+	(aarch64_simd_expand_builtin): Delete case for
+	`AARCH64_SIMD_BUILTIN_LANE_CHECK`.
+	(aarch64_expand_pragma_builtin): Delete cases for
+	`UNSPEC_DUP_LANE` and `UNSPEC_VEC_COPY`.
+	(aarch64_general_fold_builtin): Delete cases for
+	`AARCH64_SIMD_VGET_LOW_BUILTINS`,
+	`AARCH64_SIMD_VGET_HIGH_BUILTINS` and
+	`AARCH64_SIMD_BUILTIN_LANE_CHECK`.
+	(aarch64_gimple_fold_pragma_builtin): Delete cases for
+	`UNSPEC_DUP_LANE` and `UNSPEC_VEC_COPY`.
+	(aarch64_general_gimple_fold_builtin): Delete cases for
+	`AARCH64_SIMD_BUILTIN_LANE_CHECK`.
+	* config/aarch64/aarch64.md (UNSPEC_DUP_LANE): Delete unspec.
+	* config/aarch64/aarch64-neon-builtins-shapes.cc (range, lane):
+	New functions.
+	(struct neon_shape): Add new fields for additional checks, and
+	call them in `check()`.
+	* config/aarch64/aarch64-acle-builtins.cc
+	(gimple_folder::force_val, gimple_folder::assign): New
+	functions.
+	* config/aarch64/aarch64-acle-builtins.h (TYPES_all_neon,
+	TYPES_bhsd_neon, TYPES_neon_copy_lane): New type lists.
+	* config/aarch64/iterators.md (VALL_F16_NO_V2Q): Add `V4BF` and `V8BF`.
+	* config/aarch64/aarch64-neon-builtins-base.def (vget_lane,
+	vgetq_lane, vget_high, vget_low, vset_lane, vsetq_lane,
+	vdup_lane, vdupq_lane, vdup_laneq, vdupq_laneq, vcopy_lane,
+	vcopy_laneq, vcopyq_lane, vcopyq_laneq): New function groups.
+	* config/aarch64/aarch64-neon-builtins-base.cc (build_lane_get,
+	build_lane_set, build_vec_dup): New functions.
+	(struct gimple_get_lane, struct gimple_get_half, struct
+	gimple_set_lane, struct gimple_copy_lane, struct gimple_dup,
+	struct gimple_dup_lane): New structs.
+	(vget_lane, vgetq_lane, vset_lane, vsetq_lane, vcopy_lane,
+	vcopyq_lane, vcopy_laneq, vcopyq_laneq, vdup_lane, vdupq_lane,
+	vdupq_lane, vdupq_laneq): New function bases.
+	* config/aarch64/arm_neon.h (__aarch64_vdup_lane_p8,
+	__aarch64_vdup_lane_p16, __aarch64_vdup_lane_p64,
+	__aarch64_vdup_lane_s8, __aarch64_vdup_lane_s16,
+	__aarch64_vdup_lane_s32, __aarch64_vdup_lane_s64,
+	__aarch64_vdup_lane_u8, __aarch64_vdup_lane_u16,
+	__aarch64_vdup_lane_u32, __aarch64_vdup_lane_u64,
+	__aarch64_vdup_laneq_p8, __aarch64_vdup_laneq_p16,
+	__aarch64_vdup_laneq_p64, __aarch64_vdup_laneq_s8,
+	__aarch64_vdup_laneq_s16, __aarch64_vdup_laneq_s32,
+	__aarch64_vdup_laneq_s64, __aarch64_vdup_laneq_u8,
+	__aarch64_vdup_laneq_u16, __aarch64_vdup_laneq_u32,
+	__aarch64_vdup_laneq_u64, __aarch64_vdupq_lane_p8,
+	__aarch64_vdupq_lane_p16, __aarch64_vdupq_lane_p64,
+	__aarch64_vdupq_lane_s8, __aarch64_vdupq_lane_s16,
+	__aarch64_vdupq_lane_s32, __aarch64_vdupq_lane_s64,
+	__aarch64_vdupq_lane_u8, __aarch64_vdupq_lane_u16,
+	__aarch64_vdupq_lane_u32, __aarch64_vdupq_lane_u64,
+	__aarch64_vdupq_laneq_p8, __aarch64_vdupq_laneq_p16,
+	__aarch64_vdupq_laneq_p64, __aarch64_vdupq_laneq_s8,
+	__aarch64_vdupq_laneq_s16, __aarch64_vdupq_laneq_s32,
+	__aarch64_vdupq_laneq_s64, __aarch64_vdupq_laneq_u8,
+	__aarch64_vdupq_laneq_u16, __aarch64_vdupq_laneq_u32,
+	__aarch64_vdupq_laneq_u64, __AARCH64_LANE_CHECK,
+	__aarch64_vget_lane_any, __aarch64_vset_lane_any): Delete
+	macros.
+	(vget_lane_f16, vget_lane_f32, vget_lane_f64, vget_lane_p8,
+	vget_lane_p16, vget_lane_p64, vget_lane_s8, vget_lane_s16,
+	vget_lane_s32, vget_lane_s64, vget_lane_u8, vget_lane_u16,
+	vget_lane_u32, vget_lane_u64, vgetq_lane_f16, vgetq_lane_f32,
+	vgetq_lane_f64, vgetq_lane_p8, vgetq_lane_p16, vgetq_lane_p64,
+	vgetq_lane_s8, vgetq_lane_s16, vgetq_lane_s32, vgetq_lane_s64,
+	vgetq_lane_u8, vgetq_lane_u16, vgetq_lane_u32, vgetq_lane_u64,
+	vset_lane_f16, vset_lane_f32, vset_lane_f64, vset_lane_p8,
+	vset_lane_p16, vset_lane_p64, vset_lane_s8, vset_lane_s16,
+	vset_lane_s32, vset_lane_s64, vset_lane_u8, vset_lane_u16,
+	vset_lane_u32, vset_lane_u64, vsetq_lane_f16, vsetq_lane_f32,
+	vsetq_lane_f64, vsetq_lane_p8, vsetq_lane_p16, vsetq_lane_p64,
+	vsetq_lane_s8, vsetq_lane_s16, vsetq_lane_s32, vsetq_lane_s64,
+	vsetq_lane_u8, vsetq_lane_u16, vsetq_lane_u32, vsetq_lane_u64,
+	vcopy_lane_f32, vcopy_lane_f64, vcopy_lane_p8, vcopy_lane_p16,
+	vcopy_lane_p64, vcopy_lane_s8, vcopy_lane_s16, vcopy_lane_s32,
+	vcopy_lane_s64, vcopy_lane_u8, vcopy_lane_u16, vcopy_lane_u32,
+	vcopy_lane_u64, vcopy_laneq_f32, vcopy_laneq_f64,
+	vcopy_laneq_p8, vcopy_laneq_p16, vcopy_laneq_p64,
+	vcopy_laneq_s8, vcopy_laneq_s16, vcopy_laneq_s32,
+	vcopy_laneq_s64, vcopy_laneq_u8, vcopy_laneq_u16,
+	vcopy_laneq_u32, vcopy_laneq_u64, vcopyq_lane_f32,
+	vcopyq_lane_f64, vcopyq_lane_p8, vcopyq_lane_p16,
+	vcopyq_lane_p64, vcopyq_lane_s8, vcopyq_lane_s16,
+	vcopyq_lane_s32, vcopyq_lane_s64, vcopyq_lane_u8,
+	vcopyq_lane_u16, vcopyq_lane_u32, vcopyq_lane_u64,
+	vcopyq_laneq_f32, vcopyq_laneq_f64, vcopyq_laneq_p8,
+	vcopyq_laneq_p16, vcopyq_laneq_p64, vcopyq_laneq_s8,
+	vcopyq_laneq_s16, vcopyq_laneq_s32, vcopyq_laneq_s64,
+	vcopyq_laneq_u8, vcopyq_laneq_u16, vcopyq_laneq_u32,
+	vcopyq_laneq_u64, vdup_lane_f16, vdup_lane_f32, vdup_lane_f64,
+	vdup_lane_p8, vdup_lane_p16, vdup_lane_p64, vdup_lane_s8,
+	vdup_lane_s16, vdup_lane_s32, vdup_lane_s64, vdup_lane_u8,
+	vdup_lane_u16, vdup_lane_u32, vdup_lane_u64, vdup_laneq_f16,
+	vdup_laneq_f32, vdup_laneq_f64, vdup_laneq_p8, vdup_laneq_p16,
+	vdup_laneq_p64, vdup_laneq_s8, vdup_laneq_s16, vdup_laneq_s32,
+	vdup_laneq_s64, vdup_laneq_u8, vdup_laneq_u16, vdup_laneq_u32,
+	vdup_laneq_u64, vdupq_lane_f16, vdupq_lane_f32,
+	vdupq_lane_f64, vdupq_lane_p8, vdupq_lane_p16, vdupq_lane_p64,
+	vdupq_lane_s8, vdupq_lane_s16, vdupq_lane_s32, vdupq_lane_s64,
+	vdupq_lane_u8, vdupq_lane_u16, vdupq_lane_u32, vdupq_lane_u64,
+	vdupq_laneq_f16, vdupq_laneq_f32, vdupq_laneq_f64,
+	vdupq_laneq_p8, vdupq_laneq_p16, vdupq_laneq_p64,
+	vdupq_laneq_s8, vdupq_laneq_s16, vdupq_laneq_s32,
+	vdupq_laneq_s64, vdupq_laneq_u8, vdupq_laneq_u16,
+	vdupq_laneq_u32, vdupq_laneq_u64, vmulq_lane_f64,
+	vset_lane_bf16, vsetq_lane_bf16, vget_lane_bf16,
+	vgetq_lane_bf16, vdup_lane_bf16, vdup_laneq_bf16,
+	vdupq_lane_bf16, vdupq_laneq_bf16, vcopy_lane_bf16,
+	vcopyq_lane_bf16, vcopy_laneq_bf16, vcopyq_laneq_bf16): Delete
+	functions.
+
+2026-06-30  Karl Meakin  <karlwfmeakin@gmail.com>
+
+	* config/aarch64/aarch64-simd-builtins.def (combine): Delete
+	function declarations.
+	* config/aarch64/aarch64-simd-pragma-builtins.def (vcombine_mf8,
+	vcreate_mf8, vdup_n_mf8, vdupq_n_mf8, vmov_n_mf8,
+	vmovq_n_mf8,): Delete entries.
+	(aarch64_expand_pragma_builtin): Delete cases for
+	`UNSPEC_COMBINE` and `UNSPEC_VCREATE`.
+	(aarch64_fold_combine): Delete function.
+	(aarch64_gimple_fold_pragma_builtin): Delete cases for
+	`UNSPEC_COMBINE` and `UNSPEC_VCREATE`.
+	(aarch64_general_gimple_fold_builtin): Delete cases for
+	`vcombine`.
+	* config/aarch64/aarch64.md (UNSPEC_COMBINE): Delete unspec.
+	* config/aarch64/aarch64-builtins.cc
+	(aarch64_expand_pragma_builtin): Delete cases for
+	`UNSPEC_COMBINE` and `UNSPEC_VCREATE`.
+	(aarch64_fold_combine): Delete function.
+	(aarch64_gimple_fold_pragma_builtin): Delete cases for
+	`UNSPEC_COMBINE` and `UNSPEC_VCREATE`.
+	(aarch64_general_gimple_fold_builtin): Delete cases for
+	`combine`.
+	* config/aarch64/aarch64-acle-builtins.cc
+	(gimple_folder::force_val, gimple_folder::assign): New
+	functions.
+	* config/aarch64/aarch64-acle-builtins.h (TYPES_all_neon,
+	TYPES_bhsd_neon): New type lists.
+	* config/aarch64/aarch64-neon-builtins-base.def (vcreate,
+	vcombine, vdup_n, vdupq_n, vmov_n, vmovq_n): New function groups.
+	* config/aarch64/aarch64-neon-builtins-base.cc (build_vec_dup): New function.
+	(struct gimple_create, struct gimple_combine, struct struct
+	gimple_dup): New structs.
+	(vcreate, vcombine, vdup_n, vdupq_n, vmov_n, vmovq_n): New
+	function bases.
+	* config/aarch64/arm_neon.h (vcreate_s8, vcreate_s16,
+	vcreate_s32, vcreate_s64, vcreate_f16, vcreate_f32,
+	vcreate_u8, vcreate_u16, vcreate_u32, vcreate_u64,
+	vcreate_f64, vcreate_p8, vcreate_p16, vcreate_p64,
+	vcombine_s8, vcombine_s16, vcombine_s32, vcombine_s64,
+	vcombine_f16, vcombine_f32, vcombine_u8, vcombine_u16,
+	vcombine_u32, vcombine_u64, vcombine_f64, vcombine_p8,
+	vcombine_p16, vcombine_p64, vdup_n_f16, vdup_n_f32,
+	vdup_n_f64, vdup_n_p8, vdup_n_p16, vdup_n_p64, vdup_n_s8,
+	vdup_n_s16, vdup_n_s32, vdup_n_s64, vdup_n_u8, vdup_n_u16,
+	vdup_n_u32, vdup_n_u64, vdupq_n_f16, vdupq_n_f32, vdupq_n_f64,
+	vdupq_n_p8, vdupq_n_p16, vdupq_n_p64, vdupq_n_s8, vdupq_n_s16,
+	vdupq_n_s32, vdupq_n_s64, vdupq_n_u8, vdupq_n_u16,
+	vdupq_n_u32, vdupq_n_u64, vmov_n_f16, vmov_n_f32, vmov_n_f64,
+	vmov_n_p8, vmov_n_p16, vmov_n_p64, vmov_n_s8, vmov_n_s16,
+	vmov_n_s32, vmov_n_s64, vmov_n_u8, vmov_n_u16, vmov_n_u32,
+	vmov_n_u64, vmovq_n_f16, vmovq_n_f32, vmovq_n_f64, vmovq_n_p8,
+	vmovq_n_p16, vmovq_n_p64, vmovq_n_s8, vmovq_n_s16,
+	vmovq_n_s32, vmovq_n_s64, vmovq_n_u8, vmovq_n_u16,
+	vmovq_n_u32, vmovq_n_u64, vcreate_bf16, vcombine_bf16,
+	vdup_n_bf16, vdupq_n_bf16): Delete functions.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* config/aarch64/aarch64-neon-builtins-base.cc: New file.
+	* config/aarch64/aarch64-neon-builtins-base.def: New file.
+	* config/aarch64/aarch64-neon-builtins-base.h: New file.
+	* config/aarch64/aarch64-neon-builtins-functions.h: New file.
+	* config/aarch64/aarch64-neon-builtins-shapes.cc: New file.
+	* config/aarch64/aarch64-neon-builtins-shapes.h: New file.
+	* config/aarch64/aarch64-neon-builtins.def: New file.
+	* config.gcc (extra_headers, extra_objs): Add new files and
+	reformat for readability.
+	* config/aarch64/t-aarch64: Add recipes for new files.
+	* config/aarch64/aarch64-protos.h (handle_arm_neon_h): Rename to
+	`init_arm_neon_builtins`.
+	* config/aarch64/aarch64-builtins.cc (handle_arm_neon_h): Likewise.
+	* config/aarch64/aarch64-c.cc (aarch64_pragma_aarch64): Call
+	`aarch64_acle::handle_arm_neon_h`.
+	* config/aarch64/aarch64-acle-builtins.cc (TYPES_*): Move to
+	aarch64-acle-builtins.h
+	(NONSTREAMING_SVE, SVE_AND_SME, SSVE): Likewise.
+	(neon_function_groups): New variable.
+	(arm_neon_h_handled): Likewise.
+	(handle_arm_neon_h): New function.
+	* config/aarch64/aarch64-sve-builtins-shapes.cc:
+	(gimple_folder::fold): Allow folding if `TARGET_SVE` is
+	false but `TARGET_SIMD` is true.
+	* config/aarch64/aarch64-sve-builtins.def (p8, p16, p64, 128):
+	New type suffixes.
+	* config/aarch64/aarch64-acle-builtins.h (enum
+	handle_pragma_index): New enum member `arm_neon_handle`.
+	(enum type_class_index): New enum member `TYPE_poly`.
+	(TYPES_*): Moved from `aarch64-acle-builtins.cc`.
+	(NONSTREAMING_SVE, SVE_AND_SME, SSVE): Likewise.
+	* config/aarch64/arm_neon.h (vadd_s8, vadd_s16, vadd_s32,
+	vadd_f32, vadd_f64, vadd_u8, vadd_u16, vadd_u32, vadd_s64,
+	vadd_u64, vaddq_s8, vaddq_s16, vaddq_s32, vaddq_s64,
+	vaddq_f32, vaddq_f64, vaddq_u8, vaddq_u16, vaddq_u32,
+	vaddq_u64, vadd_f16, vaddq_f16, vadd_p8, vadd_p16, vadd_p64,
+	vaddq_p8, vaddq_p16, vaddq_p64, vaddq_p128, vaddd_u64,
+	vaddd_s64): Delete function definitions.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* config.gcc (target_gtfiles): Rename
+	`aarch64-sve-builtins.{h,cc}` to
+	`aarch64-acle-builtins.{h,cc}`.
+	* config/aarch64/t-aarch64: Likewise.
+	* config/aarch64/aarch64-sve-builtins.h: Move to...
+	* config/aarch64/aarch64-acle-builtins.h: ...here.
+	* config/aarch64/aarch64-sve-builtins.cc: Move to...
+	* config/aarch64/aarch64-acle-builtins.cc: ...here.
+	* config/aarch64/aarch64-c.cc (aarch64_pragma_aarch64): Rename
+	namespace `aarch64_sve` to `aarch64_acle`.
+	(aarch64_resolve_overloaded_builtin): Likewise.
+	(aarch64_check_builtin_call): Likewise.
+	* config/aarch64/aarch64-protos.h: Likewise.
+	* config/aarch64/aarch64-sve-builtins-base.cc: Likewise.
+	* config/aarch64/aarch64-sve-builtins-base.h: Likewise.
+	* config/aarch64/aarch64-sve-builtins-functions.h: Likewise.
+	* config/aarch64/aarch64-sve-builtins-shapes.cc: Likewise.
+	* config/aarch64/aarch64-sve-builtins-shapes.h: Likewise.
+	* config/aarch64/aarch64-sve-builtins-sme.cc: Likewise.
+	* config/aarch64/aarch64-sve-builtins-sme.h: Likewise.
+	* config/aarch64/aarch64-sve-builtins-sve2.cc: Likewise.
+	* config/aarch64/aarch64-sve-builtins-sve2.h: Likewise.
+	* config/aarch64/aarch64.cc: Likewise.
+
+2026-06-30  Karl Meakin  <karl.meakin@arm.com>
+
+	* config.gcc: Reformat lists over several lines.
+
+2026-06-30  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* config/riscv/riscv.cc (synthesize_ior_xor): If we must synthesize a
+	constant and Zbb is enabled, try both C and ~C to see which is cheaper.
+	(synthesize_and): Likewise.
+
+2026-06-30  Jim Lin  <jim@andestech.com>
+
+	PR target/125853
+	* common/config/riscv/riscv-common.cc (riscv_multi_lib_info_t::parse):
+	Remove the path parameter and compare multi_lib_info->path against
+	"." instead.
+	(riscv_compute_multilib): Update caller.
+
+2026-06-30  Jim Tsung-Chun Lin  <jim@andestech.com>
+
+	Backported from master:
+	2026-06-15  Jim Tsung-Chun Lin  <jim@andestech.com>
+
+	* common/config/riscv/riscv-common.cc (riscv_select_multilib):
+	Don't set riscv_no_matched_multi_lib here; let the caller own
+	the flag.
+	(riscv_compute_multilib): Drop the early return that accepted
+	the generic-matched multilib_dir; always run the smart matcher
+	and set riscv_no_matched_multi_lib when it finds no candidate.
+
+2026-06-30  Mark Zhuang  <zhuangqiubin@linux.spacemit.com>
+
+	* config/riscv/riscv-ext-spacemit.def (xsmtvdotii): New extension.
+	* config/riscv/riscv-ext.opt: Regenerate.
+	* config/riscv/riscv-cores.def (RISCV_TUNE): Add spacemit-a100.
+	(RISCV_CORE): Add spacemit-a100.
+	* doc/riscv-ext.texi: Regenerate.
+	* doc/riscv-mcpu.texi: Regenerate.
+	* doc/riscv-mtune.texi: Regenerate.
+
+2026-06-30  Richard Biener  <rguenther@suse.de>
+
+	* tree-ssa-alias.h (pt_solution::vars_contains_auto): New.
+	(ptr_deref_may_alias_auto_p): Declare.
+	(pt_solution_includes_auto): Likewise.
+	* tree-ssa-structalias.cc (set_uids_in_ptset): Record auto
+	variables.
+	(pt_solution_includes_auto): New function.
+	(ipa_escaped_pt): Adjust.
+	* tree-ssa-alias.cc (ptr_deref_may_alias_auto_p): New function.
+
+2026-06-30  Christopher Bazley  <chris.bazley@arm.com>
+	    Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* tree.cc (build_vector_from_ctor): Rename variables and
+	refactor assignments.
+
+2026-06-30  Richard Biener  <rguenther@suse.de>
+
+	* tree-ssa-loop-ivopts.cc (rewrite_use_address): Always
+	avoid TARGET_MEM_REF with a base of zero.
+	* tree-ssa-sccvn.cc (vn_reference_maybe_forwprop_address): Do
+	not forward TARGET_MEM_REF addresses.
+
+2026-06-30  Alfie Richards  <alfie.richards@arm.com>
+
+	PR target/125838
+	* config/aarch64/aarch64.cc (aarch64_fntype_abi): Fall back to
+	AAPCS for preserve_none variadic calls.
+
+2026-06-30  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/126032
+	* gimple-ssa-warn-access.cc (maybe_warn_for_bound): Fixup
+	diagnostic string.
+
+2026-06-30  Chung-Lin Tang  <cltang@baylibre.com>
+
+	* gimplify.cc (enum gimplify_omp_var_data):
+	Add GOVD_USES_ALLOCATORS_ALLOCATOR.
+	(gimplify_bind_expr): Diagnose missing uses_allocators clause.
+	(omp_get_attachment): Add GOMP_MAP_USES_ALLOCATORS cases.
+	(omp_group_base): Likewise.
+	(gimplify_scan_omp_clauses): Handle uses_allocators.
+	(gimplify_adjust_omp_clauses_1): Handle GOVD_USES_ALLOCATORS_ALLOCATOR.
+	* omp-low.cc (scan_sharing_clauses): Check if ALLOCATE clause in target
+	region has containing USES_ALLOCATORS clause.
+	Add OMP_CLAUSE_USES_ALLOCATORS cases.
+	(lower_omp_target): Add OMP_CLAUSE_USES_ALLOCATORS cases.
+	* tree-pretty-print.cc (dump_omp_clause): Handle GOMP_MAP_USES_ALLOCATORS.
+
+2026-06-30  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/126008
+	* tree-ssa-loop-ivopts.cc (alloc_iv): Revert last change.
+	* tree-ssa-address.cc (add_to_parts): Use unsigned arithmetic
+	to accumulate to base.
+
+2026-06-30  Christopher Bazley  <chris.bazley@arm.com>
+	    Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* poly-int.h (can_div_away_from_zero_p):
+	Exit early if |a| <= |b| instead of calling
+	can_div_trunc_p and returning false if it
+	returned false.
+
+2026-06-30  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/126034
+	* tree-vect-stmts.cc (vectorizable_load): Elide dead else if.
+
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR target/126030
+	* config/i386/sse.md (avx512vl_<code><mode>v4hi2_mask_store_1):
+	Use a single output pattern instead of conditionally returning
+	the same string based on a condition.
+
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/125837
+	* doc/invoke.texi (Wc++29-extensions): Document.
+
+2026-06-30  Avinash Jayakar  <avinashd@linux.ibm.com>
+	    Surya Kumari Jangala  <jskumari@linux.ibm.com>
+
+	* config/rs6000/rs6000-builtin.cc (rs6000_expand_builtin): Add logic to
+	handle __builtin_ppc_atomic_cas_local.
+	* config/rs6000/rs6000-builtins.def: New builtins for
+	__builtin_ppc_atomic_cas_local with types.
+	* config/rs6000/rs6000-c.cc (altivec_build_resolved_builtin): Handle
+	builtins with up to 6 arguments.
+	* config/rs6000/rs6000-overload.def: Overload builtin for signed/unsiged
+	char, short, int, long, __int128.
+	* config/rs6000/rs6000-protos.h (rs6000_expand_atomic_compare_and_swap): Add
+	additional parameter 'local' to the prototype.
+	* config/rs6000/rs6000.cc (emit_load_locked): Add new parameter. Pass new
+	parameter to generate load-locked instruction.
+	(rs6000_expand_atomic_compare_and_swap): Add new parameter. Call
+	emit_load_locked() with additional parameter value of EH bit.
+	(rs6000_expand_atomic_exchange): Pass EH value 0 to emit_load_locked().
+	(rs6000_expand_atomic_op): Likewise.
+	* config/rs6000/sync.md (load_locked<mode>): Add new operand in RTL template.
+	Specify EH bit in the larx instruction.
+	(load_locked<QHI:mode>_si): Likewise.
+	(load_lockedpti): Likewise.
+	(load_lockedti): Add new operand in RTL template. Pass EH bit to
+	gen_load_lockedpti().
+	(atomic_compare_and_swap<mode>): Pass new parameter 'false' to
+	rs6000_expand_atomic_compare_and_swap.
+	(atomic_compare_and_swap_local<mode>): New define_expand.
+	* doc/extend.texi: Add documentation for new builtin.
+
+2026-06-30  Avinash Jayakar  <avinashd@linux.ibm.com>
+
+	Revert:
+	2026-06-30  Avinash Jayakar  <avinashd@linux.ibm.com>
+		    Surya Kumari Jangala  <jskumari@linux.ibm.com>
+
+	* config/rs6000/rs6000-builtin.cc (rs6000_expand_builtin): Add logic to
+	handle __builtin_ppc_atomic_cas_local.
+	* config/rs6000/rs6000-builtins.def: New builtins for
+	__builtin_ppc_atomic_cas_local with types.
+	* config/rs6000/rs6000-c.cc (altivec_build_resolved_builtin): Handle
+	builtins with up to 6 arguments.
+	* config/rs6000/rs6000-overload.def: Overload builtin for signed/unsiged
+	char, short, int, long, __int128.
+	* config/rs6000/rs6000-protos.h (rs6000_expand_atomic_compare_and_swap): Add
+	additional parameter 'local' to the prototype.
+	* config/rs6000/rs6000.cc (emit_load_locked): Add new parameter. Pass new
+	parameter to generate load-locked instruction.
+	(rs6000_expand_atomic_compare_and_swap): Add new parameter. Call
+	emit_load_locked() with additional parameter value of EH bit.
+	(rs6000_expand_atomic_exchange): Pass EH value 0 to emit_load_locked().
+	(rs6000_expand_atomic_op): Likewise.
+	* config/rs6000/sync.md (load_locked<mode>): Add new operand in RTL template.
+	Specify EH bit in the larx instruction.
+	(load_locked<QHI:mode>_si): Likewise.
+	(load_lockedpti): Likewise.
+	(load_lockedti): Add new operand in RTL template. Pass EH bit to
+	gen_load_lockedpti().
+	(atomic_compare_and_swap<mode>): Pass new parameter 'false' to
+	rs6000_expand_atomic_compare_and_swap.
+	(atomic_compare_and_swap_local<mode>): New define_expand.
+	* doc/extend.texi: Add documentation for new builtin.
+
+2026-06-30  Avinash Jayakar  <avinashd@linux.ibm.com>
+	    Surya Kumari Jangala  <jskumari@linux.ibm.com>
+
+	* config/rs6000/rs6000-builtin.cc (rs6000_expand_builtin): Add logic to
+	handle __builtin_ppc_atomic_cas_local.
+	* config/rs6000/rs6000-builtins.def: New builtins for
+	__builtin_ppc_atomic_cas_local with types.
+	* config/rs6000/rs6000-c.cc (altivec_build_resolved_builtin): Handle
+	builtins with up to 6 arguments.
+	* config/rs6000/rs6000-overload.def: Overload builtin for signed/unsiged
+	char, short, int, long, __int128.
+	* config/rs6000/rs6000-protos.h (rs6000_expand_atomic_compare_and_swap): Add
+	additional parameter 'local' to the prototype.
+	* config/rs6000/rs6000.cc (emit_load_locked): Add new parameter. Pass new
+	parameter to generate load-locked instruction.
+	(rs6000_expand_atomic_compare_and_swap): Add new parameter. Call
+	emit_load_locked() with additional parameter value of EH bit.
+	(rs6000_expand_atomic_exchange): Pass EH value 0 to emit_load_locked().
+	(rs6000_expand_atomic_op): Likewise.
+	* config/rs6000/sync.md (load_locked<mode>): Add new operand in RTL template.
+	Specify EH bit in the larx instruction.
+	(load_locked<QHI:mode>_si): Likewise.
+	(load_lockedpti): Likewise.
+	(load_lockedti): Add new operand in RTL template. Pass EH bit to
+	gen_load_lockedpti().
+	(atomic_compare_and_swap<mode>): Pass new parameter 'false' to
+	rs6000_expand_atomic_compare_and_swap.
+	(atomic_compare_and_swap_local<mode>): New define_expand.
+	* doc/extend.texi: Add documentation for new builtin.
+
+2026-06-30  Xi Ruoyao  <xry111@xry111.site>
+
+	* config/loongarch/loongarch.md
+	(@stack_protect_combined_set_normal_<mode>): Replace `st.d'
+	with `st.<d>', reject stptr.d on LA32 with enabled attribute.
+	(@stack_protect_combined_test_internal_<mode>): Replace `ld.d'
+	with `ld.<d>', reject ldptr.d on LA32 with enabled attribute.
+	(@stack_protect_combined_set_extreme_<mode>): Rename to ...
+	(stack_protect_combined_set_extreme): ... here.  Force DImode.
+	Add TARGET_ABI_LP64 as the condition.
+	(stack_protect_combined_set): Adapt for the change of
+	stack_protect_combined_set_extreme.
+
+2026-06-30  Robin Dapp  <robin.dapp@oss.qualcomm.com>
+
+	PR target/125994
+	* config/riscv/riscv.cc (riscv_support_vector_misalignment):
+	Handle scalar modes.
+
 2026-06-29  Jeff Law  <jeffrey.law@oss.qualcomm.com>
 
 	* config/riscv/riscv.cc (synthesize_and): Use srliw to handle

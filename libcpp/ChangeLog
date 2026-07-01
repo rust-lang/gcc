@@ -1,3 +1,12 @@
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/125837
+	* include/cpplib.h: Implement C++29 P3540R3 - #embed offset parameter.
+	(enum cpp_warning_reason): Add CPP_W_CXX29_EXTENSIONS.
+	* directives.cc (EMBED_PARAMS): Add OFFSET.
+	(enum embed_param_kind): Change NUM_EMBED_STD_PARAMS.
+	(_cpp_parse_embed_params): Handle offset parameter for C++.
+
 2026-06-29  Pietro Monteiro  <pietro@sociotechnical.xyz>
 
 	PR bootstrap/103459

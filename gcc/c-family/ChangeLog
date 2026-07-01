@@ -1,3 +1,15 @@
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/125837
+	* c.opt.urls: Regenerate.
+
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/125837
+	* c.opt (Wc++29-extensions): New option.
+	* c-cppbuiltin.cc (c_cpp_builtins): Change __cpp_pp_embed value for
+	C++29.
+
 2026-06-24  Paul-Antoine Arras  <parras@baylibre.com>
 
 	* c-omp.cc (c_finish_omp_barrier): Pass GOMP_BARRIER_EXPLICIT to

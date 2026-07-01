@@ -1,3 +1,96 @@
+2026-06-30  Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* config.h.in: Regenerate.
+	* configure.ac [x$libgomp_cv_have_sync_builtins = xno]: Fix check.
+	* configure: Regenerate.
+	* allocator.c (omp_init_allocator, gomp_map_omp_init_allocator)
+	[!HAVE_SYNC_BUILTINS]: Fix build.
+	* testsuite/libgomp.c-c++-common/uses_allocators-2.c: Fix for C++ testing.
+	* testsuite/libgomp.c-c++-common/uses_allocators-9.c: Likewise.
+	* testsuite/libgomp.fortran/dep-uses-allocators.f90: Remove
+	obsolete "sorry, unimplemented: [...]" diagnostic check.
+	* testsuite/libgomp.fortran/uses_allocators-7.f90: XFAIL one
+	'scan-tree-dump-times' check.
+
+2026-06-30  Chung-Lin Tang  <cltang@baylibre.com>
+
+	* allocator.c (struct omp_allocator_data): Always enable 'memkind' field
+	for configurations with offloading. Adjust comments assuming
+	HAVE_SYNC_BUILTINS for all offload host/accelerators.
+	(gomp_init_allocator_data): New function, created from omp_init_allocator
+	logic.
+	(omp_init_allocator): Adjust to use gomp_init_allocator_data.
+	(gomp_map_omp_init_allocator): New function to call
+	gomp_init_allocator_data for uses_allocators clauses.
+	* config/gcn/allocator.c (gcn_memspace_validate): Add comments.
+	* config/nvptx/allocator.c (nvptx_memspace_alloc): Add PTX >= v4.1
+	preprocessor symbol check.
+	(nvptx_memspace_calloc): Likewise.
+	(nvptx_memspace_free): Likewise.
+	(nvptx_memspace_realloc): Likewise.
+	(nvptx_memspace_validate): Add comments.
+	* configure.ac: Require offload hosts and accelerator targets to support
+	__sync_* builtins.
+	* configure: Regenerate.
+	* libgomp-plugin.h (GOMP_OFFLOAD_memspace_validate): New declaration.
+	* libgomp.h (gomp_omp_allocator_data_size): New declaration.
+	(memspace_validate_func): New plugin hook in struct gomp_device_descr.
+	(gomp_map_omp_init_allocator): New declaration.
+	* oacc-host.c (host_dispatch): Init .memspace_validate_func = NULL.
+	* plugin/plugin-gcn.c (GOMP_OFFLOAD_memspace_validate): New function.
+	* plugin/plugin-nvptx.c (GOMP_OFFLOAD_memspace_validate): New function.
+	* target.c (gomp_map_vars_internal): Implement GOMP_MAP_USES_ALLOCATORS
+	map kind.
+	(calculate_firstprivate_requirements): Likewise.
+	(copy_firstprivate_data): Likewise.
+	(gomp_load_plugin_for_device): Add DLSYM_OPT of memspace_validate_func
+	hook.
+	* testsuite/libgomp.c++/uses_allocators-1.C: Moved from
+	../gcc/testsuite/g++.dg/gomp/uses_allocators-1.C.
+	* testsuite/libgomp.c-c++-common/uses_allocators-1.c: Moved from
+	../gcc/testsuite/c-c++-common/gomp/uses_allocators-1.c.
+	* testsuite/libgomp.c-c++-common/uses_allocators-2.c: Moved from
+	../gcc/testsuite/c-c++-common/gomp/uses_allocators-2.c.
+	* testsuite/libgomp.c-c++-common/uses_allocators-4.c: Moved from
+	../gcc/testsuite/c-c++-common/gomp/uses_allocators-4.c.
+	* testsuite/libgomp.c-c++-common/uses_allocators-7.c: Moved from
+	../gcc/testsuite/c-c++-common/gomp/uses_allocators-7.c.
+	* testsuite/libgomp.c-c++-common/uses_allocators-8.c: Moved from
+	../gcc/testsuite/c-c++-common/gomp/uses_allocators-8.c.
+	* testsuite/libgomp.c-c++-common/uses_allocators-3.c: New test.
+	* testsuite/libgomp.c-c++-common/uses_allocators-5.c: New test.
+	* testsuite/libgomp.c-c++-common/uses_allocators-6.c: New test.
+	* testsuite/libgomp.c-c++-common/uses_allocators-9.c: New test.
+	* testsuite/libgomp.fortran/uses_allocators-1.f90: New test.
+	* testsuite/libgomp.fortran/uses_allocators-2.f90:
+	Rename from uses_allocators_1.f90.
+	* testsuite/libgomp.fortran/uses_allocators-3.f90:
+	Rename from uses_allocators_2.f90.
+	* testsuite/libgomp.fortran/uses_allocators-4.f90: New test.
+	* testsuite/libgomp.fortran/uses_allocators-5.f90: New test.
+	* testsuite/libgomp.fortran/uses_allocators-6.f90: New test.
+	* testsuite/libgomp.fortran/uses_allocators-7.f90: Adjust test.
+	* testsuite/libgomp.fortran/uses_allocators-8.f90: New test.
+	* testsuite/libgomp.fortran/uses_allocators_1.f90:
+	Renamed to uses_allocators-2.f90 and deleted.
+	* testsuite/libgomp.fortran/uses_allocators_2.f90:
+	Renamed to uses_allocators-3.f90 and deleted.
+	* testsuite/libgomp.c++/c++.exp (check_effective_target_c): Add.
+	(check_effective_target_c++): Add.
+	* testsuite/libgomp.c/c.exp (check_effective_target_c): Add.
+	(check_effective_target_c++): Add.
+
+2026-06-30  Thomas Schwinge  <tschwinge@baylibre.com>
+
+	PR libgomp/125877
+	* config/linux/numa.c (gomp_get_numa_distance): Gracefully handle
+	failure to open Linux sysfs file for NUMA node.
+
+2026-06-30  Thomas Schwinge  <tschwinge@baylibre.com>
+
+	PR libgomp/125877
+	* plugin/plugin-nvptx.c (nvptx_open_device): Initialize 'numa_node'.
+
 2026-06-29  Pietro Monteiro  <pietro@sociotechnical.xyz>
 
 	PR bootstrap/103459

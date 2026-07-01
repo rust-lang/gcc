@@ -1,3 +1,27 @@
+2026-06-30  Robert Dubner  <rdubner@symas.com>
+
+	* charmaps.h (class charmap_t): Return uint8_t instead of uint32_t
+	when possible to avoid endian problems.
+	(class cbl_iconv_t): Formatting.
+	* inspect.cc (normalize_id): Return endian agnostic uint8_t.
+	(normalize_id_sbc): Use endian agnostic uint8_t.
+	* libgcobol-fp.h: Add cppcheck-suppress.
+	* libgcobol.cc (native_to_binary_signed): New conversion.
+	(native_to_binary_unsigned): New name.
+	(big_endian_to_binary_unsigned): Endian-aware conversion.
+	(big_endian_to_binary_signed): Likewise.
+	(get_binary_value_local): Likewise.
+	(binary_to_big_endian): Likewise.
+	(binary_to_little_endian): Changed name.
+	(binary_to_native_binary): New name; new conversion.
+	(int128_to_field): Use new routine.
+	* libgcobol.h (__gg__mabort): Create COBOL_BIG_ENDIAN and
+	COBOL_LITTLE_ENDIAN macros.
+	(defined): Likewise.
+	(COBOL_BIG_ENDIAN): Likewise.
+	(COBOL_LITTLE_ENDIAN): Likewise.
+	* stringbin.cc (packed_from_combined): Endian awareness.
+
 2026-06-29  Pietro Monteiro  <pietro@sociotechnical.xyz>
 
 	PR bootstrap/103459

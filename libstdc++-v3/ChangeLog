@@ -1,3 +1,59 @@
+2026-06-30  Adam Wood  <adam.wood@mines.sdsmt.edu>
+	    Jonathan Wakely  <jwakely@redhat.com>
+
+	* src/c++17/fs_ops.cc: Include <winioctl.h> for
+	FSCTL_GET_REPARSE_POINT. Include <ntdef.h> for
+	REPARSE_DATA_BUFFER.
+	(windows_create_symlink): New helper function for
+	fs::create_symlink and fs::create_directory_symlink.
+	(fs::create_directory_symlink): Call windows_create_symlink on
+	Windows.
+	(fs::create_symlink): Call windows_create_symlink on Windows.
+	(auto_win_file_handle::auto_win_file_handle): Add follow_symlink
+	parameter to control whether the handle should open the symlink
+	or the target, with a default value of true.
+	(windows_read_symlink_handle): New helper function
+	for fs::read_symlink.
+	(fs::read_symlink): Call windows_read_symlink_handle on Windows.
+	(fs::remove): Call RemoveDirectoryW only for directories, and
+	DeleteFileW for regular files, but attempt both for symlinks.
+	(fs::remove_all): Return immediately if path is empty.
+	Check if path points to a symlink, and if so, remove the
+	symlink using fs::remove.
+	* src/filesystem/ops-common.h [_GLIBCXX_FILESYSTEM_IS_WINDOWS]
+	(S_IFLNK, S_ISLNK): Define.
+	(__detail::__open_for_stat): New helper function for stat and
+	lstat.
+	(__detail::FileType): New enum type.
+	(__detail::__check_handle_type): New helper function for stat
+	and lstat.
+	(__detail::__is_handle_symlink): New helper function for
+	fs::read_symlink.
+	(__detail::__stat_windows): New helper function for stat and
+	lstat.
+	(__gnu_posix::stat, __gnu_posix::lstat): Use __stat_windows to
+	properly follow or not follow symlinks, and check if file is a
+	symlink.
+	* testsuite/27_io/filesystem/operations/canonical.cc (test03):
+	Use fs::create_directory_symlink instead of fs::create_symlink.
+	Check if NO_SYMLINKS or _GLIBCXX_FILESYSTEM_IS_WINDOWS instead
+	of just checking NO_SYMLINKS when defining baz.
+	* testsuite/27_io/filesystem/operations/copy.cc (test02):
+	Create a symlink to temporary file instead of ".".  Use
+	fs::exists(symlink_status()) instead of fs::exists for symlinks.
+	* testsuite/27_io/filesystem/operations/weakly_canonical.cc
+	(test01): Use fs::create_directory_symlink instead of
+	fs::create_symlink.  Wrap statements that test a dotdot after a
+	symlink in an ifndef _GLIBCXX_FILESYSTEM_IS_WINDOWS.
+	* testsuite/util/testsuite_fs.h: Do not define NO_SYMLINKS on
+	Windows.
+
+2026-06-30  Adam Wood  <adam.wood@mines.sdsmt.edu>
+
+	* testsuite/27_io/filesystem/operations/remove.cc: Check that
+	fs::remove deletes symlink instead of target.
+	* testsuite/27_io/filesystem/operations/remove_all.cc: Likewise.
+
 2026-06-29  Jonathan Wakely  <jwakely@redhat.com>
 
 	* include/bits/chrono_io.h: Fix comment typo.

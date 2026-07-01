@@ -1,3 +1,11 @@
+2026-06-30  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/126007
+	* tree.cc (eligible_special_member_function_p): New function.
+	(implicit_lifetime_type_p): Use true instead of 1 in function comment.
+	Add some further comments.  Use eligible_special_member_function_p
+	instead of !DECL_DELETED_FN.
+
 2026-06-29  Georg-Johann Lay  <avr@gjlay.de>
 
 	* mangle.cc (mangle_ctor_vtbl_for_type): Fix production in comment.
