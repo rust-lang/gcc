@@ -54,10 +54,6 @@
 #			support, the default value of
 #			$default_gnu_indirect_function is set to
 #			"no" except for targets which are known to be OK.
-#
-#  gnu_ld_flag		One of yes, no or "" depending on whether GNU ld was
-#			explicitly requested, explicitly not requested or
-#			unspecified.
 
 # This file sets the following shell variables for use by the
 # autoconf-generated configure script:

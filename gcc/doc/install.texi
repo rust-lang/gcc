@@ -1211,10 +1211,6 @@ is installed in the directories listed above, or if you have multiple
 assemblers installed and want to choose one that is not found by the
 above rules.
 
-@item @anchor{with-gnu-ld}--with-gnu-ld
-Same as @uref{#with-gnu-as,,@option{--with-gnu-as}}
-but for the linker.
-
 @item --with-ld=@var{pathname}
 Same as @uref{#with-as,,@option{--with-as}}
 but for the linker.
@@ -5307,7 +5303,7 @@ current GCC) is to be found in the GCC texinfo manual.
 @anchor{elf}
 @heading all ELF targets (SVR4, Solaris, etc.)
 C++ support is significantly better on ELF targets if you use the
-@uref{./configure.html#with-gnu-ld,,GNU linker}; duplicate copies of
+GNU linker; duplicate copies of
 inlines, vtables and template instantiations will be discarded
 automatically.
 

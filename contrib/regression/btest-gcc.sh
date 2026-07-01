@@ -138,10 +138,9 @@ if [ $H_HOST = $H_TARGET ] ; then
     make $dashj all || exit 1
   fi
 else
-  withopt="--with-gnu-ld"
   case "$H_TARGET" in
     *-linux*) ;;
-    *) withopt="$withopt --with-newlib";;
+    *) withopt="--with-newlib";;
   esac
   $SOURCE/configure --prefix=$PREFIX --target=$H_TARGET $withopt || exit 1
   make $dashj || exit 1

@@ -332,12 +332,6 @@ AC_SUBST(GENINSRC)
 # Find default linker
 # -------------------
 
-# With GNU ld
-AC_ARG_WITH(gnu-ld,
-[AS_HELP_STRING([--with-gnu-ld], [arrange to work with GNU ld])],
-gnu_ld_flag="$with_gnu_ld",
-gnu_ld_flag=)
-
 case $target in
     *darwin*)
 	ld64_flag=yes # Darwin can only use a ld64-compatible linker.
@@ -356,8 +350,6 @@ DEFAULT_LINKER="$with_ld")
 if test x"${DEFAULT_LINKER+set}" = x"set"; then
   if test ! -x "$DEFAULT_LINKER"; then
     AC_MSG_ERROR([cannot execute: $DEFAULT_LINKER: check --with-ld or env. var. DEFAULT_LINKER])
-  elif $DEFAULT_LINKER -v < /dev/null 2>&1 | grep GNU > /dev/null; then
-    gnu_ld_flag=yes
   elif $DEFAULT_LINKER -v < /dev/null 2>&1 | grep 'PROJECT:ld\(64\)*-' > /dev/null; then
     ld64_flag=yes
   fi
@@ -367,11 +359,7 @@ fi
 
 AC_MSG_CHECKING([whether a default linker was specified])
 if test x"${DEFAULT_LINKER+set}" = x"set"; then
-  if test x"$gnu_ld_flag" = x"no"; then
-    AC_MSG_RESULT([yes ($DEFAULT_LINKER)])
-  else
-    AC_MSG_RESULT([yes ($DEFAULT_LINKER - GNU ld)])
-  fi
+  AC_MSG_RESULT([yes ($DEFAULT_LINKER)])
 else
   AC_MSG_RESULT(no)
 fi

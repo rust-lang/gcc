@@ -27398,8 +27398,6 @@ Generate (or don't) code for the GNU assembler.  This is the default.
 @item -mgnu-ld
 @itemx -mno-gnu-ld
 Generate (or don't) code for the GNU linker.  This is the default.
-@c Also, this is the default if the configure option @option{--with-gnu-ld}
-@c is used.
 
 @opindex mno-pic
 @item -mno-pic
