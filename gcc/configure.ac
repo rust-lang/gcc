@@ -2020,9 +2020,6 @@ if test x$use_long_long_for_widest_fast_int = xyes; then
 efficiently supported by the host hardware.])
 fi
 
-gnu_ld_bool=`if test x"$gnu_ld" = x"yes"; then echo 1; else echo 0; fi`
-AC_DEFINE_UNQUOTED(HAVE_GNU_LD, $gnu_ld_bool, [Define to 1 if using GNU ld.])
-
 count=a
 for f in $host_xm_file; do
 	count=${count}x
@@ -3419,6 +3416,24 @@ if test $gcc_cv_as_hidden = yes && test $gcc_cv_ld_hidden = yes; then
   AC_DEFINE(HAVE_GAS_HIDDEN, 1,
   [Define if your assembler and linker support .hidden.])
 fi
+
+AC_MSG_CHECKING(linker supports GNU style respones files)
+gcc_cv_ld_at_file=no
+if test $in_tree_ld = yes ; then
+  gcc_cv_ld_at_file=yes
+elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x; then
+  echo '.byte 0' > conftest.s
+  echo conftest.o > conftest.at
+  if $gcc_cv_as -o conftest.o conftest.s > /dev/null 2>&1 \
+     && $gcc_cv_ld -r -o conftest2.o @conftest.at > /dev/null 2>&1; then
+    gcc_cv_ld_at_file=yes
+  fi
+  rm -f conftest.* conftest2.*
+fi
+AC_DEFINE_UNQUOTED(HAVE_LD_AT_FILE,
+  [`if test $gcc_cv_ld_at_file = yes; then echo 1; else echo 0; fi`],
+  [Define if your linker supports GNU style response files.])
+AC_MSG_RESULT($gcc_cv_ld_at_file)
 
 AC_MSG_CHECKING(linker read-only and read-write section mixing)
 gcc_cv_ld_ro_rw_mix=unknown

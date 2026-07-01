@@ -160,9 +160,9 @@ const char *__gnat_object_library_extension = ".a";
 unsigned char __gnat_separate_run_path_options = 0;
 const char *__gnat_default_libgcc_subdir = "lib";
 
-#elif (HAVE_GNU_LD)
-/*  These are the settings for all systems that use gnu ld. GNU style response
-    file is supported, the shared library default is STATIC.  */
+#elif (HAVE_LD_AT_FILE)
+/*  These are the settings for all other systems that support GNU style
+    response files.  The shared library default is STATIC.  */
 
 const char *__gnat_object_file_option = "-Wl,@";
 const char *__gnat_run_path_option = "";
@@ -171,17 +171,6 @@ char __gnat_shared_libgcc_default = STATIC;
 int __gnat_link_max = 8192;
 unsigned char __gnat_objlist_file_supported = 1;
 const char *__gnat_object_library_extension = ".a";
-unsigned char __gnat_separate_run_path_options = 0;
-const char *__gnat_default_libgcc_subdir = "lib";
-
-#elif defined (VMS)
-const char *__gnat_object_file_option = "";
-const char *__gnat_run_path_option = "";
-char __gnat_shared_libgnat_default = STATIC;
-char __gnat_shared_libgcc_default = STATIC;
-int __gnat_link_max = 2147483647;
-unsigned char __gnat_objlist_file_supported = 0;
-const char *__gnat_object_library_extension = ".olb";
 unsigned char __gnat_separate_run_path_options = 0;
 const char *__gnat_default_libgcc_subdir = "lib";
 
@@ -201,17 +190,6 @@ const char *__gnat_default_libgcc_subdir = "lib/amd64";
 #else
 const char *__gnat_default_libgcc_subdir = "lib";
 #endif
-
-#elif defined (__svr4__) && defined (__i386__)
-const char *__gnat_object_file_option = "";
-const char *__gnat_run_path_option = "";
-char __gnat_shared_libgnat_default = STATIC;
-char __gnat_shared_libgcc_default = STATIC;
-int __gnat_link_max = 2147483647;
-unsigned char __gnat_objlist_file_supported = 0;
-const char *__gnat_object_library_extension = ".a";
-unsigned char __gnat_separate_run_path_options = 0;
-const char *__gnat_default_libgcc_subdir = "lib";
 
 #else
 

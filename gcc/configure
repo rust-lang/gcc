@@ -13097,13 +13097,6 @@ $as_echo "#define USE_LONG_LONG_FOR_WIDEST_FAST_INT 1" >>confdefs.h
 
 fi
 
-gnu_ld_bool=`if test x"$gnu_ld" = x"yes"; then echo 1; else echo 0; fi`
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_GNU_LD $gnu_ld_bool
-_ACEOF
-
-
 count=a
 for f in $host_xm_file; do
 	count=${count}x
@@ -21946,7 +21939,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 21949 "configure"
+#line 21942 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22052,7 +22045,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 22055 "configure"
+#line 22048 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -26823,6 +26816,28 @@ if test $gcc_cv_as_hidden = yes && test $gcc_cv_ld_hidden = yes; then
 $as_echo "#define HAVE_GAS_HIDDEN 1" >>confdefs.h
 
 fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking linker supports GNU style respones files" >&5
+$as_echo_n "checking linker supports GNU style respones files... " >&6; }
+gcc_cv_ld_at_file=no
+if test $in_tree_ld = yes ; then
+  gcc_cv_ld_at_file=yes
+elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x; then
+  echo '.byte 0' > conftest.s
+  echo conftest.o > conftest.at
+  if $gcc_cv_as -o conftest.o conftest.s > /dev/null 2>&1 \
+     && $gcc_cv_ld -r -o conftest2.o @conftest.at > /dev/null 2>&1; then
+    gcc_cv_ld_at_file=yes
+  fi
+  rm -f conftest.* conftest2.*
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_LD_AT_FILE `if test $gcc_cv_ld_at_file = yes; then echo 1; else echo 0; fi`
+_ACEOF
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gcc_cv_ld_at_file" >&5
+$as_echo "$gcc_cv_ld_at_file" >&6; }
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking linker read-only and read-write section mixing" >&5
 $as_echo_n "checking linker read-only and read-write section mixing... " >&6; }

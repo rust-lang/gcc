@@ -1609,12 +1609,6 @@
 #endif
 
 
-/* Define to 1 if using GNU ld. */
-#ifndef USED_FOR_TARGET
-#undef HAVE_GNU_LD
-#endif
-
-
 /* Define if the gold linker supports split stack and is available as a
    non-default */
 #ifndef USED_FOR_TARGET
@@ -1693,6 +1687,12 @@
    options. */
 #ifndef USED_FOR_TARGET
 #undef HAVE_LD_AS_NEEDED
+#endif
+
+
+/* Define if your linker supports GNU style response files. */
+#ifndef USED_FOR_TARGET
+#undef HAVE_LD_AT_FILE
 #endif
 
 
