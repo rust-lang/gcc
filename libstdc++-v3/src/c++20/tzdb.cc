@@ -1463,16 +1463,22 @@ struct tzdb_list::_Node::NumLeapSeconds
     ref.store(val, memory_order::release);
 #else
     lock_guard<mutex> l(list_mutex());
-    set_locked(val, l);
+    count = val;
 #endif
   }
 
   void
   set_locked(unsigned val, const lock_guard<mutex>&)
   {
+#if ATOMIC_INT_LOCK_FREE == 2
+    // Even though the caller locked the mutex, we still need to use an
+    // atomic store in this case, because there could be concurrent loads.
+    set(val);
+#else
     // The only caller of this function locks list_mutex() so we would
     // deadlock if we locked it again here.
     count = val;
+#endif
   }
 
 private:
