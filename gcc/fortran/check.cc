@@ -2502,7 +2502,7 @@ get_ul_from_cst_cl (const gfc_charlen *cl)
 {
   return cl && cl->length && cl->length->expr_type == EXPR_CONSTANT
 	 ? mpz_get_ui (cl->length->value.integer) : 0;
-};
+}
 
 
 /* Checks shared between co_reduce and reduce.  */
