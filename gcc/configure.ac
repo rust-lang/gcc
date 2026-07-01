@@ -2741,34 +2741,23 @@ case $target in
   *-*-aix*)
     if $gcc_cv_as -v 2>&1 | grep '^as V' > /dev/null; then
       as_flavor=aix
-      gas=no
-    else
-      gas=yes
     fi
     ;;
   *-*-darwin*)
     as_flavor=darwin
-    gas=no
     ;;
   *-*-solaris2*)
     if $gcc_cv_as -V 2>&1 | grep 'Compiler Common.*SunOS' > /dev/null; then
       as_flavor=solaris
-      gas=no
-    else
-      gas=yes
     fi
     ;;
   hppa*64*-*-hpux11*)
     if $gcc_cv_as -V 2>&1 | grep 'UX.11.*PA-RISC.*Assembler' > /dev/null; then
       as_flavor=hpux
-      gas=no
-    else
-      gas=yes
     fi
     ;;
   nvptx-*-*)
     as_flavor=nvptx
-    gas=no
     ;;
 esac
 AC_MSG_RESULT($as_flavor)
@@ -2786,15 +2775,6 @@ case "$ORIGINAL_AS_FOR_TARGET" in
   ./as | ./as$build_exeext) ;;
   *) AC_CONFIG_FILES(as:exec-tool.in, [chmod +x as]) ;;
 esac 
-
-# Check if we are using GNU as if not already set.
-if test -z "$gas"; then
-  if $gcc_cv_as --version 2>/dev/null | grep GNU > /dev/null; then
-    gas=yes
-  else
-    gas=no
-  fi
-fi
 
 if $gcc_cv_as --help 2>&1 | grep -- --fatal-warnings > /dev/null; then
   fw_as_opt=--fatal-warnings
@@ -5595,8 +5575,7 @@ esac
 
 case "$target" in
   mips*-*-* | loongarch*-*-* | *-*-hpux* )
-    if test x$gas = xyes \
-       || test x"$host" != x"$build" \
+    if test x"$host" != x"$build" \
        || test ! -x "$gcc_cv_as" \
        || "$gcc_cv_as" -v < /dev/null 2>&1 | grep GNU > /dev/null; then
       :

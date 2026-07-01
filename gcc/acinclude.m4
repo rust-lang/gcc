@@ -462,7 +462,7 @@ dnl # Used by gcc_GAS_CHECK_FEATURE
 dnl #
 AC_DEFUN([gcc_GAS_FLAGS],
 [AC_CACHE_CHECK([assembler flags], gcc_cv_as_flags,
-[ case "$target:$gas" in
+[ case "$target:$as_flavor" in
   *-*-darwin*:*)
     dnl Darwin with the native assembler uses -arch i386/x86_64/ppc/ppc64.
     dnl
@@ -490,7 +490,7 @@ AC_DEFUN([gcc_GAS_FLAGS],
 	;;
     esac
     ;;
-  *-*-solaris2*:no)
+  *-*-solaris2*:solaris)
     dnl Solaris with the native assembler uses -m32/-m64 consistently.
     case "$target" in
       i?86-*-* | sparc-*-*)
