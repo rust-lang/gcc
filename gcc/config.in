@@ -373,6 +373,12 @@
 #endif
 
 
+/* Define to 1 if using the AIX assembler. */
+#ifndef USED_FOR_TARGET
+#undef HAVE_AIX_AS
+#endif
+
+
 /* Define if your assembler supports LSX and SCQ for 16B atomic. */
 #ifndef USED_FOR_TARGET
 #undef HAVE_AS_16B_ATOMIC

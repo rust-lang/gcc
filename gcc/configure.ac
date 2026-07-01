@@ -2738,22 +2738,48 @@ else
         AC_PATH_PROG(gcc_cv_as, $AS_FOR_TARGET)
 fi])
 
-AC_MSG_CHECKING(Solaris assembler)
+AC_MSG_CHECKING(assembler flavor)
+as_flavor=gnu
 case $target in
-  *-*-solaris2*)
-    if $gcc_cv_as -V 2>&1 | grep 'Compiler Common.*SunOS' > /dev/null; then
-      solaris_as=yes
+  *-*-aix*)
+    if $gcc_cv_as -v 2>&1 | grep '^as V' > /dev/null; then
+      as_flavor=aix
       gas=no
-    elif $gcc_cv_as --version 2>/dev/null | grep GNU > /dev/null; then
+    else
       gas=yes
     fi
     ;;
-  *)
-    solaris_as=no
+  *-*-darwin*)
+    as_flavor=darwin
+    gas=no
+    ;;
+  *-*-solaris2*)
+    if $gcc_cv_as -V 2>&1 | grep 'Compiler Common.*SunOS' > /dev/null; then
+      as_flavor=solaris
+      gas=no
+    else
+      gas=yes
+    fi
+    ;;
+  hppa*64*-*-hpux11*)
+    if $gcc_cv_as -V 2>&1 | grep 'UX.11.*PA-RISC.*Assembler' > /dev/null; then
+      as_flavor=hpux
+      gas=no
+    else
+      gas=yes
+    fi
+    ;;
+  nvptx-*-*)
+    as_flavor=nvptx
+    gas=no
     ;;
 esac
-AC_MSG_RESULT($solaris_as)
-solaris_as_bool=`if test $solaris_as = yes; then echo 1; else echo 0; fi`
+AC_MSG_RESULT($as_flavor)
+dnl Don't define HAVE_GNU_AS, only HAVE_<FLAVOR>_AS when actually used.
+aix_as_bool=`if test $as_flavor = aix; then echo 1; else echo 0; fi`
+AC_DEFINE_UNQUOTED(HAVE_AIX_AS, $aix_as_bool,
+	[Define to 1 if using the AIX assembler.])
+solaris_as_bool=`if test $as_flavor = solaris; then echo 1; else echo 0; fi`
 AC_DEFINE_UNQUOTED(HAVE_SOLARIS_AS, $solaris_as_bool,
 	[Define to 1 if using the Solaris assembler.])
 
@@ -2839,22 +2865,45 @@ else
         AC_PATH_PROG(gcc_cv_ld, $LD_FOR_TARGET)
 fi])
 
-AC_MSG_CHECKING(Solaris linker)
+AC_MSG_CHECKING(linker flavor)
+ld_flavor=gnu
 case $target in
-  *-*-solaris2*)
-    if $gcc_cv_ld -V 2>/dev/null | grep 'Solaris Link Editors' > /dev/null; then
+  *-*-aix*)
+    if $gcc_cv_ld -V 2>&1 | grep 'ld: LD ' > /dev/null; then
+      ld_flavor=aix
       gnu_ld=no
-      solaris_ld=yes
-    elif $gcc_cv_ld --version 2>/dev/null | grep GNU > /dev/null; then
+    else
       gnu_ld=yes
     fi
     ;;
-  *)
-    solaris_ld=no
+  *-*-darwin*)
+    ld_flavor=darwin
+    gnu_ld=no
+    ;;
+  *-*-solaris2*)
+    if $gcc_cv_ld -V 2>&1 | grep 'Solaris Link Editors' > /dev/null; then
+      ld_flavor=solaris
+      gnu_ld=no
+    else
+      gnu_ld=yes
+    fi
+    ;;
+  hppa*64*-*-hpux11*)
+    if $gcc_cv_ld -V 2>&1 | grep 'linker command.*sgs.*ld PA64' > /dev/null; then
+      ld_flavor=hpux
+      gnu_ld=no
+    else
+      gnu_ld=yes
+    fi
+    ;;
+  nvptx-*-*)
+    ld_flavor=nvptx
+    gnu_ld=no
     ;;
 esac
-AC_MSG_RESULT($solaris_ld)
-solaris_ld_bool=`if test $solaris_ld = yes; then echo 1; else echo 0; fi`
+AC_MSG_RESULT($ld_flavor)
+dnl Don't define HAVE_GNU_LD, only HAVE_<FLAVOR>_LD when actually used.
+solaris_ld_bool=`if test $ld_flavor = solaris; then echo 1; else echo 0; fi`
 AC_DEFINE_UNQUOTED(HAVE_SOLARIS_LD, $solaris_ld_bool,
 	[Define to 1 if using the Solaris linker.])
 
@@ -2884,16 +2933,16 @@ if test -z "$gnu_ld"; then
   fi
 fi
 
-case "$target:$gnu_ld" in
-  *-*-solaris2*:no)
+case "$target:$ld_flavor" in
+  *-*-solaris2*:solaris)
     # While Solaris ld has -m32/-m64 it usually determines the ELF class
     # from the input objects.
     ;;
-  i?86-*-solaris2*:yes | x86_64-*-solaris2*:yes)
+  i?86-*-solaris2*:gnu | x86_64-*-solaris2*:gnu)
     ld_32_opt=-melf_i386_sol2
     ld_64_opt=-melf_x86_64_sol2
     ;;
-  i?86-*-*:yes | x86_64-*-*:yes)
+  i?86-*-*:gnu | x86_64-*-*:gnu)
     ld_32_opt=-melf_i386
     ld_64_opt=-melf_x86_64
     ;;
@@ -3993,7 +4042,7 @@ foo:	.long	25
 .word foo(tlsldo)'
 	;;
   i?86-*-* | x86_64-*-*)
-    if test x$solaris_as = xyes; then
+    if test x$as_flavor = xsolaris; then
       tls_section_flag=t
 changequote([,])dnl
       AC_DEFINE(TLS_SECTION_ASM_FLAG, 't',
@@ -4242,7 +4291,7 @@ foo:	.long	25
 	.long	foo@TPOFF'
 	;;
   sparc*-*-*)
-    if test x$solaris_as = xyes; then
+    if test x$as_flavor = xsolaris; then
       conftest_s='
       .section ".tdata",#alloc,#write,#tls'
     else
@@ -4383,7 +4432,7 @@ ld_version_script_option=''
 if test $in_tree_ld = yes || test x"$gnu_ld" = xyes; then
   gcc_cv_ld_version_script=yes
   ld_version_script_option='--version-script'
-elif test x$solaris_ld = xyes; then
+elif test x$ld_flavor = xsolaris; then
   # Solaris 2 ld always supports -M.  It also supports a subset of
   # --version-script since Solaris 11.4, but requires
   # -z gnu-version-script-compat to activate.
@@ -6321,7 +6370,7 @@ gcc_cv_ld_ctf=no
 # Check for Solaris ld 1.3315 introduced in Solaris 11.4 SRU 84.  ld -z ctf
 # already went in in SRU 81, but lacked GNU CTF to Solaris CTF conversion.
 if $gcc_cv_ld --help 2>&1 | grep -- '-z ctf' > /dev/null \
-  && test x$solaris_ld = xyes && test "$ld_vers_minor" -ge 3315; then
+  && test x$ld_flavor = xsolaris && test "$ld_vers_minor" -ge 3315; then
   gcc_cv_ld_ctf=yes
   AC_DEFINE(HAVE_LD_CTF, 1, [Define if your linker supports -z ctf.])
 fi
@@ -6554,7 +6603,7 @@ elif test x$gcc_cv_ld != x; then
       gcc_cv_ld_no_as_needed_option='--pop-state'
     fi
   fi
-  if test x$solaris_ld = xyes; then
+  if test x$ld_flavor = xsolaris; then
     # Solaris 2 ld always supports -z ignore/-z record.  Prefer the native
     # forms.
     gcc_cv_ld_as_needed=yes

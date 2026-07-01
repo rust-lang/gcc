@@ -308,8 +308,8 @@ int (*fp) (void) __attribute__ ((section (".init_array"))) = foo;
 	    gcc_cv_initfini_array=yes
 	  fi
 	elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x -a x"$gcc_cv_objdump" != x ; then
-	  case $target:$solaris_as in
-	    i?86-*-solaris2*:yes | x86_64-*-solaris2*:yes)
+	  case $target:$as_flavor in
+	    i?86-*-solaris2*:solaris | x86_64-*-solaris2*:solaris)
 	      sh_flags='"a"'
 	      sh_type='@progbits'
 	      ;;
@@ -323,7 +323,7 @@ int (*fp) (void) __attribute__ ((section (".init_array"))) = foo;
 	      sh_type='%progbits'
 	      ;;
 	  esac
-	  if test x$solaris_ld = xno; then
+	  if test x$ld_flavor = xgnu; then
 	    cat > conftest.s <<EOF
 .section .dtors,$sh_flags,$sh_type
 .balign 4
