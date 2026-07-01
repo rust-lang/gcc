@@ -2833,34 +2833,23 @@ case $target in
   *-*-aix*)
     if $gcc_cv_ld -V 2>&1 | grep 'ld: LD ' > /dev/null; then
       ld_flavor=aix
-      gnu_ld=no
-    else
-      gnu_ld=yes
     fi
     ;;
   *-*-darwin*)
     ld_flavor=darwin
-    gnu_ld=no
     ;;
   *-*-solaris2*)
     if $gcc_cv_ld -V 2>&1 | grep 'Solaris Link Editors' > /dev/null; then
       ld_flavor=solaris
-      gnu_ld=no
-    else
-      gnu_ld=yes
     fi
     ;;
   hppa*64*-*-hpux11*)
     if $gcc_cv_ld -V 2>&1 | grep 'linker command.*sgs.*ld PA64' > /dev/null; then
       ld_flavor=hpux
-      gnu_ld=no
-    else
-      gnu_ld=yes
     fi
     ;;
   nvptx-*-*)
     ld_flavor=nvptx
-    gnu_ld=no
     ;;
 esac
 AC_MSG_RESULT($ld_flavor)
@@ -2886,14 +2875,7 @@ AC_ARG_WITH(plugin-ld,
 AC_SUBST(ORIGINAL_PLUGIN_LD_FOR_TARGET)
 AC_DEFINE_UNQUOTED(PLUGIN_LD_SUFFIX, "$PLUGIN_LD_SUFFIX", [Specify plugin linker])
 
-# Check if we are using GNU ld if not already set.
-if test -z "$gnu_ld"; then
-  if $gcc_cv_ld --version 2>/dev/null | grep GNU > /dev/null; then
-    gnu_ld=yes
-  else
-    gnu_ld=no
-  fi
-fi
+# Settings that depend on ld_flavor must be done here instead of config.gcc.
 
 case "$target:$ld_flavor" in
   *-*-solaris2*:solaris)
@@ -2907,6 +2889,12 @@ case "$target:$ld_flavor" in
   i?86-*-*:gnu | x86_64-*-*:gnu)
     ld_32_opt=-melf_i386
     ld_64_opt=-melf_x86_64
+    ;;
+esac
+
+case "$target:$ld_flavor" in
+  hppa*64*-*-hpux11*:gnu)
+    target_cpu_default="${target_cpu_default}|MASK_GNU_LD"
     ;;
 esac
 
@@ -4383,11 +4371,9 @@ elif test x$gcc_cv_ld != x; then
 	;;
       # HP-UX ld uses -a flags to select between shared and archive.
       *-*-hpux*)
-	if test x"$gnu_ld" = xno; then
-	  gcc_cv_ld_static_dynamic=yes
-	  gcc_cv_ld_static_option="-aarchive_shared"
-	  gcc_cv_ld_dynamic_option="-adefault"
-	fi
+	gcc_cv_ld_static_dynamic=yes
+	gcc_cv_ld_static_option="-aarchive_shared"
+	gcc_cv_ld_dynamic_option="-adefault"
 	;;
       # Solaris 2 ld always supports -Bstatic/-Bdynamic.
       *-*-solaris2*)
@@ -4406,43 +4392,53 @@ if test x"$gcc_cv_ld_static_dynamic" = xyes; then
 fi
 AC_MSG_RESULT($gcc_cv_ld_static_dynamic)
 
-AC_MSG_CHECKING(linker --version-script option)
+AC_MSG_CHECKING(linker version script option)
 gcc_cv_ld_version_script=no
 ld_version_script_option=''
-if test $in_tree_ld = yes || test x"$gnu_ld" = xyes; then
+if test $in_tree_ld = yes; then
   gcc_cv_ld_version_script=yes
   ld_version_script_option='--version-script'
-elif test x$ld_flavor = xsolaris; then
+elif test x$gcc_cv_ld != x; then
+  # Check if linker supports --version-script option
+  if $gcc_cv_ld --help 2>&1 | grep -- --version-script > /dev/null; then
+    gcc_cv_ld_version_script=yes
+    ld_version_script_option='--version-script'
+  fi
+fi
+if test x$ld_flavor = xsolaris; then
   # Solaris 2 ld always supports -M.  It also supports a subset of
   # --version-script since Solaris 11.4, but requires
   # -z gnu-version-script-compat to activate.
   gcc_cv_ld_version_script=yes
   ld_version_script_option='-M'
 fi
-# Don't AC_DEFINE result, only used in jit/Make-lang.in so far.
 AC_MSG_RESULT($gcc_cv_ld_version_script)
 AC_SUBST(ld_version_script_option)
 
 AC_MSG_CHECKING(linker soname option)
 gcc_cv_ld_soname=no
-if test $in_tree_ld = yes || test x"$gnu_ld" = xyes; then
+if test $in_tree_ld = yes; then
   gcc_cv_ld_soname=yes
   ld_soname_option='-soname'
 elif test x$gcc_cv_ld != x; then
-  case "$target" in
-    *-*-darwin*)
-      gcc_cv_ld_soname=yes
-      ld_soname_option='-install_name'
-      ;;
-    # Solaris 2 ld always supports -h.  It also supports --soname for GNU
-    # ld compatibility since some Solaris 10 update.
-    *-*-solaris2*)
-      gcc_cv_ld_soname=yes
-      ld_soname_option='-h'
-      ;;
-  esac
+  # Check if linker supports -soname option
+  if $gcc_cv_ld --help 2>&1 | grep -- -soname > /dev/null; then
+    gcc_cv_ld_soname=yes
+    ld_soname_option='-soname'
+  fi
 fi
-# Don't AC_DEFINE result, only used in jit/Make-lang.in so far.
+case "$target:$ld_flavor" in
+  *-*-darwin*:*)
+    gcc_cv_ld_soname=yes
+    ld_soname_option='-install_name'
+    ;;
+  # Solaris 2 ld always supports -h.  It also supports --soname for GNU
+  # ld compatiblity since some Solaris 10 update.
+  *-*-solaris2*:solaris)
+    gcc_cv_ld_soname=yes
+    ld_soname_option='-h'
+    ;;
+esac
 AC_MSG_RESULT($gcc_cv_ld_soname)
 AC_SUBST(ld_soname_option)
 
@@ -4453,7 +4449,7 @@ if test x"$demangler_in_ld" = xyes; then
     if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 14 -o "$gcc_cv_gld_major_version" -gt 2; then \
       gcc_cv_ld_demangle=yes
     fi
-  elif test x$gcc_cv_ld != x -a x"$gnu_ld" = xyes; then
+  elif test x$gcc_cv_ld != x; then
     # Check if the GNU linker supports --demangle option
     if $gcc_cv_ld --help 2>&1 | grep no-demangle > /dev/null; then
       gcc_cv_ld_demangle=yes
