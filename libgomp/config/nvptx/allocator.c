@@ -44,12 +44,17 @@
 #include "libgomp.h"
 #include <stdlib.h>
 
+#if __PTX_ISA_VERSION_MAJOR__ > 4					\
+    || (__PTX_ISA_VERSION_MAJOR__ == 4 && __PTX_ISA_VERSION_MINOR >= 1)
+
 #define BASIC_ALLOC_PREFIX __nvptx_lowlat
 #include "../../basic-allocator.c"
 
 /* There should be some .shared space reserved for us.  There's no way to
    express this magic extern sizeless array in C so use asm.  */
 asm (".extern .shared .u8 __nvptx_lowlat_pool[];\n");
+
+#endif
 
 static void *
 nvptx_memspace_alloc (omp_memspace_handle_t memspace, size_t size)
