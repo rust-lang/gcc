@@ -12838,7 +12838,9 @@ alloc_scalar_allocatable_for_assignment (stmtblock_t *block,
 				NULL_TREE, NULL_TREE, NULL_TREE, jump_label1,
 				expr1, 1);
     }
-  else if (expr1->ts.type == BT_DERIVED && expr1->ts.u.derived->attr.alloc_comp)
+  else if (expr1->ts.type == BT_DERIVED
+	   && (expr1->ts.u.derived->attr.alloc_comp
+	       || has_parameterized_comps (expr1->ts.u.derived)))
     {
       tmp = build_call_expr_loc (input_location,
 				 builtin_decl_explicit (BUILT_IN_CALLOC),

@@ -7115,10 +7115,16 @@ gfc_pdt_find_component_copy_initializer (gfc_symbol *sym, const char *name)
 bool has_parameterized_comps (gfc_symbol * der_type)
 {
   bool parameterized_comps = false;
+
+  if (!der_type->attr.pdt_type && !der_type->attr.pdt_comp)
+    return false;
+
   for (gfc_component *c = der_type->components; c; c = c->next)
     if (c->attr.pdt_array || c->attr.pdt_string)
       parameterized_comps = true;
-    else if (IS_PDT (c) && strcmp (der_type->name, c->ts.u.derived->name))
-      parameterized_comps = has_parameterized_comps (c->ts.u.derived);
+    else if (IS_PDT (c) && strcmp (der_type->name, c->ts.u.derived->name)
+	     && has_parameterized_comps (c->ts.u.derived))
+      parameterized_comps = true;
+
   return parameterized_comps;
 }

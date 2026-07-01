@@ -50,5 +50,6 @@
     call sr
     deallocate (d%p_t1)
 end
-! { dg-final { scan-tree-dump-times "__builtin_malloc" 8 "original" } }
+! { dg-final { scan-tree-dump-times "__builtin_malloc" 7 "original" } }
+! { dg-final { scan-tree-dump-times "__builtin_calloc" 1 "original" } }
 ! { dg-final { scan-tree-dump-times "__builtin_free" 9 "original" } }

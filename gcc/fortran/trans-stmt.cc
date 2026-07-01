@@ -7690,9 +7690,23 @@ gfc_trans_allocate (gfc_code * code, gfc_omp_namelist *omp_allocate)
 	  gfc_add_expr_to_block (&block, tmp);
 	}
       /* Set KIND and LEN PDT components and allocate those that are
-         parameterized.  */
-      else if (IS_PDT (expr))
+	 parameterized and make sure that allocatable components are
+	 nullified.  */
+      else if (IS_PDT (expr) || IS_CLASS_PDT (expr))
 	{
+	  gfc_symbol *declared;
+	  gfc_symbol *type_spec_dt;
+	  tree type;
+	  tree ptr;
+
+	  declared = IS_PDT (expr) ? expr->ts.u.derived
+				   : CLASS_DATA (expr)->ts.u.derived;
+
+	  if (code->ext.alloc.ts.type == BT_DERIVED)
+	    type_spec_dt = code->ext.alloc.ts.u.derived;
+	  else
+	    type_spec_dt = NULL;
+
 	  if (code->expr3 && code->expr3->param_list)
 	    param_list = code->expr3->param_list;
 	  else if (expr->param_list)
@@ -7706,25 +7720,21 @@ gfc_trans_allocate (gfc_code * code, gfc_omp_namelist *omp_allocate)
 	  int pdt_rank = (GFC_DESCRIPTOR_TYPE_P (TREE_TYPE (se.expr))
 			  ? GFC_TYPE_ARRAY_RANK (TREE_TYPE (se.expr))
 			  : expr->rank);
-	  tmp = gfc_allocate_pdt_comp (expr->ts.u.derived, se.expr,
+	  tmp = gfc_allocate_pdt_comp (declared, se.expr,
 				       pdt_rank, param_list);
 	  gfc_add_expr_to_block (&block, tmp);
-	}
-      /* Ditto for CLASS expressions.  */
-      else if (IS_CLASS_PDT (expr))
-	{
-	  if (code->expr3 && code->expr3->param_list)
-	    param_list = code->expr3->param_list;
-	  else if (expr->param_list)
-	    param_list = expr->param_list;
-	  else
-	    param_list = expr->symtree->n.sym->param_list;
-	  int pdt_rank = (GFC_DESCRIPTOR_TYPE_P (TREE_TYPE (se.expr))
-			  ? GFC_TYPE_ARRAY_RANK (TREE_TYPE (se.expr))
-			  : expr->rank);
-	  tmp = gfc_allocate_pdt_comp (CLASS_DATA (expr)->ts.u.derived,
-				       se.expr, pdt_rank, param_list);
-	  gfc_add_expr_to_block (&block, tmp);
+
+	  /* If this is a CLASS allocation and the declared type does not have
+	     allocatable components but the explicit type_spec does, nullify
+	     the allocatable components of the type_spec derived type.  */
+	  if (pdt_rank == 0 && type_spec_dt
+	      && !declared->attr.alloc_comp && type_spec_dt->attr.alloc_comp)
+	    {
+	      type = build_pointer_type (gfc_get_derived_type (type_spec_dt));
+	      ptr = fold_convert (type, se.expr);
+	      tmp = gfc_nullify_alloc_comp (type_spec_dt, ptr, 0);
+	      gfc_add_expr_to_block (&block, tmp);
+	    }
 	}
       else if (code->expr3 && code->expr3->mold
 	       && code->expr3->ts.type == BT_CLASS)

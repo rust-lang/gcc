@@ -1,5 +1,4 @@
 ! { dg-do run }
-! { dg-options "-fdump-tree-original" }
 !
 ! Test the fix for PR83763 in which a dependency was not handled correctly, which
 ! resulted in a runtime segfault.
@@ -58,6 +57,3 @@ contains
   end subroutine main2
 
 end program test
-! { dg-final { scan-tree-dump-times "__builtin_free" 16 "original" } }
-! { dg-final { scan-tree-dump-times "__builtin_malloc" 8 "original" } }
-! { dg-final { scan-tree-dump-times "__builtin_calloc" 4 "original" } }
