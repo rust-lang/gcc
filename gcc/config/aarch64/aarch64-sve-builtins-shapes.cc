@@ -5453,7 +5453,7 @@ struct write_zt_def : public overloaded_base<0>
     return c.require_immediate_range (0, 0, 0);
   }
 };
-SHAPE (write_zt);
+SHAPE (write_zt)
 
 /* MOVT (vector to table)
    Variants are also available for:
@@ -5490,5 +5490,5 @@ struct write_lane_zt_def : public overloaded_base<0>
 	   && c.require_immediate_range (2, 0, 3);
   }
 };
-SHAPE (write_lane_zt);
+SHAPE (write_lane_zt)
 }

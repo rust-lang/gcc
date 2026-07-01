@@ -68,7 +68,7 @@ gnu_property_features_to_string (unsigned feature_1_and)
 	separator = ", ";
       }
   return s_features;
-};
+}
 
 } // namespace anonymous
 

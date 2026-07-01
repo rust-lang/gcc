@@ -317,7 +317,7 @@ neoversev2_dispatch_constraint_callback (rtx_insn *insn)
   constraints.safe_push ({TOTAL_SLOTS, total_slots});
 
   return constraints;
-};
+}
 
 /* Neoverse V2 dispatch constraints configuration.  */
 static const struct dispatch_constraint_info neoversev2_dispatch_constraint_info = {
