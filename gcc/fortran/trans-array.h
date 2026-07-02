@@ -169,11 +169,6 @@ tree gfc_conv_array_ubound (tree, int);
 tree gfc_trans_array_bounds (tree, gfc_symbol *, tree *, stmtblock_t *);
 void gfc_trans_array_cobounds (tree, stmtblock_t *, const gfc_symbol *);
 
-/* Build expressions for accessing components of an array descriptor.  */
-void gfc_get_descriptor_offsets_for_info (const_tree, tree *, tree *, tree *,
-					  tree *, tree *, tree *, tree *,
-					  tree *);
-
 /* CFI descriptor.  */
 tree gfc_get_cfi_desc_base_addr (tree);
 tree gfc_get_cfi_desc_elem_len (tree);
