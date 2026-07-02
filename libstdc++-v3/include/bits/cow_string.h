@@ -1427,6 +1427,19 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	      + std::__sv_check(__sv.size(), __pos, "basic_string::append"),
 	      std::__sv_limit(__sv.size(), __pos, __n));
 	}
+
+      // _GLIBCXX_RESOLVE_LIB_DEFECTS
+      // 3662. basic_string::append/assign(NTBS, pos, n) suboptimal
+      /**
+       *  @brief  Append a C substring.
+       *  @param __s  The C string to append.
+       *  @param __pos  The position in the C string to append from.
+       *  @param __n  The number of characters to append.
+       *  @return  Reference to this string.
+       */
+      basic_string&
+      append(const _CharT* __s, size_type __pos, size_type __n)
+      { return append(__sv_type(__s).substr(__pos, __n)); }
 #endif // C++17
 
       /**
@@ -1600,6 +1613,19 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	      + std::__sv_check(__sv.size(), __pos, "basic_string::assign"),
 	      std::__sv_limit(__sv.size(), __pos, __n));
 	}
+
+      // _GLIBCXX_RESOLVE_LIB_DEFECTS
+      // 3662. basic_string::append/assign(NTBS, pos, n) suboptimal
+      /**
+       *  @brief  Set value to a C substring.
+       *  @param __s  The C string to use.
+       *  @param __pos  The position in the C string to assign from.
+       *  @param __n  Number of characters to use.
+       *  @return  Reference to this string.
+       */
+      basic_string&
+      assign(const _CharT* __s, size_type __pos, size_type __n)
+      { return assign(__sv_type(__s).substr(__pos, __n)); }
 #endif // C++17
 
       /**

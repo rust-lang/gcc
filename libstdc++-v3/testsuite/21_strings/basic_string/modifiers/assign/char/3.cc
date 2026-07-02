@@ -19,11 +19,13 @@
 
 // 21.3.5 string modifiers
 
+#include <stdexcept>
 #include <string>
 #include <testsuite_hooks.h>
 
 // assign(const _CharT* __s, size_type __n)
 // assign(const _CharT* __s)
+// assign(const _CharT* __s, size_type __pos, size_type __n)
 void
 test03()
 {
@@ -47,6 +49,20 @@ test03()
 
   one.assign(one.c_str() + 8, 6);
   VERIFY( one == "by the" );
+
+  one.assign(one.c_str(), 3, 3);
+  VERIFY( one == "the" );
+
+  try {
+    one.assign("a\0b", 2, 1);
+    VERIFY( false );
+  }
+  catch(std::out_of_range& fail) {
+    VERIFY( true );
+  }
+  catch(...) {
+    VERIFY( false );
+  }
 }
 
 int main()
