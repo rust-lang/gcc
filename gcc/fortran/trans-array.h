@@ -138,8 +138,6 @@ void gfc_conv_loop_setup (gfc_loopinfo *, locus *);
 void gfc_set_delta (gfc_loopinfo *);
 /* Resolve array assignment dependencies.  */
 void gfc_conv_resolve_dependencies (gfc_loopinfo *, gfc_ss *, gfc_ss *);
-/* Build a null array descriptor constructor.  */
-tree gfc_build_null_descriptor (tree);
 
 /* Get a single array element.  */
 void gfc_conv_array_ref (gfc_se *, gfc_array_ref *, gfc_expr *, locus *);

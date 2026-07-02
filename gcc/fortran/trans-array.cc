@@ -216,38 +216,6 @@ gfc_get_cfi_dim_sm (tree desc, tree idx)
 #undef CFI_DIM_FIELD_SM
 
 
-#define DATA_FIELD 0
-#define OFFSET_FIELD 1
-#define DTYPE_FIELD 2
-#define SPAN_FIELD 3
-#define DIMENSION_FIELD 4
-#define CAF_TOKEN_FIELD 5
-
-#define STRIDE_SUBFIELD 0
-#define LBOUND_SUBFIELD 1
-#define UBOUND_SUBFIELD 2
-
-/* Build a null array descriptor constructor.  */
-
-tree
-gfc_build_null_descriptor (tree type)
-{
-  tree field;
-  tree tmp;
-
-  gcc_assert (GFC_DESCRIPTOR_TYPE_P (type));
-  gcc_assert (DATA_FIELD == 0);
-  field = TYPE_FIELDS (type);
-
-  /* Set a NULL data pointer.  */
-  tmp = build_constructor_single (type, field, null_pointer_node);
-  TREE_CONSTANT (tmp) = 1;
-  /* All other fields are ignored.  */
-
-  return tmp;
-}
-
-
 /* Modify a descriptor such that the lbound of a given dimension is the value
    specified.  This also updates ubound and offset accordingly.  */
 
@@ -283,19 +251,6 @@ gfc_conv_shift_descriptor_lbound (stmtblock_t* block, tree desc,
   /* Finally set lbound to value we want.  */
   gfc_conv_descriptor_lbound_set (block, desc, gfc_rank_cst[dim], new_lbound);
 }
-
-
-/* Cleanup those #defines.  */
-
-#undef DATA_FIELD
-#undef OFFSET_FIELD
-#undef DTYPE_FIELD
-#undef SPAN_FIELD
-#undef DIMENSION_FIELD
-#undef CAF_TOKEN_FIELD
-#undef STRIDE_SUBFIELD
-#undef LBOUND_SUBFIELD
-#undef UBOUND_SUBFIELD
 
 
 /* Mark a SS chain as used.  Flags specifies in which loops the SS is used.

@@ -379,6 +379,30 @@ gfc_get_descriptor_offsets_for_info (const_tree desc_type, tree *data_off,
 }
 
 
+/* Array descriptor higher level routines.
+ ******************************************************************************/
+
+/* Build a null array descriptor constructor.  */
+
+tree
+gfc_build_null_descriptor (tree type)
+{
+  tree field;
+  tree tmp;
+
+  gcc_assert (GFC_DESCRIPTOR_TYPE_P (type));
+  gcc_assert (DATA_FIELD == 0);
+  field = TYPE_FIELDS (type);
+
+  /* Set a NULL data pointer.  */
+  tmp = build_constructor_single (type, field, null_pointer_node);
+  TREE_CONSTANT (tmp) = 1;
+  /* All other fields are ignored.  */
+
+  return tmp;
+}
+
+
 /* Cleanup those #defines.  */
 
 #undef DATA_FIELD
