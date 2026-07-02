@@ -290,10 +290,12 @@ constexpr auto AARCH64_FL_DEFAULT_ISA_MODE ATTRIBUTE_UNUSED
 /* SVE2 instructions, enabled in non-streaming mode through +sve2.  */
 #define TARGET_SVE2 (AARCH64_HAVE_ISA (SVE2) || TARGET_STREAMING)
 
-/* SVE2 AES instructions, enabled through +sve2-aes.  */
-#define TARGET_SVE2_AES (AARCH64_HAVE_ISA (SVE2) \
-			 && AARCH64_HAVE_ISA (SVE_AES) \
-			 && TARGET_NON_STREAMING)
+/* SVE AES instructions, enabled through +sve-aes+sve2 for non-streaming mode
+   and +ssve-aes for streaming mode.  */
+#define TARGET_SVE_AES (AARCH64_HAVE_ISA (SVE_AES) \
+			    && (AARCH64_HAVE_ISA (SVE2) || TARGET_STREAMING) \
+			    && (AARCH64_HAVE_ISA (SSVE_AES) \
+				|| TARGET_NON_STREAMING))
 
 /* SVE BITPERM instructions, enabled through +sve-bitperm+sve2 for non-streaming
    and +ssve-bitperm for streaming.  */

@@ -1,9 +1,14 @@
-/* { dg-skip-if "" { *-*-* } { "-DSTREAMING_COMPATIBLE" } { "" } } */
 /* { dg-final { check-function-bodies "**" "" "-DCHECK_ASM" } } */
+/* { dg-do assemble { target aarch64_asm_ssve-aes_ok } } */
+/* { dg-do compile { target { ! aarch64_asm_ssve-aes_ok } } } */
 
 #include "test_sve_acle.h"
 
+#ifdef STREAMING_COMPATIBLE
+#pragma GCC target "+ssve-aes"
+#else
 #pragma GCC target "+sve2-aes"
+#endif
 
 /*
 ** aesd_u8_tied1:

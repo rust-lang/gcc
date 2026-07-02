@@ -195,8 +195,9 @@ DEF_SVE_FUNCTION (svstnt1w_scatter, store_scatter_index_restricted, d_integer, i
 DEF_SVE_FUNCTION (svstnt1w_scatter, store_scatter_offset_restricted, d_integer, implicit)
 #undef REQUIRED_EXTENSIONS
 
-#define REQUIRED_EXTENSIONS nonstreaming_sve (AARCH64_FL_SVE2 \
-					      | AARCH64_FL_SVE_AES)
+#define REQUIRED_EXTENSIONS streaming_compatible (AARCH64_FL_SVE2 \
+					    | AARCH64_FL_SVE_AES, \
+					    AARCH64_FL_SSVE_AES)
 DEF_SVE_FUNCTION (svaesd, binary, b_unsigned, none)
 DEF_SVE_FUNCTION (svaese, binary, b_unsigned, none)
 DEF_SVE_FUNCTION (svaesimc, unary, b_unsigned, none)

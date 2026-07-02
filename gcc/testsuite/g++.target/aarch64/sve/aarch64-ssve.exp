@@ -37,7 +37,7 @@ gcc_parallel_test_enable 0
 set preamble {
 #include <arm_sve.h>
 
-#pragma GCC target "+i8mm+f32mm+f64mm+sve2+sve2-sm4+sve2-aes+sve2-sha3+sme+sme2p2+ssve-bitperm+ssve-fexpa"
+#pragma GCC target "+i8mm+f32mm+f64mm+sve2+sve2-sm4+sve2-sha3+sme+sme2p2+ssve-bitperm+ssve-fexpa+ssve-aes"
 
 extern svbool_t &pred;
 
@@ -150,6 +150,12 @@ set streaming_ok {
     u8 = svbext (u8, u8)
     u8 = svbgrp (u8, u8)
     f32 = svexpa (u32)
+    u8 = svaesd (u8, u8)
+    u8 = svaese (u8, u8)
+    u8 = svaesimc (u8)
+    u8 = svaesmc (u8)
+    u64 = svpmullb_pair (u64, u64)
+    u64 = svpmullt_pair (u64, u64)
 }
 
 # This order follows the list in the SME manual.
@@ -162,10 +168,6 @@ set nonstreaming_only {
     u64 = svadrw_index (u64, u64)
     u32 = svadrd_index (u32, u32)
     u64 = svadrd_index (u64, u64)
-    u8 = svaesd (u8, u8)
-    u8 = svaese (u8, u8)
-    u8 = svaesimc (u8)
-    u8 = svaesmc (u8)
     f32 = svbfmmla (f32, bf16, bf16)
     f32 = svadda (pred, 1.0f, f32)
     f32 = svmmla (f32, f32, f32)
@@ -264,8 +266,6 @@ set nonstreaming_only {
     u32 = svldnt1_gather_offset_u32 (pred, u32, 1)
     pred = svmatch (pred, u8, u8)
     pred = svnmatch (pred, u8, u8)
-    u64 = svpmullb_pair (u64, u64)
-    u64 = svpmullt_pair (u64, u64)
     svprfb_gather_offset (pred, void_ptr, u64, SV_PLDL1KEEP)
     svprfb_gather_offset (pred, u64, 1, SV_PLDL1KEEP)
     svprfd_gather_index (pred, void_ptr, u64, SV_PLDL1KEEP)

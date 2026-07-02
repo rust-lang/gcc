@@ -741,7 +741,7 @@
 
 ;; SVE integer modes that can form the input to an SVE2 PMULL[BT] instruction.
 (define_mode_iterator SVE2_PMULL_PAIR_I [VNx16QI VNx4SI
-					 (VNx2DI "TARGET_SVE2_AES")])
+					 (VNx2DI "TARGET_SVE_AES")])
 
 ;; Modes involved in extending or truncating SVE data, for 8 elements per
 ;; 128-bit block.
