@@ -3327,11 +3327,31 @@ changequote(,)dnl
 fi
 changequote([,])dnl
 
+# Check if an in-tree gld is at least at version major, minor.
+gcc_fn_gld_min_version () {
+  if test "$gcc_cv_gld_major_version" -eq $1 \
+          -a "$gcc_cv_gld_minor_version" -ge $2 \
+          -o "$gcc_cv_gld_major_version" -gt $1; then
+    return 0;
+  fi
+  return 1;
+}
+
+# Check if an in-tree gld is ELF and at least at version major, minor.
+gcc_fn_gld_elf_min_version ()
+{
+  if gcc_fn_gld_min_version "$1" "$2"; then
+    if test $in_tree_ld_is_elf = yes; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
 AC_CACHE_CHECK(linker for .hidden support, gcc_cv_ld_hidden,
 [[if test $in_tree_ld = yes ; then
   gcc_cv_ld_hidden=no
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 13 -o "$gcc_cv_gld_major_version" -gt 2 \
-     && test $in_tree_ld_is_elf = yes; then
+  if gcc_fn_gld_elf_min_version 2 13; then
      gcc_cv_ld_hidden=yes
   fi
 else
@@ -3414,8 +3434,7 @@ AC_MSG_RESULT($gcc_cv_ld_at_file)
 AC_MSG_CHECKING(linker read-only and read-write section mixing)
 gcc_cv_ld_ro_rw_mix=unknown
 if test $in_tree_ld = yes ; then
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 10 -o "$gcc_cv_gld_major_version" -gt 2 \
-     && test $in_tree_ld_is_elf = yes; then
+  if gcc_fn_gld_elf_min_version 2 10; then
     gcc_cv_ld_ro_rw_mix=read-write
   fi
 elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x -a x"$gcc_cv_objdump" != x ; then
@@ -3844,8 +3863,7 @@ elif test x"$ld_is_wild" = xyes; then
   comdat_group=yes
 elif test $in_tree_ld = yes ; then
   comdat_group=no
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 16 -o "$gcc_cv_gld_major_version" -gt 2 \
-     && test $in_tree_ld_is_elf = yes; then
+  if gcc_fn_gld_elf_min_version 2 16; then
      comdat_group=yes
   fi
 elif echo "$ld_ver" | grep GNU > /dev/null; then
@@ -4305,7 +4323,7 @@ case $target_os in
     if test $set_have_as_tls = yes; then
       # Hack to check whether ld breaks on @secrel32 for Windows
       if test $in_tree_ld = yes; then
-	if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 44 -o "$gcc_cv_gld_major_version" -gt 2; then
+        if gcc_fn_gld_min_version 2 44; then
 	  : # ld support for @secrel32 was fixed in this version
 	else
 	  AC_MSG_ERROR([ld version is known to have broken secrel32 relocations, configure without --enable-tls or with --disable-tls to remove this error. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80881 for more information.])
@@ -4341,7 +4359,7 @@ gcc_cv_ld_static_dynamic=no
 gcc_cv_ld_static_option='-Bstatic'
 gcc_cv_ld_dynamic_option='-Bdynamic'
 if test $in_tree_ld = yes ; then
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 10 -o "$gcc_cv_gld_major_version" -gt 2; then
+  if gcc_fn_gld_min_version 2 10; then
     gcc_cv_ld_static_dynamic=yes
   fi
 elif test x$gcc_cv_ld != x; then
@@ -4434,7 +4452,7 @@ if test x"$demangler_in_ld" = xyes; then
   AC_MSG_CHECKING(linker --demangle support)
   gcc_cv_ld_demangle=no
   if test $in_tree_ld = yes; then
-    if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 14 -o "$gcc_cv_gld_major_version" -gt 2; then \
+    if gcc_fn_gld_min_version 2 14; then
       gcc_cv_ld_demangle=yes
     fi
   elif test x$gcc_cv_ld != x; then
@@ -5336,8 +5354,7 @@ x:
     gcc_cv_as_ld_jalr_reloc=no
     if test $gcc_cv_as_mips_explicit_relocs = yes; then
       if test $in_tree_ld = yes ; then
-        if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 20 -o "$gcc_cv_gld_major_version" -gt 2 \
-           && test $in_tree_ld_is_elf = yes; then
+        if gcc_fn_gld_elf_min_version 2 20; then
           gcc_cv_as_ld_jalr_reloc=yes
         fi
       elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x -a x"$gcc_cv_objdump" != x; then
@@ -5372,9 +5389,7 @@ x:
       [gcc_cv_ld_mips_personality_relaxation],
       [gcc_cv_ld_mips_personality_relaxation=no
        if test $in_tree_ld = yes ; then
-	 if test "$gcc_cv_gld_major_version" -eq 2 \
-		 -a "$gcc_cv_gld_minor_version" -ge 21 \
-		 -o "$gcc_cv_gld_major_version" -gt 2; then
+         if gcc_fn_gld_min_version 2 21; then
 	   gcc_cv_ld_mips_personality_relaxation=yes
 	 fi
        elif test x"$gcc_cv_as" != x \
@@ -6066,8 +6081,7 @@ AC_SUBST(thin_archive_support)
 AC_MSG_CHECKING(linker PT_GNU_EH_FRAME support)
 gcc_cv_ld_eh_frame_hdr=no
 if test $in_tree_ld = yes ; then
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 12 -o "$gcc_cv_gld_major_version" -gt 2 \
-     && test $in_tree_ld_is_elf = yes; then
+  if gcc_fn_gld_elf_min_version 2 12; then
     gcc_cv_ld_eh_frame_hdr=yes
   fi
 elif test x$gcc_cv_ld != x; then
@@ -6094,9 +6108,7 @@ AC_MSG_RESULT($gcc_cv_ld_eh_frame_hdr)
 AC_MSG_CHECKING(linker position independent executable support)
 gcc_cv_ld_pie=no
 if test $in_tree_ld = yes ; then
-  gcc_gld_pie_min_version=15
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge "$gcc_gld_pie_min_version" -o "$gcc_cv_gld_major_version" -gt 2 \
-     && test $in_tree_ld_is_elf = yes; then
+  if gcc_fn_gld_elf_min_version 2 15; then
     gcc_cv_ld_pie=yes
   fi
 elif test x$gcc_cv_ld != x; then
@@ -6122,7 +6134,7 @@ AC_MSG_CHECKING(linker PIE support with copy reloc)
 gcc_cv_ld_pie_copyreloc=no
 if test $gcc_cv_ld_pie = yes ; then
   if test $in_tree_ld = yes ; then
-    if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 25 -o "$gcc_cv_gld_major_version" -gt 2; then
+    if gcc_fn_gld_min_version 2 25; then
       gcc_cv_ld_pie_copyreloc=yes
     fi
   elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x ; then
@@ -6169,8 +6181,7 @@ AC_MSG_RESULT($gcc_cv_ld_pie_copyreloc)
 AC_MSG_CHECKING(linker EH-compatible garbage collection of sections)
 gcc_cv_ld_eh_gc_sections=no
 if test $in_tree_ld = yes ; then
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 17 -o "$gcc_cv_gld_major_version" -gt 2 \
-     && test $in_tree_ld_is_elf = yes; then
+  if gcc_fn_gld_elf_min_version 2 17; then
     gcc_cv_ld_eh_gc_sections=yes
   fi
 elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x -a x"$gcc_cv_objdump" != x ; then
@@ -6250,8 +6261,9 @@ AC_MSG_RESULT($gcc_cv_ld_eh_gc_sections)
 AC_MSG_CHECKING(linker EH garbage collection of sections bug)
 gcc_cv_ld_eh_gc_sections_bug=no
 if test $in_tree_ld = yes ; then
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -lt 19 -o "$gcc_cv_gld_major_version" -lt 2 \
-     && test $in_tree_ld_is_elf = yes; then
+  if gcc_fn_gld_elf_min_version 2 19; then
+    :
+  else
     gcc_cv_ld_eh_gc_sections_bug=yes
   fi
 elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x -a x"$gcc_cv_objdump" != x -a x$gcc_cv_as_comdat_group = xyes; then
@@ -6514,7 +6526,7 @@ case $target_os in
     AC_MSG_CHECKING(PE linker --disable-dynamicbase support)
     gcc_cv_ld_disable_dynamicbase=no
     if test $in_tree_ld = yes; then
-      if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 36 -o "$gcc_cv_gld_major_version" -gt 2; then \
+      if gcc_fn_gld_min_version 2 36; then
         gcc_cv_ld_disable_dynamicbase=yes
       fi
     else
@@ -6541,11 +6553,10 @@ gcc_cv_ld_as_needed_option='--as-needed'
 gcc_cv_ld_no_as_needed_option='--no-as-needed'
 gcc_cv_ld_use_as_needed_ldscript=no
 if test $in_tree_ld = yes ; then
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 16 -o "$gcc_cv_gld_major_version" -gt 2 \
-     && test $in_tree_ld_is_elf = yes; then
+  if gcc_fn_gld_elf_min_version 2 16; then
     gcc_cv_ld_as_needed=yes
     gcc_cv_ld_use_as_needed_ldscript=yes
-    if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 28; then
+    if gcc_fn_gld_min_version 2 28; then
       gcc_cv_ld_as_needed_option='--push-state --as-needed'
       gcc_cv_ld_no_as_needed_option='--pop-state'
     fi
@@ -6620,9 +6631,7 @@ case "$target" in
     if test x"$ld_is_gold" = xyes; then
       gcc_cv_ld_ppc_attr=yes
     elif test $in_tree_ld = yes ; then
-      if test "$gcc_cv_gld_major_version" -eq 2 \
-		-a "$gcc_cv_gld_minor_version" -ge 28 \
-		-o "$gcc_cv_gld_major_version" -gt 2; then
+      if gcc_fn_gld_min_version 2 28; then
         gcc_cv_ld_ppc_attr=yes
       fi
     elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x ; then
@@ -6671,7 +6680,7 @@ case "$target:$tm_file" in
     if test x"$ld_is_gold" = xyes; then
       gcc_cv_ld_no_dot_syms=yes
     elif test $in_tree_ld = yes ; then
-      if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 16 -o "$gcc_cv_gld_major_version" -gt 2; then
+      if gcc_fn_gld_min_version 2 16; then
         gcc_cv_ld_no_dot_syms=yes
       fi
     elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x ; then
@@ -6710,7 +6719,7 @@ EOF
     if test x"$ld_is_gold" = xyes; then
       gcc_cv_ld_large_toc=yes
     elif test $in_tree_ld = yes ; then
-      if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 21 -o "$gcc_cv_gld_major_version" -gt 2; then
+      if gcc_fn_gld_min_version 2 21; then
         gcc_cv_ld_large_toc=yes
       fi
     elif test x"$gcc_cv_as" != x -a x"$gcc_cv_ld" != x ; then
@@ -6796,10 +6805,7 @@ AC_CACHE_CHECK(linker --build-id support,
   gcc_cv_ld_buildid,
   [gcc_cv_ld_buildid=no
   if test $in_tree_ld = yes ; then
-    if test "$gcc_cv_gld_major_version" -eq 2 -a \
-       "$gcc_cv_gld_minor_version" -ge 18 -o \
-       "$gcc_cv_gld_major_version" -gt 2 \
-       && test $in_tree_ld_is_elf = yes; then
+    if gcc_fn_gld_elf_min_version 2 18; then
       gcc_cv_ld_buildid=yes
     fi
   elif test x$gcc_cv_ld != x; then
@@ -6831,7 +6837,7 @@ AC_CACHE_CHECK(linker --sysroot support,
   gcc_cv_ld_sysroot,
   [gcc_cv_ld_sysroot=no
   if test $in_tree_ld = yes ; then
-      if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 16 -o "$gcc_cv_gld_major_version" -gt 2 ; then
+      if gcc_fn_gld_min_version 2 16; then
         gcc_cv_ld_sysroot=yes
       fi
   elif test x$gcc_cv_ld != x; then 
@@ -7748,7 +7754,7 @@ ld_bndplt_support=no
 AC_MSG_CHECKING(linker -z bndplt option)
 if test x"$ld_is_gold" = xno; then
   if test $in_tree_ld = yes ; then
-    if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 25 -o "$gcc_cv_gld_major_version" -gt 2; then
+    if gcc_fn_gld_min_version 2 25; then
       ld_bndplt_support=yes
     fi
   elif test x$gcc_cv_ld != x; then
@@ -7769,7 +7775,7 @@ ld_pushpopstate_support=no
 AC_MSG_CHECKING(linker --push-state/--pop-state options)
 if test x"$ld_is_gold" = xno; then
   if test $in_tree_ld = yes ; then
-    if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 25 -o "$gcc_cv_gld_major_version" -gt 2; then
+    if gcc_fn_gld_min_version 2 25; then
       ld_pushpopstate_support=yes
     fi
   elif test x$gcc_cv_ld != x; then
@@ -7918,7 +7924,7 @@ AC_MSG_CHECKING(linker -z now option)
 if test x"$ld_is_gold" = xyes; then
   ld_now_support=yes
 elif test $in_tree_ld = yes ; then
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 14 -o "$gcc_cv_gld_major_version" -gt 2; then
+  if gcc_fn_gld_min_version 2 14; then
     ld_now_support=yes
   fi
 elif test x$gcc_cv_ld != x; then
@@ -7938,7 +7944,7 @@ AC_MSG_CHECKING(linker -z relro option)
 if test x"$ld_is_gold" = xyes; then
   ld_relro_support=yes
 elif test $in_tree_ld = yes ; then
-  if test "$gcc_cv_gld_major_version" -eq 2 -a "$gcc_cv_gld_minor_version" -ge 15 -o "$gcc_cv_gld_major_version" -gt 2; then
+  if gcc_fn_gld_min_version 2 15; then
     ld_relro_support=yes
   fi
 elif test x$gcc_cv_ld != x; then
