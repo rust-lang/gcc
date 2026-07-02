@@ -44,6 +44,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "trans-const.h"
 /* Only for gfc_trans_code.  Shouldn't need to include this.  */
 #include "trans-stmt.h"
+#include "trans-descriptor.h"
 #include "gomp-constants.h"
 #include "gimplify.h"
 #include "context.h"

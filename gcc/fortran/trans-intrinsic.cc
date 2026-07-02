@@ -39,6 +39,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "trans-const.h"
 #include "trans-types.h"
 #include "trans-array.h"
+#include "trans-descriptor.h"
 #include "dependency.h"	/* For CAF array alias analysis.  */
 #include "attribs.h"
 #include "realmpfr.h"
