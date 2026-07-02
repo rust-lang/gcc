@@ -216,43 +216,6 @@ gfc_get_cfi_dim_sm (tree desc, tree idx)
 #undef CFI_DIM_FIELD_SM
 
 
-/* Modify a descriptor such that the lbound of a given dimension is the value
-   specified.  This also updates ubound and offset accordingly.  */
-
-void
-gfc_conv_shift_descriptor_lbound (stmtblock_t* block, tree desc,
-				  int dim, tree new_lbound)
-{
-  tree offs, ubound, lbound, stride;
-  tree diff, offs_diff;
-
-  new_lbound = fold_convert (gfc_array_index_type, new_lbound);
-
-  offs = gfc_conv_descriptor_offset_get (desc);
-  lbound = gfc_conv_descriptor_lbound_get (desc, gfc_rank_cst[dim]);
-  ubound = gfc_conv_descriptor_ubound_get (desc, gfc_rank_cst[dim]);
-  stride = gfc_conv_descriptor_stride_get (desc, gfc_rank_cst[dim]);
-
-  /* Get difference (new - old) by which to shift stuff.  */
-  diff = fold_build2_loc (input_location, MINUS_EXPR, gfc_array_index_type,
-			  new_lbound, lbound);
-
-  /* Shift ubound and offset accordingly.  This has to be done before
-     updating the lbound, as they depend on the lbound expression!  */
-  ubound = fold_build2_loc (input_location, PLUS_EXPR, gfc_array_index_type,
-			    ubound, diff);
-  gfc_conv_descriptor_ubound_set (block, desc, gfc_rank_cst[dim], ubound);
-  offs_diff = fold_build2_loc (input_location, MULT_EXPR, gfc_array_index_type,
-			       diff, stride);
-  offs = fold_build2_loc (input_location, MINUS_EXPR, gfc_array_index_type,
-			  offs, offs_diff);
-  gfc_conv_descriptor_offset_set (block, desc, offs);
-
-  /* Finally set lbound to value we want.  */
-  gfc_conv_descriptor_lbound_set (block, desc, gfc_rank_cst[dim], new_lbound);
-}
-
-
 /* Mark a SS chain as used.  Flags specifies in which loops the SS is used.
    flags & 1 = Main loop body.
    flags & 2 = temp copy loop.  */

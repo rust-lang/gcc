@@ -179,9 +179,6 @@ tree gfc_get_cfi_dim_extent (tree, tree);
 tree gfc_get_cfi_dim_sm (tree, tree);
 
 
-/* Shift lower bound of descriptor, updating ubound and offset.  */
-void gfc_conv_shift_descriptor_lbound (stmtblock_t*, tree, int, tree);
-
 /* Add pre-loop scalarization code for intrinsic functions which require
    special handling.  */
 void gfc_add_intrinsic_ss_code (gfc_loopinfo *, gfc_ss *);
