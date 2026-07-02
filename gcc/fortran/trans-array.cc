@@ -1409,43 +1409,6 @@ gfc_get_iteration_count (tree start, tree end, tree step)
 }
 
 
-/* Extend the data in array DESC by EXTRA elements.  */
-
-static void
-gfc_grow_array (stmtblock_t * pblock, tree desc, tree extra)
-{
-  tree arg0, arg1;
-  tree tmp;
-  tree size;
-  tree ubound;
-
-  if (integer_zerop (extra))
-    return;
-
-  ubound = gfc_conv_descriptor_ubound_get (desc, gfc_rank_cst[0]);
-
-  /* Add EXTRA to the upper bound.  */
-  tmp = fold_build2_loc (input_location, PLUS_EXPR, gfc_array_index_type,
-			 ubound, extra);
-  gfc_conv_descriptor_ubound_set (pblock, desc, gfc_rank_cst[0], tmp);
-
-  /* Get the value of the current data pointer.  */
-  arg0 = gfc_conv_descriptor_data_get (desc);
-
-  /* Calculate the new array size.  */
-  size = TYPE_SIZE_UNIT (gfc_get_element_type (TREE_TYPE (desc)));
-  tmp = fold_build2_loc (input_location, PLUS_EXPR, gfc_array_index_type,
-			 ubound, gfc_index_one_node);
-  arg1 = fold_build2_loc (input_location, MULT_EXPR, size_type_node,
-			  fold_convert (size_type_node, tmp),
-			  fold_convert (size_type_node, size));
-
-  /* Call the realloc() function.  */
-  tmp = gfc_call_realloc (pblock, arg0, arg1);
-  gfc_conv_descriptor_data_set (pblock, desc, tmp);
-}
-
-
 /* Return true if the bounds of iterator I can only be determined
    at run time.  */
 

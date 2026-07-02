@@ -62,4 +62,6 @@ void gfc_conv_shift_descriptor_lbound (stmtblock_t*, tree, int, tree);
 
 void gfc_copy_descriptor (stmtblock_t *, tree, tree, int);
 
+void gfc_grow_array (stmtblock_t *, tree, tree);
+
 #endif /* GFC_TRANS_DESCRIPTOR_H */
