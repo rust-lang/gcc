@@ -1,3 +1,91 @@
+2026-07-01  Iain Sandoe  <iain@sandoe.co.uk>
+
+	PR objc/124260
+	* objc.dg/image-info.m: Test revised flags value for ABI-2.
+
+2026-07-01  Paul Thomas  <pault@gcc.gnu.org>
+	    Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/121972
+	* gfortran.dg/asan/pdt_46.f03: Copy of original with tree dump
+	for counts of frees, mallocs and callocs removed.
+	* gfortran.dg/asan/pdt_77.f03: Ditto.
+	* gfortran.dg/pdt_46.f03: Calloc count added, corresponding to
+	reduction in mallocs..
+	* gfortran.dg/pdt_50.f03: Ditto.
+
+2026-07-01  Icenowy Zheng  <zhengxingda@iscas.ac.cn>
+
+	PR target/126049
+	* gcc.target/riscv/rvv/autovec/pr126049.c: New.
+
+2026-07-01  Jason Merrill  <jason@redhat.com>
+
+	PR c++/124584
+	* g++.dg/coroutines/torture/tuple-decomp-pr124584.C: New test.
+
+2026-07-01  Jason Merrill  <jason@redhat.com>
+
+	PR c++/121094
+	PR c++/117259
+	* g++.dg/coroutines/pmf-121094.C: New test.
+
+2026-07-01  Roger Sayle  <roger@nextmovesoftware.com>
+
+	* gcc.target/i386/sse2-stv-6.c: New test case.
+
+2026-07-01  Roger Sayle  <roger@nextmovesoftware.com>
+
+	* gcc.target/i386/avx2-vpblendd128-3.c: New test case.
+
+2026-07-01  Stefan Schulze Frielinghaus  <stefansf@gcc.gnu.org>
+
+	PR target/126054
+	* gcc.target/s390/pr126054.c: New test.
+
+2026-07-01  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/125040
+	* gcc.dg/torture/pr125040.c: New testcase.
+
+2026-07-01  Jeevitha Palanisamy  <jeevitha@linux.ibm.com>
+
+	* gcc.target/powerpc/vsx_arith_builtin-1.c: Remove inline asm
+	that forces operands into FPRs.
+	* gcc.target/powerpc/vsx_arith_builtin-2.c: Likewise.
+	* gcc.target/powerpc/vsx_arith_vect_1.c: Likewiswe.
+
+2026-07-01  Alfie Richards  <alfie.richards@arm.com>
+
+	* gcc.target/riscv/rvv/autovec/pr112399.c: Update for different
+	scheduling.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* gcc.misc-tests/outputs.exp (gld): Update comment.
+
+2026-07-01  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* gnat.dg/opt109.adb: New test.
+	* gnat.dg/opt109_pkg.ads, gnat.dg/opt109_pkg.adb: New helper.
+
+2026-07-01  Haochen Jiang  <haochen.jiang@intel.com>
+
+	* g++.dg/other/i386-2.C: Remove AMX-TF32 test.
+	* g++.dg/other/i386-3.C: Ditto.
+	* gcc.target/i386/amx-check.h: Ditto.
+	* gcc.target/i386/funcspec-56.inc: Ditto.
+	* gcc.target/i386/sse-12.c: Ditto.
+	* gcc.target/i386/sse-13.c: Ditto.
+	* gcc.target/i386/sse-14.c: Ditto.
+	* gcc.target/i386/sse-22.c: Ditto.
+	* gcc.target/i386/sse-23.c: Ditto.
+	* lib/target-supports.exp: Ditto.
+	* g++.target/i386/pr122446-amxtf32.C: Removed.
+	* gcc.target/i386/amxtf32-asmatt-1.c: Ditto.
+	* gcc.target/i386/amxtf32-asmintel-1.c: Ditto.
+	* gcc.target/i386/amxtf32-mmultf32ps-2.c: Ditto.
+
 2026-06-30  Abhishek Kaushik  <abhishek.kaushik@arm.com>
 
 	* gcc.target/aarch64/sbfiz-widen-mult-1.c: New test.

@@ -1,3 +1,11 @@
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* config-list.mk (sparc64-sun-solaris2.11): Remove --with-gnu-ld.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* config-list.mk (sparc64-sun-solaris2.11): Remove --with-gnu-as.
+
 2026-06-09  Jakub Jelinek  <jakub@redhat.com>
 
 	* gcc-changelog/git_update_version.py (ignored_commits): Add

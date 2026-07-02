@@ -1,3 +1,138 @@
+2026-07-01  Matthias Kretz  <m.kretz@gsi.de>
+
+	* include/Makefile.am: Add bits/simd_bit.h, bits/simd_complex.h,
+	and bit/simd_math.
+	* include/Makefile.in: Regenerate.
+	* include/bits/simd_bit.h: New file.
+	* include/bits/simd_complex.h: New file.
+	* include/bits/simd_details.h (__complex_like): New concept.
+	(__vectorizable): Extend for complex types.
+	(_AbiVariant): Add _CxIleav and _CxCtgus variants.
+	(_ScalarAbi, _Abi): Add _S_is_cx_ileav and _S_is_cx_ctgus
+	members.
+	(_ArchTraits::_M_have_addsub): New.
+	(__native_abi): For __complex_like default to _CxIleav _Abi.
+	Derive the size from the native size for the complex's
+	value_type.
+	(__abi_rebind): Implement rebind to and from complex.
+	(__is_mask_conversion_explicit): Take _Cx* _AbiVariant into
+	account.
+	(__value_preserving_convertible_to): Also allow conversion to
+	complex.
+	(__simd_unsigned_integer): New.
+	(__simd_complex_value_type, __simd_complex): New.
+	* include/bits/simd_loadstore.h (unchecked_load): Use a cast to
+	the complex's value_type for converting loads to __complex_like.
+	* include/bits/simd_mask.h (basic_mask): Constrain partial
+	specializations to non-complex ABI tags.
+	(basic_mask::basic_mask): Add conversion from _CxIleav ABIs.
+	(_M_to_uint): Add option to interpret two mask elements as one
+	result bit. Make use of __x86_cvt_vecmask_to_bitmask.
+	(basic_mask::basic_mask): Add conversion from _CxCtgus and
+	_CxIleav masks.
+	(__select_impl): The complex specialization of basic_vec needs
+	_S_concat instead of _S_init.
+	(_M_reduce_count): Implement recursive reduction.
+	* include/bits/simd_mask_reductions.h (reduce_count): Fall back
+	to _M_reduce_count() for mask types without unary minus.
+	* include/bits/simd_math.h: New file.
+	* include/bits/simd_vec.h (basic_vec): Constrain partial
+	specializations to !__complex_like.
+	* include/bits/simd_x86.h (__x86_cvt_vecmask_to_bitmask): New.
+	* include/bits/vec_ops.h (__is_const_known): __complex_like
+	arguments are known if real and imag are known.
+	(_S_complex_negate_real, _S_complex_negate_imag, _S_addsub)
+	(_S_complex_real_is_const_known_zero)
+	(_S_complex_imag_is_const_known_zero): New.
+	* include/bits/version.def: Add simd_complex.
+	* include/bits/version.h: Regenerate.
+	* include/std/simd: Ask for simd_complex feature macro. Include
+	bits/simd_bit.h, bits/simd_complex.h, and bits/simd_math.h.
+	* testsuite/std/simd/arithmetic.cc: Enable tests for complex
+	which needs complex_init.h.
+	* testsuite/std/simd/complex_init.h: Helper for passing complex
+	values as template arguments.
+	* testsuite/std/simd/create_tests.h: Add float16_t, and three
+	complex types.
+	* testsuite/std/simd/mask2.cc: Add complex test types.
+	* testsuite/std/simd/simd_bit.cc: New test.
+	* testsuite/std/simd/simd_bit_expensive.cc: New test.
+	* testsuite/std/simd/stores.cc: Guard converting stores from
+	complex.
+	* testsuite/std/simd/test_setup.h (any_type_of): New.
+	(complex_like): New.
+	(bit_equal): Handle multi-reg and complex arguments.
+	(cx_isinf): New.
+	(equal_with_nan_and_inf_fixup): Handle complex types.
+	(is_const_known): Add std::complex overload.
+	(test_iota): Add support for std::complex.
+	* testsuite/std/simd/traits_common.cc: Add complex test types.
+	Test that instantiation of complete classes is well-formed.
+	* testsuite/std/simd/traits_impl.cc: Add complex test types.
+	Test __complex_like. Add a test that _CxIleav is dropped when
+	rebinding to the member of a _CxIleav mask.
+
+2026-07-01  Matthias Kretz  <m.kretz@gsi.de>
+
+	* include/bits/simd_details.h (_ScalarAbi): Remove.
+	(__scalar_abi_tag): Identify _Abi<N, N> as scalar now.
+	(__native_abi): Replace _ScalarAbi<1> with _Abi_t<1, 1, ...>.
+	(__abi_rebind): Refactor rebinding from/to __scalar_abi_tag.
+	* include/bits/simd_mask.h (_S_use_bitmask): Only true if
+	!_S_is_scalar.
+	(_M_and_neighbors, _M_or_neighbors): Add case for _S_is_scalar
+	where the and/or must be executed one step earlier.
+	(_M_reduce_min_index, _M_reduce_max_index): Delete dead code.
+	* include/bits/simd_vec.h (_S_use_bitmask): Inherit the value
+	from the first data member.
+	* testsuite/std/simd/traits_impl.cc: Adjust for the removal of
+	_ScalarAbi.
+
+2026-07-01  Jonathan Wakely  <jwakely@redhat.com>
+
+	* src/c++20/tzdb.cc (_Node::NumLeapSeconds::set_atomically):
+	Rename to set and define unconditionally.
+	(_Node::NumLeapSeconds::set_locked): Define unconditionally.
+
+2026-07-01  Tomasz Kamiński  <tkaminsk@redhat.com>
+	    Álvaro Begué  <alvaro.begue@gmail.com>
+
+	PR libstdc++/124853
+	* src/c++20/tzdb.cc
+	(time_zone::_M_get_sys_info): Extract code blocks to
+	separate functions, and invoke them.
+	(<unnamed>::find_active_rule): Modify algorithm to
+	handle cascading saves.
+	(<unnamed>::find_first_std): Simplified implementation
+	benefiting from reordering of rules.
+	(chrono::reload_tzdb): Sort rules by name, from and save.
+	* testsuite/std/time/time_zone/wall_cascade.cc: New test.
+
+2026-07-01  Anlai Lu  <agicy@qq.com>
+
+	* testsuite/std/time/ostream_insert.cc: New test.
+
+2026-07-01  Jonathan Wakely  <jwakely@redhat.com>
+
+	PR libstdc++/125467
+	* src/c++20/tzdb.cc (tzdb::current_zone): Use realpath to
+	resolve the /etc/localtime symlink instead of readlink.
+
+2026-07-01  Jonathan Wakely  <jwakely@redhat.com>
+
+	* src/c++20/tzdb.cc (_Node::NumLeapSeconds): New class.
+	(_Node::num_leap_seconds): New static variable.
+	(num_leap_seconds): Remove.
+	(__detail::__recent_leap_second_info): Replace uses of
+	num_leap_seconds with _Node::num_leap_seconds.
+	(_Node::_S_replace_head): Likewise.
+
+2026-07-01  Yi Chen  <chencyy@hygon.cn>
+
+	* src/c++11/random.cc (random_device::_M_init): Add signature_HYGON_ebx to
+	the RDSEED and RDRAND CPUID vendor allowlists.  For the default device on
+	Hygon, prefer RDRAND via a dedicated check at the top of the function.
+
 2026-06-30  Adam Wood  <adam.wood@mines.sdsmt.edu>
 	    Jonathan Wakely  <jwakely@redhat.com>
 

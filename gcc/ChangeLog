@@ -1,3 +1,262 @@
+2026-07-01  Iain Sandoe  <iain@sandoe.co.uk>
+
+	PR objc/124260
+	* config/darwin.cc (darwin_objc2_section): Also allow meta data
+	in const_data.
+	(darwin_label_is_anonymous_local_objc_name): Make ClassList linker-
+	visible.
+	(darwin_file_end): Update comments on the ImageInfo flags.  Do not
+	claim we have signed pointers.
+
+2026-07-01  Stefan Schulze Frielinghaus  <stefansf@gcc.gnu.org>
+
+	* config/s390/s390.md: Annotate mnemonic for
+	extzv_<mode>_{srl,sll}<clobbercc_or_nocc>.
+
+2026-07-01  Icenowy Zheng  <zhengxingda@iscas.ac.cn>
+
+	PR target/126049
+	* config/riscv/autovec.md: Change fmin/fmax reduction initial
+	value from inf/-inf to NaN for proper semantics of corresponding
+	C funtion.
+
+2026-07-01  Robin Dapp  <robin.dapp@oss.qualcomm.com>
+
+	* doc/md.texi: Document new behavior.
+	* lra-constraints.cc (get_dependent_filter): Call filter with
+	INVALID_REGNUM ref op instead of allowing everything.
+
+2026-07-01  Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* config/gcn/gcn.h (ASM_V_SPEC): Define.
+
+2026-07-01  Alfie Richards  <alfie.richards@arm.com>
+
+	* tree-vect-loop-manip.cc (vect_set_loop_condition_normal):
+	Check if loop_vinfo is null before dereference.
+
+2026-07-01  Roger Sayle  <roger@nextmovesoftware.com>
+
+	* config/i386/i386-features.cc (compute_convert_gain) <ZERO_EXTEND>:
+	Provide costs for the new transformation.
+	(convert_insn): Implement *zero_extendsidi2 using the backend's
+	vec_setv2di_0_zero_extendsi_1 pattern (i.e. movq mem, %xmm).
+	(general_scalar_to_vector_candidate_p): Consider the pattern
+	(zero_extend:DI (mem:SI ...)) to be a candidate for DImode STV.
+
+2026-07-01  Roger Sayle  <roger@nextmovesoftware.com>
+
+	* simplify-rtx.cc (simplify_context::simplify_ternary_operation)
+	<case VEC_MERGE>: Simplify a vec_merge of a vec_merge with a
+	repeated operand.
+
+2026-07-01  Stefan Schulze Frielinghaus  <stefansf@gcc.gnu.org>
+
+	PR target/126054
+	* config/s390/s390.md: Fix
+	extzv_<mode>_{srl,sll}<clobbercc_or_nocc> by adjusting the
+	bitmasks in the output templates.
+
+2026-07-01  Jakub Jelinek  <jakub@redhat.com>
+
+	* config/aarch64/tuning_models/neoversev2.h
+	(neoversev2_dispatch_constraint_callback): Remove spurious semicolon.
+	* config/aarch64/aarch64-elf-metadata.cc
+	(gnu_property_features_to_string): Likewise.
+	* config/aarch64/aarch64-sve-builtins-shapes.cc (SHAPE (write_zt),
+	SHAPE (write_lane_zt)): Likewise.
+
+2026-07-01  Jakub Jelinek  <jakub@redhat.com>
+
+	* config/aarch64/aarch64-neon-builtins-base.h: Use
+	namespace aarch64_acle { namespace functions { ... } } instead of
+	C++17 namespace aarch64_acle::functions { ... }.
+	* config/aarch64/aarch64-neon-builtins-shapes.h: Use
+	namespace aarch64_acle { namespace shapes { ... } } instead of
+	C++17 namespace aarch64_acle::shapes { ... }.
+	* config/aarch64/aarch64-neon-builtins-shapes.cc: Likewise.
+
+2026-07-01  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/125040
+	* tree-ssa-pre.cc (clean): Iterate processing.
+
+2026-07-01  Alfie Richards  <alfie.richards@arm.com>
+
+	* tree-ssa-loop-manip.h: Add argument to create_iv.
+	* tree-ssa-loop-manip.cc (create_iv): Change step to not
+	necessarily be loop invariant.
+	* tree-vect-data-refs.cc (bump_vector_ptr): Remove logic for
+	updating use-def chain.
+	* tree-vect-loop-manip.cc (vect_set_loop_controls_directly):
+	Change to use LOOP_VINFO_IV_INCREMENT instead of VF.
+	(vect_set_loop_condition_partial_vectors_avx512):
+	Change to use LOOP_VINFO_IV_INCREMENT instead of VF.
+	(vect_gen_vector_loop_niters): Update to handle
+	LOOP_VINFO_IV_INCREMENT.
+	(vect_get_loop_iv_increment): New function.
+	* tree-vect-loop.cc (vectorizable_induction): Update to use
+	LOOP_VINFO_IV_INCREMENT instead of VF, and remove SELECT_VL
+	logic.
+	(vect_update_ivs_after_vectorizer_for_early_breaks):
+	Update to use LOOP_VINFO_IV_INCREMENT over VF and move IV
+	update to vect_iv_increment_position.
+	(vect_transform_loop): Add initialization of
+	LOOP_VINFO_IV_INCREMENT.
+	* tree-vect-stmts.cc (vect_get_strided_load_store_ops):
+	Update to use dr_increment and dr_bump, remove SELECT_VL logic.
+	(vect_get_data_ptr_increment): Change to return the increment
+	needed to advance the pointer to the next iteration.
+	(vect_get_data_ptr_bump): New function.
+	(vectorizable_scan_store): Update to use vect_get_data_ptr_bump
+	and to remove SELECT_VL logic.
+	(vectorizable_store): Update to use vect_get_data_ptr_bump and
+	vect_get_data_ptr_increment.
+	(vectorizable_load): Update to use vect_get_data_ptr_bump and
+	vect_get_data_ptr_increment.
+	* tree-vectorizer.h (loop_vec_info): Add iv_increment field.
+	(LOOP_VINFO_IV_INCREMENT): New macro.
+	(LOOP_VINFO_IV_INCREMENT_INVARIANT_P): New macro.
+	(bump_vector_ptr): Remove incr_ptr argument.
+	(vect_get_loop_iv_increment): New function.
+
+2026-07-01  Alfie Richards  <alfie.richards@arm.com>
+
+	* tree-vect-data-refs.cc (vect_create_data_ref_ptr): Check for null
+	pntr_incr.
+
+2026-07-01  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/125040
+	* tree-ssa-pre.cc (sorted_array_from_bitmap_set): Compute
+	the set of entries to the value graph before building the
+	final sorted expression set.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* configure.ac: Remove --with-gnu-ld, gnu_ld_flag.
+	* configure: Regenerate.
+	* config.gcc: Remove gnu_ld_flag.
+	* doc/install.texi (Configuration, --with-gnu-ld): Remove.
+	(Specific, all ELF targets): Remove GNU ld link.
+	* doc/invoke.texi (IA-64 Options, -mgnu-ld): Remove comment.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* config.gcc: Remove gnu_ld.
+	<*-*-vms*>: Check ld_flavor instead of gnu_ld.
+	<ia64*-*-elf*> (target_cpu_default): Always add MASK_GNU_LD.
+	<mips*-*-*> (target_cpu_default2): Always add
+	MASK_SPLIT_ADDRESSES.
+	<hppa*64*-*-hpux11*> (target_cpu_default): Check ld_flavor instead
+	of gnu_ld.  Move ...
+	* configure.ac: ... here.
+	Remove gnu_ld.
+	Check ld_flavor instead of gnu_ld.
+	(gcc_cv_ld_static_dynamic) <*-*-hpux*>: Don't check gnu_ld.
+	(gcc_cv_ld_version_script): Check ld --help for --version-script.
+	(gcc_cv_ld_soname): Check ld --help for -soname.
+	<*-*-darwin*>: Always use Darwin version.
+	<*-*-solaris2*>: Always use Solaris version with Solaris ld.
+	(gcc_cv_ld_demangle): Don't check gnu_ld.
+	* configure: Regenerate.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* configure.ac (HAVE_GNU_LD): Remove.
+	(gcc_cv_ld_at_file): New test.
+	* configure: Regenerate.
+	* config.in: Regenerate.
+	* collect2.cc: Check HAVE_LD_AT_FILE instead of HAVE_GNU_LD.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* configure.ac: Remove --with-gnu-as, gas_flag.
+	* configure: Regenerate.
+	* config.gcc: Remove gas_flag.
+	* doc/install.texi (Configuration, --with-gnu-as): Remove.
+	(Specific, hppa64-hp-hpux11*): Remove --with-gnu-as reference.
+	(Specific, ia64-*-hpux*): Likewise.  Recomment --with-as instead.
+	* doc/invoke.texi (IA-64 Options, -mgnu-as): Remove comment.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* acinclude.m4 (gcc_GAS_FLAGS): Check as_flavor instead of gas.
+	* config.gcc: Remove gas.
+	<ia64*-*-elf*> (target_cpu_defaults): Always add MASK_GNU_AS.
+	<ia64-hp-*vms*>: Likewise.
+	<hppa*-*-*> (target_cpu_default2): Always add MASK_GAS.
+	* configure.ac: Remove gas.
+	* configure: Regenerate.
+
+2026-07-01  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* tree-ssa-structalias.cc (set_uids_in_ptset): If ANYTHING is
+	present in the ESCAPED_RETURN solution, record that the global
+	solution has an escaped heap if FROM contains a heap variable.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* gcc.cc (asm_options) [HAVE_GNU_AS]: Move to ...
+	(ASM_V_SPEC) ... this.
+	* config/nvptx/nvptx.h (ASM_SPEC): Rename to ASM_V_SPEC.
+	Adjust comment.
+	* config/rs6000/aix.h [HAVE_AIX_AS] (ASM_V_SPEC): Define.
+	* config/sol2.h (ASM_SPEC_BASE): Move -v handling to ...
+	[HAVE_SOLARIS_AS] (ASM_V_SPEC): ... this.  Also handle -w.
+	* doc/tm.texi.in (Driver, ASM_V_SPEC): Document.
+	* doc/tm.texi: Regenerate.
+	* config/darwin.h (ASM_OPTIONS): Remove.
+	* config/i386/darwin.h (ASM_SPEC): Remove ASM_OPTIONS.
+	* config/ia64/hpux.h (AS_NEEDS_DASH_FOR_PIPED_INPUT): Remove.
+	* configure.ac (HAVE_GNU_AS): Remove.
+	* configure: Regenerate.
+	* config.in: Regenerate.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* acinclude.m4: Check as_flavor, ld_flavor instead of solaris_as,
+	solaris_ld.
+	* configure.ac: Likewise.
+	(as_flavor, ld_flavor): New variables.
+	Adapt messages.
+	Set based on as, ld version output.
+	(HAVE_AIX_AS): Define.
+	* configure: Regenerate.
+	* config.in: Regenerate.
+
+2026-07-01  Haochen Jiang  <haochen.jiang@intel.com>
+
+	* common/config/i386/cpuinfo.h
+	(get_available_features): Remove AMX-TF32.
+	* common/config/i386/i386-common.cc
+	(OPTION_MASK_ISA2_AMX_TF32_SET): Removed.
+	(OPTION_MASK_ISA2_AMX_TF32_UNSET): Ditto.
+	(OPTION_MASK_ISA2_AMX_TILE_UNSET): Remove AMX_TF32.
+	(ix86_handle_option): Ditto.
+	* common/config/i386/i386-cpuinfo.h
+	(enum processor_features): Remove FEATURE_AMX_TF32.
+	* common/config/i386/i386-isas.h: Remove AMX-TF32.
+	* config.gcc: Do not include amxtf32intrin.h.
+	* config/i386/amxtf32intrin.h: Remove AMX-TF32 intrins.
+	* config/i386/cpuid.h (bit_AMX_TF32): Removed.
+	* config/i386/i386-c.cc
+	(ix86_target_macros_internal): Remove AMX_TF32.
+	* config/i386/i386-isa.def (AMX_TF32): Removed.
+	* config/i386/i386-options.cc
+	(ix86_valid_target_attribute_inner_p): Remove AMX-TF32.
+	* config/i386/i386.opt: Ditto.
+	* config/i386/i386.opt.urls: Ditto.
+	* config/i386/immintrin.h: Do not include amxtf32intrin.h.
+	* doc/extend.texi: Remove amx-tf32.
+	* doc/invoke.texi: Ditto.
+	* doc/sourcebuild.texi: Ditto.
+
+2026-07-01  Haochen Jiang  <haochen.jiang@intel.com>
+
+	* config/i386/i386.h (PTA_DIAMONDRAPIDS): Remove PTA_AMX_TF32.
+	* doc/invoke.texi: Correct documentation.
+
 2026-06-30  Oleg Endo  <olegendo@gcc.gnu.org>
 
 	PR target/55212

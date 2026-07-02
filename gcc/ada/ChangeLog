@@ -1,3 +1,10 @@
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* link.c: Check HAVE_LD_AT_FILE instead of HAVE_GNU_LD.
+	Update comment.
+	[VMS]: Remove.
+	[__svr4__ && __i386__]: Remove.
+
 2026-06-29  Eric Botcazou  <ebotcazou@adacore.com>
 
 	* gcc-interface/trans.cc (gnat_to_gnu): Return a NULL_EXPR for the

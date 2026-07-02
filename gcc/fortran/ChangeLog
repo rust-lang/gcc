@@ -1,3 +1,23 @@
+2026-07-01  Paul Thomas  <pault@gcc.gnu.org>
+	    Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/121972
+	* expr.cc (has_parameterized_comps): Return false if the DT
+	is neither a pdt_type nor has PDT components. Correct the
+	logic for a PDT component.
+	* trans-expr.cc (alloc_scalar_allocatable_for_assignment): Use
+	calloc for types with paramterized components as well as those
+	with allocatable components.
+	* trans-stmt.cc (gfc_trans_allocate): Merge the allocation of
+	parameterized components of PDTs and class PDTs into one block
+	If an allocate type_spec is present that has allocatable comps
+	where the class declared type does not, nullify the allocatable
+	components.
+
+2026-07-01  Jakub Jelinek  <jakub@redhat.com>
+
+	* check.cc (get_ul_from_cst_cl): Remove spurious semicolon.
+
 2026-06-30  Paul Thomas  <pault@gcc.gnu.org>
 	    Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 

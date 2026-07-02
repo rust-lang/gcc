@@ -1,3 +1,15 @@
+2026-07-01  Jason Merrill  <jason@redhat.com>
+
+	PR c++/124584
+	* decl.cc (cp_finish_decl): Use get_temp_regvar for decomp guards.
+
+2026-07-01  Jason Merrill  <jason@redhat.com>
+
+	PR c++/121094
+	PR c++/117259
+	* coroutines.cc (replace_proxy): Handle TARGET_EXPR from.
+	(flatten_await_stmt): Pass it.
+
 2026-06-30  Jakub Jelinek  <jakub@redhat.com>
 
 	PR c++/126007

@@ -1,3 +1,11 @@
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* btest-gcc.sh (withopt): Likewise.
+
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* btest-gcc.sh (withopt): Remove --with-gnu-as.
+
 2023-11-23  Hans-Peter Nilsson  <hp@axis.com>
 
 	* btest-gcc.sh (--handle-xpass-as-fail): New option.

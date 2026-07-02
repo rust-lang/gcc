@@ -1,3 +1,10 @@
+2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* configure: Regenerate.
+	cherry picked from approved upstream pull request
+	AX_PTHREAD: Fix pthread detection on Solaris 11.4
+	https://github.com/autoconf-archive/autoconf-archive/pull/341
+
 2026-06-29  Pietro Monteiro  <pietro@sociotechnical.xyz>
 
 	PR bootstrap/103459
