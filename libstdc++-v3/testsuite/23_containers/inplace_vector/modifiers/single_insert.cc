@@ -24,7 +24,7 @@ struct Y
 {
   Y() = default;
   constexpr Y(int p) : v(p) {}
-      
+
   constexpr operator std::optional<Y&>()
   { return std::nullopt; }
 

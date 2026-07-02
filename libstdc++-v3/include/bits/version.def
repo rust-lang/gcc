@@ -408,7 +408,7 @@ ftms = {
 
 ftms = {
   name = constant_wrapper;
-  // 202506 P2781R9 std::constexpr_wrapper 
+  // 202506 P2781R9 std::constexpr_wrapper
   // 202603 P3978R3 constant_wrapper should unwrap on call and subscript
   // 202606 P4206R0 Revert string support in std::constant_wrapper
   values = {
@@ -1128,8 +1128,8 @@ ftms = {
   // 202306 P2630R4 Submdspan
   // 202403 P2642R6 Padded mdspan layouts
   // 202411 P3355R1 Fix submdspan for C++26
-  // 202511 P3663R3 Future-proof submdspan-mapping  
-  // 202603 P3982R1 Split strided_slice into extent_slice and range_slice for C++26                                                          
+  // 202511 P3663R3 Future-proof submdspan-mapping
+  // 202603 P3982R1 Split strided_slice into extent_slice and range_slice for C++26
   values = {
     v = 202603;
     cxxmin = 26;
@@ -2282,7 +2282,7 @@ ftms = {
 };
 
 ftms = {
-  // 202406 P0843R14 inplace_vector 
+  // 202406 P0843R14 inplace_vector
   // 202603 P3981R2 Better return types in std::inplace_vector and std::exception_ptr_cast
   //        P4022R0 Remove try_append_range from inplace_vector for now
   name = inplace_vector;
