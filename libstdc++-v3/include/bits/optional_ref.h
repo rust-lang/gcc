@@ -128,6 +128,14 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     public:
       using value_type = _Tp;
 
+      constexpr static optional
+      _S_from_ptr(_Tp* __ptr)
+      {
+	optional __res;
+	__res._M_val = __ptr;
+	return __res;
+      }
+
       // Constructors.
       constexpr optional() noexcept = default;
       constexpr optional(nullopt_t) noexcept : optional() {}

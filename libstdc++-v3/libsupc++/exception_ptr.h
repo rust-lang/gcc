@@ -41,6 +41,10 @@
 # include <bits/move.h>
 #endif
 
+#if __cpp_lib_exception_ptr_cast >= 202603L
+# include <bits/optional_ref.h>
+#endif
+
 #ifdef _GLIBCXX_EH_PTR_RELOPS_COMPAT
 # define _GLIBCXX_EH_PTR_USED __attribute__((__used__))
 #else
@@ -81,9 +85,9 @@ namespace std _GLIBCXX_VISIBILITY(default)
   /// Throw the object pointed to by the exception_ptr.
   void rethrow_exception(exception_ptr) __attribute__ ((__noreturn__));
 
-#if __cpp_lib_exception_ptr_cast >= 202506L
+#if __cpp_lib_exception_ptr_cast >= 202603L
   template<typename _Ex>
-    constexpr const _Ex* exception_ptr_cast(const exception_ptr&) noexcept;
+    constexpr optional<const _Ex&> exception_ptr_cast(const exception_ptr&) noexcept;
   template<typename _Ex>
     void exception_ptr_cast(const exception_ptr&&) = delete;
 #endif
@@ -139,7 +143,7 @@ namespace std _GLIBCXX_VISIBILITY(default)
 	_GLIBCXX_USE_NOEXCEPT;
 #if __cpp_lib_exception_ptr_cast >= 202506L
       template<typename _Ex>
-	friend constexpr const _Ex*
+	friend constexpr optional<const _Ex&>
 	std::exception_ptr_cast(const exception_ptr&) noexcept;
 #endif
 
@@ -352,10 +356,10 @@ namespace std _GLIBCXX_VISIBILITY(default)
       return exception_ptr();
     }
 
-#if __cpp_lib_exception_ptr_cast >= 202506L
+#if __cpp_lib_exception_ptr_cast >= 202603L
   template<typename _Ex>
     [[__gnu__::__always_inline__]]
-    constexpr const _Ex*
+    constexpr optional<const _Ex&>
     exception_ptr_cast(const exception_ptr& __p) noexcept
     {
       static_assert(!std::is_const_v<_Ex>);
@@ -369,7 +373,8 @@ namespace std _GLIBCXX_VISIBILITY(default)
       // For runtime calls with -frtti enabled we can avoid try-catch overhead.
       if ! consteval {
 	const type_info &__id = typeid(const _Ex&);
-	return static_cast<const _Ex*>(__p._M_exception_ptr_cast(__id));
+	const _Ex* __exp = static_cast<const _Ex*>(__p._M_exception_ptr_cast(__id));
+	return optional<const _Ex&>::_S_from_ptr(__exp);
       }
 #endif
 
@@ -381,14 +386,14 @@ namespace std _GLIBCXX_VISIBILITY(default)
 	  }
 	catch (const _Ex& __exc)
 	  {
-	    return &__exc;
+	    return optional<const _Ex&>(std::in_place, __exc);
 	  }
 	catch (...)
 	  {
 	  }
 #endif
 
-      return nullptr;
+      return std::nullopt;
     }
 #endif
 

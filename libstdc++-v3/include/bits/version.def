@@ -2339,9 +2339,11 @@ ftms = {
 };
 
 ftms = {
+  // 202506 P2927R3 Observing exceptions stored in exception_ptr
+  // 202603 P3981R2 Better return types in std::inplace_vector and std::exception_ptr_cast
   name = exception_ptr_cast;
   values = {
-    v = 202506;
+    v = 202603;
     cxxmin = 26;
   };
 };

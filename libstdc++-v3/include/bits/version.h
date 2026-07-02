@@ -2588,9 +2588,9 @@
 
 #if !defined(__cpp_lib_exception_ptr_cast)
 # if (__cplusplus >  202302L)
-#  define __glibcxx_exception_ptr_cast 202506L
+#  define __glibcxx_exception_ptr_cast 202603L
 #  if defined(__glibcxx_want_all) || defined(__glibcxx_want_exception_ptr_cast)
-#   define __cpp_lib_exception_ptr_cast 202506L
+#   define __cpp_lib_exception_ptr_cast 202603L
 #  endif
 # endif
 #endif /* !defined(__cpp_lib_exception_ptr_cast) */

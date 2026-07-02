@@ -22,8 +22,8 @@
 #include <exception>
 #include <testsuite_hooks.h>
 
-#if __cpp_lib_exception_ptr_cast != 202506L
-# error "__cpp_lib_exception_ptr_cast != 202506"
+#if __cpp_lib_exception_ptr_cast != 202603L
+# error "__cpp_lib_exception_ptr_cast != 202606"
 #endif
 
 struct A { int a; };
@@ -36,22 +36,33 @@ struct G : virtual F, virtual C, virtual E {
   constexpr G () : g (4) { a = 1; e = 2; f = 3; } int g;
 };
 
+// Convertible to optional<const Y&>
+struct Y
+{
+  constexpr operator std::optional<const Y&>() const
+  { return std::nullopt; }
+};
+
 constexpr bool test01(bool x)
 {
   auto a = std::make_exception_ptr(C{ 42 });
   auto b = std::exception_ptr_cast<C>(a);
-  VERIFY( b != nullptr );
+  auto bp = &*b;
+  VERIFY( b );
   VERIFY( b->a == 42 );
   auto c = std::exception_ptr_cast<B>(a);
-  VERIFY( c == static_cast<const B*>(b) );
+  VERIFY( c );
+  VERIFY( &*c == static_cast<const B*>(bp) );
   auto d = std::exception_ptr_cast<A>(a);
-  VERIFY( d == static_cast<const A*>(b) );
+  VERIFY( d );
+  VERIFY( &*d == static_cast<const A*>(bp) );
   auto e = std::exception_ptr_cast<D>(a);
-  VERIFY( e == nullptr );
+  VERIFY( !e );
   auto f = std::make_exception_ptr(42L);
   auto g = std::exception_ptr_cast<long>(f);
-  VERIFY( g != nullptr );
+  VERIFY( g );
   VERIFY( *g == 42L );
+
   try
     {
       throw G ();
@@ -64,19 +75,29 @@ constexpr bool test01(bool x)
       auto h = std::current_exception();
 #endif
       auto i = std::exception_ptr_cast<G>(h);
-      VERIFY( i != nullptr );
+      VERIFY( i );
       VERIFY( i->a == 1 && i->e == 2 && i->f == 3 && i->g == 4 );
+      auto ip = &*i;
       auto j = std::exception_ptr_cast<A>(h);
-      VERIFY( j == static_cast<const A*>(i) );
+      VERIFY( j );
+      VERIFY( &*j == static_cast<const A*>(ip) );
       auto k = std::exception_ptr_cast<C>(h);
-      VERIFY( k == static_cast<const C*>(i) );
+      VERIFY( k );
+      VERIFY( &*k == static_cast<const C*>(ip) );
       auto l = std::exception_ptr_cast<E>(h);
-      VERIFY( l == static_cast<const E*>(i) );
+      VERIFY( l );
+      VERIFY( &*l == static_cast<const E*>(ip) );
       auto m = std::exception_ptr_cast<F>(h);
-      VERIFY( m == static_cast<const F*>(i) );
+      VERIFY( m );
+      VERIFY( &*m == static_cast<const F*>(ip) );
       auto n = std::exception_ptr_cast<G>(a);
-      VERIFY( n == nullptr );
+      VERIFY( !n );
     }
+  
+  auto o = std::make_exception_ptr(Y{});
+  auto p = std::exception_ptr_cast<Y>(o);
+  VERIFY( p );
+
   if (x)
     throw 1;
   return true;
