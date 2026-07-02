@@ -26,6 +26,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "trans.h"
 #include "trans-const.h"
 #include "trans-types.h"
+#include "trans-array.h"
 
 
 /* Array descriptor low level access routines.
@@ -414,3 +415,50 @@ gfc_build_null_descriptor (tree type)
 #undef STRIDE_SUBFIELD
 #undef LBOUND_SUBFIELD
 #undef UBOUND_SUBFIELD
+
+
+/* For an array descriptor, get the total number of elements.  This is just
+   the product of the extents along from_dim to to_dim.  */
+
+static tree
+gfc_conv_descriptor_size_1 (tree desc, int from_dim, int to_dim)
+{
+  tree res;
+  int dim;
+
+  res = gfc_index_one_node;
+
+  for (dim = from_dim; dim < to_dim; ++dim)
+    {
+      tree lbound;
+      tree ubound;
+      tree extent;
+
+      lbound = gfc_conv_descriptor_lbound_get (desc, gfc_rank_cst[dim]);
+      ubound = gfc_conv_descriptor_ubound_get (desc, gfc_rank_cst[dim]);
+
+      extent = gfc_conv_array_extent_dim (lbound, ubound, NULL);
+      res = fold_build2_loc (input_location, MULT_EXPR, gfc_array_index_type,
+			     res, extent);
+    }
+
+  return res;
+}
+
+
+/* Full size of an array.  */
+
+tree
+gfc_conv_descriptor_size (tree desc, int rank)
+{
+  return gfc_conv_descriptor_size_1 (desc, 0, rank);
+}
+
+
+/* Size of a coarray for all dimensions but the last.  */
+
+tree
+gfc_conv_descriptor_cosize (tree desc, int rank, int corank)
+{
+  return gfc_conv_descriptor_size_1 (desc, rank, rank + corank - 1);
+}
