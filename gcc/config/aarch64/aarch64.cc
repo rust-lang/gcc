@@ -1567,6 +1567,26 @@ aarch64_debugger_regno (unsigned regno)
    return DWARF_FRAME_REGISTERS;
 }
 
+#if defined(HAVE_AS_TLS) && defined(HAVE_AS_DTPREL_RELOC)
+/* Implementation of TARGET_ASM_OUTPUT_DWARF_DTPREL.  */
+static void
+aarch64_output_dwarf_dtprel (FILE *f, int size, rtx x)
+{
+  /* The AArch64 ABI defines static DTPREL relocations only for 8-byte (.xword)
+     DWARF entries.  For any other size there is no valid dtprel(symbol)
+     encoding and rejecting the request.  */
+  if (size != 8)
+    {
+      error ("unsupported size %d for DTPREL relocation, allowed: 8", size);
+      return;
+    }
+  fputs ("\t.xword\t", f);
+  fputs ("%dtprel(", f);
+  output_addr_const (f, x);
+  fputs (")", f);
+}
+#endif
+
 /* Implement TARGET_DWARF_FRAME_REG_MODE.  */
 static machine_mode
 aarch64_dwarf_frame_reg_mode (int regno)
@@ -34086,6 +34106,11 @@ aarch64_libgcc_floating_mode_supported_p
 
 #undef TARGET_DWARF_FRAME_REG_MODE
 #define TARGET_DWARF_FRAME_REG_MODE aarch64_dwarf_frame_reg_mode
+
+#if defined(HAVE_AS_TLS) && defined(HAVE_AS_DTPREL_RELOC)
+#undef TARGET_ASM_OUTPUT_DWARF_DTPREL
+#define TARGET_ASM_OUTPUT_DWARF_DTPREL aarch64_output_dwarf_dtprel
+#endif
 
 #undef TARGET_OUTPUT_CFI_DIRECTIVE
 #define TARGET_OUTPUT_CFI_DIRECTIVE aarch64_output_cfi_directive

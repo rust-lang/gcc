@@ -12892,6 +12892,17 @@ proc check_effective_target_aarch64_gas_has_build_attributes { } {
     }]
 }
 
+# Return 1 if Gas supports DTPREL Relocation on AArch64 target
+proc check_effective_target_aarch64_gas_has_dtprel_reloc { } {
+    if { ![istarget aarch64*-*-*] || ![check_effective_target_tls_native] } {
+	return 0
+    }
+    return [check_no_compiler_messages aarch64_gas_has_dtprel_reloc object {
+	/* Assembly */
+	.xword %dtprel(expr)
+    }]
+}
+
 # Create functions to check that the AArch64 assembler supports the
 # various architecture extensions via the .arch_extension pseudo-op.
 

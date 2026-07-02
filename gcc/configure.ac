@@ -4593,6 +4593,12 @@ case "$target" in
 	.aeabi_attribute Tag_Feature_GCS, 1
     ],,[AC_DEFINE(HAVE_AS_AEABI_BUILD_ATTRIBUTES, 1,
 	[Define if your assembler supports AEABI build attributes.])])
+    # Check if we have binutils support for DTPREL relocation.
+    gcc_GAS_CHECK_FEATURE([support of DTPREL relocation], gcc_cv_as_aarch64_dtprel_relocation,,
+    [
+	.xword %dtprel(expr)
+    ],,[AC_DEFINE(HAVE_AS_DTPREL_RELOC, 1,
+	[Define if your assembler supports DTPREL relocation.])])
     # Enable Branch Target Identification Mechanism and Return Address
     # Signing by default.
     AC_ARG_ENABLE(standard-branch-protection,

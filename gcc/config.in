@@ -452,6 +452,12 @@
 #endif
 
 
+/* Define if your assembler supports DTPREL relocation. */
+#ifndef USED_FOR_TARGET
+#undef HAVE_AS_DTPREL_RELOC
+#endif
+
+
 /* Define if your assembler supports dwarf2 .file/.loc directives, and
    preserves file table indices exactly as given. */
 #ifndef USED_FOR_TARGET
