@@ -16166,10 +16166,20 @@ synthesize_add (rtx operands[3])
   if (SMALL_OPERAND (INTVAL (operands[2])))
     return false;
 
-  int budget1 = riscv_const_insns (operands[2], true);
-  int budget2 = riscv_const_insns (GEN_INT (-INTVAL (operands[2])), true);
-
   HOST_WIDE_INT ival = INTVAL (operands[2]);
+  int budget1 = riscv_integer_cost (ival, true);
+  int budget2 = riscv_integer_cost (-ival, true);
+
+  /* If the constant is MIN_INT for the target, then it's just a bit flip
+     of the highest bit.  */
+  HOST_WIDE_INT sextval = sext_hwi (HOST_WIDE_INT_1U << (BITS_PER_WORD - 1),
+				    BITS_PER_WORD);
+  if (TARGET_ZBS && ival == sextval)
+    {
+      rtx x = gen_rtx_XOR (word_mode, operands[1], operands[2]);
+      emit_insn (gen_rtx_SET (operands[0], x));
+      return true;
+    }
 
   /* If we can emit two addi insns then that's better than synthesizing
      the constant into a temporary, then adding the temporary to the
@@ -16200,11 +16210,11 @@ synthesize_add (rtx operands[3])
   ival = INTVAL (operands[2]);
   if (TARGET_ZBA
       && (((ival % 2) == 0 && budget1
-	   > riscv_const_insns (GEN_INT (ival >> 1), true))
+	   > riscv_integer_cost (ival >> 1, true))
 	   || ((ival % 4) == 0 && budget1
-	       > riscv_const_insns (GEN_INT (ival >> 2), true))
+	       > riscv_integer_cost (ival >> 2, true))
 	   || ((ival % 8) == 0 && budget1
-	       > riscv_const_insns (GEN_INT (ival >> 3), true))))
+	       > riscv_integer_cost (ival >> 3, true))))
     {
       // Load the shifted constant into a temporary
       int shct = ctz_hwi (ival);
@@ -16222,6 +16232,24 @@ synthesize_add (rtx operands[3])
       rtx x = gen_rtx_ASHIFT (word_mode, tmp, GEN_INT (shct));
       rtx output = gen_rtx_PLUS (word_mode, x, operands[1]);
       emit_insn (gen_rtx_SET (operands[0], output));
+      return true;
+    }
+
+  /* If the constant has the upper 32 bits clear and if after sign
+     extension from 32 to 64 bits it's synthesizable cheaply,
+     then synthesize C' and use add.uw.  */
+  if ((TARGET_64BIT && TARGET_ZBA)
+      && (ival & HOST_WIDE_INT_UC (0xffffffff00000000)) == 0
+      && riscv_integer_cost (sext_hwi (ival, 32), true) < budget1)
+    {
+      /* Load the sign extended constant into a temporary.  */
+      rtx tempreg = force_reg (word_mode, GEN_INT (sext_hwi (ival, 32)));
+
+      /* Add the zero-extended temporary to the other input to construct
+	 the add.uw insn.  */
+      rtx x = gen_rtx_ZERO_EXTEND (word_mode, gen_lowpart (SImode, tempreg));
+      x = gen_rtx_PLUS (word_mode, x, operands[1]);
+      emit_insn (gen_rtx_SET (operands[0], x));
       return true;
     }
 
@@ -16272,8 +16300,8 @@ synthesize_add_extended (rtx operands[3])
     return false;
 
   HOST_WIDE_INT ival = INTVAL (operands[2]);
-  int budget1 = riscv_const_insns (operands[2], true);
-  int budget2 = riscv_const_insns (GEN_INT (-INTVAL (operands[2])), true);
+  int budget1 = riscv_integer_cost (INTVAL (operands[2]), true);
+  int budget2 = riscv_integer_cost (-UINTVAL (operands[2]), true);
 
 /*  If operands[2] can be split into two 12-bit signed immediates,
     split add into two adds.  */

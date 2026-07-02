@@ -899,6 +899,17 @@
   "<bit_optab>i\t%0,%1,%S2"
   [(set_attr "type" "bitmanip")])
 
+;; This form can be created by combine.
+(define_insn "*xor_for_plus_minint"
+  [(set (match_operand:X 0 "register_operand" "=r")
+	(plus:X (match_operand:X 1 "register_operand" "r")
+		(match_operand 2 "const_int_operand")))]
+  "(TARGET_ZBS
+    && (INTVAL (operands[2])
+	== sext_hwi ((HOST_WIDE_INT_1U << (BITS_PER_WORD - 1)), BITS_PER_WORD)))"
+  "binvi\t%0,%1,%S2"
+  [(set_attr "type" "bitmanip")])
+
 ;; We can easily handle zero extensions
 (define_split
   [(set (match_operand:DI 0 "register_operand")
