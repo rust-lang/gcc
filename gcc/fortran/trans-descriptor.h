@@ -60,4 +60,6 @@ tree gfc_conv_descriptor_cosize (tree, int, int);
 /* Shift lower bound of descriptor, updating ubound and offset.  */
 void gfc_conv_shift_descriptor_lbound (stmtblock_t*, tree, int, tree);
 
+void gfc_copy_descriptor (stmtblock_t *, tree, tree, int);
+
 #endif /* GFC_TRANS_DESCRIPTOR_H */

@@ -499,3 +499,45 @@ gfc_conv_shift_descriptor_lbound (stmtblock_t* block, tree desc,
   /* Finally set lbound to value we want.  */
   gfc_conv_descriptor_lbound_set (block, desc, gfc_rank_cst[dim], new_lbound);
 }
+
+
+void
+gfc_copy_descriptor (stmtblock_t *block, tree dst, tree src, int rank)
+{
+  int n;
+  tree dim;
+  tree tmp;
+  tree tmp2;
+  tree size;
+  tree offset;
+
+  offset = gfc_index_zero_node;
+
+  /* Use memcpy to copy the descriptor.  The size is the minimum of
+     the sizes of 'src' and 'dst'. This avoids a non-trivial conversion.  */
+  tmp = TYPE_SIZE_UNIT (TREE_TYPE (src));
+  tmp2 = TYPE_SIZE_UNIT (TREE_TYPE (dst));
+  size = fold_build2_loc (input_location, MIN_EXPR,
+			  TREE_TYPE (tmp), tmp, tmp2);
+  tmp = builtin_decl_explicit (BUILT_IN_MEMCPY);
+  tmp = build_call_expr_loc (input_location, tmp, 3,
+			     gfc_build_addr_expr (NULL_TREE, dst),
+			     gfc_build_addr_expr (NULL_TREE, src),
+			     fold_convert (size_type_node, size));
+  gfc_add_expr_to_block (block, tmp);
+
+  /* Set the offset correctly.  */
+  for (n = 0; n < rank; n++)
+    {
+      dim = gfc_rank_cst[n];
+      tmp = gfc_conv_descriptor_lbound_get (src, dim);
+      tmp2 = gfc_conv_descriptor_stride_get (src, dim);
+      tmp = fold_build2_loc (input_location, MULT_EXPR, TREE_TYPE (tmp),
+			     tmp, tmp2);
+      offset = fold_build2_loc (input_location, MINUS_EXPR,
+			TREE_TYPE (offset), offset, tmp);
+      offset = gfc_evaluate_now (offset, block);
+    }
+
+  gfc_conv_descriptor_offset_set (block, dst, offset);
+}
