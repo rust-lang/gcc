@@ -1,3 +1,53 @@
+2026-07-03  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/126018
+	* gfortran.dg/stop_function_code_1.f90: New test.
+
+2026-07-02  Pengfei Li  <Pengfei.Li2@arm.com>
+
+	* gcc.target/aarch64/sve/vect-unroll-1.c: New test.
+	* gcc.target/aarch64/sve/vect-unroll-2.c: New test.
+
+2026-07-02  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* gcc.target/riscv/add-synthesis-3.c: New test.
+	* gcc.target/riscv/xor-synthesis-2.c: No longer xfail.
+
+2026-07-02  Marek Polacek  <polacek@redhat.com>
+
+	PR c++/125819
+	* g++.dg/reflect/members_of17.C: New test.
+
+2026-07-02  Sivan Shani  <sivan.shani@arm.com>
+
+	* g++.target/aarch64/sve/aarch64-ssve.exp: Test SVE AES intrinsics
+	as streaming-compatible with +ssve-aes.
+	* gcc.target/aarch64/sve2/acle/asm/aesd_u8.c: Use +ssve-aes for
+	streaming-compatible tests.
+	* gcc.target/aarch64/sve2/acle/asm/aese_u8.c: Likewise.
+	* gcc.target/aarch64/sve2/acle/asm/aesimc_u8.c: Likewise.
+	* gcc.target/aarch64/sve2/acle/asm/aesmc_u8.c: Likewise.
+	* lib/target-supports.exp: Test aes intrinsics in streaming mode.
+
+2026-07-02  Srinath Parvathaneni  <srinath.parvathaneni@arm.com>
+
+	PR target/97344
+	* gcc.target/aarch64/pr97344.c: New test.
+	* lib/target-supports.exp (aarch64_gas_has_dtprel_reloc): Add new target
+	check.
+
+2026-07-02  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	PR tree-optimization/124545
+	* gcc.dg/pr124545.c: New test.
+	* gcc.dg/pr124545-2.c: New test.
+
+2026-07-02  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/55212
+	* gcc.target/sh/pr55212-c248.c: Move to ..
+	* gcc.target/sh/torture/pr55212-c248.c: .. here.  Skip it for -O0.
+
 2026-07-01  Iain Sandoe  <iain@sandoe.co.uk>
 
 	PR objc/124260

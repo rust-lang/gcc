@@ -1,3 +1,40 @@
+2026-07-02  Yuao Ma  <c8ef@outlook.com>
+
+	* include/bits/basic_string.h(append, assign): Add new
+	overloads.
+	* include/bits/cow_string.h(append, assign): Ditto.
+	* testsuite/21_strings/basic_string/modifiers/append/char/2.cc:
+	Test new overloads.
+	* testsuite/21_strings/basic_string/modifiers/append/wchar_t/2.cc:
+	Ditto.
+	* testsuite/21_strings/basic_string/modifiers/assign/char/3.cc:
+	Ditto.
+	* testsuite/21_strings/basic_string/modifiers/assign/wchar_t/3.cc:
+	Ditto.
+
+2026-07-02  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/bits/version.def: Remove trailing whitespaces.
+	* include/std/inplace_vector: Likewise.
+	* testsuite/23_containers/inplace_vector/modifiers/single_insert.cc:
+	Likewise.
+
+2026-07-02  Jonathan Wakely  <jwakely@redhat.com>
+
+	* src/c++17/fs_ops.cc (windows_create_symlink): Adjust
+	preprocessor conditions to not define this at all unless
+	SYMBOLIC_LINK_FLAG_DIRECTORY is defined.
+	(fs::create_directory_symlink): Adjust preprocessor conditions
+	accordingly.
+	(fs::create_symlink): Likewise.
+
+2026-07-02  Jonathan Wakely  <jwakely@redhat.com>
+
+	* src/c++20/tzdb.cc (_Node::NumLeapSeconds::set_locked)
+	[ATOMIC_INT_LOCK_FREE == 2]: Use atomic store.
+	(_Node::NumLeapSeconds::set) [ATOMIC_INT_LOCK_FREE != 2]: Set
+	value directly instead of calling set_locked.
+
 2026-07-01  Matthias Kretz  <m.kretz@gsi.de>
 
 	* include/Makefile.am: Add bits/simd_bit.h, bits/simd_complex.h,

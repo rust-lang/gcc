@@ -1,3 +1,9 @@
+2026-07-02  Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* config/nvptx/allocator.c [PTX < 4.1]: Fix build.
+	* config/nvptx/team.c [PTX < 4.1]: Disable the whole
+	'__nvptx_lowlat_pool' machinery.
+
 2026-06-30  Thomas Schwinge  <tschwinge@baylibre.com>
 
 	* config.h.in: Regenerate.

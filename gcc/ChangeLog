@@ -1,3 +1,90 @@
+2026-07-02  Pengfei Li  <Pengfei.Li2@arm.com>
+
+	* config/aarch64/aarch64.cc
+	(aarch64_vector_costs::determine_suggested_unroll_factor): Add a
+	loop_vec_info parameter.
+	(determine_suggested_unroll_factor): Cap the suggested unroll for
+	small-niters loops.
+	(aarch64_vector_costs::finish_cost): Pass loop_vinfo to
+	determine_suggested_unroll_factor.
+
+2026-07-02  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* config/riscv/bitmanip.md (xor_for_plus_minint): New pattern.
+	* config/riscv/riscv.cc (synthesize_add): Handle INT_MIN as
+	bit inversion.  Add support for add.uw.  Use riscv_integer_cost
+	rather than riscv_const_insns.
+	(synthesize_add_extended): Use riscv_integer_cost rather than
+	riscv_const_insns.
+
+2026-07-02  Sivan Shani  <sivan.shani@arm.com>
+
+	* config/aarch64/aarch64-c.cc (aarch64_update_cpp_builtins):
+	Check for SVE2 and SVE_AES directly.
+	* config/aarch64/aarch64-sve-builtins-sve2.def (REQUIRED_EXTENSIONS):
+	Make AES builtins streaming-compatible with SSVE AES.
+	* config/aarch64/aarch64-sve2.md: Use TARGET_SVE_AES instead of
+	TARGET_SVE2_AES.
+	* config/aarch64/aarch64.h (TARGET_SVE2_AES): Rename to...
+	(TARGET_SVE_AES): Add support for SSVE AES.
+	* config/aarch64/iterators.md: Use TARGET_SVE2 for VNx2DI
+	PMULL pair mode.
+
+2026-07-02  Srinath Parvathaneni  <srinath.parvathaneni@arm.com>
+
+	PR target/97344
+	* config.in: Re-generate.
+	* config/aarch64/aarch64.cc (aarch64_output_dwarf_dtprel): Define
+	function.
+	(TARGET_ASM_OUTPUT_DWARF_DTPREL): Define macro.
+	* configure: Re-generate.
+	* configure.ac: Add assemler check for dtprel relocation.
+
+2026-07-02  Richard Earnshaw  <rearnsha@arm.com>
+
+	* config/arm/arm-mve-builtins-shapes.cc (SHAPE): Add a
+	trailing statement that lacks a semicolon.  Add that to all
+	existing uses.
+
+2026-07-02  Richard Earnshaw  <rearnsha@arm.com>
+
+	* config/aarch64/aarch64-sve-builtins-shapes.cc (SHAPE): Add a
+	trailing statement that lacks a semicolon.  Add that to all
+	existing uses.
+
+2026-07-02  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* configure.ac (gcc_fn_gld_min_version): New function.
+	(gcc_fn_gld_elf_min_version): Likewise.
+	Use them.
+	* configure: Regenerate.
+
+2026-07-02  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	PR tree-optimization/124545
+	* match.pd: Add (T)A +- CST -> (T)(A +- CST') for widening
+	conversions from a signed inner type with undefined overflow.
+
+2026-07-02  Kaz Kojima  <kkojima@rr.iij4u.or.jp>
+
+	PR target/117182
+	PR target/55212
+	* target.def (cannot_substitute_const_equiv_p): New target hook.
+	* doc/tm.texi.in: Add it.
+	* lra-constraints.cc (get_equiv): Use it.
+	* config/sh/sh.cc (sh_cannot_substitute_const_equiv_p): Override it.
+	* doc/tm.texi: Re-generate.
+
+2026-07-02  Kaz Kojima  <kkojima@rr.iij4u.or.jp>
+
+	PR target/55212
+	* config/sh/predicates.md (hard_reg_r0..r7): New predicates.
+	* config/sh/sh.md (udivsi3_i4, udivsi3_i4_single,
+	udivsi3_i1): Rewrite with match_operand and match_dup.
+	(block_lump_real, block_lump_real_i4): Ditto.
+	(udivsi3): Adjust for it.
+	* config/sh/sh-mem.cc (expand_block_move): Ditto.
+
 2026-07-01  Iain Sandoe  <iain@sandoe.co.uk>
 
 	PR objc/124260
