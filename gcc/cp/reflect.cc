@@ -698,6 +698,12 @@ get_range_elts (location_t loc, const constexpr_ctx *ctx, tree call, int n,
       }
     if (kind == REFLECT_CONSTANT_ARRAY && sz == 0)
       {
+	/* Don't call finish_compound_literal in a template.  */
+	if (processing_template_decl)
+	  {
+	    *non_constant_p = true;
+	    return NULL_TREE;
+	  }
 	/* Return std::array <valuet, 0> {}.  */
 	tree args = make_tree_vec (2);
 	TREE_VEC_ELT (args, 0) = valuet;
@@ -7891,6 +7897,14 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
   if (check_metafn_return_type (loc, METAFN_KIND_RET (minfo), rettype,
 				non_constant_p))
     return NULL_TREE;
+  /* Don't call get_vector_of_info_elts (for any metafn which returns
+     vector<info>) in a template.  */
+  if (processing_template_decl
+      && METAFN_KIND_RET (minfo) == METAFN_KIND_RET_VECTOR_INFO)
+    {
+      *non_constant_p = true;
+      return NULL_TREE;
+    }
   for (int argno = 0; argno < 3; ++argno)
     switch (METAFN_KIND_ARG (minfo, argno))
       {
