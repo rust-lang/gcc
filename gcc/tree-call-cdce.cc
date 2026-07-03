@@ -37,7 +37,9 @@ along with GCC; see the file COPYING3.  If not see
 #include "internal-fn.h"
 #include "tree-dfa.h"
 #include "tree-eh.h"
-
+#include "tree-ssanames.h"
+#include "gimple-fold.h"
+
 
 /* This pass serves two closely-related purposes:
 
@@ -1255,6 +1257,97 @@ use_internal_fn (gcall *call)
 					    is_arg_conds ? new_call : NULL);
 }
 
+/* Return true if LEN is an SSA_NAME known to have a boolean range, i.e. its
+   value is provably in [0, 1].  */
+
+static bool
+len_has_boolean_range_p (tree len, gimple *stmt)
+{
+  if (TREE_CODE (len) != SSA_NAME || !INTEGRAL_TYPE_P (TREE_TYPE (len)))
+    return false;
+  return ssa_name_has_boolean_range (len, stmt);
+}
+
+/* Return true if CALL is a supported length-taking builtin whose length
+   argument is an SSA name known to have a boolean range.  On success,
+   set LEN_ARG to the argument index of the length.  */
+
+static bool
+can_shrink_wrap_len_p (gcall *call, unsigned *len_arg)
+{
+  if (!gimple_call_builtin_p (call, BUILT_IN_MEMSET)
+      || !gimple_vdef (call))
+    return false;
+
+  constexpr unsigned memset_len_arg = 2;
+  if (gimple_call_num_args (call) <= memset_len_arg)
+    return false;
+
+  tree len = gimple_call_arg (call, memset_len_arg);
+  if (!len_has_boolean_range_p (len, call))
+    return false;
+
+  *len_arg = memset_len_arg;
+  return true;
+}
+
+/* Generate the condition vector that guards a call whose LEN is known to be
+   in [0, 1]: skip the call when LEN is zero.  */
+
+static void
+gen_zero_len_conditions (tree len, vec<gimple *> &conds, unsigned *nconds)
+{
+  tree zero = build_zero_cst (TREE_TYPE (len));
+
+  gcc_assert (nconds);
+  conds.quick_push (gimple_build_cond (EQ_EXPR, len, zero,
+				       NULL_TREE, NULL_TREE));
+  *nconds = 1;
+}
+
+/* Shrink-wrap CALL whose LEN_ARG argument is known to be in [0, 1].
+   ZERO_LEN_RESULT is the value of the call result when its length is zero.
+   On the guarded path the length is one, so pin it to a constant for
+   subsequent folding.  */
+
+static void
+shrink_wrap_len_call (gcall *call, unsigned len_arg, tree zero_len_result)
+{
+  tree lhs = gimple_call_lhs (call);
+
+  /* Define the result on both the guarded and bypass paths before wrapping.  */
+  if (lhs)
+    {
+      gcc_assert (zero_len_result);
+      location_t loc = gimple_location (call);
+      gimple_stmt_iterator gsi = gsi_for_stmt (call);
+
+      zero_len_result = gimple_convert (&gsi, true, GSI_SAME_STMT, loc,
+					TREE_TYPE (lhs), zero_len_result);
+      gassign *stmt = gimple_build_assign (lhs, zero_len_result);
+      gimple_set_location (stmt, loc);
+      gsi_insert_before (&gsi, stmt, GSI_SAME_STMT);
+
+      gimple_call_set_lhs (call, NULL_TREE);
+      SSA_NAME_DEF_STMT (lhs) = stmt;
+      update_stmt (call);
+    }
+
+  tree len = gimple_call_arg (call, len_arg);
+  unsigned nconds = 0;
+  auto_vec<gimple *, 1> conds;
+  gen_zero_len_conditions (len, conds, &nconds);
+  gcc_assert (nconds != 0);
+
+  shrink_wrap_one_built_in_call_with_conds (call, conds, nconds);
+
+  /* On the guarded path the length is one.  */
+  gimple_call_set_arg (call, len_arg, build_one_cst (TREE_TYPE (len)));
+  update_stmt (call);
+  gimple_stmt_iterator gsi = gsi_for_stmt (call);
+  fold_stmt (&gsi);
+}
+
 /* The top level function for conditional dead code shrink
    wrapping transformation.  */
 
@@ -1267,7 +1360,12 @@ shrink_wrap_conditional_dead_built_in_calls (const vec<gcall *> &calls)
   for (; i < n ; i++)
     {
       gcall *bi_call = calls[i];
-      if (gimple_call_lhs (bi_call))
+      unsigned len_arg;
+
+      /* memset returns its destination pointer on the zero-length path.  */
+      if (can_shrink_wrap_len_p (bi_call, &len_arg))
+	shrink_wrap_len_call (bi_call, len_arg, gimple_call_arg (bi_call, 0));
+      else if (gimple_call_lhs (bi_call))
 	use_internal_fn (bi_call);
       else
 	shrink_wrap_one_built_in_call (bi_call);
@@ -1326,11 +1424,13 @@ pass_call_cdce::execute (function *fun)
       for (i = gsi_start_bb (bb); !gsi_end_p (i); gsi_next (&i))
         {
 	  gcall *stmt = dyn_cast <gcall *> (gsi_stmt (i));
+	  unsigned len_arg;
           if (stmt
 	      && gimple_call_builtin_p (stmt, BUILT_IN_NORMAL)
-	      && (gimple_call_lhs (stmt)
-		  ? can_use_internal_fn (stmt)
-		  : can_test_argument_range (stmt))
+	      && (can_shrink_wrap_len_p (stmt, &len_arg)
+		  || (gimple_call_lhs (stmt)
+		      ? can_use_internal_fn (stmt)
+		      : can_test_argument_range (stmt)))
 	      && can_guard_call_p (stmt))
             {
               if (dump_file && (dump_flags & TDF_DETAILS))
