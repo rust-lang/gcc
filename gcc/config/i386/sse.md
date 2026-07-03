@@ -631,10 +631,6 @@
 (define_mode_iterator VI1_AVX512VNNI
   [(V64QI "TARGET_AVX512VNNI") (V32QI "TARGET_AVX2") V16QI])
 
-(define_mode_iterator VI1_AVX512VNNIBW
-  [(V64QI "TARGET_AVX512BW || TARGET_AVX512VNNI")
-   (V32QI "TARGET_AVX2") V16QI])
-
 (define_mode_iterator VI12_256_512_AVX512VL
   [V64QI (V32QI "TARGET_AVX512VL")
    V32HI (V16HI "TARGET_AVX512VL")])
@@ -32542,8 +32538,8 @@
 
 (define_expand "sdot_prod<ssedvecmodelower><mode>"
   [(match_operand:<ssedvecmode> 0 "register_operand")
-   (match_operand:VI1_AVX512VNNIBW 1 "register_operand")
-   (match_operand:VI1_AVX512VNNIBW 2 "register_operand")
+   (match_operand:VI1_AVX512 1 "register_operand")
+   (match_operand:VI1_AVX512 2 "register_operand")
    (match_operand:<ssedvecmode> 3 "register_operand")]
   "TARGET_SSE2"
 {
@@ -32590,8 +32586,8 @@
 
 (define_expand "udot_prod<ssedvecmodelower><mode>"
   [(match_operand:<ssedvecmode> 0 "register_operand")
-   (match_operand:VI1_AVX512VNNIBW 1 "register_operand")
-   (match_operand:VI1_AVX512VNNIBW 2 "register_operand")
+   (match_operand:VI1_AVX512 1 "register_operand")
+   (match_operand:VI1_AVX512 2 "register_operand")
    (match_operand:<ssedvecmode> 3 "register_operand")]
   "TARGET_SSE2"
 {
