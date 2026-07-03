@@ -10711,7 +10711,7 @@ cp_finish_decomp (tree decl, cp_decomp *decomp, bool test_p)
 	    }
 	  first = DECL_CHAIN (first);
 	}
-      if (DECL_P (decl) && DECL_NAMESPACE_SCOPE_P (decl))
+      if (DECL_P (decl) && TREE_STATIC (decl))
 	SET_DECL_ASSEMBLER_NAME (decl, get_identifier ("<decomp>"));
       return false;
     }
