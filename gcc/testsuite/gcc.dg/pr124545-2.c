@@ -4,7 +4,9 @@
    computed value.  In particular it must NOT fire when CST is not
    representable in the inner type (which would silently drop the bits
    above the inner precision), and it must stay correct for unsigned
-   inner types where the narrow operation wraps.  */
+   inner types where the narrow operation wraps.  Uses __UINT{32,64}_TYPE__
+   rather than unsigned {int,long} so that the narrow-vs-wide contrast is
+   independent of ILP32 vs LP64.  */
 /* { dg-do run } */
 /* { dg-options "-O2" } */
 
@@ -13,23 +15,23 @@
 __attribute__((noipa)) int
 oor_eq (int a)
 {
-  return ((unsigned long long) a + 0x100000000ULL) == (unsigned long long) a;
+  return ((__UINT64_TYPE__) a + 0x100000000ULL) == (__UINT64_TYPE__) a;
 }
 
-__attribute__((noipa)) unsigned long long
+__attribute__((noipa)) __UINT64_TYPE__
 oor_val (int a)
 {
-  return (unsigned long long) a + 0x100000000ULL;
+  return (__UINT64_TYPE__) a + 0x100000000ULL;
 }
 
 /* Unsigned inner: narrow add wraps mod 2^32; the widened add does not.
    The result must match the wide arithmetic for every input.  */
 __attribute__((noipa)) int
-uns_carry (unsigned int a)
+uns_carry (__UINT32_TYPE__ a)
 {
-  unsigned int t = a + 100u;
-  unsigned long w = (unsigned long) a + 100;
-  return w == (unsigned long) t;
+  __UINT32_TYPE__ t = a + 100u;
+  __UINT64_TYPE__ w = (__UINT64_TYPE__) a + 100;
+  return w == (__UINT64_TYPE__) t;
 }
 
 /* Legitimate in-range case (matches the PR): k == j - 1, so the two
