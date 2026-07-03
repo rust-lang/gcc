@@ -15687,7 +15687,7 @@ synthesize_ior_xor (rtx_code code, rtx operands[3])
      execution and fusion in the constant synthesis those would naturally
      decrease the budget.  It also does not account for the IOR/XOR at
      the end of the sequence which would increase the budget.  */
-  int budget = (TARGET_ZBS ? riscv_const_insns (operands[2], true) : -1);
+  int budget = (TARGET_ZBS ? riscv_integer_cost (INTVAL (operands[2]), true) : -1);
   int original_budget = budget;
 
   /* Bits we need to set in operands[0].  As we synthesize the operation,
@@ -15751,7 +15751,7 @@ synthesize_ior_xor (rtx_code code, rtx operands[3])
   if ((TARGET_ZBB || TARGET_XTHEADBB || TARGET_ZBKB)
       && budget < 0
       && popcount_hwi (INTVAL (operands[2])) <= 11
-      && riscv_const_insns (operands[2], true) >= 3)
+      && riscv_integer_cost (INTVAL (operands[2]), true) >= 3)
     {
       ival = INTVAL (operands[2]);
       /* First see if the constant trivially fits into 11 bits in the LSB.  */
@@ -15840,9 +15840,8 @@ synthesize_ior_xor (rtx_code code, rtx operands[3])
 	 we have Zbb, then we have XNOR and ORN.  So if the inverted constant
 	 is cheaper, invert it and use XNOR/ORN.  */
       if (TARGET_ZBB
-	  && riscv_const_insns (GEN_INT (~UINTVAL (operands[2])), true) > 0
-	  && (riscv_const_insns (operands[2], true)
-	      > riscv_const_insns (GEN_INT (~UINTVAL (operands[2])), true)))
+	  && (riscv_integer_cost (INTVAL (operands[2]), true)
+	      > riscv_integer_cost (~UINTVAL (operands[2]), true)))
 	{
 	  rtx x = force_reg (word_mode, GEN_INT (~UINTVAL (operands[2])));
 
