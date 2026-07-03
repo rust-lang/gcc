@@ -8847,39 +8847,6 @@ get_t_reg_rtx (void)
 
 static GTY(()) tree fpscr_values;
 
-static void
-emit_fpu_switch (rtx scratch, int index)
-{
-  if (fpscr_values == NULL)
-    {
-      tree t = build_index_type (integer_one_node);
-      t = build_array_type (integer_type_node, t);
-      t = build_decl (BUILTINS_LOCATION,
-		      VAR_DECL, get_identifier ("__fpscr_values"), t);
-      DECL_ARTIFICIAL (t) = 1;
-      DECL_IGNORED_P (t) = 1;
-      DECL_EXTERNAL (t) = 1;
-      TREE_STATIC (t) = 1;
-      TREE_PUBLIC (t) = 1;
-      TREE_USED (t) = 1;
-
-      fpscr_values = t;
-    }
-
-  rtx src = DECL_RTL (fpscr_values);
-  if (!can_create_pseudo_p ())
-    {
-      emit_move_insn (scratch, XEXP (src, 0));
-      if (index != 0)
-	emit_insn (gen_addsi3 (scratch, scratch, GEN_INT (index * 4)));
-      src = adjust_automodify_address (src, SImode, scratch, index * 4);
-    }
-  else
-    src = adjust_address (src, SImode, index * 4);
-
-  emit_insn (gen_lds_fpscr (src));
-}
-
 static rtx get_free_reg (HARD_REG_SET);
 
 /* This function returns a register to use to load the address to load
@@ -8914,9 +8881,38 @@ fpscr_set_from_mem (int mode, HARD_REG_SET regs_live)
 {
   enum attr_fp_mode fp_mode = (enum attr_fp_mode) mode;
   enum attr_fp_mode norm_mode = ACTUAL_NORMAL_MODE (FP_MODE);
+  int index = fp_mode == norm_mode;
 
-  rtx addr_reg = !can_create_pseudo_p () ? get_free_reg (regs_live) : NULL_RTX;
-  emit_fpu_switch (addr_reg, fp_mode == norm_mode);
+  rtx scratch = !can_create_pseudo_p () ? get_free_reg (regs_live) : NULL_RTX;
+
+  if (fpscr_values == NULL)
+    {
+      tree t = build_index_type (integer_one_node);
+      t = build_array_type (integer_type_node, t);
+      t = build_decl (BUILTINS_LOCATION,
+		      VAR_DECL, get_identifier ("__fpscr_values"), t);
+      DECL_ARTIFICIAL (t) = 1;
+      DECL_IGNORED_P (t) = 1;
+      DECL_EXTERNAL (t) = 1;
+      TREE_STATIC (t) = 1;
+      TREE_PUBLIC (t) = 1;
+      TREE_USED (t) = 1;
+
+      fpscr_values = t;
+    }
+
+  rtx src = DECL_RTL (fpscr_values);
+  if (!can_create_pseudo_p ())
+    {
+      emit_move_insn (scratch, XEXP (src, 0));
+      if (index != 0)
+	emit_insn (gen_addsi3 (scratch, scratch, GEN_INT (index * 4)));
+      src = adjust_automodify_address (src, SImode, scratch, index * 4);
+    }
+  else
+    src = adjust_address (src, SImode, index * 4);
+
+  emit_insn (gen_lds_fpscr (src));
 }
 
 /* Is the given character a logical line separator for the assembler?  */
