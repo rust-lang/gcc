@@ -16251,6 +16251,46 @@ synthesize_add (rtx operands[3])
       return true;
     }
 
+  /* We can use shNadd.uw for some cases.  These are at most 2 insns.  */
+  ival = INTVAL (operands[2]);
+  if (TARGET_64BIT && TARGET_ZBA && budget1 >= 2)
+    {
+      int shcount = 0;
+      rtx mask;
+
+      if ((ival & 0x1fff) == 0
+	  && (ival & HOST_WIDE_INT_C (0x100000000)) != 0
+	  && (ival & HOST_WIDE_INT_C (0xfffffffe00000000)) == 0)
+	{
+	  mask = GEN_INT (HOST_WIDE_INT_C (0x1fffffffe));
+	  shcount = 1;
+	}
+      else if ((ival & 0x3fff) == 0
+	  && (ival & HOST_WIDE_INT_C (0x200000000)) != 0
+	  && (ival & HOST_WIDE_INT_C (0xfffffffc00000000)) == 0)
+	{
+	  mask = GEN_INT (HOST_WIDE_INT_C (0x3fffffffc));
+	  shcount = 2;
+	}
+      else if ((ival & 0x7fff) == 0
+	  && (ival & HOST_WIDE_INT_C (0x400000000)) != 0
+	  && (ival & HOST_WIDE_INT_C (0xfffffff800000000)) == 0)
+	{
+	  mask = GEN_INT (HOST_WIDE_INT_C (0x7fffffff8));
+	  shcount = 3;
+	}
+
+      if (shcount != 0)
+	{
+	  rtx x = force_reg (word_mode, GEN_INT (sext_hwi (ival >> shcount, 32)));
+	  x = gen_rtx_ASHIFT (word_mode, x, GEN_INT (shcount));
+	  x = gen_rtx_AND (word_mode, x, mask);
+	  x = gen_rtx_PLUS (word_mode, x, operands[1]);
+	  emit_insn (gen_rtx_SET (operands[0], x));
+	  return true;
+	}
+    }
+
   /* If we can shift the constant by 1, 2, or 3 bit positions
      and the result is a cheaper constant, then do so.  */
   ival = INTVAL (operands[2]);
