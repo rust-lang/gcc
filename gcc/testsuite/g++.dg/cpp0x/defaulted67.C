@@ -9,15 +9,15 @@ struct S
 
 struct T
 {
-  T& operator=(volatile T &&) = default;
+  T& operator=(volatile T &&) = default;	// { dg-error "does not match the expected signature" "" { target c++29 } }
 };
 
 struct U
 {
-  U& operator=(const volatile U &&) = default;
+  U& operator=(const volatile U &&) = default;	// { dg-error "does not match the expected signature" "" { target c++29 } }
 };
 
 struct V
 {
-  V& operator=(const V &&) = default;
+  V& operator=(const V &&) = default;		// { dg-error "does not match the expected signature" "" { target c++29 } }
 };

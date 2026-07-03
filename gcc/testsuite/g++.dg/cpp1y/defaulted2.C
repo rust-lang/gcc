@@ -5,11 +5,12 @@ struct A {
     int i;
     constexpr A(int v) : i(v) {}
     constexpr A(const A&&) = default;  // { dg-error "implicitly deleted" "" { target c++17_down } }
-				       // { dg-warning "implicitly deleted" "" { target c++20 } .-1 }
+				       // { dg-warning "implicitly deleted" "" { target { c++20 && c++26_down } } .-1 }
+				       // { dg-error "does not match the expected signature" "" { target c++29 } .-2 }
 };
 
 constexpr int f() {
     A a(1);
-    A b = static_cast<const A&&>( a ); // { dg-error "use of deleted function" }
+    A b = static_cast<const A&&>( a ); // { dg-error "use of deleted function" "" { target c++26_down } }
     return b.i;
 }

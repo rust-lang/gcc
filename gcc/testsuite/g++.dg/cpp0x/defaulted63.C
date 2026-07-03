@@ -6,8 +6,8 @@ struct C0 {
 };
 
 struct C1 {
-  C1(volatile C1&) = default; // { dg-warning "implicitly deleted" "" { target c++20 } }
-			      // { dg-error "does not match" "" { target c++17_down } .-1 }
+  C1(volatile C1&) = default; // { dg-warning "implicitly deleted" "" { target { c++20 && c++26_down } } }
+			      // { dg-error "does not match" "" { target { c++17_down || c++29 } } .-1 }
 };
 
 struct C2 {
@@ -15,8 +15,8 @@ struct C2 {
 };
 
 struct C3 {
-  C3(const volatile C3&) = default;  // { dg-warning "implicitly deleted" "" { target c++20 } }
-				      // { dg-error "does not match" "" { target c++17_down } .-1 }
+  C3(const volatile C3&) = default;  // { dg-warning "implicitly deleted" "" { target { c++20 && c++26_down } } }
+				      // { dg-error "does not match" "" { target { c++17_down || c++29 } } .-1 }
 };
 
 struct M0 {
@@ -24,16 +24,16 @@ struct M0 {
 };
 
 struct M1 {
-  M1(const M1&&) = default; // { dg-warning "implicitly deleted" "" { target c++20 } }
-			    // { dg-error "does not match" "" { target c++17_down } .-1 }
+  M1(const M1&&) = default; // { dg-warning "implicitly deleted" "" { target { c++20 && c++26_down } } }
+			    // { dg-error "does not match" "" { target { c++17_down || c++29 } } .-1 }
 };
 
 struct M2 {
-  M2(volatile M2&&) = default;	// { dg-warning "implicitly deleted" "" { target c++20 } }
-				// { dg-error "does not match" "" { target c++17_down } .-1 }
+  M2(volatile M2&&) = default;	// { dg-warning "implicitly deleted" "" { target { c++20 && c++26_down } } }
+				// { dg-error "does not match" "" { target { c++17_down || c++29 } } .-1 }
 };
 
 struct M3 {
-  M3(const volatile M3&&) = default;  // { dg-warning "implicitly deleted" "" { target c++20 } }
-				      // { dg-error "does not match" "" { target c++17_down } .-1 }
+  M3(const volatile M3&&) = default;  // { dg-warning "implicitly deleted" "" { target { c++20 && c++26_down } } }
+				      // { dg-error "does not match" "" { target { c++17_down || c++29 } } .-1 }
 };

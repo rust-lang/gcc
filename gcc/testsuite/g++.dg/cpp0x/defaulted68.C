@@ -7,7 +7,7 @@ struct C0 {
 };
 
 struct C1 {
-  C1(volatile C1&) = default;
+  C1(volatile C1&) = default;		// { dg-error "does not match the expected signature" "" { target c++29 } }
 };
 
 struct C2 {
@@ -15,7 +15,7 @@ struct C2 {
 };
 
 struct C3 {
-  C3(const volatile C3&) = default;
+  C3(const volatile C3&) = default;	// { dg-error "does not match the expected signature" "" { target c++29 } }
 };
 
 struct M0 {
@@ -23,13 +23,13 @@ struct M0 {
 };
 
 struct M1 {
-  M1(const M1&&) = default;
+  M1(const M1&&) = default;		// { dg-error "does not match the expected signature" "" { target c++29 } }
 };
 
 struct M2 {
-  M2(volatile M2&&) = default;
+  M2(volatile M2&&) = default;		// { dg-error "does not match the expected signature" "" { target c++29 } }
 };
 
 struct M3 {
-  M3(const volatile M3&&) = default;
+  M3(const volatile M3&&) = default;	// { dg-error "does not match the expected signature" "" { target c++29 } }
 };

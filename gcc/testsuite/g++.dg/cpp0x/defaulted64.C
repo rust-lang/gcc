@@ -14,8 +14,8 @@ struct R
 
 struct S
 {
-  S& operator=(const S&&) = default; // { dg-warning "implicitly deleted" "" { target c++20 } }
-				     // { dg-error "does not match" "" { target c++17_down } .-1 }
+  S& operator=(const S&&) = default; // { dg-warning "implicitly deleted" "" { target { c++20 && c++26_down } } }
+				     // { dg-error "does not match" "" { target { c++17_down || c++29 } } .-1 }
 
   M m;
 };

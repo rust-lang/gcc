@@ -3753,13 +3753,46 @@ implicitly_declare_fn (special_function_kind kind, tree type,
 /* Maybe mark an explicitly defaulted function FN as =deleted and warn,
    or emit an error, as per [dcl.fct.def.default].
    IMPLICIT_FN is the corresponding special member function that
-   would have been implicitly declared.  We've already compared FN and
-   IMPLICIT_FN and they are not the same.  */
+   would have been implicitly declared.  */
 
 static void
 maybe_delete_defaulted_fn (tree fn, tree implicit_fn)
 {
   if (DECL_ARTIFICIAL (fn))
+    return;
+
+  /* Includes special handling for a default xobj operator.
+     Returns 2 for xobj parameter mismatch, 1 if parameters are
+     different and 0 if they are the same.  */
+  auto compare_fn_params = [] (tree fn, tree implicit_fn)
+  {
+    tree fn_parms = TYPE_ARG_TYPES (TREE_TYPE (fn));
+    tree implicit_fn_parms = TYPE_ARG_TYPES (TREE_TYPE (implicit_fn));
+
+    if (DECL_XOBJ_MEMBER_FUNCTION_P (fn))
+      {
+	tree fn_obj_ref_type = TREE_VALUE (fn_parms);
+	/* We can't default xobj operators with an xobj parameter that is not
+	   an lvalue reference, even if it would correspond.  */
+	if (!TYPE_REF_P (fn_obj_ref_type)
+	    || TYPE_REF_IS_RVALUE (fn_obj_ref_type)
+	    || !object_parms_correspond (fn, implicit_fn,
+					 DECL_CONTEXT (implicit_fn)))
+	  return 2;
+	/* We just compared the object parameters, skip over them before
+	   passing to compparms.  */
+	fn_parms = TREE_CHAIN (fn_parms);
+	implicit_fn_parms = TREE_CHAIN (implicit_fn_parms);
+      }
+    return compparms (fn_parms, implicit_fn_parms) ? 0 : 1;
+  };
+
+  bool same_ret_type = same_type_p (TREE_TYPE (TREE_TYPE (fn)),
+				    TREE_TYPE (TREE_TYPE (implicit_fn)));
+  int cmp_params = compare_fn_params (fn, implicit_fn);
+  if (same_ret_type
+      && cmp_params == 0
+      && (cxx_dialect < cxx29 || !FUNCTION_RVALUE_QUALIFIED (TREE_TYPE (fn))))
     return;
 
   auto_diagnostic_group d;
@@ -3768,17 +3801,28 @@ maybe_delete_defaulted_fn (tree fn, tree implicit_fn)
     = TREE_VALUE (DECL_XOBJ_MEMBER_FUNCTION_P (fn)
 		  ? TREE_CHAIN (TYPE_ARG_TYPES (TREE_TYPE (fn)))
 		  : FUNCTION_FIRST_USER_PARMTYPE (fn));
+  tree implicit_parmtype
+    = TREE_VALUE (FUNCTION_FIRST_USER_PARMTYPE (implicit_fn));
+
   if (/* [dcl.fct.def.default] "if F1 is an assignment operator"...  */
       (SFK_ASSIGN_P (kind)
        /* "and the return type of F1 differs from the return type of F2"  */
-       && (!same_type_p (TREE_TYPE (TREE_TYPE (fn)),
-			 TREE_TYPE (TREE_TYPE (implicit_fn)))
+       && (!same_ret_type
 	   /* "or F1's non-object parameter type is not a reference,
 	      the program is ill-formed"  */
 	   || !TYPE_REF_P (parmtype)))
       /* If F1 is *not* explicitly defaulted on its first declaration, the
 	 program is ill-formed.  */
-      || !DECL_DEFAULTED_IN_CLASS_P (fn))
+      || !DECL_DEFAULTED_IN_CLASS_P (fn)
+      || (cxx_dialect >= cxx29
+	  /* For C++29, the only case which is deleted rather than
+	     ill-formed is when F1 has const C & argument and F2 C &
+	     and no other non-allowed differences.  */
+	  && (FUNCTION_RVALUE_QUALIFIED (TREE_TYPE (fn))
+	      || cmp_params == 2
+	      || TYPE_REF_IS_RVALUE (parmtype)
+	      || TYPE_QUALS (TREE_TYPE (parmtype)) != TYPE_QUAL_CONST
+	      || TYPE_QUALS (TREE_TYPE (implicit_parmtype)))))
     {
       error ("defaulted declaration %q+D does not match the expected "
 	     "signature", fn);
@@ -3867,33 +3911,7 @@ defaulted_late_check (tree fn, tristate imp_const/*=tristate::unknown()*/)
 					    /*inherited_parms=*/NULL_TREE);
   tree eh_spec = TYPE_RAISES_EXCEPTIONS (TREE_TYPE (implicit_fn));
 
-  /* Includes special handling for a default xobj operator.  */
-  auto compare_fn_params = [](tree fn, tree implicit_fn){
-    tree fn_parms = TYPE_ARG_TYPES (TREE_TYPE (fn));
-    tree implicit_fn_parms = TYPE_ARG_TYPES (TREE_TYPE (implicit_fn));
-
-    if (DECL_XOBJ_MEMBER_FUNCTION_P (fn))
-      {
-	tree fn_obj_ref_type = TREE_VALUE (fn_parms);
-	/* We can't default xobj operators with an xobj parameter that is not
-	   an lvalue reference, even if it would correspond.  */
-	if (!TYPE_REF_P (fn_obj_ref_type)
-	    || TYPE_REF_IS_RVALUE (fn_obj_ref_type)
-	    || !object_parms_correspond (fn, implicit_fn,
-					 DECL_CONTEXT (implicit_fn)))
-	  return false;
-	/* We just compared the object parameters, skip over them before
-	   passing to compparms.  */
-	fn_parms = TREE_CHAIN (fn_parms);
-	implicit_fn_parms = TREE_CHAIN (implicit_fn_parms);
-      }
-    return compparms (fn_parms, implicit_fn_parms);
-  };
-
-  if (!same_type_p (TREE_TYPE (TREE_TYPE (fn)),
-		    TREE_TYPE (TREE_TYPE (implicit_fn)))
-      || !compare_fn_params (fn, implicit_fn))
-    maybe_delete_defaulted_fn (fn, implicit_fn);
+  maybe_delete_defaulted_fn (fn, implicit_fn);
 
   if (DECL_DELETED_FN (implicit_fn))
     {

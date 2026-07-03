@@ -12,7 +12,7 @@ template<typename T> struct W
   W();
   W(W&) = default;
   // T1 and T2 may have differing ref-qualifiers (copy assign op).
-  constexpr W& operator=(const W&) && = default; // { dg-error "defaulted" "" { target c++11_down } }
+  constexpr W& operator=(const W&) && = default; // { dg-error "defaulted" "" { target { c++11_down || c++29 } } }
   T t;
 };
 
