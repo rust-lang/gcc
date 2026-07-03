@@ -1252,6 +1252,26 @@
   [(set_attr "type" "neon_arith_acc<q>")]
 )
 
+;; C = ADD (ABS (A), B) -> C = ABA (A, B, 0)
+(define_insn_and_split "*aarch64_abs_plus<mode>"
+  [(set (match_operand:VDQ_BHSI 0 "register_operand" "=&w")
+	(plus:VDQ_BHSI
+	  (unspec:VDQ_BHSI
+	    [(match_operand:VDQ_BHSI 1 "register_operand" "w")]
+	    UNSPEC_ABS)
+	  (match_operand:VDQ_BHSI 2 "register_operand" "w")))]
+  "TARGET_SIMD && can_create_pseudo_p ()"
+  "#"
+  "&& 1"
+  [(const_int 0)]
+  {
+    rtx zero = aarch64_gen_shareable_zero (<MODE>mode);
+    emit_insn (gen_aarch64_saba<mode> (operands[0], operands[2],
+				       operands[1], zero));
+    DONE;
+  }
+)
+
 (define_insn "fabd<mode>3<vczle><vczbe>"
   [(set (match_operand:VHSDF_HSDF 0 "register_operand" "=w")
 	(abs:VHSDF_HSDF
