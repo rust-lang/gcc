@@ -1563,7 +1563,10 @@
 			  (match_operand:SI 2 "arith_reg_operand" "r"))
 		 (reg:SI T_REG)))
    (set (reg:SI T_REG)
-	(ltu:SI (plus:SI (match_dup 1) (match_dup 2)) (match_dup 1)))]
+	(gtu:SI (plus:DI (plus:DI (zero_extend:DI (match_dup 1))
+				  (zero_extend:DI (match_dup 2)))
+			 (zero_extend:DI (reg:SI T_REG)))
+		(const_int 4294967295)))]
   "TARGET_SH1"
   "addc	%2,%0"
   [(set_attr "type" "arith")])
@@ -1955,9 +1958,9 @@
 			    (match_operand:SI 2 "arith_reg_operand" "r"))
 		  (reg:SI T_REG)))
    (set (reg:SI T_REG)
-	(gtu:SI (minus:SI (minus:SI (match_dup 1) (match_dup 2))
-			  (reg:SI T_REG))
-		(match_dup 1)))]
+	(gtu:SI (plus:DI (zero_extend:DI (match_dup 2))
+			 (zero_extend:DI (reg:SI T_REG)))
+		(zero_extend:DI (match_dup 1))))]
   "TARGET_SH1"
   "subc	%2,%0"
   [(set_attr "type" "arith")])
