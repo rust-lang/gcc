@@ -9947,92 +9947,92 @@ resolve_omp_clauses_aff_dep_map_cache (gfc_code *code,
       case EXEC_OMP_TARGET_TEAMS_DISTRIBUTE_SIMD:
       case EXEC_OMP_TARGET_TEAMS_LOOP:
       case EXEC_OMP_TARGET_DATA:
-	    switch (n->u.map.op)
-	      {
-	      case OMP_MAP_TO:
-	      case OMP_MAP_ALWAYS_TO:
-	      case OMP_MAP_PRESENT_TO:
-	      case OMP_MAP_ALWAYS_PRESENT_TO:
-	      case OMP_MAP_FROM:
-	      case OMP_MAP_ALWAYS_FROM:
-	      case OMP_MAP_PRESENT_FROM:
-	      case OMP_MAP_ALWAYS_PRESENT_FROM:
-	      case OMP_MAP_TOFROM:
-	      case OMP_MAP_ALWAYS_TOFROM:
-	      case OMP_MAP_PRESENT_TOFROM:
-	      case OMP_MAP_ALWAYS_PRESENT_TOFROM:
-	      case OMP_MAP_ALLOC:
-	      case OMP_MAP_PRESENT_ALLOC:
-			  break;
-	      default:
-			  gfc_error ("TARGET%s with map-type other than TO, "
-				     "FROM, TOFROM, or ALLOC on MAP clause "
-				     "at %L",
-				     code->op == EXEC_OMP_TARGET_DATA
-				     ? " DATA" : "", &n->where);
-			  break;
-	      }
+	switch (n->u.map.op)
+	  {
+	  case OMP_MAP_TO:
+	  case OMP_MAP_ALWAYS_TO:
+	  case OMP_MAP_PRESENT_TO:
+	  case OMP_MAP_ALWAYS_PRESENT_TO:
+	  case OMP_MAP_FROM:
+	  case OMP_MAP_ALWAYS_FROM:
+	  case OMP_MAP_PRESENT_FROM:
+	  case OMP_MAP_ALWAYS_PRESENT_FROM:
+	  case OMP_MAP_TOFROM:
+	  case OMP_MAP_ALWAYS_TOFROM:
+	  case OMP_MAP_PRESENT_TOFROM:
+	  case OMP_MAP_ALWAYS_PRESENT_TOFROM:
+	  case OMP_MAP_ALLOC:
+	  case OMP_MAP_PRESENT_ALLOC:
 	    break;
+	  default:
+	    gfc_error ("TARGET%s with map-type other than TO, "
+		       "FROM, TOFROM, or ALLOC on MAP clause "
+		       "at %L",
+		       code->op == EXEC_OMP_TARGET_DATA
+		       ? " DATA" : "", &n->where);
+	    break;
+	  }
+	break;
       case EXEC_OMP_TARGET_ENTER_DATA:
-	    switch (n->u.map.op)
-	      {
-	      case OMP_MAP_TO:
-	      case OMP_MAP_ALWAYS_TO:
-	      case OMP_MAP_PRESENT_TO:
-	      case OMP_MAP_ALWAYS_PRESENT_TO:
-	      case OMP_MAP_ALLOC:
-	      case OMP_MAP_PRESENT_ALLOC:
-			  break;
-	      case OMP_MAP_TOFROM:
-			  n->u.map.op = OMP_MAP_TO;
-			  break;
-	      case OMP_MAP_ALWAYS_TOFROM:
-			  n->u.map.op = OMP_MAP_ALWAYS_TO;
-			  break;
-	      case OMP_MAP_PRESENT_TOFROM:
-			  n->u.map.op = OMP_MAP_PRESENT_TO;
-			  break;
-	      case OMP_MAP_ALWAYS_PRESENT_TOFROM:
-			  n->u.map.op = OMP_MAP_ALWAYS_PRESENT_TO;
-			  break;
-	      default:
-			  gfc_error ("TARGET ENTER DATA with map-type other "
-				     "than TO, TOFROM or ALLOC on MAP clause "
-				     "at %L", &n->where);
-			  break;
-	      }
+	switch (n->u.map.op)
+	  {
+	  case OMP_MAP_TO:
+	  case OMP_MAP_ALWAYS_TO:
+	  case OMP_MAP_PRESENT_TO:
+	  case OMP_MAP_ALWAYS_PRESENT_TO:
+	  case OMP_MAP_ALLOC:
+	  case OMP_MAP_PRESENT_ALLOC:
 	    break;
+	  case OMP_MAP_TOFROM:
+	    n->u.map.op = OMP_MAP_TO;
+	    break;
+	  case OMP_MAP_ALWAYS_TOFROM:
+	    n->u.map.op = OMP_MAP_ALWAYS_TO;
+	    break;
+	  case OMP_MAP_PRESENT_TOFROM:
+	    n->u.map.op = OMP_MAP_PRESENT_TO;
+	    break;
+	  case OMP_MAP_ALWAYS_PRESENT_TOFROM:
+	    n->u.map.op = OMP_MAP_ALWAYS_PRESENT_TO;
+	    break;
+	  default:
+	    gfc_error ("TARGET ENTER DATA with map-type other "
+		       "than TO, TOFROM or ALLOC on MAP clause "
+		       "at %L", &n->where);
+	    break;
+	  }
+	break;
       case EXEC_OMP_TARGET_EXIT_DATA:
-	    switch (n->u.map.op)
-	      {
-	      case OMP_MAP_FROM:
-	      case OMP_MAP_ALWAYS_FROM:
-	      case OMP_MAP_PRESENT_FROM:
-	      case OMP_MAP_ALWAYS_PRESENT_FROM:
-	      case OMP_MAP_RELEASE:
-	      case OMP_MAP_DELETE:
-			  break;
-	      case OMP_MAP_TOFROM:
-			  n->u.map.op = OMP_MAP_FROM;
-			  break;
-	      case OMP_MAP_ALWAYS_TOFROM:
-			  n->u.map.op = OMP_MAP_ALWAYS_FROM;
-			  break;
-	      case OMP_MAP_PRESENT_TOFROM:
-			  n->u.map.op = OMP_MAP_PRESENT_FROM;
-			  break;
-	      case OMP_MAP_ALWAYS_PRESENT_TOFROM:
-			  n->u.map.op = OMP_MAP_ALWAYS_PRESENT_FROM;
-			  break;
-	      default:
-			  gfc_error ("TARGET EXIT DATA with map-type other "
-				     "than FROM, TOFROM, RELEASE, or DELETE on "
-				     "MAP clause at %L", &n->where);
-			  break;
-	      }
+	switch (n->u.map.op)
+	  {
+	  case OMP_MAP_FROM:
+	  case OMP_MAP_ALWAYS_FROM:
+	  case OMP_MAP_PRESENT_FROM:
+	  case OMP_MAP_ALWAYS_PRESENT_FROM:
+	  case OMP_MAP_RELEASE:
+	  case OMP_MAP_DELETE:
 	    break;
+	  case OMP_MAP_TOFROM:
+	    n->u.map.op = OMP_MAP_FROM;
+	    break;
+	  case OMP_MAP_ALWAYS_TOFROM:
+	    n->u.map.op = OMP_MAP_ALWAYS_FROM;
+	    break;
+	  case OMP_MAP_PRESENT_TOFROM:
+	    n->u.map.op = OMP_MAP_PRESENT_FROM;
+	    break;
+	  case OMP_MAP_ALWAYS_PRESENT_TOFROM:
+	    n->u.map.op = OMP_MAP_ALWAYS_PRESENT_FROM;
+	    break;
+	  default:
+	    gfc_error ("TARGET EXIT DATA with map-type other "
+		       "than FROM, TOFROM, RELEASE, or DELETE on "
+		       "MAP clause at %L", &n->where);
+	    break;
+	  }
+	break;
       default:
-	    break;
+	break;
       }
   if (list == OMP_LIST_MAP || list == OMP_LIST_TO || list == OMP_LIST_FROM)
     {
