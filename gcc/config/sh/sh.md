@@ -4846,21 +4846,6 @@
     }
 })
 
-(define_insn_and_split "extend<mode>si2_short_mem_disp_z"
-  [(set (match_operand:SI 0 "arith_reg_dest" "=r")
-	(sign_extend:SI
-	    (match_operand:QIHI 1 "short_displacement_mem_operand" "m")))
-   (clobber (reg:SI R0_REG))]
-  "TARGET_SH1 && ! TARGET_SH2A && sh_lra_p ()"
-  "#"
-  "&& 1"
-  [(set (match_dup 2) (sign_extend:SI (match_dup  1)))
-   (set (match_dup 0) (match_dup 2))]
-{
-  operands[2] = gen_rtx_REG (SImode, R0_REG);
-}
-  [(set_attr "type" "load")])
-
 (define_insn_and_split "*extend<mode>si2_compact_reg"
   [(set (match_operand:SI 0 "arith_reg_dest" "=r")
 	(sign_extend:SI (match_operand:QIHI 1 "arith_reg_operand" "r")))]
@@ -4910,6 +4895,26 @@
 	mov.<bw>	@(%O2,%1),%0"
   [(set_attr "type" "load")
    (set_attr "length" "2,2,4")])
+
+;; The extend<mode>si2_short_mem_disp_z pattern must come after the
+;; *extend<mode>si2_compact_mem_disp patterns.
+;; The patterns without the R0 clobber should be matched by recog first.
+;; This R0-clobber pattern is normally only explicitly emitted during
+;; expansion before RA.
+(define_insn_and_split "extend<mode>si2_short_mem_disp_z"
+  [(set (match_operand:SI 0 "arith_reg_dest" "=r")
+	(sign_extend:SI
+	    (match_operand:QIHI 1 "short_displacement_mem_operand" "m")))
+   (clobber (reg:SI R0_REG))]
+  "TARGET_SH1 && ! TARGET_SH2A && sh_lra_p ()"
+  "#"
+  "&& 1"
+  [(set (match_dup 2) (sign_extend:SI (match_dup  1)))
+   (set (match_dup 0) (match_dup 2))]
+{
+  operands[2] = gen_rtx_REG (SImode, R0_REG);
+}
+  [(set_attr "type" "load")])
 
 ;; The pre-dec and post-inc mems must be captured by the '<' and '>'
 ;; constraints, otherwise wrong code might get generated.
