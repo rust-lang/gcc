@@ -172,6 +172,5 @@ UrlSuffix(gcc/SH-Options.html#index-mfsca)
 mfsrra
 UrlSuffix(gcc/SH-Options.html#index-mfsrra)
 
-mlra
-UrlSuffix(gcc/SH-Options.html#index-mlra-2)
+; skipping UrlSuffix for 'mlra' due to finding no URLs
 
