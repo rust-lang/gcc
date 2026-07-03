@@ -7557,7 +7557,9 @@ Initialize the vector to given values.  Operand 0 is the vector to initialize
 and operand 1 is parallel containing values for individual fields.  The
 @var{n} mode is the mode of the elements, should be either element mode of
 the vector mode @var{m}, or a vector mode with the same element mode and
-smaller number of elements.
+smaller number of elements.  If @var{m} specifies a scalable vector mode,
+then operand 1 only specifies the minimum number of elements implied
+by @var{m} and elements beyond are zero initialized.
 
 @mdindex vec_duplicate@var{m}
 @item @samp{vec_duplicate@var{m}}

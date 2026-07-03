@@ -7502,11 +7502,14 @@ fields_length (const_tree type)
   return count;
 }
 
-
 /* Store the value of constructor EXP into the rtx TARGET.
    TARGET is either a REG or a MEM; we know it cannot conflict, since
    safe_from_p has been called.
    CLEARED is true if TARGET is known to have been zero'd.
+   If the constructor EXP has a vector type then elements of TARGET for which
+   there is no corresponding element in EXP are zero'd.  For a variable-length
+   vector type, only elements up to the minimum number of subparts of the type
+   are explicitly zero'd; any elements beyond that are implicitly zero.
    SIZE is the number of bytes of TARGET we are allowed to modify: this
    may not be the same as the size of EXP if we are assigning to a field
    which has been packed to exclude padding bits.
@@ -8079,14 +8082,22 @@ store_constructor (tree exp, rtx target, int cleared, poly_int64 size,
 		   similarly non-const type vectors. */
 		icode = convert_optab_handler (vec_init_optab, mode, eltmode);
 	      }
+	    else
+	      {
+		/* Handle variable-length vector types.  */
+		icode = convert_optab_handler (vec_init_optab, mode, eltmode);
+		const_n_elts = constant_lower_bound (n_elts);
+	      }
 
-	  if (const_n_elts && icode != CODE_FOR_nothing)
-	    {
-	      vector = rtvec_alloc (const_n_elts);
-	      for (unsigned int k = 0; k < const_n_elts; k++)
-		RTVEC_ELT (vector, k) = CONST0_RTX (eltmode);
-	    }
+	    if (const_n_elts && icode != CODE_FOR_nothing)
+	      {
+		vector = rtvec_alloc (const_n_elts);
+		for (unsigned int k = 0; k < const_n_elts; k++)
+		  RTVEC_ELT (vector, k) = CONST0_RTX (eltmode);
+	      }
 	  }
+	else
+	  gcc_assert (n_elts.is_constant ());
 
 	/* Compute the size of the elements in the CTOR.  It differs
 	   from the size of the vector type elements only when the
