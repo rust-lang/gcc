@@ -8921,6 +8921,22 @@ avr_out_plus_1 (rtx xinsn, rtx *xop, int *plen, rtx_code code,
   if (xval == const0_rtx)
     return;
 
+  // Adding +/-1 to a lower reg doesn't need a scratch.
+
+  if (IN_RANGE (n_bytes, 2, 4)
+      && code_sat == UNKNOWN
+      && (xval == const1_rtx || xval == constm1_rtx)
+      && ! test_hard_reg_class (LD_REGS, xop[0]))
+    {
+      avr_asm_len ("sec", nullptr, plen, 1);
+
+      for (auto r = REGNO (xop[0]); r < REGNO (xop[0]) + n_bytes; ++r)
+	avr_asm_len (xval == const1_rtx
+		     ? "adc %0,__zero_reg__"
+		     : "sbc %0,__zero_reg__", &all_regs_rtx[r], plen, 1);
+      return;
+    }
+
   if (MINUS == code)
     xval = simplify_unary_operation (NEG, imode, xval, imode);
 

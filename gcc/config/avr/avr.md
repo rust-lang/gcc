@@ -1817,10 +1817,10 @@
 ;; "addhq3_clobber" "adduhq3_clobber"
 ;; "addha3_clobber" "adduha3_clobber"
 (define_insn_and_split "add<mode>3_clobber"
-  [(set (match_operand:ALL2 0 "register_operand"            "=!w    ,d    ,r")
-        (plus:ALL2 (match_operand:ALL2 1 "register_operand"  "%0    ,0    ,0")
-                   (match_operand:ALL2 2 "const_operand"     "IJ YIJ,n Ynn,n Ynn")))
-   (clobber (match_scratch:QI 3                             "=X     ,X    ,&d"))]
+  [(set (match_operand:ALL2 0 "register_operand"            "=!w    ,d    ,*l     ,r")
+        (plus:ALL2 (match_operand:ALL2 1 "register_operand"  "%0    ,0    ,0      ,0")
+                   (match_operand:ALL2 2 "const_operand"     "IJ YIJ,n Ynn,Y01 Ym1,n Ynn")))
+   (clobber (match_scratch:QI 3                             "=X     ,X    ,X      ,&d"))]
   ""
   "#"
   "&& reload_completed"
@@ -1831,10 +1831,10 @@
 ;; "*addhq3_clobber"  "*adduhq3_clobber"
 ;; "*addha3_clobber"  "*adduha3_clobber"
 (define_insn "*add<mode>3_clobber"
-  [(set (match_operand:ALL2 0 "register_operand"            "=!w    ,d    ,r")
-        (plus:ALL2 (match_operand:ALL2 1 "register_operand"  "%0    ,0    ,0")
-                   (match_operand:ALL2 2 "const_operand"     "IJ YIJ,n Ynn,n Ynn")))
-   (clobber (match_scratch:QI 3                             "=X     ,X    ,&d"))
+  [(set (match_operand:ALL2 0 "register_operand"            "=!w    ,d    ,*l     ,r")
+        (plus:ALL2 (match_operand:ALL2 1 "register_operand"  "%0    ,0    ,0      ,0")
+                   (match_operand:ALL2 2 "const_operand"     "IJ YIJ,n Ynn,Y01 Ym1,n Ynn")))
+   (clobber (match_scratch:QI 3                             "=X     ,X    ,X      ,&d"))
    (clobber (reg:CC REG_CC))]
   "reload_completed"
   {
@@ -1848,10 +1848,10 @@
 ;; "addsq3" "addusq3"
 ;; "addsa3" "addusa3"
 (define_insn_and_split "add<mode>3"
-  [(set (match_operand:ALL4 0 "register_operand"          "=??r,d ,r")
-        (plus:ALL4 (match_operand:ALL4 1 "register_operand" "%0,0 ,0")
-                   (match_operand:ALL4 2 "nonmemory_operand" "r,i ,n Ynn")))
-   (clobber (match_scratch:QI 3                             "=X,X ,&d"))]
+  [(set (match_operand:ALL4 0 "register_operand"          "=??r,d ,*r     ,r")
+        (plus:ALL4 (match_operand:ALL4 1 "register_operand" "%0,0 ,0      ,0")
+                   (match_operand:ALL4 2 "nonmemory_operand" "r,i ,Y01 Ym1,n Ynn")))
+   (clobber (match_scratch:QI 3                             "=X,X ,X      ,&d"))]
   ""
   "#"
   "&& reload_completed"
@@ -1859,10 +1859,10 @@
   { DONE_ADD_CCC })
 
 (define_insn "*add<mode>3"
-  [(set (match_operand:ALL4 0 "register_operand"          "=??r,d ,r")
-        (plus:ALL4 (match_operand:ALL4 1 "register_operand" "%0,0 ,0")
-                   (match_operand:ALL4 2 "nonmemory_operand" "r,i ,n Ynn")))
-   (clobber (match_scratch:QI 3                             "=X,X ,&d"))
+  [(set (match_operand:ALL4 0 "register_operand"          "=??r,d ,*r     ,r")
+        (plus:ALL4 (match_operand:ALL4 1 "register_operand" "%0,0 ,0      ,0")
+                   (match_operand:ALL4 2 "nonmemory_operand" "r,i ,Y01 Ym1,n Ynn")))
+   (clobber (match_scratch:QI 3                             "=X,X ,X      ,&d"))
    (clobber (reg:CC REG_CC))]
   "reload_completed"
   {
@@ -1951,10 +1951,10 @@
 
 
 (define_insn_and_split "addpsi3"
-  [(set (match_operand:PSI 0 "register_operand"         "=??r,d ,d,r")
-        (plus:PSI (match_operand:PSI 1 "register_operand" "%0,0 ,0,0")
-                  (match_operand:PSI 2 "nonmemory_operand" "r,s ,n,n")))
-   (clobber (match_scratch:QI 3                           "=X,X ,X,&d"))]
+  [(set (match_operand:PSI 0 "register_operand"         "=??r,d ,d,*r     ,r")
+        (plus:PSI (match_operand:PSI 1 "register_operand" "%0,0 ,0,0      ,0")
+                  (match_operand:PSI 2 "nonmemory_operand" "r,s ,n,Y01 Ym1,n")))
+   (clobber (match_scratch:QI 3                           "=X,X ,X,X      ,&d"))]
   ""
   "#"
   "&& reload_completed"
@@ -1962,10 +1962,10 @@
   { DONE_ADD_CCC })
 
 (define_insn "*addpsi3"
-  [(set (match_operand:PSI 0 "register_operand"         "=??r,d ,d,r")
-        (plus:PSI (match_operand:PSI 1 "register_operand" "%0,0 ,0,0")
-                  (match_operand:PSI 2 "nonmemory_operand" "r,s ,n,n")))
-   (clobber (match_scratch:QI 3                           "=X,X ,X,&d"))
+  [(set (match_operand:PSI 0 "register_operand"         "=??r,d ,d,*r     ,r")
+        (plus:PSI (match_operand:PSI 1 "register_operand" "%0,0 ,0,0      ,0")
+                  (match_operand:PSI 2 "nonmemory_operand" "r,s ,n,Y01 Ym1,n")))
+   (clobber (match_scratch:QI 3                           "=X,X ,X,X      ,&d"))
    (clobber (reg:CC REG_CC))]
   "reload_completed"
   {
