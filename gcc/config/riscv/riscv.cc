@@ -15949,7 +15949,7 @@ synthesize_and (rtx operands[3])
      execution and fusion in the constant synthesis those would naturally
      decrease the budget.  It also does not account for the AND at
      the end of the sequence which would increase the budget. */
-  int budget = riscv_const_insns (operands[2], true);
+  int budget = riscv_integer_cost (INTVAL (operands[2]), true);
   rtx input = NULL_RTX;
   rtx output = NULL_RTX;
 
@@ -16037,6 +16037,53 @@ synthesize_and (rtx operands[3])
       return true;
     }
 
+  /* Similarly if there's a run of 1s on the ends and all zeros in the middle
+     then rotation to get all the 1s in the mask into the LSB may result in
+     a SMALL_OPERAND or perhaps a mode mask.  In those cases its rotate,
+     mask, rotate back into position.  */
+  t = INTVAL (operands[2]);
+  if (TARGET_64BIT
+      && (TARGET_ZBB || TARGET_XTHEADBB || TARGET_ZBKB)
+      && budget >= 3
+      && consecutive_bits_operand (GEN_INT (~t), word_mode)
+      && ((TARGET_ZBA && popcount_hwi (t) == 32)
+	  || popcount_hwi (t) == 16
+	  || popcount_hwi (t) <= 11))
+    {
+      /* First rotate the relevant bits into the low position.  */
+      int count = BITS_PER_WORD - clz_hwi (~t);
+      rtx x = gen_rtx_ROTATERT (word_mode, operands[1], GEN_INT (count));
+      output = gen_reg_rtx (word_mode);
+      emit_insn (gen_rtx_SET (output, x));
+      input = output;
+
+      /* Now clear bits according to the mask.  */
+      if (popcount_hwi (t) == 32)
+	{
+	  x = gen_rtx_ZERO_EXTEND (word_mode, gen_lowpart (SImode, input));
+	  emit_insn (gen_rtx_SET (output, x));
+	  input = output;
+	}
+      else if (popcount_hwi (t) == 16)
+	{
+	  x = gen_rtx_ZERO_EXTEND (word_mode, gen_lowpart (HImode, input));
+	  emit_insn (gen_rtx_SET (output, x));
+	  input = output;
+	}
+      else
+	{
+	  x = GEN_INT ((HOST_WIDE_INT_1U << popcount_hwi (t)) - 1);
+	  x = gen_rtx_AND (word_mode, input, x);
+	  emit_insn (gen_rtx_SET (output, x));
+	  input = output;
+	}
+
+      /* Now we just need to rotate the bits back into position.  */
+      x = gen_rtx_ROTATERT (word_mode, input, GEN_INT (BITS_PER_WORD - count));
+      emit_insn (gen_rtx_SET (operands[0], x));
+      return true;
+    }
+
   /* If there are all zeros, except for a run of 1s somewhere in the middle
      of the constant, then this is at worst 3 shifts.  */
   t = INTVAL (operands[2]);
@@ -16098,9 +16145,9 @@ synthesize_and (rtx operands[3])
 	 we have Zbb, then we have ANDN.  So if the inverted constant
 	 is cheaper, invert it and use ANDN.  */
       if (TARGET_ZBB
-	  && riscv_const_insns (GEN_INT (~UINTVAL (operands[2])), true) > 0
-	  && (riscv_const_insns (operands[2], true)
-	      > riscv_const_insns (GEN_INT (~UINTVAL (operands[2])), true)))
+	  && riscv_integer_cost (~UINTVAL (operands[2]), true) > 0
+	  && (riscv_integer_cost (UINTVAL (operands[2]), true)
+	      > riscv_integer_cost (~UINTVAL (operands[2]), true)))
 	{
 	  rtx x = force_reg (word_mode, GEN_INT (~UINTVAL (operands[2])));
 	  x = gen_rtx_NOT (word_mode, x);
