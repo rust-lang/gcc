@@ -26168,7 +26168,7 @@ public:
   void finish_cost (const vector_costs *) override;
   bool better_main_loop_than_p (const vector_costs *) const override;
   bool better_epilogue_loop_than_p (const vector_costs *other,
-				    loop_vec_info main_loop) const;
+				    loop_vec_info main_loop) const override;
 
 private:
 
