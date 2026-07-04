@@ -1,5 +1,5 @@
 /* { dg-do compile } */
-/* { dg-options "-O3 -fdump-tree-pre --param logical-op-non-short-circuit=1" } */
+/* { dg-options "-O3 -fdump-tree-pre -fdump-tree-optimized --param logical-op-non-short-circuit=1" } */
 
 typedef __UINT64_TYPE__ uint64_t;
 
@@ -45,5 +45,9 @@ int noccmp1(uint64_t* s1, uint64_t* s2)
     return 0;
 }
 
-/* Check for condition assignments for noccmp0 and noccmp1.  */
-/* { dg-final { scan-tree-dump-times {_\d+ = d\d+_\d+ != d\d+_\d+;\n  _\d+ = bar_\d+ == 0;} 2 "pre" } } */
+/* Check for condition assignments for noccmp1 and noccmp0.  */
+/* { dg-final { scan-tree-dump-times {_\d+ = d\d+_\d+ != d\d+_\d+;\n  _\d+ = bar_\d+ == 0;} 1 "pre" } } */
+/* { dg-final { scan-tree-dump-times "optimizing two comparisons " 2 "pre" } } */
+/* The conditional in noccmp1 should be optimized in pre */
+/* { dg-final { scan-tree-dump-times " if " 1 "pre" } } */
+/* { dg-final { scan-tree-dump-times " if " 1 "optimized" } } */
