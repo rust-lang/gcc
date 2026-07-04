@@ -743,8 +743,6 @@ extern const char *host_detect_local_cpu (int argc, const char **argv);
 #define POINTER_SIZE (TARGET_X32 ? 32 : BITS_PER_WORD)
 #define LONG_LONG_TYPE_SIZE 64
 
-#define WIDEST_HARDWARE_FP_SIZE 80
-
 #if defined (TARGET_BI_ARCH) || TARGET_64BIT_DEFAULT
 #define MAX_BITS_PER_WORD 64
 #else

@@ -195,9 +195,6 @@ extern enum alpha_fp_trap_mode alpha_fptm;
 /* Define the size of `long long'.  The default is the twice the word size.  */
 #define LONG_LONG_TYPE_SIZE 64
 
-/* Work around target_flags dependency in ada/targtyps.cc.  */
-#define WIDEST_HARDWARE_FP_SIZE 64
-
 #define	WCHAR_TYPE "unsigned int"
 #define	WCHAR_TYPE_SIZE 32
 

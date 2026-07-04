@@ -691,9 +691,6 @@ extern unsigned char rs6000_recip_bits[];
    words.  */
 #define LONG_LONG_TYPE_SIZE 64
 
-/* Work around rs6000_long_double_type_size dependency in ada/targtyps.cc.  */
-#define WIDEST_HARDWARE_FP_SIZE 64
-
 /* Width in bits of a pointer.
    See also the macro `Pmode' defined below.  */
 extern unsigned rs6000_pointer_size;

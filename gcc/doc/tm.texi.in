@@ -1446,16 +1446,6 @@ uses this macro should also arrange to use @file{t-gnu-prefix} in
 the libgcc @file{config.host}.
 @end defmac
 
-@defmac WIDEST_HARDWARE_FP_SIZE
-A C expression for the size in bits of the widest floating-point format
-supported by the hardware.  If you define this macro, you must specify a
-value less than or equal to mode precision of the mode used for C type
-@code{long double} (from hook @code{targetm.c.mode_for_floating_type}
-with argument @code{TI_LONG_DOUBLE_TYPE}).  If you do not define this
-macro, mode precision of the mode used for C type @code{long double} is
-the default.
-@end defmac
-
 @defmac DEFAULT_SIGNED_CHAR
 An expression whose value is 1 or 0, according to whether the type
 @code{char} should be signed or unsigned by default.  The user can

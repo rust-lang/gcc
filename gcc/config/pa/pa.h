@@ -269,11 +269,6 @@ typedef struct GTY(()) machine_function
 #define MIN_UNITS_PER_WORD      4
 #endif
 
-/* The widest floating point format supported by the hardware.  Note that
-   setting this influences some Ada floating point type sizes, currently
-   required for GNAT to operate properly.  */
-#define WIDEST_HARDWARE_FP_SIZE 64
-
 /* Allocation boundary (in *bits*) for storing arguments in argument list.  */
 #define PARM_BOUNDARY BITS_PER_WORD
 

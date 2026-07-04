@@ -386,9 +386,6 @@ extern const char *s390_host_detect_local_cpu (int argc, const char **argv);
 #define LONG_TYPE_SIZE (TARGET_64BIT ? 64 : 32)
 #define LONG_LONG_TYPE_SIZE 64
 
-/* Work around target_flags dependency in ada/targtyps.cc.  */
-#define WIDEST_HARDWARE_FP_SIZE 64
-
 /* We use "unsigned char" as default.  */
 #define DEFAULT_SIGNED_CHAR 0
 

@@ -543,12 +543,16 @@ gnat_to_gnu_entity (Entity_Id gnat_entity, tree gnu_expr, bool definition)
 	  esize = UI_To_Int (Esize (gnat_entity));
 
 	  if (IN (kind, Float_Kind))
-#ifdef WIDEST_HARDWARE_FP_SIZE
-	    max_esize = fp_prec_to_size (WIDEST_HARDWARE_FP_SIZE);
-#else
-	    max_esize
-	      = fp_prec_to_size (TYPE_PRECISION (long_double_type_node));
-#endif
+	    {
+	      /* This block is executed the first time to translate the GNAT
+		 node corresponding to Gigi's longest_float_type_node, so the
+		 tree is not yet saved at this time.  */
+	      if (longest_float_type_node)
+		max_esize
+		  = fp_prec_to_size (TYPE_PRECISION (longest_float_type_node));
+	      else
+		max_esize = esize;
+	    }
 	  else if (IN (kind, Access_Kind))
 	    max_esize = POINTER_SIZE * 2;
 	  else

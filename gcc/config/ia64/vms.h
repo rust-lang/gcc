@@ -33,10 +33,6 @@ along with GCC; see the file COPYING3.  If not see
 #undef MAX_OFILE_ALIGNMENT
 #define MAX_OFILE_ALIGNMENT 524288  /* 8 x 2^16 by DEC Ada Test CD40VRA */
 
-/* Widest floating-point type efficiently supported by hardware and OS.  */
-#undef WIDEST_HARDWARE_FP_SIZE
-#define WIDEST_HARDWARE_FP_SIZE 64
-
 /* The structure return address arrives as an "argument" on VMS.  */
 #undef PCC_STATIC_STRUCT_RETURN
 

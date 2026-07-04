@@ -495,10 +495,7 @@ along with GCC; see the file COPYING3.  If not see
 /* SPARC_LONG_DOUBLE_TYPE_SIZE is defined per OS even though the
    SPARC ABI says that it is 128-bit wide.  LONG_DOUBLE_TYPE_SIZE
    get poisoned, so add SPARC_ prefix.  */
-/* #define SPARC_LONG_DOUBLE_TYPE_SIZE	128 */
-
-/* The widest floating-point format really supported by the hardware.  */
-#define WIDEST_HARDWARE_FP_SIZE 64
+#define SPARC_LONG_DOUBLE_TYPE_SIZE	128
 
 /* Width in bits of a pointer.  This is the size of ptr_mode.  */
 #define POINTER_SIZE (TARGET_PTR64 ? 64 : 32)
