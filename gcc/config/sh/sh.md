@@ -6196,11 +6196,11 @@
 ;; when the destination changes mode.
 (define_insn "movsf_ie"
   [(set (match_operand:SF 0 "general_movdst_operand"
-			        "=f,r,f,f,fy, f,m, r, r,m,f,y,y,rf,r,y,<,y,y")
+			        "=f,r,f,f,f*y,f,m, r, r,m,f,y,y,rf,r,y,<,y,y")
 	(match_operand:SF 1 "general_movsrc_operand"
-			        " f,r,G,H,FQ,mf,f,FQ,mr,r,y,f,>,fr,y,r,y,>,y"))
+			        " f,r,G,H, FQ,mf,f,FQ,mr,r,y,f,>,fr,y,r,y,>,y"))
    (use (reg:SI FPSCR_MODES_REG))
-   (clobber (match_scratch:SI 2 "=X,X,X,X,&z, X,X, X, X,X,X,X,X, y,X,X,X,X,X"))]
+   (clobber (match_scratch:SI 2 "=X,X,X,X, &z,X,X, X, X,X,X,X,X, y,X,X,X,X,X"))]
   "TARGET_SH2E
    && (arith_reg_operand (operands[0], SFmode)
        || fpul_operand (operands[0], SFmode)
