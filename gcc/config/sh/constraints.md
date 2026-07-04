@@ -262,23 +262,15 @@
 	    (match_test "~ival == 64")
 	    (match_test "~ival == 128"))))
 
-;; FIXME: LRA and reload behavior differs in memory constraint handling.
-;;        For LRA memory address constraints need to narrow the register type
-;;        restrictions.  It seems  the address RTX validation is done slightly
-;;        differently.  Remove the non-LRA paths eventually.
+;; For LRA memory address constraints need to narrow the register type
+;; restrictions.
 (define_constraint "Rab"
   "@internal address base register constraint"
-  (ior (and (match_test "sh_lra_p ()")
-	    (match_test "MAYBE_BASE_REGISTER_RTX_P (op, false)"))
-       (and (match_test "!sh_lra_p ()")
-	    (match_code "reg"))))
+  (match_test "MAYBE_BASE_REGISTER_RTX_P (op, false)"))
 
 (define_constraint "Rai"
   "@internal address index register constraint"
-  (ior (and (match_test "sh_lra_p ()")
-	    (match_test "MAYBE_INDEX_REGISTER_RTX_P (op, false)"))
-       (and (match_test "!sh_lra_p ()")
-	    (match_code "reg"))))
+  (match_test "MAYBE_INDEX_REGISTER_RTX_P (op, false)"))
 
 (define_memory_constraint "Sua"
   "A memory reference that allows simple register or post-inc addressing."
@@ -310,15 +302,10 @@
 
 (define_memory_constraint "Ssd"
   "A memory reference that excludes index and displacement addressing."
-  (ior (and (match_code "mem")
-	    (match_test "! sh_lra_p ()")
-	    (match_test "! satisfies_constraint_Sid (op)")
-	    (match_test "! satisfies_constraint_Sdd (op)"))
-       (and (match_code "mem")
-	    (match_test "sh_lra_p ()")
-	    (ior (match_test "satisfies_constraint_Rab (XEXP (op, 0))")
-		 (and (ior (match_code "pre_dec" "0") (match_code "post_inc" "0"))
-		 (match_test "satisfies_constraint_Rab (XEXP (XEXP (op, 0), 0))"))))))
+  (and (match_code "mem")
+       (ior (match_test "satisfies_constraint_Rab (XEXP (op, 0))")
+	    (and (ior (match_code "pre_dec" "0") (match_code "post_inc" "0"))
+	    (match_test "satisfies_constraint_Rab (XEXP (XEXP (op, 0), 0))")))))
 
 (define_memory_constraint "Sbv"
   "A memory reference, as used in SH2A bclr.b, bset.b, etc."

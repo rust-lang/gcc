@@ -1,4 +1,4 @@
-/* { dg-additional-options "-mlra -fpic" }  */
+/* { dg-additional-options "-fpic" }  */
 /* { dg-do compile }  */
 
 

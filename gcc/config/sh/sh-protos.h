@@ -41,12 +41,6 @@ extern rtx sh_fsca_int2sf (void);
 
 /* Declare functions defined in sh.cc and used in templates.  */
 
-/* FIXME: sh_lra_p is for transional purposes only.  Remove it eventually.  */
-inline bool sh_lra_p (void)
-{
-  return true;
-}
-
 extern const char *output_branch (int, rtx_insn *, rtx *);
 extern const char *output_ieee_ccmpeq (rtx_insn *, rtx *);
 extern const char *output_branchy_insn (enum rtx_code, const char *,
@@ -61,7 +55,6 @@ extern int sh_loop_align (rtx_insn *);
 extern bool fp_zero_operand (rtx);
 extern bool fp_one_operand (rtx);
 extern bool sh_legitimate_index_p (machine_mode, rtx, bool, bool);
-extern bool sh_legitimize_reload_address (rtx *, machine_mode, int, int);
 extern rtx legitimize_pic_address (rtx, machine_mode, rtx);
 extern bool nonpic_symbol_mentioned_p (rtx);
 extern void output_pic_addr_const (FILE *, rtx);

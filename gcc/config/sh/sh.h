@@ -1403,15 +1403,6 @@ extern bool current_function_interrupt;
 #endif
 
 
-/* A C compound statement that attempts to replace X, which is an address
-   that needs reloading, with a valid memory address for an operand of
-   mode MODE.  WIN is a C statement label elsewhere in the code.  */
-#define LEGITIMIZE_RELOAD_ADDRESS(X,MODE,OPNUM,TYPE,IND_LEVELS,WIN)	\
-  do {									\
-    if (sh_legitimize_reload_address (&(X), (MODE), (OPNUM), (TYPE)))	\
-      goto WIN;								\
-  } while (0)
-
 /* Specify the machine mode that this machine uses
    for the index in the tablejump instruction.  */
 #define CASE_VECTOR_MODE ((! optimize || TARGET_BIGTABLE) ? SImode : HImode)

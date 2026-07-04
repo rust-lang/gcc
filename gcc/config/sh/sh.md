@@ -1785,7 +1785,7 @@
 {
   if (!arith_operand (operands[2], SImode))
     {
-      if (!sh_lra_p () || reg_overlap_mentioned_p (operands[0], operands[1]))
+      if (reg_overlap_mentioned_p (operands[0], operands[1]))
 	{
 	  emit_insn (gen_addsi3_scr (operands[0], operands[1], operands[2]));
 	  DONE;
@@ -1801,16 +1801,13 @@
 ;; copy or constant load before the actual add insn.
 ;; Use u constraint for that case to avoid the invalid value in the stack
 ;; pointer.
-;; This also results in better code when LRA is not used.  However, we have
-;; to use different sets of patterns and the order of these patterns is
-;; important.
 ;; In some cases the constant zero might end up in operands[2] of the
 ;; patterns.  We have to accept that and convert it into a reg-reg move.
 (define_insn_and_split "*addsi3_compact_lra"
   [(set (match_operand:SI 0 "arith_reg_dest" "=r,&u")
 	(plus:SI (match_operand:SI 1 "arith_reg_operand" "%0,r")
 		 (match_operand:SI 2 "arith_or_int_operand" "rI08,rn")))]
-  "TARGET_SH1 && sh_lra_p ()
+  "TARGET_SH1
    && (! reg_overlap_mentioned_p (operands[0], operands[1])
        || arith_operand (operands[2], SImode))"
   "@
@@ -1867,64 +1864,6 @@
       else
 	operands[2] = operands[1];
     }
-}
-  [(set_attr "type" "arith")])
-
-;; Old reload might generate add insns directly (not through the expander) for
-;; address register calculations when reloading, in which case it won't try
-;; the addsi_scr pattern.  Because reload will sometimes try to validate
-;; the generated insns and their constraints, this pattern must be
-;; recognizable during and after reload.  However, when reload generates
-;; address register calculations for the stack pointer, we don't allow this
-;; pattern.  This will make reload prefer using indexed @(reg + reg) address
-;; modes when the displacement of a @(disp + reg) doesn't fit.
-(define_insn_and_split "*addsi3"
-  [(set (match_operand:SI 0 "arith_reg_dest" "=r")
-	(plus:SI (match_operand:SI 1 "arith_reg_operand" "r")
-		 (match_operand:SI 2 "arith_or_int_operand" "rn")))]
-  "TARGET_SH1 && !sh_lra_p ()
-   && (reload_completed || reload_in_progress)
-   && !reg_overlap_mentioned_p (operands[0], operands[1])
-   && (!reload_in_progress
-       || ((!REG_P (operands[1]) || REGNO (operands[1]) != SP_REG)
-	   && (!REG_P (operands[2]) || REGNO (operands[2]) != SP_REG)))"
-  "#"
-  "&& 1"
-  [(set (match_dup 0) (plus:SI (match_dup 0) (match_dup 2)))]
-{
-  if (operands[2] == const0_rtx)
-    {
-      emit_move_insn (operands[0], operands[1]);
-      DONE;
-    }
-
-  if (CONST_INT_P (operands[2]))
-    {
-      if (satisfies_constraint_I08 (operands[2]))
-	emit_move_insn (operands[0], operands[1]);
-      else
-	{
-	  emit_move_insn (operands[0], operands[2]);
-	  operands[2] = operands[1];
-	}
-    }
-  else if (!reg_overlap_mentioned_p (operands[0], operands[2]))
-    emit_move_insn (operands[0], operands[1]);
-  else
-    operands[2] = operands[1];
-})
-
-(define_insn_and_split "*addsi3"
-  [(set (match_operand:SI 0 "arith_reg_dest" "=r,r")
-	(plus:SI (match_operand:SI 1 "arith_reg_operand" "%0,r")
-		 (match_operand:SI 2 "arith_operand" "rI08,Z")))]
-  "TARGET_SH1 && !sh_lra_p ()"
-  "@
-	add	%2,%0
-	#"
-  "&& operands[2] == const0_rtx"
-  [(set (match_dup 0) (match_dup 1))]
-{
 }
   [(set_attr "type" "arith")])
 
@@ -4839,7 +4778,6 @@
      register operand for the QI/HImode load.
      See the comment in sh.cc:prepare_move_operand and PR target/55212.  */
   if (! lra_in_progress && ! reload_completed
-      && sh_lra_p ()
       && ! TARGET_SH2A
       && arith_reg_dest (operands[0], <MODE>mode)
       && short_displacement_mem_operand (operands[1], <MODE>mode))
@@ -4909,7 +4847,7 @@
 	(sign_extend:SI
 	    (match_operand:QIHI 1 "short_displacement_mem_operand" "m")))
    (clobber (reg:SI R0_REG))]
-  "TARGET_SH1 && ! TARGET_SH2A && sh_lra_p ()"
+  "TARGET_SH1 && ! TARGET_SH2A"
   "#"
   "&& 1"
   [(set (match_dup 2) (sign_extend:SI (match_dup  1)))
@@ -5410,7 +5348,6 @@
     }
 
   if (! lra_in_progress && ! reload_completed
-      && sh_lra_p ()
       && ! TARGET_SH2A
       && arith_reg_operand (operands[1], <MODE>mode)
       && satisfies_constraint_Sid (operands[0]))
@@ -5433,7 +5370,7 @@
   [(set (mem:QIHI (plus:SI (match_operand:SI 0 "arith_reg_operand" "%r")
 			   (match_operand:SI 1 "hard_reg_r0" "z")))
 	(match_operand:QIHI 2 "arith_reg_operand" "r"))]
-  "TARGET_SH1 && ! TARGET_SH2A && sh_lra_p ()"
+  "TARGET_SH1 && ! TARGET_SH2A"
   "mov.<bw>	%2,@(%1,%0)"
   [(set_attr "type" "store")])
 
@@ -5442,7 +5379,7 @@
 			   (match_operand:SI 1 "arith_reg_operand" "^zr")))
 	(match_operand:QIHI 2 "arith_reg_operand" "r"))
    (clobber (reg:SI R0_REG))]
-  "TARGET_SH1 && ! TARGET_SH2A && sh_lra_p ()"
+  "TARGET_SH1 && ! TARGET_SH2A"
   "#"
   "&& 1"
   [(set (match_dup 3) (match_dup 1))
@@ -5745,7 +5682,7 @@
 	(match_operand:DF 1 "const_double_operand" "F"))
    (use (reg:SI FPSCR_MODES_REG))
    (clobber (reg:SI R0_REG))]
-  "TARGET_FPU_DOUBLE && sh_lra_p ()"
+  "TARGET_FPU_DOUBLE"
   "#"
   [(set_attr "type" "pcfload")
    (set (attr "length") (if_then_else (eq_attr "fmovd" "yes") (const_int 4) (const_int 8)))
@@ -5896,7 +5833,7 @@
   [(set (match_operand:SF 0 "register_operand")
 	(match_operand:SF 1 "register_operand"))
    (use (reg:SI FPSCR_MODES_REG))]
-  "TARGET_SH2E && sh_lra_p () && reload_completed
+  "TARGET_SH2E && reload_completed
    && true_regnum (operands[0]) == true_regnum (operands[1])"
   [(set (match_dup 0) (match_dup 0))])
 
@@ -6144,9 +6081,7 @@
   prepare_move_operands (operands, DFmode);
   if (TARGET_FPU_DOUBLE)
     {
-      if (sh_lra_p ()
-	  && (GET_CODE (operands[1]) == CONST_DOUBLE
-	  && REG_P (operands[0])))
+      if (GET_CODE (operands[1]) == CONST_DOUBLE && REG_P (operands[0]))
 	{
 	  emit_insn (gen_movdf_i4_F_z (operands[0], operands[1]));
 	  DONE;
@@ -6286,7 +6221,7 @@
 	(match_operand:SF 1 "general_movsrc_operand"
 				" f,r,G,H,m,f,FQ,m,r,y,f,>,y,r,y,>,y"))
    (use (reg:SI FPSCR_MODES_REG))]
-  "TARGET_SH2E && sh_lra_p ()
+  "TARGET_SH2E
    && ! sh_movsf_ie_y_split_p (operands[0], operands[1])
    && (arith_reg_operand (operands[0], SFmode)
        || fpul_operand (operands[0], SFmode)
@@ -6362,7 +6297,7 @@
 	(match_operand:SF 1 "arith_reg_operand" "f,r,fr"))
    (use (reg:SI FPSCR_MODES_REG))
    (clobber (match_scratch:SF 2 "=X,X,y"))]
-  "TARGET_SH2E && sh_lra_p ()"
+  "TARGET_SH2E"
   "@
 	fmov	%1,%0
 	mov	%1,%0
@@ -6391,7 +6326,7 @@
 	(match_operand:SF 1 "const_double_operand" "F"))
    (use (reg:SI FPSCR_MODES_REG))
    (clobber (reg:SI R0_REG))]
-  "TARGET_SH2E && sh_lra_p ()"
+  "TARGET_SH2E"
   "#"
   [(set_attr "type" "pcfload")
    (set_attr "length" "4")])
@@ -6401,7 +6336,7 @@
 	(match_operand:SF 1 "pc_relative_load_operand" "Q"))
    (use (reg:SI FPSCR_MODES_REG))
    (clobber (reg:SI R0_REG))]
-  "TARGET_SH2E && sh_lra_p ()"
+  "TARGET_SH2E"
   "#"
   [(set_attr "type" "pcfload")
    (set_attr "length" "4")])
@@ -6411,7 +6346,7 @@
 	(match_operand:SF 1 "arith_reg_operand" "rf"))
    (use (reg:SI FPSCR_MODES_REG))
    (clobber (reg:SI FPUL_REG))]
-  "TARGET_SH2E && sh_lra_p ()"
+  "TARGET_SH2E"
   "#"
   [(set_attr "type" "*")
    (set_attr "length" "4")])
@@ -6441,7 +6376,7 @@
 			 (match_operand:SI 1 "hard_reg_r0" "z")))
 	(match_operand:SF 2 "fp_arith_reg_operand" "f"))
     (use (reg:SI FPSCR_MODES_REG))]
-  "TARGET_SH2E && sh_lra_p ()"
+  "TARGET_SH2E"
   "fmov.s    %2,@(%1,%0)"
   [(set_attr "type" "store")])
 
@@ -6451,7 +6386,7 @@
 	(match_operand:SF 2 "fp_arith_reg_operand" "f"))
    (use (reg:SI FPSCR_MODES_REG))
    (clobber (reg:SI R0_REG))]
-  "TARGET_SH2E && sh_lra_p ()"
+  "TARGET_SH2E"
   "#"
   "&& 1"
   [(set (match_dup 3) (match_dup 1))
@@ -6471,7 +6406,7 @@
 	(mem:SF (plus:SI (match_operand:SI 1 "arith_reg_operand" "%r")
 			 (match_operand:SI 2 "hard_reg_r0" "z"))))
    (use (reg:SI FPSCR_MODES_REG))]
-  "TARGET_SH2E && sh_lra_p ()"
+  "TARGET_SH2E"
   "fmov.s    @(%2,%1),%0"
   [(set_attr "type" "load")])
 
@@ -6481,7 +6416,7 @@
 			 (match_operand:SI 2 "arith_reg_operand" "^zr"))))
    (use (reg:SI FPSCR_MODES_REG))
    (clobber (reg:SI R0_REG))]
-  "TARGET_SH2E && sh_lra_p ()"
+  "TARGET_SH2E"
   "#"
   "&& 1"
   [(set (match_dup 3) (match_dup 2))
@@ -6680,66 +6615,60 @@
   prepare_move_operands (operands, SFmode);
   if (TARGET_SH2E)
     {
-      if (sh_lra_p ())
+      if (GET_CODE (operands[0]) == SCRATCH)
+	DONE;
+      if (! lra_in_progress && ! reload_completed
+	  && fp_arith_reg_operand (operands[1], SFmode)
+	  && satisfies_constraint_Sid (operands[0]))
 	{
-	  if (GET_CODE (operands[0]) == SCRATCH)
-	    DONE;
-	  if (! lra_in_progress && ! reload_completed
-	      && fp_arith_reg_operand (operands[1], SFmode)
-	      && satisfies_constraint_Sid (operands[0]))
-	    {
-	      rtx adr = XEXP (operands[0], 0);
-	      rtx base = XEXP (adr, 0);
-	      rtx idx = XEXP (adr, 1);
-	      emit_insn (gen_movsf_ie_store_mem_index (base, idx, operands[1]));
-	      DONE;
-	    }
-	  if (! lra_in_progress && ! reload_completed
-	      && fp_arith_reg_operand (operands[0], SFmode)
-	      && satisfies_constraint_Sid (operands[1]))
-	    {
-	      rtx adr = XEXP (operands[1], 0);
-	      rtx base = XEXP (adr, 0);
-	      rtx idx = XEXP (adr, 1);
-	      emit_insn (gen_movsf_ie_load_mem_index (operands[0], base, idx));
-	      DONE;
-	    }
-	  /* reg from/to multiword subreg may be splitted to several reg from/to
-	     subreg of SImode by subreg1 pass.  This confuses our splitted
-	     movsf logic for LRA and will end up in bad code or ICE.  Use a special
-	     pattern so that LRA can optimize this case.  */
-	  if (! lra_in_progress && ! reload_completed
-	      && sh_movsf_ie_subreg_multiword_p (operands[0], operands[1]))
-	    {
-	      emit_insn (gen_movsf_ie_rffr (operands[0], operands[1]));
-	      DONE;
-	    }
-	  if (GET_CODE (operands[1]) == CONST_DOUBLE
-	      &&  ! satisfies_constraint_G (operands[1])
-	      &&  ! satisfies_constraint_H (operands[1])
-	      && REG_P (operands[0]))
-	    {
-	      if (lra_in_progress)
-	        emit_insn (gen_movsf_ie (operands[0], operands[1]));
-	      else
-	        emit_insn (gen_movsf_ie_F_z (operands[0], operands[1]));
-	    }
-	  else if (REG_P (operands[0]) && REGNO (operands[0]) == FPUL_REG
-		   && satisfies_constraint_Q (operands[1]))
-	    emit_insn (gen_movsf_ie_Q_z (operands[0], operands[1]));
-	  else if (sh_movsf_ie_y_split_p (operands[0], operands[1]))
-	    {
-	      if (lra_in_progress)
-		emit_insn (gen_movsf_ie (operands[0], operands[1]));
-	      else
-		emit_insn (gen_movsf_ie_y (operands[0], operands[1]));
-	    }
-	  else
-	    emit_insn (gen_movsf_ie_ra (operands[0], operands[1]));
+	  rtx adr = XEXP (operands[0], 0);
+	  rtx base = XEXP (adr, 0);
+	  rtx idx = XEXP (adr, 1);
+	  emit_insn (gen_movsf_ie_store_mem_index (base, idx, operands[1]));
 	  DONE;
 	}
-
-      emit_insn (gen_movsf_ie (operands[0], operands[1]));
+      if (! lra_in_progress && ! reload_completed
+	  && fp_arith_reg_operand (operands[0], SFmode)
+	  && satisfies_constraint_Sid (operands[1]))
+	{
+	  rtx adr = XEXP (operands[1], 0);
+	  rtx base = XEXP (adr, 0);
+	  rtx idx = XEXP (adr, 1);
+	  emit_insn (gen_movsf_ie_load_mem_index (operands[0], base, idx));
+	  DONE;
+	}
+      /* reg from/to multiword subreg may be splitted to several reg from/to
+	 subreg of SImode by subreg1 pass.  This confuses our splitted
+	 movsf logic for LRA and will end up in bad code or ICE.  Use a special
+	 pattern so that LRA can optimize this case.  */
+      if (! lra_in_progress && ! reload_completed
+	  && sh_movsf_ie_subreg_multiword_p (operands[0], operands[1]))
+	{
+	  emit_insn (gen_movsf_ie_rffr (operands[0], operands[1]));
+	  DONE;
+	}
+      if (GET_CODE (operands[1]) == CONST_DOUBLE
+	  &&  ! satisfies_constraint_G (operands[1])
+	  &&  ! satisfies_constraint_H (operands[1])
+	  && REG_P (operands[0]))
+	{
+	  if (lra_in_progress)
+	    emit_insn (gen_movsf_ie (operands[0], operands[1]));
+	  else
+	    emit_insn (gen_movsf_ie_F_z (operands[0], operands[1]));
+	}
+      else if (REG_P (operands[0]) && REGNO (operands[0]) == FPUL_REG
+	       && satisfies_constraint_Q (operands[1]))
+	emit_insn (gen_movsf_ie_Q_z (operands[0], operands[1]));
+      else if (sh_movsf_ie_y_split_p (operands[0], operands[1]))
+	{
+	  if (lra_in_progress)
+	    emit_insn (gen_movsf_ie (operands[0], operands[1]));
+	  else
+	    emit_insn (gen_movsf_ie_y (operands[0], operands[1]));
+	}
+      else
+	emit_insn (gen_movsf_ie_ra (operands[0], operands[1]));
       DONE;
     }
 })

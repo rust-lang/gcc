@@ -1,4 +1,4 @@
-/* { dg-additional-options "-std=c++20 -mlra -fpic -w " }  */
+/* { dg-additional-options "-std=c++20 -fpic -w " }  */
 /* { dg-do compile }  */
 
    typedef unsigned int size_t;
