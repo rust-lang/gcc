@@ -1,8 +1,8 @@
 /* PR tree-optimization/94589 */
 /* { dg-do compile { target inf } } */
 /* { dg-options "-O2 -g0 -fdump-tree-optimized -fno-trapping-math" } */
-/* { dg-final { scan-tree-dump-times "\[ij]_\[0-9]+\\(D\\) (?:<|<=|>|>=|u>=|u<=) \[ij]_\[0-9]+\\(D\\)" 24 "optimized" } } */
-/* { dg-final { scan-tree-dump-times "i_\[0-9]+\\(D\\) (?:<|<=|>|>=|u>=|u<=) 5\\.0" 24 "optimized" } } */
+/* { dg-final { scan-tree-dump-times "\[ij]_\[0-9]+\\(D\\) (?:<|<=|>|>=|u>=|u<=|u<|u>) \[ij]_\[0-9]+\\(D\\)" 24 "optimized" } } */
+/* { dg-final { scan-tree-dump-times "i_\[0-9]+\\(D\\) (?:<|<=|>|>=|u>=|u<=|u<|u>) 5\\.0" 24 "optimized" } } */
 
 #define A __attribute__((noipa))
 A int f3 (double i, double j) { int c; if (i == j) c = 0; else if (i < j) c = -1; else if (i > j) c = 1; else c = -128; return c > 0; }
