@@ -1393,7 +1393,7 @@ or1k_hard_regno_mode_ok (unsigned int regno, machine_mode mode)
      really single bits within SP[SR].  Also allow condition flag register
      in SImode to match or1k_can_change_mode_class.  */
   if (REGNO_REG_CLASS (regno) == FLAG_REGS)
-    return mode == BImode || mode == SImode;
+    return mode == BImode;
   return true;
 }
 
@@ -1411,7 +1411,7 @@ or1k_can_change_mode_class (machine_mode from, machine_mode to,
 {
   /* Allow cnoverting special flags to SI mode subregs.  */
   if (rclass == FLAG_REGS)
-    return from == to || (from == BImode && to == SImode);
+    return from == to;
   return true;
 }
 
@@ -1697,15 +1697,17 @@ or1k_is_cmov_insn (rtx_insn *seq)
 }
 
 /* Implement TARGET_NOCE_CONVERSION_PROFITABLE_P.  We detect if the conversion
-   resulted in a l.cmov instruction and if so we consider it more profitable than
-   branch instructions.  */
+   resulted in a l.cmov like instruction and if so we consider it more
+   profitable than branch instructions.  Even if we do not support l.cmov this
+   allows the *cmov instruction sequnce to be expanded and then later lowered
+   with the *cmov split logic.  */
 
 static bool
 or1k_noce_conversion_profitable_p (rtx_insn *seq,
 				    struct noce_if_info *if_info)
 {
-  if (TARGET_CMOV)
-    return or1k_is_cmov_insn (seq);
+  if (or1k_is_cmov_insn (seq))
+    return true;
 
   return default_noce_conversion_profitable_p (seq, if_info);
 }
