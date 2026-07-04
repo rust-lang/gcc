@@ -1,3 +1,63 @@
+2026-07-03  Nathan Myers  <ncm@cantrip.org>
+
+	PR libstdc++/126072
+	* testsuite/20_util/allocator/allocate_at_least.cc: Fix.
+
+2026-07-03  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/std/format (_Pres_type::_Pres_p, _Pres_type::_Pres_P):
+	Change the values to which they are defined.
+	(__formatter_fp::format): Append 0x/0X if _M_type is _Pres_p/_Pres_P
+	respectively.
+	(__formatter_fp::_M_localize): Add __offset parameter representing
+	start of number value (after sign and prefix).
+	(__formatter_ptr::parse, __formatter_ptr::_M_default)
+	(__formatter_ptr::__formatter_ptr): Remove unused __type parameter,
+	and replace use of _Pres_p/P with _Pres_x/X.
+
+2026-07-03  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/std/format (__formatter_int::format)
+	(__formatter_fp::format): For unrecognised _M_spec._M_type
+	values (default branch of switch) fallthrou to _Pres_none.
+
+2026-07-03  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/bits/optional_ref.h (optional<_Tp&>::_S_from_ptr):
+	Define.
+	* include/bits/version.def (exception_ptr_cast): Bump value
+	to 202603.
+	* include/bits/version.h: Regenerate.
+	* libsupc++/exception_ptr.h (exception_ptr_cast)
+	[__cpp_lib_exception_ptr_cast >= 202603L]: Change return
+	type to optional<const _Ex&>.
+	* testsuite/18_support/exception_ptr/exception_ptr_cast.cc:
+	Modify to handle change in the return type, and add test
+	for type convertible to optional to reference to that value.
+
+2026-07-03  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/Makefile.am (bits/optional_ref.h): Add.
+	* include/Makefile.in: Regenerate.
+	* include/bits/inplace_tags.h: New file.
+	* include/bits/utility.h (std::in_place_t, std::in_place)
+	(std::in_place_type_t, std::in_place_type)
+	(std::in_place_index_t, in_place_index): Move to
+	bits/inplace_tags.h.
+	* include/bits/optional_ref.h: New file.
+	* include/std/optional (std::nullopt_t, std::nullopt)
+	(std::__is_valid_contained_type_for_optional)
+	(std::_Optional_func, std::optional<_Tp&>)
+	(std::__is_optional_ref_v, std::__optional_ref_base):
+	Moved to bits/optional_ref.h.
+	(optional<_Tp&>::begin, optional<_Tp&>::end)
+	(optional<_Tp&>::value, optional<_Tp&>::value_or)
+	(optional<_Tp&>::and_then, optional<_Tp&>::transform)
+	(optional<_Tp&>::optional(_Optional_func<_Fn>, _Value)):
+	Define out of line.
+	(optional<_Tp&>::or_else): Define out of line, and
+	change requires from invocable<_Fn> to is_invocable_v<_Fn>.
+
 2026-07-02  Yuao Ma  <c8ef@outlook.com>
 
 	* include/bits/basic_string.h(append, assign): Add new

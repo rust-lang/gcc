@@ -1,3 +1,18 @@
+2026-07-03  Sandra Loosemore  <sloosemore@baylibre.com>
+	    Tobias Burnus  <tburnus@baylibre.com>
+
+	* openmp.cc (resolve_omp_clauses_aff_dep_map_cache): Fix
+	indentation.
+
+2026-07-03  Mikael Morin  <mikael@gcc.gnu.org>
+
+	PR fortran/97592
+	PR fortran/125998
+	* trans-array.cc (gfc_conv_array_parameter): Always create a new
+	descriptor.  Copy lbound and ubound from the original descriptor
+	using matching dimension indexes.  Recalculate stride and
+	offset.
+
 2026-07-03  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 
 	PR fortran/126018

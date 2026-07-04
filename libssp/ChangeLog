@@ -1,3 +1,9 @@
+2026-07-03  WHR  <whr@rivoreo.one>
+	    Thomas Schwinge  <tschwinge@baylibre.com>
+
+	PR other/116547
+	* ssp.c: Include stdlib.h for alloca(3).
+
 2026-06-29  Pietro Monteiro  <pietro@sociotechnical.xyz>
 
 	PR bootstrap/103459

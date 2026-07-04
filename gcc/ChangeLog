@@ -1,3 +1,139 @@
+2026-07-03  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	PR tree-optimization/122569
+	* match.pd (clz_msb_iso_table_index): New match pattern.
+	* tree-ssa-forwprop.cc (gimple_clz_msb_iso_table_index): Declare.
+	(simplify_count_zeroes): Recognize the new pattern; route its
+	table validation through the CTZ checkfn.  Relax the element
+	type check to accept integer types up to 64 bits.
+
+2026-07-03  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	* match.pd (msb_or_cascade_32, msb_or_cascade_64): New match
+	helpers.
+	(clz_table_index): Rewrite the 32-bit and 64-bit forms to use
+	the cascade helpers.
+
+2026-07-03  Andrew Pinski  <andrew.pinski@oss.qualcomm.com>
+
+	PR tree-optimization/106164
+	PR tree-optimization/126042
+	PR tree-optimization/94589
+	* fold-const.cc (combine_comparisons): Split into
+	2 versions. Also handle BIT_AND_EXPR and BIT_IOR_EXPR.
+	* fold-const.h (combine_comparisons): New declaration.
+	* match.pd (`(a CMP1 b) BITOP (a CMP2 b)`): New pattern.
+
+2026-07-03  Georg-Johann Lay  <avr@gjlay.de>
+
+	* config/avr/avr.cc (avr_out_plus_1): Handle +/-1 on the
+	lower regs without needing a scratch.
+	* config/avr/avr.md (add<mode>3_clobber, *add<mode>3_clobber)
+	(add<mode>3, *add<mode>3, addpsi3, *addpsi3): Add constraint
+	alternative "Y01 Ym1" for +/-1 without scratch.
+
+2026-07-03  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* config/riscv/riscv.cc (synthesize_add): Utilize shNadd.uw when
+	appropriate.
+
+2026-07-03  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* config/riscv/riscv.cc (and_synthesis): Use riscv_integer_cost rather
+	than riscv_const_insns.  Use rotate+clear_bits+rotate when useful.
+
+2026-07-03  Richard Biener  <rguenther@suse.de>
+
+	* tree-vect-slp.cc (vect_bb_vectorization_profitable_p): Make
+	profitabilty decision easier to debug.
+
+2026-07-03  Naveen  <naveen.siddegowda@oss.qualcomm.com>
+
+	PR tree-optimization/102202
+	* tree-call-cdce.cc: Include "tree-ssanames.h", "gimple-fold.h".
+	(len_has_boolean_range_p): New function.
+	(can_shrink_wrap_len_p): New function.
+	(gen_zero_len_conditions): New function.
+	(shrink_wrap_len_call): New function.
+	(shrink_wrap_conditional_dead_built_in_calls): Dispatch to
+	shrink_wrap_one_memset_call for memset calls eligible for the [0, 1]
+	length transform, ahead of the generic LHS and range-test paths.
+	(pass_call_cdce::execute): Collect memset calls satisfying
+	can_shrink_wrap_memset_p as shrink-wrap candidates.
+
+2026-07-03  Kyrylo Tkachov  <ktkachov@nvidia.com>
+
+	PR target/120027
+	* config/aarch64/aarch64-sve-builtins-base.cc (svext_bhw_impl::fold):
+	New member function.  Fold the unsigned svextb/svexth/svextw
+	intrinsics to a bitwise AND when the merging form has an all-true
+	predicate.
+
+2026-07-03  Tamar Christina  <tamar.christina@arm.com>
+	    Chris Bazley  <Chris.Bazley@arm.com>
+
+	* expr.cc (store_constructor): Handle VLA vec_init support and generic
+	fall through piecewise copy.
+	* doc/md.texi: Document change
+
+2026-07-03  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* config/riscv/riscv.cc (synthesize_ior_xor): Use riscv_integer_cost
+	rather than riscv_const_insns.
+
+2026-07-03  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	* config/sh/sh.opt.urls: Renegerate.
+	* config/vax/vax.opt.urls: Renegerate.
+
+2026-07-03  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/55212
+	* config/sh/sh.opt (mlra): Ignore option but keep it around
+	for compatibility.
+	* config/sh/sh.cc (TARGET_LRA_P): Remove.
+	(sh_lra_p): Move definition ...
+	* config/sh/sh-protos.h (sh_lra_p): ... here.  Always return true.
+	* doc/invoke.texi: Remove mention of -mlra for SH.
+
+2026-07-03  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/55212
+	* config/sh/sh.md (movv2sf, movv2sf_i, unnamed splits): New patterns.
+	* config/sh/sh.cc (sh_hard_regno_mode_ok): Allow V2SF only in fp-regs.
+	(sh_max_mov_insn_displacement): Return 0 for any float mode.
+
+2026-07-03  Kaz Kojima  <kkojima@rr.iij4u.or.jp>
+
+	PR target/55212
+	* config/sh/sh.md (extend<mode>si2_short_mem_disp_z): New
+	insn_and_split.
+	(extend<mode>si2): Use it for LRA.
+	(mov<mode>_store_mem_index, *mov<mode>_store_mem_index): New patterns.
+	(mov<mode>): Use it for LRA.
+	(movsf_ie_store_mem_index, movsf_ie_load_mem_index,
+	*movsf_ie_store_mem_inde, *movsf_ie_load_mem_index): New patterns.
+	(movsf): Use it for LRA.
+
+2026-07-03  Kaz Kojima  <kkojima@rr.iij4u.or.jp>
+
+	PR target/55212
+	* config/sh/predicates.md (pc_relative_load_operand): New predicate.
+	* config/sh/sh-protos.h (sh_movsf_ie_ra_split_p): Remove.
+	(sh_movsf_ie_y_split_p): New proto.
+	(sh_movsf_ie_subreg_multiword_p): New proto.
+	* config/sh/sh.cc: (sh_movsf_ie_ra_split_p): Remove.
+	(sh_movsf_ie_y_split_p): New function.
+	(sh_movsf_ie_subreg_multiword_p): New function.
+	(broken_move): Take movsf_ie_ra into account for fldi cases.
+	* config/sh/sh.md (movdf_i4_F_z): New insn.
+	(movdf): Use it when expanding.
+	(movsf_ie_ra): Use define_insn instead of define_insn_and_split.
+	Adjust alternatives.
+	(movsf_ie_rffr): New insn_and_split.
+	(movsf_ie_F_z, movsf_ie_Q_z, movsf_ie_y): New insns.
+	(movsf): Use new patterns when expanding.
+
 2026-07-02  Pengfei Li  <Pengfei.Li2@arm.com>
 
 	* config/aarch64/aarch64.cc

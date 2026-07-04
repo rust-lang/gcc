@@ -1,3 +1,95 @@
+2026-07-03  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	PR tree-optimization/122569
+	* gcc.dg/tree-ssa/pr122569-3.c: New test.
+
+2026-07-03  Andrew Pinski  <andrew.pinski@oss.qualcomm.com>
+
+	PR tree-optimization/106164
+	PR tree-optimization/126042
+	PR tree-optimization/94589
+	* g++.dg/opt/pr94589-5a.C: New test.
+	* gcc.dg/pr94589-5.c: Explictly enable -ftrapping-math.
+	* gcc.dg/pr94589-5a.c: New test.
+
+2026-07-03  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/126057
+	* g++.dg/cpp2a/decomp11.C: New test.
+
+2026-07-03  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/125826
+	* g++.dg/cpp0x/defaulted51.C: Adjust expected diagnostics
+	for C++29.
+	* g++.dg/cpp0x/defaulted55.C: Likewise.
+	* g++.dg/cpp0x/defaulted56.C: Likewise.
+	* g++.dg/cpp0x/defaulted57.C: Likewise.
+	* g++.dg/cpp0x/defaulted63.C: Likewise.
+	* g++.dg/cpp0x/defaulted64.C: Likewise.
+	* g++.dg/cpp0x/defaulted65.C: Likewise.
+	* g++.dg/cpp0x/defaulted66.C: Likewise.
+	* g++.dg/cpp0x/defaulted67.C: Likewise.
+	* g++.dg/cpp0x/defaulted68.C: Likewise.
+	* g++.dg/cpp1y/defaulted2.C: Likewise.
+	* g++.dg/cpp29/defaulted1.C: New test.
+	* g++.dg/cpp29/defaulted2.C: New test.
+	* g++.dg/cpp29/defaulted3.C: New test.
+	* g++.dg/cpp29/defaulted4.C: New test.
+	* g++.dg/cpp29/defaulted5.C: New test.
+	* g++.dg/cpp29/defaulted6.C: New test.
+
+2026-07-03  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/126036
+	* g++.dg/reflect/pr126036.C: New test.
+
+2026-07-03  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* gcc.target/riscv/and-synthesis-3.c: New test.
+
+2026-07-03  Naveen  <naveen.siddegowda@oss.qualcomm.com>
+
+	PR tree-optimization/102202
+	* gcc.dg/pr102202-1.c: New test.
+	* gcc.dg/pr102202.c: New test.
+	* gcc.target/aarch64/pr100518.c: Modify to handle the warning.
+
+2026-07-03  Kyrylo Tkachov  <ktkachov@nvidia.com>
+
+	PR target/120027
+	* gcc.target/aarch64/sve/acle/general/pr120027.c: New test.
+
+2026-07-03  Mikael Morin  <mikael@gcc.gnu.org>
+
+	PR fortran/97592
+	PR fortran/125998
+	* gfortran.dg/contiguous_17.f90: New test.
+
+2026-07-03  Tamar Christina  <tamar.christina@arm.com>
+	    Chris Bazley  <Chris.Bazley@arm.com>
+
+	* gcc.target/aarch64/sve/copsi.c: New test.
+
+2026-07-03  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/81426
+	* gcc.target/sh/pr81426.c: New test.
+
+2026-07-03  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/34777
+	* gcc.target/sh/torture/pr34777-1.c: New test.
+
+2026-07-03  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/124778
+	* gcc.target/sh/torture/pr124778.c: New test.
+
+2026-07-03  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* gcc.target/riscv/xor-synthesis-4.c: New test.
+
 2026-07-03  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 
 	PR fortran/126018

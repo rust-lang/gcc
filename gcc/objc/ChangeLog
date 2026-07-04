@@ -1,3 +1,22 @@
+2026-07-03  Iain Sandoe  <iain@sandoe.co.uk>
+
+	PR objc/124260
+	* objc-act.cc (objc_create_temporary_var, objc_build_struct,
+	synth_module_prologue, objc_build_internal_const_str_type,
+	objc_begin_catch_clause, objc_push_parm, synth_self_and_ucmd_args,
+	start_method_def, objc_start_function,
+	get_super_receiver): Use build_lang_decl for Objective-C++.
+	* objc-act.h (objc_build_decl): New.
+	* objc-gnu-runtime-abi-01.cc (gnu_runtime_01_initialize,
+	objc_add_static_instance, handle_class_ref): use build_lang_decl
+	for Objective-C++.
+	* objc-next-runtime-abi-01.cc (next_runtime_01_initialize,
+	next_runtime_abi_01_build_const_string_constructor): Likewise.
+	* objc-next-runtime-abi-02.cc (next_runtime_02_initialize,
+	next_runtime_abi_02_build_const_string_constructor): Likewise.
+	* objc-runtime-shared-support.cc (create_field_decl,
+	start_var_decl): Likewise.
+
 2026-06-28  Kevin Stefanov  <kevinstefanov15@gmail.com>
 
 	PR middle-end/125274

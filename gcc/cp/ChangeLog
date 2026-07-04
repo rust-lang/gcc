@@ -1,3 +1,35 @@
+2026-07-03  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/126057
+	* decl.cc (cp_finish_decomp): Set assembler name to
+	<decomp> during error recovery whenever TREE_STATIC
+	rather than just DECL_NAMESPACE_SCOPE_P.
+	* pt.cc (tsubst_stmt): If tsubst_decomp_names fails,
+	set assembler name to <decomp>.
+
+2026-07-03  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/125826
+	* method.cc: Implement C++29 P2953R5 - Adding restrictions to
+	defaulted assignment operator functions.
+	(maybe_delete_defaulted_fn): For C++29, error instead of
+	deleting always, with the exception of F1 having parmtype
+	const C & and F2 having implicit_parmtype C & and no other
+	non-permitted changes.  Move checks whether defaulted fn
+	should be deleted or ill-formed at all from defaulted_late_check
+	to this function.  Also error for C++29 if
+	FUNCTION_RVALUE_QUALIFIED.
+	(defaulted_late_check): Call maybe_delete_defaulted_fn
+	unconditionally.
+
+2026-07-03  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/126036
+	* reflect.cc (get_range_elts): Avoid calling finish_compound_literal
+	when processing_template_decl, instead set *non_constant_p and
+	return NULL_TREE.
+	(process_metafunction): Likewise.
+
 2026-07-02  Marek Polacek  <polacek@redhat.com>
 
 	PR c++/125819
