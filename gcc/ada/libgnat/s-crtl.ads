@@ -31,8 +31,6 @@
 
 --  This package provides the low level interface to the C runtime library
 
-with System.Parameters;
-
 package System.CRTL is
    pragma Preelaborate;
 
@@ -53,8 +51,7 @@ package System.CRTL is
    type unsigned is mod 2 ** 32;
    for unsigned'Size use 32;
 
-   type long is range -(2 ** (System.Parameters.long_bits - 1))
-                   .. +(2 ** (System.Parameters.long_bits - 1)) - 1;
+   subtype long is Long_Integer;
 
    subtype off_t is Long_Integer;
 

@@ -28,7 +28,6 @@ pragma Assertion_Policy (Pre            => Ignore,
 --  in order to work around an internal limitation of the compiler.
 
 with System;
-with System.Parameters;
 
 package Interfaces.C with
   SPARK_Mode,
@@ -59,10 +58,9 @@ is
    --  avoid ambiguities when compiling in the presence of s-auxdec.ads and
    --  a non-private system.address type.
 
-   type int   is new Integer;
-   type short is new Short_Integer;
-   type long  is range -(2 ** (System.Parameters.long_bits - Integer'(1)))
-     .. +(2 ** (System.Parameters.long_bits - Integer'(1))) - 1;
+   type int       is new Integer;
+   type short     is new Short_Integer;
+   type long      is new Long_Integer;
    type long_long is new Long_Long_Integer;
 
    type signed_char is range SCHAR_MIN .. SCHAR_MAX;

@@ -50,10 +50,9 @@ extern void vms_c_register_includes (const char *, const char *, int);
 #undef TARGET_ABI_OPEN_VMS
 #define TARGET_ABI_OPEN_VMS 1
 
-/* "long" is 32 bits, but 64 bits for Ada.  */
+/* "long" is 32 bits.  */
 #undef LONG_TYPE_SIZE
 #define LONG_TYPE_SIZE 32
-#define ADA_LONG_TYPE_SIZE 64
 
 /* Pointer is 32 bits but the hardware has 64-bit addresses, sign extended.  */
 #undef POINTER_SIZE

@@ -45,6 +45,8 @@
 
 pragma Assertion_Policy (Pre => Ignore);
 
+with System.Parameters;
+
 package Interfaces.C.Strings with
   SPARK_Mode     => On,
   Abstract_State => (C_Memory, (C_Addresses with Synchronous)),

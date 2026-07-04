@@ -101,11 +101,6 @@ package System.Parameters is
    -- Characteristics of types in Interfaces.C --
    ----------------------------------------------
 
-   long_bits : constant := Long_Integer'Size;
-   --  Number of bits in type long and unsigned_long. The normal convention
-   --  is that this is the same as type Long_Integer, but this may not be true
-   --  of all targets.
-
    ptr_bits  : constant := Standard'Address_Size;
    subtype C_Address is System.Address;
    --  Number of bits in Interfaces.C pointers, normally a standard address

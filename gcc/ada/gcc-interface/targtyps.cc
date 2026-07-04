@@ -39,12 +39,6 @@
 #include "ada-tree.h"
 #include "gigi.h"
 
-/* If we don't have a specific size for Ada's equivalent of `long', use that
-   of C.  */
-#ifndef ADA_LONG_TYPE_SIZE
-#define ADA_LONG_TYPE_SIZE LONG_TYPE_SIZE
-#endif
-
 /* The following provide a functional interface for the front end Ada code
    to determine the sizes that are used for various C types. */
 
@@ -88,7 +82,7 @@ get_target_int_size (void)
 Pos
 get_target_long_size (void)
 {
-  return ADA_LONG_TYPE_SIZE;
+  return LONG_TYPE_SIZE;
 }
 
 Pos

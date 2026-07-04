@@ -45,7 +45,6 @@ with Ada.Exceptions;   use Ada.Exceptions;
 with Ada.Strings.Fixed;
 
 with System.OS_Lib; use System.OS_Lib;
-with System.CRTL;
 
 with Interfaces.C_Streams; use Interfaces.C_Streams;
 with Interfaces.C.Strings; use Interfaces.C.Strings;
@@ -897,8 +896,6 @@ procedure Gnatlink is
       ------------------------
 
       procedure Store_File_Context is
-         use type System.CRTL.long;
-
       begin
          RB_Next_Line := Next_Line;
          RB_Nfirst    := Nfirst;
