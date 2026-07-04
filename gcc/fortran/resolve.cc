@@ -14371,7 +14371,6 @@ start:
 	case EXEC_END_BLOCK:
 	case EXEC_END_NESTED_BLOCK:
 	case EXEC_CYCLE:
-	case EXEC_PAUSE:
 	  break;
 
 	case EXEC_STOP:
@@ -14400,6 +14399,10 @@ start:
 		  || code->expr2->rank != 0))
 	    gfc_error ("QUIET specifier at %L must be a scalar LOGICAL",
 		       &code->expr2->where);
+
+	  /* Fall through.  */
+	case EXEC_PAUSE:
+	  gfc_value_used_expr (code->expr1, VALUE_USED);
 	  break;
 
 	case EXEC_EXIT:

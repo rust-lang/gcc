@@ -3205,7 +3205,7 @@ typedef struct
   gfc_st_label *format_label;
   gfc_st_label *err, *end, *eor;
 
-  locus eor_where, end_where, err_where;
+  locus eor_where, end_where, err_where, nml_where;
 }
 gfc_dt;
 

@@ -3152,6 +3152,7 @@ match_dt_element (io_kind k, gfc_dt *dt)
   char name[GFC_MAX_SYMBOL_LEN + 1];
   gfc_symbol *sym;
   match m;
+  locus where;
 
   if (gfc_match (" unit =") == MATCH_YES)
     {
@@ -3167,6 +3168,7 @@ match_dt_element (io_kind k, gfc_dt *dt)
 	return m;
     }
 
+  where = gfc_current_locus;
   if (gfc_match (" nml = %n", name) == MATCH_YES)
     {
       if (dt->namelist != NULL)
@@ -3186,6 +3188,7 @@ match_dt_element (io_kind k, gfc_dt *dt)
 	}
 
       dt->namelist = sym;
+      dt->nml_where = where;
       if (k == M_READ && check_namelist (sym))
 	return MATCH_ERROR;
 
@@ -3443,9 +3446,10 @@ gfc_resolve_dt (gfc_code *dt_code, gfc_dt *dt, locus *loc)
 	  gfc_expr* e;
 	  bool t;
 
+	  e = gfc_get_variable_expr (gfc_find_sym_in_symtree (n->sym));
+
 	  if (k == M_READ)
 	    {
-	      e = gfc_get_variable_expr (gfc_find_sym_in_symtree (n->sym));
 	      t = gfc_check_vardef_context (e, false, false, false, NULL);
 	      gfc_free_expr (e);
 
@@ -3457,8 +3461,16 @@ gfc_resolve_dt (gfc_code *dt_code, gfc_dt *dt, locus *loc)
 			     dt->namelist->name, loc, n->sym->name);
 		  return false;
 		}
-	      gfc_value_set_at (n->sym, NULL, VALUE_VARDEF);
+	      gfc_value_set_at (n->sym, &dt->nml_where, VALUE_READ);
 	    }
+	  else if (k == M_WRITE || k == M_PRINT)
+	    {
+	      e->where = dt->nml_where;
+	      gfc_value_used_expr (e,  VALUE_USED);
+	      gfc_free_expr (e);
+	    }
+
+	  n->sym->attr.referenced = 1;
 
 	  t = dtio_procs_present (n->sym, k);
 
@@ -4401,6 +4413,7 @@ match_io (io_kind k)
 	      m = MATCH_ERROR;
 	      goto cleanup;
 	    }
+	  dt->nml_where = where;
 	  goto next;
 	}
     }
