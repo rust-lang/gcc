@@ -22,7 +22,7 @@ def pub mode JURL = union (void,int,real);
     int k = 10;
     { dg-final { scan-assembler-not "identifier extract FOO_k" } }
     pub prio // = 8;
-    { dg-final { scan-assembler "operator extract FOO_s_s_\[0-9\]+" } }
+    { dg-final { scan-assembler "prio extract FOO_s_s_" } }
     pub op // = (int a, b) int: a % b;
     { dg-final { scan-assembler "operator extract FOO_s_s_\[0-9\]+" } }
     skip

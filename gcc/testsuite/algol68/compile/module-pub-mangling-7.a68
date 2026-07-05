@@ -11,7 +11,7 @@ def prio // = 8;
     pub op(int,int)int JORL = lala;
     { dg-final { scan-assembler "FOO_JORL" } }
     op(int,int)int JURL = (int a, b) int: a - b;
-    { dg-final { scan-assembler "FOO_JORL" } }
+    { dg-final { scan-assembler "FOO_JURL" } }
     skip
 fed
 

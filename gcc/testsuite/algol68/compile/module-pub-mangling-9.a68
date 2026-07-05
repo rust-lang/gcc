@@ -5,8 +5,9 @@
 
 module Foo =
 def prio // =9;
-    op // = (int a, b) int: a + b;    { dg-final { scan-assembler "FOO_s_s_\[0-9\]+" } }
-    op // = (real a, b) real: a + b;  { dg-final { scan-assembler "FOO_s_s_\[0-9\]+" } }
+    op // = (int a, b) int: a + b;
+    op // = (real a, b) real: a + b;
+    { dg-final { scan-assembler "FOO_s_s_\[0-9\]+" } }
     skip
 fed
 
