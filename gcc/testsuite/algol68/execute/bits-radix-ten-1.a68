@@ -1,0 +1,13 @@
+begin begin short short bits b = short short 10r0;
+            assert(b = short short 16r0);
+            assert(ABS LENG b = short 0)
+      end;
+
+      begin short short bits b = short short 10r255;
+            assert(b = short short 16rff);
+            assert(ABS LENG b = short 255);
+            assert(LENG ABS b = - short 1)
+      end;
+      
+      skip
+end

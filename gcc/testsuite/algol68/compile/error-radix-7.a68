@@ -1,0 +1,4 @@
+{ Radix 10 is not allowed in strict Algol 68. }
+{ dg-options "-std=algol68" }
+
+(bits d = 10r0; skip) { dg-error "invalid radix" }

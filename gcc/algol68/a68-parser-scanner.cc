@@ -1679,6 +1679,17 @@ get_next_token (bool in_format,
 	  uint64_t radix = strtoul (A68_PARSER (scan_buf), &end, 10);
 	  gcc_assert (errno == 0 && end != A68_PARSER (scan_buf) && *end == 'r');
 
+	  /* Validate radix.  */
+	  if (radix != 2
+	      && radix != 4
+	      && radix != 8
+	      && (OPTION_STRICT (&A68_JOB) || radix != 10)
+	      && radix != 16)
+	    {
+	      SCAN_ERROR (true, *start_l, *ref_s,
+			  "invalid radix in %<bits%> denotation");
+	    }
+
 	  /* Get the rest of the bits literal.  Typographical display features
 	     are allowed in the reference language between the digit symbols
 	     composing the denotation.  However, in SUPPER stropping this could
@@ -1698,6 +1709,7 @@ get_next_token (bool in_format,
 	  while (((radix == 2 && (c == '0' || c == '1'))
 		  || (radix == 4 && (c >= '0' && c <= '3'))
 		  || (radix == 8 && (c >= '0' && c <= '7'))
+		  || (!OPTION_STRICT (&A68_JOB) && radix == 10 && ISDIGIT (c))
 		  || (radix == 16 && (ISDIGIT (c) || strchr ("abcdef", c) != NO_TEXT))))
 	    {
 	      (sym++)[0] = c;

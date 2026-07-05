@@ -43,6 +43,9 @@
   [BF] This is the GNU68-2026-001-brief-selection GNU extension.  It
        adds support for a brief form of the selection construct.
 
+  [DR] This is the GNU68-2026-003-decimal-radices GNU extension.  It
+       adds support for using ten radix in bits denotations.
+
   The metaproduction rules, hyper-rules and hyper-alternatives
   introduced by each extension are clearly marked in the sections
   below.  You can easily search for them using the extensions tags in
@@ -1740,9 +1743,11 @@ a) void denotation{80a} : empty{94b} symbol.
 
 8.2 Bits denotations
 
+{ Extensions: [DR] }
+
 8.2.1 Syntax
 
-A) RADIX :: radix two ; radix four ; radix eight ; radix sixteen.
+A) RADIX :: radix two ; radix four ; radix eight ; radix ten ; radix sixteen.
 
 a) structured with row of boolean field
               LENGTH LENGTHETY letter aleph mode denotation{a,80a} :
@@ -1754,7 +1759,7 @@ b) structured with row of boolean field
        structured with row of boolean field SHORTHETY letter aleph mode denotation{b,c}.
 c) structured wih row of boolean field
               letter aleph mode denotation{a,b,80a} :
-     RADIX{d,e,f,g}, letter r symbol{94a}, RADIX digit{h,i,j,k} sequence.
+     RADIX{d,e,f,g}, letter r symbol{94a}, RADIX digit{h,i,j,k,n} sequence.
 d) radix two{c,A347b} : digit two{94b} symbol.
 e) radix four{c,A347b} : digit four{94b} symbol.
 f) radix eight{c,A347b} : digit eight{94b} symbol.
@@ -1763,13 +1768,15 @@ h) radix two digit{c,i} : digit zero symbol{94b} ; digit one symbol{94b}.
 i) radix four digit{c,j} :
      radix two digit{h} ; digit two symbol{94b} ;
      digit three symbol{94b}.
-j) raidx eight digit{c,k} :
+j) radix eight digit{c,n} :
      radix four digit{i} ; digit four symbol{94b} ;
      digit five symbol{94b} ; digit six symbol{94b} ;
      digit seven symbol{94b}.
+n) radix ten digit{c,k} :
+     radix eight digit{c} ; digit eight symbol{94b} ;
+     digit nine symbol{94b}.
 k) radix sixteen digit{c} :
-     radix eight digit{j} ; digit eight symbol{94b} ;
-     digit nine symbol{94b} ; letter a symbol{94a} ;
+     radix ten digit{n} ; letter a symbol{94a} ;
      letter b symbol{94a} ; letter e symbol{94a} ; letter d symbol{94a} ;
      letter e symbol{94a} ; letter f symbol{94a}.
 
