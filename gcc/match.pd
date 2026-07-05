@@ -5171,7 +5171,7 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
    Fold x & (x >> (TYPE_PRECISION (type) - 1)) to min (x, 0)
    Fold x & (~ (x >> (TYPE_PRECISION (type) - 1))) to max (x, 0)
 */
-#ifdef GIMPLE
+#if GIMPLE
 (for bitop (bit_ior bit_and)
      result (max min)
      rresult (min max)
