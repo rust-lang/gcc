@@ -529,21 +529,6 @@ EOF
   ;;
 esac
 
-# Check if Solaris linker support v2 linker mapfile syntax.
-# Link with -nostartfiles -nodefaultlibs since neither are present while
-# building libgcc.
-case ${host} in
-*-*-solaris2*)
-  solaris_ld_v2_maps=no
-  echo 'int main(void) {return 0;}' > conftest.c
-  echo '$mapfile_version 2' > conftest.map
-  if AC_TRY_COMMAND([${CC-cc} -nostartfiles -nodefaultlibs -Wl,-M,conftest.map -o conftest conftest.c 1>&AS_MESSAGE_LOG_FD]); then
-      solaris_ld_v2_maps=yes
-  fi
-  ;;
-esac
-AC_SUBST(solaris_ld_v2_maps)
-
 case ${host} in
 loongarch32*-*-*)
   tmake_file="${tmake_file} loongarch/t-crtstuff-la32"

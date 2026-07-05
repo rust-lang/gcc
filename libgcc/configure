@@ -604,7 +604,6 @@ sfp_machine_header
 set_use_emutls
 set_have_cc_tls
 vis_hide
-solaris_ld_v2_maps
 real_host_noncanonical
 accel_dir_suffix
 use_tm_clone_registry
@@ -5402,26 +5401,6 @@ EOF
   fi
   ;;
 esac
-
-# Check if Solaris linker support v2 linker mapfile syntax.
-# Link with -nostartfiles -nodefaultlibs since neither are present while
-# building libgcc.
-case ${host} in
-*-*-solaris2*)
-  solaris_ld_v2_maps=no
-  echo 'int main(void) {return 0;}' > conftest.c
-  echo '$mapfile_version 2' > conftest.map
-  if { ac_try='${CC-cc} -nostartfiles -nodefaultlibs -Wl,-M,conftest.map -o conftest conftest.c 1>&5'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then
-      solaris_ld_v2_maps=yes
-  fi
-  ;;
-esac
-
 
 case ${host} in
 loongarch32*-*-*)

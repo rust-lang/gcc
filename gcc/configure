@@ -33263,33 +33263,10 @@ $as_echo "#define USE_LD_AS_NEEDED_LDSCRIPT 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking linker mapfile support for clearing hardware capabilities" >&5
-$as_echo_n "checking linker mapfile support for clearing hardware capabilities... " >&6; }
-saved_LDFLAGS="$LDFLAGS"
-for clearcap_map in sol2-clearcapv2.map sol2-clearcap.map; do
-  LDFLAGS="$saved_LDFLAGS -Wl,-M,${srcdir}/config/$clearcap_map"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-int main(void) {return 0;}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  gcc_cv_ld_clearcap=yes; break
-else
-  gcc_cv_ld_clearcap=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-done
-LDFLAGS="$saved_LDFLAGS"
-if test "x$gcc_cv_ld_clearcap" = xyes; then
-
-$as_echo "#define HAVE_LD_CLEARCAP 1" >>confdefs.h
-
-  ac_config_links="$ac_config_links clearcap.map:${srcdir}/config/$clearcap_map"
+if test x$ld_flavor = xsolaris; then
+  ac_config_links="$ac_config_links clearcap.map:${srcdir}/config/sol2-clearcap.map"
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gcc_cv_ld_clearcap" >&5
-$as_echo "$gcc_cv_ld_clearcap" >&6; }
 
 case "$target" in
   powerpc*-*-*)
@@ -36078,7 +36055,7 @@ do
     "collect-ld") CONFIG_FILES="$CONFIG_FILES collect-ld:exec-tool.in" ;;
     "nm") CONFIG_FILES="$CONFIG_FILES nm:exec-tool.in" ;;
     "dsymutil") CONFIG_FILES="$CONFIG_FILES dsymutil:exec-tool.in" ;;
-    "clearcap.map") CONFIG_LINKS="$CONFIG_LINKS clearcap.map:${srcdir}/config/$clearcap_map" ;;
+    "clearcap.map") CONFIG_LINKS="$CONFIG_LINKS clearcap.map:${srcdir}/config/sol2-clearcap.map" ;;
     "$all_outputs") CONFIG_FILES="$CONFIG_FILES $all_outputs" ;;
     "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
 

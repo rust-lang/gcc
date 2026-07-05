@@ -348,7 +348,7 @@ along with GCC; see the file COPYING3.  If not see
 
 /* Clear hardware capabilities, either explicitly or with OpenMP:
    #pragma openmp declare simd creates clones for SSE2, AVX, and AVX2.  */
-#ifdef HAVE_LD_CLEARCAP
+#if HAVE_SOLARIS_LD
 #define LINK_CLEARCAP_SPEC " %{mclear-hwcap|fopenmp*:-M %sclearcap.map}"
 #else
 #define LINK_CLEARCAP_SPEC ""
