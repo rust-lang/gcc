@@ -1,0 +1,6 @@
+begin short short bits a
+            = short short 10r256; { dg-error "denotation is too large for short short bits" }
+      short bits b
+            = short 16rffff1; { dg-error "denotation is too large for short bits" }
+      skip
+end

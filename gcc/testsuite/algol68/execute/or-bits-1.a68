@@ -12,7 +12,7 @@ BEGIN BITS b = 16rf0f0;
       SHORT BITS ss = SHORT 16rf0f0;
       ASSERT ((ss OR SHORT 16r0f0f) = SHORT 16rffff);
       ASSERT ((ss OR SHORT 16r00ff) = SHORT 16rf0ff);
-      SHORT SHORT BITS sss = SHORT SHORT 16rf0f0;
-      ASSERT ((sss OR SHORT SHORT 16r0f0f) = SHORT SHORT 16rffff);
-      ASSERT ((sss OR SHORT SHORT 16r00ff) = SHORT SHORT 16rf0ff)
+      SHORT SHORT BITS sss = SHORT SHORT 16rf0;
+      ASSERT ((sss OR SHORT SHORT 16r0f) = SHORT SHORT 16rff);
+      ASSERT ((sss OR SHORT SHORT 16rff) = SHORT SHORT 16rff)
 END
