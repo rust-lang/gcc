@@ -1,3 +1,122 @@
+2026-07-04  Thomas Koenig  <tkoenig@gcc.gnu.org>
+
+	PR fortran/126058
+	PR fortran/126090
+	* gfortran.dg/warn_undefined_vars_5.f90: New test.
+	* gfortran.dg/warn_undefined_vars_6.f90: New test.
+
+2026-07-04  Pan Li  <pan2.li@intel.com>
+
+	* gcc.target/riscv/sat/sat_arith.h: Add test helper macros.
+	* gcc.target/riscv/sat/sat_u_mul-20-u16-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u16-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u16-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u16-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u32-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u32-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u32-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u64-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u8-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u8-from-u16.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u8-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u8-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-20-u8-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u16-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u16-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u16-from-u64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u32-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u32-from-u64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u64-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u8-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u8-from-u16.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u8-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-20-u8-from-u64.c: New test.
+
+2026-07-04  Pan Li  <pan2.li@intel.com>
+
+	* gcc.target/riscv/sat/sat_arith.h: Add test helper macros.
+	* gcc.target/riscv/sat/sat_u_mul-19-u16-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u16-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u16-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u16-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u32-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u32-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u32-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u64-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u8-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u8-from-u16.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u8-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u8-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-19-u8-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u16-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u16-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u16-from-u64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u32-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u32-from-u64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u64-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u8-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u8-from-u16.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u8-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-19-u8-from-u64.c: New test.
+
+2026-07-04  Pan Li  <pan2.li@intel.com>
+
+	* gcc.target/riscv/sat/sat_arith.h: Add test helper macros.
+	* gcc.target/riscv/sat/sat_u_mul-18-u16-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u16-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u16-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u16-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u32-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u32-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u32-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u64-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u8-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u8-from-u16.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u8-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u8-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-18-u8-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u16-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u16-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u16-from-u64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u32-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u32-from-u64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u64-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u8-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u8-from-u16.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u8-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-18-u8-from-u64.c: New test.
+
+2026-07-04  Pan Li  <pan2.li@intel.com>
+
+	* gcc.target/riscv/sat/sat_arith.h: Add test helper macros.
+	* gcc.target/riscv/sat/sat_u_mul-17-u16-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u16-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u16-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u16-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u32-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u32-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u32-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u64-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u8-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u8-from-u16.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u8-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u8-from-u64.rv32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-17-u8-from-u64.rv64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u16-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u16-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u16-from-u64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u32-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u32-from-u64.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u64-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u8-from-u128.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u8-from-u16.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u8-from-u32.c: New test.
+	* gcc.target/riscv/sat/sat_u_mul-run-17-u8-from-u64.c: New test.
+
+2026-07-04  Andrew Pinski  <andrew.pinski@oss.qualcomm.com>
+
+	* gcc.dg/pr94589-5a.c: Allow for `u<` and `u>` in the scan too.
+
 2026-07-03  Philipp Tomsich  <philipp.tomsich@vrull.eu>
 
 	PR tree-optimization/122569

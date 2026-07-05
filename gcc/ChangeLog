@@ -1,3 +1,8 @@
+2026-07-04  Filip Kastl  <fkastl@suse.cz>
+
+	* config/i386/i386.cc: Add override specifier for
+	better_epilogue_loop_than_p.
+
 2026-07-03  Philipp Tomsich  <philipp.tomsich@vrull.eu>
 
 	PR tree-optimization/122569
