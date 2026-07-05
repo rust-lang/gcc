@@ -7,8 +7,9 @@ program memain
   s = "abc"
   error stop s
   stop s
-  pause s
+  pause s ! { dg-warning "Deleted feature" }
   error stop s1 ! { dg-warning "Undefined variable" }
   stop s2 ! { dg-warning "Undefined variable" }
   pause s3 ! { dg-warning "Undefined variable" }
+  ! { dg-warning "Deleted feature" " " { target "*-*-*" } .-1 }
 end program memain
