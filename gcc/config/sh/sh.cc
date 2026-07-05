@@ -8902,7 +8902,7 @@ fpscr_set_from_mem (int mode, HARD_REG_SET regs_live)
     {
       // After RA it needs the address with a post-inc mem or else it will
       // result in an unrecognizable insn.
-      rtx scratch = get_free_reg ();
+      rtx scratch = get_free_reg (regs_live);
       emit_move_insn (scratch, XEXP (src, 0));
       if (index != 0)
 	emit_insn (gen_addsi3 (scratch, scratch, GEN_INT (index * 4)));
