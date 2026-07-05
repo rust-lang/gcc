@@ -8332,11 +8332,45 @@ perform_proc:   perform_names %prec NAME
 
 perform_names:  label_1[para]
                 {
-                  perform_tgt_set($para);
+                  auto perf = perform_tgt_set($para);
+                  const auto sect = current.section();
+                  const auto para = current.paragraph();
+                  const cbl_label_t *curr = perf->tgt.recurses(para, sect); // disabled
+
+                  if( sect && curr && curr->type == LblParagraph ) {
+                    // It's not recursion if OF NAME does not match the current section.
+                    if( curr->parent ) {
+                      auto tgt_sect = cbl_label_of(symbol_at(curr->parent));
+                      if( 0 != strcasecmp(sect->name, tgt_sect->name) ) {
+                        curr = nullptr;
+                      }
+                    }
+                  }
+                  if( curr ) {
+                    error_msg(@$, "would recurse through current procedure %s",
+                              curr->name);
+                  }
                 }
         |       label_1[para1] THRU label_1[para2]
                 {
-                  perform_tgt_set($para1, $para2);
+                  auto perf = perform_tgt_set($para1, $para2);
+                  const auto sect = current.section();
+                  const auto para = current.paragraph();
+                  const cbl_label_t *curr = perf->tgt.recurses(para, sect); // disabled
+
+                  if( sect && curr && curr->type == LblParagraph ) {
+                    // It's not recursion if OF NAME does not match the current section.
+                    if( curr->parent ) {
+                      auto tgt_sect = cbl_label_of(symbol_at(curr->parent));
+                      if( 0 != strcasecmp(sect->name, tgt_sect->name) ) {
+                        curr = nullptr;
+                      }
+                    }
+                  }
+                  if( curr ) {
+                    error_msg(@$, "would recurse through current procedure %s",
+                              curr->name);
+                  }
                 }
                 ;
 
@@ -13201,8 +13235,14 @@ label_add( const cbl_loc_t& loc,
     auto p = std::find_if(symbols_begin(PROGRAM), symbols_end(),
                           paragraph_named(PROGRAM, name));
     if( p != symbols_end() ) {
-      error_msg(loc, "section %s conflicts with paragraph %s on line %d",
-                name, cbl_label_of(p)->name, cbl_label_of(p)->line);
+      const auto& para(*cbl_label_of(p));
+      if( 0 < para.line ) {
+        error_msg(loc, "section %s conflicts with paragraph %s on line %d",
+                  name, para.name, para.line);
+      } else {
+        error_msg(loc, "section %s would conflict with paragraph of same name",
+                  name);
+      }
     }
   }
   struct cbl_label_t label = { type, parent, loc.first_line };

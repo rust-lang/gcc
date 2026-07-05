@@ -2466,11 +2466,6 @@ BASIS		{ yy_push_state(basis); return BASIS; }
 <*>{
   {PUSH_FILE}		{
 			  yy_set_bol(true);
-			  auto top_file = cobol_lineno(yylineno);
-			  if( top_file ) {
-			    if( yy_flex_debug ) dbgmsg("  saving line %4d of %s",
-			  			       yylineno, top_file);
-			  }
 			  // "\f#file push <name>": name starts at offset 13.
 			  char *filename = xstrdup(yytext);
 			  filename[yyleng - 1] = '\0'; // kill the trailing formfeed
@@ -2479,6 +2474,18 @@ BASIS		{ yy_push_state(basis); return BASIS; }
 			    dbgmsg("logic warning: filename was adjusted to %s",
 				   --filename);
 			  }
+			  /*
+			   * Update the GCC location so that it reflects the
+			   * location of the COPY directive in the file when
+			   * the parser calls input_file_status_notify(). That
+			   * function leads to gcc's linemap_add, starting a
+			   * new location sequence for the copybook text.  When
+			   * it does that, if the current file's location is
+			   * only the parser's last location, the "included
+			   * from" message reflects where the parser last
+			   * parsed, not where the scanner found the COPY.
+			   */
+			  gcc_location_set(yylloc.as_first_line());
 			  input_file_status.enter(filename);
 			  yylineno = 1;
 			  reset_location();
@@ -2489,6 +2496,8 @@ BASIS		{ yy_push_state(basis); return BASIS; }
 			  yylineno = input_file_status.pending().lineno;
 			  input_file_status.leave();
                           dbgmsg("banged yylineno to %d", yylineno);
+			  gcc_location_set(yylloc = yylineno);
+			  location_dump("lexer", __LINE__, "POP_FILE", yylloc);
 			}
 
   {LINE_DIRECTIVE} 	{

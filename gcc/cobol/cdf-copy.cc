@@ -293,15 +293,27 @@ copybook_elem_t::open_file( const char directory[], bool literally ) {
   gcc_assert( ! literally );
 
   free(copier);
+  
+  extern int yydebug;
+  if( yydebug ) {
+    std::string pattern(path);
+    pattern += "{";
+    auto comma = "";
+    for( const auto suffix : suffixes ) {
+      pattern += comma;
+      pattern += suffix;
+      comma = ",";
+    }
+    pattern += "}";
+    dbgmsg("%s: trying %s", __func__, pattern.c_str());
+  }
 
   for( auto suffix : suffixes ) {
     std::string pattern(path);
     pattern += suffix;
-    dbgmsg("%s: trying %s", __func__, pattern.c_str());
-
     auto filename = pattern.c_str();
+    
     if( (this->fd = open(filename, O_RDONLY)) != -1 ) {
-      dbgmsg("found copybook file %s", filename);
       this->source.name = xstrdup(filename);
       if( ! cobol_filename(this->source.name, inode_of(fd)) ) {
         error_msg(source.loc, "recursive copybook: '%s' includes itself",

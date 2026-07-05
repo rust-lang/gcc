@@ -2685,7 +2685,8 @@ struct cbl_perform_tgt_t {
     return ito? cbl_label_of(symbol_at(ito)) : NULL;
   }
 
-
+  const cbl_label_t * recurses( const cbl_label_t *para,
+                                const cbl_label_t *sect ) const;
   void dump() const {
     assert(ifrom);
     if( !ito ) {

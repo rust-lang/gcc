@@ -198,10 +198,6 @@ class copybook_t {
     this->source(loc, name);
 
     for( auto dir : directories ) {
-      dbgmsg("copybook_t::open '%s' OF '%s' %s",
-	     book.source.name,
-	     dir? dir: ".",
-	     book.literally.source? ", literally" : "" );
       if( (fd = book.open_file(dir, book.literally.source)) != -1 ) break;
     }
     return fd;

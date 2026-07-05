@@ -2676,6 +2676,28 @@ symbol_registers_add() {
   }
 }
 
+const cbl_label_t *
+cbl_perform_tgt_t::recurses( const cbl_label_t *para __attribute__ ((unused)),
+                             const cbl_label_t *sect __attribute__ ((unused)) ) const 
+{
+  // Mon Jul  6 11:14:12 2026
+  // Decided not to enforce until we enforce EC-FLOW-IMP-RECURSION or
+  // possibly EC-PROGRAM-RECURSIVE-CALL.
+#if 0
+  if( from() ) {
+    auto tgt = from();
+    if( para && 0 == strcasecmp(tgt->name, para->name) ) return tgt;
+    if( sect && 0 == strcasecmp(tgt->name, sect->name) ) return tgt;
+  }
+  if( to() ) {
+    auto tgt = to();
+    if( para && 0 == strcasecmp(tgt->name, para->name) ) return tgt;
+    if( sect && 0 == strcasecmp(tgt->name, sect->name) ) return tgt;
+  }
+#endif
+  return nullptr;
+}
+
 cbl_label_t *
 cbl_perform_tgt_t::finally( size_t program ) {
   assert(0 < ito);

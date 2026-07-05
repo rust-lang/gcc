@@ -116,17 +116,30 @@ struct cbl_loc_t : public cbl_loc_base_t {
         last_line, last_column
       }
   {}
-  cbl_loc_t( const cbl_loc_base_t& base ) : cbl_loc_base_t(base)   // cppcheck-suppress noExplicitConstructor
+  cbl_loc_t( const cbl_loc_base_t& base )
+    : cbl_loc_base_t(base)   // cppcheck-suppress noExplicitConstructor
   {}
-#if 0
-  cbl_loc_t(   int first_line, int first_column,
-               int last_line,  int last_column ) 
-    : first_line(first_line)
-    , first_column(first_column)
-    , last_line(last_line)
-    , last_column(last_column)
+
+  explicit cbl_loc_t(   int line )
+    : cbl_loc_base_t {
+        line, 1, line, 1
+      }
   {}
-#endif
+
+  cbl_loc_t& operator=( int lineno ) {
+    first_line = last_line = lineno;
+    first_column = last_column = 1;
+    return *this;
+  }
+
+  // Represent a multi-line location as the first line, so "included from"
+  // reflects where the COPY statement appears, not where it ends. 
+  cbl_loc_t as_first_line() const {
+    cbl_loc_t loc(*this);
+    loc.last_line = first_line;
+    loc.last_column = first_column;
+    return loc;
+  }
 };
 
 const cbl_loc_t& cobol_location();
@@ -275,9 +288,9 @@ location_dump( const char func[], int line, const char tag[], const LOC& loc) {
   if( yy_flex_debug ) {
     const char *detail = gcobol_getenv("update_location");
     if( detail ) { // cppcheck-suppress knownConditionTrueFalse
-      fprintf(stderr, "%s:%d: %s location (%d,%d) to (%d,%d)\n",
+      fprintf(stderr, "%s:%d: %s location (%d,%d) to (%d,%d) '%c'\n",
               func, line, tag,
-              loc.first_line, loc.first_column, loc.last_line, loc.last_column);
+              loc.first_line, loc.first_column, loc.last_line, loc.last_column, detail[0]);
       if( *detail == '2' ) gcc_location_dump();
     }
   }

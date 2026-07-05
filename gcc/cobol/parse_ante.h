@@ -3498,31 +3498,38 @@ implicit_section()
 static void
 // cppcheck-suppress constParameterPointer
 ast_enter_exit_section( cbl_label_t * section ) {
-  auto implicit = section?  implicit_paragraph() : NULL;
-
-  struct { cbl_label_t *para, *sect;
+  // Add the next section and paragraph to the symbol table, capturing the prior ones.
+  struct { cbl_label_t *sect, *para;
     inline bool exists() const { return sect != NULL && para != NULL; }
   } prior = {
-    current.new_paragraph(implicit),
+    // Add the section before the paragraph because label_add() depends on
+    // current.program_section().  But leave the current paragraph before
+    // leaving the current section.
     current.new_section(section)
   };
+
+  cbl_label_t *paragraph = nullptr;
+
+  if( section ) {
+    paragraph = implicit_paragraph();
+    prior.para = current.new_paragraph(paragraph);
+  }
+  
   dbgmsg( "%s:%d: leaving section %s paragraph %s (line %d)",
           __func__, __LINE__,
           prior.sect? prior.sect->name : "''",
           prior.para? prior.para->name : "''",
           yylineno );
-  if( section ) {
-    dbgmsg( "%s:%d: entering section %s", __func__, __LINE__,
-            section->name );
-  }
   
   if( prior.exists() ) {
     parser_leave_paragraph(prior.para);
     parser_leave_section(prior.sect);
   }
   if( section ) {
+    dbgmsg( "%s:%d: entering section %s", __func__, __LINE__,
+            section->name );
     parser_enter_section(section);
-    parser_enter_paragraph(implicit);
+    parser_enter_paragraph(paragraph);
   }
 }
 

@@ -1052,7 +1052,7 @@ parse_copy_directive( filespan_t& mfile ) {
       }
     }
 
-    // If the parse failed, pass it through to the parser for analysis.
+    // If the parse succeeded, erase it, else pass it through to the parser for analysis.
     if( outcome.parsed ) {
       erase_line( const_cast<char*>(copy_stmt.p),
                   const_cast<char*>(copy_stmt.pend));
@@ -1526,6 +1526,7 @@ cdftext::lex_open( const char filename[] ) {
     cobol_filename(name, inode_of(input));
     filespan_t mfile( free_form_reference_format( input ) );
 
+    please_push_filename = true;
     process_file( mfile, output );
 
     dbgmsg("lex_open: processed %zu of %zu: '%s'", n, included_files.size(), name);
@@ -1612,7 +1613,7 @@ cdftext::open_input( const char filename[] ) {
   verbose_file_reader = NULL != getenv("GCOBOL_TEMPDIR");
 
   if( verbose_file_reader ) {
-    cbl_message(LexInputN, "verbose: opening %s for input", filename);
+    cbl_message(LexInputN, "opening %s for input", filename);
   }
   return fd;
 }
@@ -1851,6 +1852,20 @@ cdftext::free_form_reference_format( int input ) {
   return source_buffer;
 }
 
+bool cdftext::please_push_filename = false;
+
+void
+cdftext::output_push_directive( const char filename[],
+                               std::ostream_iterator<char>& ofs )
+{
+  static const char file_push[] = "\f#FILE PUSH ";
+  static const char delimiter[] = "\f";
+
+  std::copy(file_push, file_push + strlen(file_push), ofs);
+  std::copy(filename, filename + strlen(filename), ofs);
+  std::copy(delimiter, delimiter + strlen(delimiter), ofs);
+}
+
 /*
  * process_file is a recursive routine that opens and processes
  * included files.  It uses the input file stack in two ways: to check
@@ -1885,21 +1900,28 @@ cdftext::free_form_reference_format( int input ) {
 void
 cdftext::process_file( filespan_t mfile, int output, bool second_pass ) {
   static size_t nfiles = 0;
-
+  
   __gnu_cxx::stdio_filebuf<char> outbuf(fdopen(output, "a"), std::ios::out);
   std::ostream out(&outbuf);
   std::ostream_iterator<char> ofs(out);
 
-  // indicate current file
-  static const char file_push[] = "\f#FILE PUSH ", file_pop[] = "\f#FILE POP\f";
+  if( please_push_filename ) {
+    assert(!second_pass);
+    output_push_directive( cobol_filename(), ofs );
+    please_push_filename = false;
+  }
+
+#if 0
+  {
+    auto fd = open("/tmp/I", O_CREAT | O_WRONLY, S_IRWXU);
+    auto n = write(fd, mfile.data, mfile.size());
+    if( n < 0 ) perror("write error");
+    close(fd);
+  }
+#endif
 
   if( !included_files.empty() ) { ++nfiles; }; // force push/pop of included filename
   if( !second_pass && nfiles++ ) {
-    static const char delimiter[] = "\f";
-    const char *filename = cobol_filename();
-    std::copy(file_push, file_push + strlen(file_push), ofs);
-    std::copy(filename, filename + strlen(filename), ofs);
-    std::copy(delimiter, delimiter + strlen(delimiter), ofs);
     out.flush();
   }
 
@@ -1909,8 +1931,8 @@ cdftext::process_file( filespan_t mfile, int output, bool second_pass ) {
     auto copied = parse_copy_directive(mfile);
     if( copied.parsed && copied.fd != -1 ) {
       gcc_assert(copied.erased_lines.p);
-      std::copy_if(copied.erased_lines.p, copied.erased_lines.pend, ofs,
-                   []( char ch ) { return ch == '\n'; } );
+      output_push_directive( cobol_filename(), ofs );
+
       struct { int in, out; filespan_t mfile; } copy;
       dbgmsg("%s:%d: line " HOST_SIZE_T_PRINT_UNSIGNED ", opening %s on fd %d",
              __func__, __LINE__, (fmt_size_t)mfile.lineno(),
@@ -1936,7 +1958,19 @@ cdftext::process_file( filespan_t mfile, int output, bool second_pass ) {
         process_file(copy.mfile, output, true);
         // COPY statement is erased from input if processed successfully
       }
+      /*
+       * After returning from the recursive call, restore the global current
+       * filename and output blank lines representing the erased COPY
+       * statement.  Do not be confused: the POP directive is produced by the
+       * recursed function after processing the copybook file.  Here we output
+       * the blank lines after that directive is produced, representing the
+       * lines where the COPY statement appeared.
+       */
       cobol_filename_restore();
+      unsigned long n = std::count(copied.erased_lines.p, copied.erased_lines.pend, '\n');
+      std::copy_if(copied.erased_lines.p, copied.erased_lines.pend, ofs, 
+                   []( char ch ) { return ch == '\n'; } );
+      dbgmsg("%s:%d: %lu blank lines erased", __func__, __LINE__, n);
     }
 
     auto erased = parse_replace_directive(mfile);
@@ -1959,6 +1993,7 @@ cdftext::process_file( filespan_t mfile, int output, bool second_pass ) {
   }
   // end of file
   if( !second_pass && --nfiles ) {
+    static const char file_pop[] = "\f#FILE POP\f";
     std::copy(file_pop, file_pop + strlen(file_pop), ofs);
     out.flush();
   }

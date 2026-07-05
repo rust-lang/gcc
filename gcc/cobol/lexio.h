@@ -272,8 +272,12 @@ struct replace_t {
 #include <list>
 
 class cdftext {
+  static bool please_push_filename;
   static filespan_t  free_form_reference_format( int fd );
   static void process_file( filespan_t, int output, bool second_pass = false );
+
+  static void output_push_directive( const char filename[],
+                                    std::ostream_iterator<char>& ofs);
 
   static filespan_t map_file( int fd );
 
