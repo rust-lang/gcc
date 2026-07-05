@@ -8873,8 +8873,6 @@ fpscr_set_from_mem (int mode, HARD_REG_SET regs_live)
   enum attr_fp_mode norm_mode = ACTUAL_NORMAL_MODE (FP_MODE);
   int index = fp_mode == norm_mode;
 
-  rtx scratch = !can_create_pseudo_p () ? get_free_reg (regs_live) : NULL_RTX;
-
   if (fpscr_values == NULL)
     {
       tree t = build_index_type (integer_one_node);
@@ -8892,17 +8890,27 @@ fpscr_set_from_mem (int mode, HARD_REG_SET regs_live)
     }
 
   rtx src = DECL_RTL (fpscr_values);
-  if (!can_create_pseudo_p ())
+
+  if (can_create_pseudo_p ())
     {
+      // Before RA the plain address can be used and RA will adjust it for
+      // the post-inc constraint.
+      src = adjust_address (src, SImode, index * 4);
+      emit_insn (gen_lds_fpscr (force_reg (SImode, src)));
+    }
+  else
+    {
+      // After RA it needs the address with a post-inc mem or else it will
+      // result in an unrecognizable insn.
+      rtx scratch = get_free_reg ();
       emit_move_insn (scratch, XEXP (src, 0));
       if (index != 0)
 	emit_insn (gen_addsi3 (scratch, scratch, GEN_INT (index * 4)));
-      src = adjust_automodify_address (src, SImode, scratch, index * 4);
+      src = adjust_automodify_address (src, SImode,
+				       gen_rtx_POST_INC (Pmode, scratch),
+				       index * 4);
+      add_reg_note (emit_insn (gen_lds_fpscr (src)), REG_INC, scratch);
     }
-  else
-    src = adjust_address (src, SImode, index * 4);
-
-  emit_insn (gen_lds_fpscr (src));
 }
 
 /* Is the given character a logical line separator for the assembler?  */
