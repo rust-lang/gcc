@@ -10,6 +10,6 @@ __thread int x = 0;
 int
 bar ()
 {
-  return x; /* { dg-message "sorry, unimplemented: accessing thread-local storage is not currently supported with -mpure-code or -mslow-flash-data" } */
+  return x; /* { dg-message "sorry, unimplemented: accessing thread-local storage is not currently supported with '-mpure-code' or '-mslow-flash-data'" } */
 }
 
