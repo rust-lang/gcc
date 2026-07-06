@@ -138,7 +138,7 @@ TESTS = $(am__append_4) $(MAKETESTS) $(am__EXEEXT_17)
 @HAVE_BUILDID_TRUE@@HAVE_DWZ_TRUE@@HAVE_ELF_TRUE@@HAVE_OBJCOPY_DEBUGLINK_TRUE@@NATIVE_TRUE@am__append_8 = b3test
 @HAVE_BUILDID_TRUE@@HAVE_DWZ_TRUE@@HAVE_ELF_TRUE@@HAVE_OBJCOPY_DEBUGLINK_TRUE@@NATIVE_TRUE@am__append_9 = b3test_dwz_buildid b3test_dwz_buildidfull
 @HAVE_ELF_TRUE@@NATIVE_TRUE@am__append_10 = btest_lto
-@NATIVE_TRUE@am__append_11 = btest_alloc stest stest_alloc
+@NATIVE_TRUE@am__append_11 = btest_alloc mdtest stest stest_alloc
 @HAVE_DWZ_TRUE@@NATIVE_TRUE@am__append_12 = btest_dwz
 @HAVE_DWZ_TRUE@@HAVE_OBJCOPY_DEBUGLINK_TRUE@@NATIVE_TRUE@am__append_13 = btest_dwz_gnudebuglink
 @HAVE_ELF_TRUE@@HAVE_ZLIB_TRUE@@NATIVE_TRUE@am__append_14 = -lz
@@ -235,8 +235,8 @@ libbacktrace_noformat_la_OBJECTS =  \
 @NATIVE_TRUE@	test_unknown$(EXEEXT) unittest$(EXEEXT) \
 @NATIVE_TRUE@	unittest_alloc$(EXEEXT) btest$(EXEEXT)
 @HAVE_ELF_TRUE@@NATIVE_TRUE@am__EXEEXT_6 = btest_lto$(EXEEXT)
-@NATIVE_TRUE@am__EXEEXT_7 = btest_alloc$(EXEEXT) stest$(EXEEXT) \
-@NATIVE_TRUE@	stest_alloc$(EXEEXT)
+@NATIVE_TRUE@am__EXEEXT_7 = btest_alloc$(EXEEXT) mdtest$(EXEEXT) \
+@NATIVE_TRUE@	stest$(EXEEXT) stest_alloc$(EXEEXT)
 @HAVE_ELF_TRUE@@NATIVE_TRUE@am__EXEEXT_8 = ztest$(EXEEXT) \
 @HAVE_ELF_TRUE@@NATIVE_TRUE@	ztest_alloc$(EXEEXT) \
 @HAVE_ELF_TRUE@@NATIVE_TRUE@	zstdtest$(EXEEXT) \
@@ -396,6 +396,13 @@ m2test_OBJECTS = $(am_m2test_OBJECTS)
 m2test_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(m2test_CFLAGS) $(CFLAGS) \
 	$(m2test_LDFLAGS) $(LDFLAGS) -o $@
+@NATIVE_TRUE@am_mdtest_OBJECTS = mdtest-mdtest.$(OBJEXT) \
+@NATIVE_TRUE@	mdtest-testlib.$(OBJEXT)
+mdtest_OBJECTS = $(am_mdtest_OBJECTS)
+@NATIVE_TRUE@mdtest_DEPENDENCIES = libbacktrace.la
+mdtest_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(mdtest_CFLAGS) $(CFLAGS) \
+	$(mdtest_LDFLAGS) $(LDFLAGS) -o $@
 @NATIVE_TRUE@am_mtest_OBJECTS = mtest-mtest.$(OBJEXT) \
 @NATIVE_TRUE@	mtest-testlib.$(OBJEXT)
 mtest_OBJECTS = $(am_mtest_OBJECTS)
@@ -620,12 +627,13 @@ SOURCES = $(libbacktrace_la_SOURCES) $(EXTRA_libbacktrace_la_SOURCES) \
 	$(ctestg_alloc_SOURCES) $(ctestzstd_SOURCES) \
 	$(ctestzstd_alloc_SOURCES) $(dwarf5_SOURCES) \
 	$(dwarf5_alloc_SOURCES) $(edtest_SOURCES) \
-	$(edtest_alloc_SOURCES) $(m2test_SOURCES) $(mtest_SOURCES) \
-	$(stest_SOURCES) $(stest_alloc_SOURCES) $(test_elf_32_SOURCES) \
-	$(test_elf_64_SOURCES) $(test_macho_SOURCES) \
-	$(test_pecoff_SOURCES) $(test_unknown_SOURCES) \
-	$(test_xcoff_32_SOURCES) $(test_xcoff_64_SOURCES) \
-	$(ttest_SOURCES) $(ttest_alloc_SOURCES) $(unittest_SOURCES) \
+	$(edtest_alloc_SOURCES) $(m2test_SOURCES) $(mdtest_SOURCES) \
+	$(mtest_SOURCES) $(stest_SOURCES) $(stest_alloc_SOURCES) \
+	$(test_elf_32_SOURCES) $(test_elf_64_SOURCES) \
+	$(test_macho_SOURCES) $(test_pecoff_SOURCES) \
+	$(test_unknown_SOURCES) $(test_xcoff_32_SOURCES) \
+	$(test_xcoff_64_SOURCES) $(ttest_SOURCES) \
+	$(ttest_alloc_SOURCES) $(unittest_SOURCES) \
 	$(unittest_alloc_SOURCES) $(xztest_SOURCES) \
 	$(xztest_alloc_SOURCES) $(zstdtest_SOURCES) \
 	$(zstdtest_alloc_SOURCES) $(ztest_SOURCES) \
@@ -1148,6 +1156,10 @@ libbacktrace_testing_ldflags = -no-install
 @NATIVE_TRUE@btest_alloc_CFLAGS = $(libbacktrace_TEST_CFLAGS)
 @NATIVE_TRUE@btest_alloc_LDFLAGS = $(libbacktrace_testing_ldflags)
 @NATIVE_TRUE@btest_alloc_LDADD = libbacktrace_alloc.la
+@NATIVE_TRUE@mdtest_SOURCES = mdtest.c testlib.c
+@NATIVE_TRUE@mdtest_CFLAGS = $(libbacktrace_TEST_CFLAGS) -O
+@NATIVE_TRUE@mdtest_LDFLAGS = $(libbacktrace_testing_ldflags)
+@NATIVE_TRUE@mdtest_LDADD = libbacktrace.la
 @NATIVE_TRUE@stest_SOURCES = stest.c
 @NATIVE_TRUE@stest_CFLAGS = $(libbacktrace_TEST_CFLAGS)
 @NATIVE_TRUE@stest_LDFLAGS = $(libbacktrace_testing_ldflags)
@@ -1444,6 +1456,10 @@ edtest_alloc$(EXEEXT): $(edtest_alloc_OBJECTS) $(edtest_alloc_DEPENDENCIES) $(EX
 m2test$(EXEEXT): $(m2test_OBJECTS) $(m2test_DEPENDENCIES) $(EXTRA_m2test_DEPENDENCIES) 
 	@rm -f m2test$(EXEEXT)
 	$(AM_V_CCLD)$(m2test_LINK) $(m2test_OBJECTS) $(m2test_LDADD) $(LIBS)
+
+mdtest$(EXEEXT): $(mdtest_OBJECTS) $(mdtest_DEPENDENCIES) $(EXTRA_mdtest_DEPENDENCIES) 
+	@rm -f mdtest$(EXEEXT)
+	$(AM_V_CCLD)$(mdtest_LINK) $(mdtest_OBJECTS) $(mdtest_LDADD) $(LIBS)
 
 mtest$(EXEEXT): $(mtest_OBJECTS) $(mtest_DEPENDENCIES) $(EXTRA_mtest_DEPENDENCIES) 
 	@rm -f mtest$(EXEEXT)
@@ -1755,6 +1771,18 @@ m2test-testlib.o: testlib.c
 
 m2test-testlib.obj: testlib.c
 	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m2test_CFLAGS) $(CFLAGS) -c -o m2test-testlib.obj `if test -f 'testlib.c'; then $(CYGPATH_W) 'testlib.c'; else $(CYGPATH_W) '$(srcdir)/testlib.c'; fi`
+
+mdtest-mdtest.o: mdtest.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mdtest_CFLAGS) $(CFLAGS) -c -o mdtest-mdtest.o `test -f 'mdtest.c' || echo '$(srcdir)/'`mdtest.c
+
+mdtest-mdtest.obj: mdtest.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mdtest_CFLAGS) $(CFLAGS) -c -o mdtest-mdtest.obj `if test -f 'mdtest.c'; then $(CYGPATH_W) 'mdtest.c'; else $(CYGPATH_W) '$(srcdir)/mdtest.c'; fi`
+
+mdtest-testlib.o: testlib.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mdtest_CFLAGS) $(CFLAGS) -c -o mdtest-testlib.o `test -f 'testlib.c' || echo '$(srcdir)/'`testlib.c
+
+mdtest-testlib.obj: testlib.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mdtest_CFLAGS) $(CFLAGS) -c -o mdtest-testlib.obj `if test -f 'testlib.c'; then $(CYGPATH_W) 'testlib.c'; else $(CYGPATH_W) '$(srcdir)/testlib.c'; fi`
 
 mtest-mtest.o: mtest.c
 	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mtest_CFLAGS) $(CFLAGS) -c -o mtest-mtest.o `test -f 'mtest.c' || echo '$(srcdir)/'`mtest.c
@@ -2350,6 +2378,13 @@ btest_lto.log: btest_lto$(EXEEXT)
 btest_alloc.log: btest_alloc$(EXEEXT)
 	@p='btest_alloc$(EXEEXT)'; \
 	b='btest_alloc'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+mdtest.log: mdtest$(EXEEXT)
+	@p='mdtest$(EXEEXT)'; \
+	b='mdtest'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

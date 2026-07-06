@@ -32,6 +32,7 @@ POSSIBILITY OF SUCH DAMAGE.  */
 
 #include "config.h"
 
+#include <string.h>
 #include <sys/types.h>
 
 #include "backtrace.h"
@@ -40,13 +41,23 @@ POSSIBILITY OF SUCH DAMAGE.  */
 /* A trivial routine that always fails to find fileline data.  */
 
 static int
-unknown_fileline (struct backtrace_state *state ATTRIBUTE_UNUSED,
-		  uintptr_t pc, backtrace_full_callback callback,
+unknown_fileline (struct backtrace_state *state, uintptr_t pc,
+		  backtrace_full_callback callback,
 		  backtrace_error_callback error_callback ATTRIBUTE_UNUSED,
 		  void *data)
 
 {
-  return callback (data, pc, NULL, 0, NULL);
+  if (!state->moredata)
+    return callback (data, pc, NULL, 0, NULL);
+  else
+    {
+      struct backtrace_moredata md;
+
+      memset (&md, 0, sizeof md);
+      md.backtrace_version = 3;
+      md.backtrace_data = data;
+      return callback ((void *) &md, pc, NULL, 0, NULL);
+    }
 }
 
 /* Initialize the backtrace data when we don't know how to read the
