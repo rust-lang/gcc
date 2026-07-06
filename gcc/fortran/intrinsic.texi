@@ -4611,9 +4611,6 @@ Degrees function: @*
 @section @code{COSD} --- Cosine function, degrees
 @fnindex COSD
 @fnindex DCOSD
-@fnindex CCOSD
-@fnindex ZCOSD
-@fnindex CDCOSD
 @cindex trigonometric function, cosine, degrees
 @cindex cosine, degrees
 
@@ -4649,9 +4646,6 @@ end program test_cosd
 @headitem Name            @tab Argument            @tab Return type       @tab Standard
 @item @code{COSD(X)}   @tab @code{REAL(4) X}    @tab @code{REAL(4)}    @tab Fortran 2023
 @item @code{DCOSD(X)}  @tab @code{REAL(8) X}    @tab @code{REAL(8)}    @tab GNU extension
-@item @code{CCOSD(X)}  @tab @code{COMPLEX(4) X} @tab @code{COMPLEX(4)} @tab GNU extension
-@item @code{ZCOSD(X)}  @tab @code{COMPLEX(8) X} @tab @code{COMPLEX(8)} @tab GNU extension
-@item @code{CDCOSD(X)} @tab @code{COMPLEX(8) X} @tab @code{COMPLEX(8)} @tab GNU extension
 @end multitable
 
 @item @emph{Standard}:
@@ -14057,9 +14051,6 @@ Degrees function: @*
 @section @code{SIND} --- Sine function, degrees
 @fnindex SIND
 @fnindex DSIND
-@fnindex CSIND
-@fnindex ZSIND
-@fnindex CDSIND
 @cindex trigonometric function, sine, degrees
 @cindex sine, degrees
 
@@ -14094,9 +14085,6 @@ end program test_sind
 @headitem Name            @tab Argument             @tab Return type       @tab Standard
 @item @code{SIND(X)}   @tab @code{REAL(4) X}     @tab @code{REAL(4)}    @tab Fortran 2023
 @item @code{DSIND(X)}  @tab @code{REAL(8) X}     @tab @code{REAL(8)}    @tab GNU extension
-@item @code{CSIND(X)}  @tab @code{COMPLEX(4) X}  @tab @code{COMPLEX(4)} @tab GNU extension
-@item @code{ZSIND(X)}  @tab @code{COMPLEX(8) X}  @tab @code{COMPLEX(8)} @tab GNU extension
-@item @code{CDSIND(X)} @tab @code{COMPLEX(8) X}  @tab @code{COMPLEX(8)} @tab GNU extension
 @end multitable
 
 @item @emph{Standard}:

@@ -1067,7 +1067,8 @@ generated/_mod_r17.F90 \
 generated/misc_specifics.F90 \
 intrinsics/dprod_r8.f90 \
 intrinsics/f2c_specifics.F90 \
-intrinsics/random_init.f90
+intrinsics/random_init.f90 \
+intrinsics/trigd_specific.F90
 
 # Turn on vectorization and loop unrolling for matmul.
 $(patsubst %.c,%.lo,$(i_matmul_c)): AM_CFLAGS += -ffast-math -ftree-vectorize -funroll-loops --param max-unroll-times=4

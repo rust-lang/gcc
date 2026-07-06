@@ -2039,3 +2039,42 @@ GFORTRAN_16 {
     _gfortran_string_split_char4;
     _gfortran_cfi_deep_copy_array;
 } GFORTRAN_15.2;
+
+GFORTRAN_17 {
+  global:
+    _gfortran_specific__acosd_r10;
+    _gfortran_specific__acosd_r16;
+    _gfortran_specific__acosd_r17;
+    _gfortran_specific__acosd_r4;
+    _gfortran_specific__acosd_r8;
+    _gfortran_specific__asind_r10;
+    _gfortran_specific__asind_r16;
+    _gfortran_specific__asind_r17;
+    _gfortran_specific__asind_r4;
+    _gfortran_specific__asind_r8;
+    _gfortran_specific__atan2d_r10;
+    _gfortran_specific__atan2d_r16;
+    _gfortran_specific__atan2d_r17;
+    _gfortran_specific__atan2d_r4;
+    _gfortran_specific__atan2d_r8;
+    _gfortran_specific__atand_r10;
+    _gfortran_specific__atand_r16;
+    _gfortran_specific__atand_r17;
+    _gfortran_specific__atand_r4;
+    _gfortran_specific__atand_r8;
+    _gfortran_specific__cosd_r10;
+    _gfortran_specific__cosd_r16;
+    _gfortran_specific__cosd_r17;
+    _gfortran_specific__cosd_r4;
+    _gfortran_specific__cosd_r8;
+    _gfortran_specific__sind_r10;
+    _gfortran_specific__sind_r16;
+    _gfortran_specific__sind_r17;
+    _gfortran_specific__sind_r4;
+    _gfortran_specific__sind_r8;
+    _gfortran_specific__tand_r10;
+    _gfortran_specific__tand_r16;
+    _gfortran_specific__tand_r17;
+    _gfortran_specific__tand_r4;
+    _gfortran_specific__tand_r8;
+} GFORTRAN_16;

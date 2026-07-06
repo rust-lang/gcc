@@ -2423,6 +2423,7 @@ module_sym:
 
       memset (&e, 0, sizeof (e));
       e.expr_type = EXPR_FUNCTION;
+      e.value.function.isym = isym;
 
       memset (&argexpr, 0, sizeof (argexpr));
       gcc_assert (isym->formal);
