@@ -1229,6 +1229,13 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
  (mult (absu@1 @0) @1)
  (mult (convert@2 @0) @2))
 
+#if GIMPLE
+/* Simplify SAD(x, x, acc) -> acc since the absolute difference is zero.  */
+(simplify
+ (sad @0 @0 @1)
+ @1)
+#endif
+
 /* cos(copysign(x, y)) -> cos(x).  Similarly for cosh.  */
 (for coss (COS COSH)
  (for copysigns (COPYSIGN)
