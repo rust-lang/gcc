@@ -219,8 +219,9 @@ RISCV_CORE("andes-nx45",      "rv64imc_zicsr_zifencei_xandesperf",    "andes-45-
 RISCV_CORE("andes-a45",       "rv32imafdc_zicsr_zifencei_xandesperf", "andes-45-series")
 RISCV_CORE("andes-ax45",      "rv64imafdc_zicsr_zifencei_xandesperf", "andes-45-series")
 
-RISCV_CORE("spacemit-x60",    "rv64imafdcv_zba_zbb_zbc_zbs_zicboz_zicond_"
-			      "zbkc_zfh_zvfh_zvkt_zvl256b_sscofpmf_xsmtvdot",
+RISCV_CORE("spacemit-x60",    "rva22u64_v_zicond_zifencei_zihintntl_zihpm_zfh_zbc_"
+			      "zbkc_zvfh_zvfhmin_zvkt_zvl256b_smepmp_sscofpmf_sstc_"
+			      "svinval_svnapot_svpbmt_xsmtvdot",
 			      "spacemit-x60")
 
 RISCV_CORE("spacemit-x100",   "rva23s64_smepmp_smnpm_smstateen_sspm_zbc_zbkc_"
