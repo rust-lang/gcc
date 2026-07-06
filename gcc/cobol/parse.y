@@ -14761,66 +14761,73 @@ literal_refmod_valid( cbl_loc_t loc, const cbl_refer_t& r ) {
 
   unsigned int nchar = r.field->char_capacity();
   const cbl_span_t& refmod(r.refmod);
+  const char *len_name = refmod.len? nice_name_of(refmod.len->field) : "";
 
   // Check ANY LENGTH for initial refmod FROM literal 0. A bit specific....
   if( r.field->has_attr(any_length_e) ) {
     if( is_literal(refmod.from->field) ) {
-      auto edge = refmod.from->field->as_integer();
-      if( edge < 1 ) {
+      auto from = refmod.from->field->as_integer();
+      if( from < 1 ) {
         error_msg(loc,"%s(%zu:%s) out of bounds, must be within 1:%u",
                   r.field->name,
                   size_t(refmod.from->field->as_integer()),
-                  nice_name_of(refmod.len->field),
+                  len_name,
                   nchar );
         return false;
       }
     }
     return true;
   }
-  
+
+  // from is unknown
   if( ! is_literal(refmod.from->field) ) {
     if( ! refmod.len ) return true;
     if( ! is_literal(refmod.len->field) ) return true;
-    auto edge = refmod.len->field->as_integer();
-    if( 0 < edge ) {
-      if( edge-1 < nchar ) return true;
+    auto len = refmod.len->field->as_integer();
+    if( 0 < len ) {
+      if( len-1 < nchar ) return true; // len is less than the field's size
     }
-    // len < 0 or not: 0 < from + len <= capacity
+    // len too big: 0 < from + len <= capacity
     error_msg(loc, "%s(%s:%zu) out of bounds, "
 	           "size is %u",
 	      r.field->name,
 	      refmod.from->name(),
-	      size_t(edge),
+	      size_t(len),
 	      nchar );
     return false;
   }
 
-  auto edge = refmod.from->field->as_integer();
-  if( 0 < edge ) {
-    if( --edge < nchar ) {
-      if( ! refmod.len ) return true;
-      if( ! is_literal(refmod.len->field) ) return true;
-      auto len = refmod.len->field->as_integer();
-      if( len > 0 ) {
-	edge += len;
-	if( --edge < nchar ) return true;
-      }
-      // len < 0 or not: 0 < from + len <= capacity
-      loc = symbol_field_location(field_index(r.field));
-      error_msg(loc, "%s(%zu:%zu) out of bounds, "
-		"size is %u",
-		r.field->name,
-		size_t(refmod.from->field->as_integer()),
-		size_t(len),
-		nchar );
-      return false;
+  gcc_assert(is_literal(refmod.from->field));
+
+  // from is known
+  auto from = refmod.from->field->as_integer();
+  if( 0 < from && from <= nchar ) {
+    // from is in bounds
+    if( ! refmod.len ) return true;
+    if( ! is_literal(refmod.len->field) ) return true;
+    // len is known
+    auto len = refmod.len->field->as_integer();
+    if( 0 < len ) {
+      if( from + len - 2 < nchar ) return true;
     }
+    // from + len too big: 0 < from + len <= capacity
+    loc = symbol_field_location(field_index(r.field));
+    error_msg(loc, "%s(%zu:%zu) out of bounds, "
+      	"size is %u",
+      	r.field->name,
+      	size_t(from),
+      	size_t(len),
+      	nchar );
+    return false;
   }
+
+  // from is too big or 0
+  gcc_assert(from < 1 || nchar <= from);
 
   error_msg(loc,"%s(%zu:%s) out of bounds, must be within 1:%u",
 	    r.field->name,
-	    size_t(refmod.from->field->as_integer()),
-            nice_name_of(refmod.len->field),
+	    size_t(from),
+            len_name,
 	    nchar );
   return false;
 }
