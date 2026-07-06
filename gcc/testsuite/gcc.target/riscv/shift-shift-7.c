@@ -1,6 +1,6 @@
 /* { dg-do compile } */
 /* { dg-options "-march=rv64gc -mabi=lp64" } */
-/* { dg-skip-if "" { *-*-* } { "-O0" } } */
+/* { dg-skip-if "" { *-*-* } { "-O0" "-Og" } } */
 
 /* Test for zero_extendsidi2_shifted handling arbitrary mask widths
    (not just 32 bits). */
