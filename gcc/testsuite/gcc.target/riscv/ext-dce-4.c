@@ -40,7 +40,7 @@ test_byte (signed char *p)
 int
 test_half_sign_needed (signed short *p)
 {
-  return *p >> 8;
+  return *p >> 4;
 }
 
 /*
