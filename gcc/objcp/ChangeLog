@@ -1,3 +1,9 @@
+2026-07-05  Iain Sandoe  <iain@sandoe.co.uk>
+
+	PR objc/124260
+	* objcp-decl.h (finish_decl): Update to set the flag indicating
+	that the constructor is a constant init.
+
 2026-06-25  Iain Sandoe  <iain@sandoe.co.uk>
 
 	* Make-lang.in: Test in parallel with up to 6 instances.

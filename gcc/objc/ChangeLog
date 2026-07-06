@@ -1,3 +1,86 @@
+2026-07-05  Iain Sandoe  <iain@sandoe.co.uk>
+
+	PR objc/124260
+	* objc-act.cc (objc_build_constructor): Check sanity of arguments.
+	Remove special-casing for Objective-C++.
+	* objc-gnu-runtime-abi-01.cc (build_selector_table_decl,
+	gnu_runtime_abi_01_class_decl,gnu_runtime_abi_01_metaclass_decl,
+	gnu_runtime_abi_01_category_decl, gnu_runtime_abi_01_protocol_decl,
+	gnu_runtime_abi_01_string_decl,
+	gnu_runtime_abi_01_build_typed_selector_reference,
+	gnu_runtime_abi_01_get_protocol_reference,
+	gnu_runtime_abi_01_build_const_string_constructor,
+	generate_classref_translation_entry, handle_impent,
+	build_protocol_initializer, generate_protocol_list,
+	generate_v1_meth_descriptor_table, generate_protocols,
+	generate_dispatch_table, build_category_initializer,generate_category,
+	build_shared_structure_initializer, generate_ivars_list,
+	generate_class_structures, handle_class_ref,
+	build_gnu_selector_translation_table,generate_static_references,
+	init_def_list, init_objc_symtab, generate_objc_symtab_decl): Use
+	revised names for meta-data decl start/finish.  Add integer indicies
+	to array and field ids to aggregate constructors.
+	* objc-next-runtime-abi-01.cc (next_runtime_abi_01_class_decl,
+	next_runtime_abi_01_metaclass_decl, next_runtime_abi_01_category_decl,
+	next_runtime_abi_01_protocol_decl, next_runtime_abi_01_string_decl,
+	build_class_reference_decl, build_selector_reference_decl,
+	build_objc_method_call, next_runtime_abi_01_get_protocol_reference,
+	next_runtime_abi_01_build_const_string_constructor,
+	generate_v1_meth_descriptor_table, generate_v1_objc_protocol_extension,
+	build_v1_property_table_initializer, generate_v1_property_table,
+	generate_v1_protocol_list, build_v1_protocol_initializer,
+	generate_v1_protocols, generate_dispatch_table,
+	build_v1_category_initializer, generate_v1_category,
+	generate_objc_class_ext, build_v1_shared_structure_initializer,
+	generate_ivars_list, generate_v1_class_structs, init_def_list,
+	init_objc_symtab, generate_objc_symtab_decl,
+	generate_classref_translation_entry,
+	next_sjlj_build_try_catch_finally): Likewise.
+	* objc-next-runtime-abi-02.cc (create_extern_decl) Renamed to
+	create_extern_meta. (create_hidden_decl): Renamed to create_hidden_meta.
+	(create_global_decl): Renamed to create_global_meta.
+	(next_runtime_02_initialize, next_runtime_abi_02_class_decl,
+	next_runtime_abi_02_metaclass_decl, next_runtime_abi_02_category_decl,
+	next_runtime_abi_02_protocol_decl, next_runtime_abi_02_string_decl,
+	build_v2_class_reference_decl, build_selector_reference_decl,
+	build_v2_message_reference_decl, build_v2_protocollist_ref_decl,
+	objc_v2_build_ivar_ref, build_v2_superclass_ref_decl,
+	next_runtime_abi_02_setup_const_string_class_decl,
+	next_runtime_abi_02_build_const_string_constructor,
+	build_v2_message_ref_translation_table, build_v2_classrefs_table,
+	build_v2_super_classrefs_table, build_v2_address_table,
+	build_v2_protocol_list_translation_table,
+	build_v2_protocol_list_address_table, generate_v2_protocol_list,
+	build_v2_descriptor_table_initializer,
+	generate_v2_meth_descriptor_table, generate_v2_meth_type_list,
+	build_v2_property_table_initializer, generate_v2_property_table,
+	build_v2_protocol_initializer, generate_v2_protocols,
+	generate_v2_dispatch_table, build_v2_category_initializer,
+	generate_v2_category, ivar_offset_ref, build_v2_ivar_list_initializer,
+	generate_v2_ivars_list, build_v2_class_t_initializer,
+	build_v2_class_ro_t_initializer, generate_v2_class_structs,
+	build_v2_ivar_offset_ref_table, objc_generate_v2_next_metadata,
+	objc2_build_ehtype_initializer, build_ehtype,
+	build_v2_eh_catch_objects, next_runtime_02_eh_type):Use revised
+	names for meta-data decl start/finish.  Add integer indicies
+	to array and field ids to aggregate constructors.
+	* objc-runtime-shared-support.cc (build_sized_array_type): Update to
+	use newer APIs.
+	(start_var_decl): Renamed to start_meta_decl.  Updated to handle
+	constructors that have indices and are typed.
+	(finish_var_decl): Renamed to finish_meta_decl.  Updated to handle
+	constructors that have indices and are typed.
+	(build_method_list_template, build_descriptor_table_initializer,
+	build_dispatch_table_initializer, init_module_descriptor,
+	build_module_descriptor, build_ivar_list_initializer,
+	build_next_selector_translation_table,
+	generate_strings): Use revised names for meta-data decl start/finish.
+	Add integer indicies to array and field ids to aggregate constructors.
+	* objc-runtime-shared-support.h (start_var_decl): Renamed to
+	start_meta_decl.
+	(finish_var_decl): Renamed to finish_meta_decl.
+	(first_type_field, next_type_field): New.
+
 2026-07-03  Iain Sandoe  <iain@sandoe.co.uk>
 
 	PR objc/124260

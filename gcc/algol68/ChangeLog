@@ -1,3 +1,17 @@
+2026-07-05  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* a68-low-units.cc (a68_lower_denotation): Check for denotations
+	too big for bits modes.
+
+2026-07-05  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* ga68.vw: Add syntax for the GNU68-2026-003-decimal-radices
+	language extension.
+	* a68-parser-scanner.cc (get_next_token): Recognize decimal bits
+	denotations.
+	(get_next_token): Emit an error if an invalid radix is found in a
+	bits denotation.
+
 2026-06-24  Jose E. Marchesi  <jemarch@gnu.org>
 
 	* a68-moids-sorting.cc (packs_ordering): Do not rely on pointer

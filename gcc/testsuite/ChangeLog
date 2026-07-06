@@ -1,3 +1,68 @@
+2026-07-05  Jakub Jelinek  <jakub@redhat.com>
+
+	* g++.dg/opt/20260703-1.C: New test.
+
+2026-07-05  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* algol68/compile/module-extracts-1.a68: Fix expected regexp for
+	priority extract.
+	* algol68/compile/module-pub-mangling-7.a68: Fix expected regexp
+	for mangled operator name.
+	* algol68/compile/module-pub-mangling-9.a68: Likewise.
+
+2026-07-05  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* algol68/compile/error-bits-denotation-1.a68: New test.
+	* algol68/execute/and-bits-1.a68: Fix invalid bits denotations.
+	* algol68/execute/bits-shift-2.a68: Likewise.
+	* algol68/execute/bits-shift-3.a68: Likewise.
+	* algol68/execute/not-bits-1.a68: Likewise.
+	* algol68/execute/or-bits-1.a68: Likewise.
+
+2026-07-05  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* algol68/compile/error-radix-5.a68: New test.
+	* algol68/compile/error-radix-6.a68: Likewise.
+	* algol68/compile/error-radix-7.a68: Likewise.
+	* algol68/execute/bits-radix-ten-1.a68: Likewise.
+
+2026-07-05  Thomas Koenig  <tkoenig@gcc.gnu.org>
+
+	PR fortran/126090
+	* gfortran.dg/warn_undefined_vars_6.f90: Add warnings
+	about deleted feature.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/67643
+	* gcc.target/sh/pr67643.c: New test.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/55212
+	* gcc.target/sh/pr64366.c: Remove -mlra option.
+	* g++.target/sh/torture/pr55212-c311.C: Likewise.
+	* g++.target/sh/torture/pr55212-c333.C: Likewise.
+	* g++.target/sh/torture/pr55212-c373.C: Likewise.
+	* g++.target/sh/torture/pr55212-c384.C: Likewise.
+	* g++.target/sh/torture/pr55212-c413.C: Likewise.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/69765
+	* gcc.target/sh/pr69765.c: New test.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/116709
+	* gcc.target/sh/pr116709.c: New file.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/67459
+	PR target/122948
+	* gcc.target/sh/pr122948.c: New test.
+
 2026-07-04  Thomas Koenig  <tkoenig@gcc.gnu.org>
 
 	PR fortran/126058

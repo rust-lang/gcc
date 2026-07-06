@@ -1,3 +1,76 @@
+2026-07-05  Roger Sayle  <roger@nextmovesoftware.com>
+
+	PR target/126094
+	* config/aarch64/aarch64-simd.md (aarch64_cmtst<mode><vczle><vczbe>):
+	Update pattern to match recent RTL simplification.
+	(*aarch64_cmtst<mode><vczle><vczbe>): Preserve the original.
+	(*aarch64_cmtst_same_<mode><vczle><vczbe>): Additional variant.
+
+2026-07-05  Kael Andrew Alonzo Franco  <kaelfandrew@gmail.com>
+
+	PR tree-optimization/125641
+	* match.pd: Fix #ifdef GIMPLE typo.
+
+2026-07-05  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* configure.ac (gcc_cv_ld_clearcap): Remove.
+	Link clearcap.map to config/sol2-clearcap.map with Solaris ld.
+	* configure: Regenerate.
+	* config.in: Likewise.
+	* config/sol2-clearcap.map: Remove.
+	* config/sol2-clearcapv2.map: Rename to sol2-clearcap.map.
+	* config/t-sol2 (install-clearcap-map): Install source file
+	directly.
+	* config/sol2.h (LINK_CLEARCAP_SPEC): Guard with HAVE_SOLARIS_LD.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/67643
+	PR target/126117
+	* config/sh/sh.cc (fpscr_set_from_mem): Add missing argument to
+	get_free_reg invocation.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/67643
+	* config/sh/sh.cc (fpscr_set_from_mem): Specify a post-inc memory
+	operand for lds_fpscr after RA.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/55212
+	* config/sh/sh-protos.h (sh_lra_p): Remove.
+	(sh_legitimize_reload_address): Remove.
+	* config/sh/sh.h (LEGITIMIZE_RELOAD_ADDRESS): Remove.
+	* config/sh/sh.cc (sh_legitimize_reload_address): Remove.
+	(prepare_move_operands, broken_move): Remove sh_lra_p uses.
+	* config/sh/constraints.md (Rab, Rai, Ssd): Likewise.
+	* config/sh/sh.md: Likewise.  Remove reload-only *addsi3 patterns.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	* config/sh/sh.cc (emit_fpu_switch): Delete and merge into...
+	(fpscr_set_from_mem): ...this.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/116709
+	* config/sh/sh.md (movsf_ie): Mark constant-pool load FPUL
+	alternative with '*'.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/67459
+	PR target/122948
+	* config/sh/sh.md (addc): Fix T bit set expression.
+	(subc): Likewise.
+
+2026-07-05  Oleg Endo  <olegendo@gcc.gnu.org>
+
+	PR target/124778
+	* config/sh/sh.md (extend<mode>si2_short_mem_disp_z): Move after
+	'*extend<mode>si2_compact_mem_disp' patterns.
+
 2026-07-04  Filip Kastl  <fkastl@suse.cz>
 
 	* config/i386/i386.cc: Add override specifier for

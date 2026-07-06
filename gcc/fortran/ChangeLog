@@ -1,3 +1,8 @@
+2026-07-05  Sandra Loosemore  <sloosemore@baylibre.com>
+
+	* trans.cc (trans_code): Do not try to set location on non-expr
+	tree expressions, e.g. error_mark_node.
+
 2026-07-04  Thomas Koenig  <tkoenig@gcc.gnu.org>
 
 	PR fortran/126058
