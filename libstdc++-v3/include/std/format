@@ -5888,6 +5888,8 @@ namespace __format
       constexpr void
       _M_parse()
       {
+	// _GLIBCXX_RESOLVE_LIB_DEFECTS
+	// 3892. Incorrect formatting of nested ranges and tuples
 	basic_format_parse_context<_CharT> __pc({});
 	if (_M_formatter.parse(__pc) != __pc.end())
 	  __format::__failed_to_parse_format_spec();
@@ -6174,6 +6176,8 @@ namespace __format
 
 	 auto __parse_val = [&](_String_view __nfs = _String_view())
 	   {
+	     // _GLIBCXX_RESOLVE_LIB_DEFECTS
+	     // 3892. Incorrect formatting of nested ranges and tuples
 	     basic_format_parse_context<_CharT> __npc(__nfs);
 	     if (_M_fval.parse(__npc) != __npc.end())
 	       __format::__failed_to_parse_format_spec();

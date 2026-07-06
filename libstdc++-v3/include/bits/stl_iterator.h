@@ -2131,6 +2131,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       return *this;
     }
 
+    // _GLIBCXX_RESOLVE_LIB_DEFECTS
+    // 3953. iter_move for common_iterator and ... should return decltype(auto)
     constexpr decltype(auto)
     operator++(int)
     {
@@ -2454,6 +2456,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	return *this;
       }
 
+      // _GLIBCXX_RESOLVE_LIB_DEFECTS
+      // 3953. iter_move for ... and counted_iterator should return decltype(auto)
       constexpr decltype(auto)
       operator++(int)
       {
