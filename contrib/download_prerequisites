@@ -31,7 +31,7 @@ gmp='gmp-6.3.0.tar.bz2'
 mpfr='mpfr-4.2.2.tar.bz2'
 mpc='mpc-1.3.1.tar.gz'
 isl='isl-0.24.tar.bz2'
-gettext='gettext-0.22.tar.gz'
+gettext='gettext-1.0.tar.gz'
 
 base_url='https://gcc.gnu.org/pub/gcc/infrastructure/'
 
