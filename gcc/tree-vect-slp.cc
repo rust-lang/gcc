@@ -4213,6 +4213,13 @@ vect_build_slp_instance (vec_info *vinfo,
 			 "Analyzing vectorizable control flow: %G",
 			 root_stmt_infos[0]->stmt);
     }
+  else if (kind == slp_inst_kind_bb_reduc)
+    {
+      if (dump_enabled_p ())
+	dump_printf_loc (MSG_NOTE, vect_location,
+			 "Analyzing vectorizable BB reduction: %G",
+			 root_stmt_infos[0]->stmt);
+    }
 
   if (dump_enabled_p ())
     {
