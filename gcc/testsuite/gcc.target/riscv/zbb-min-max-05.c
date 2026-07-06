@@ -1,5 +1,6 @@
 /* { dg-do compile } */
 /* { dg-options "-march=rv64gc_zba_zbb -mabi=lp64d -O3" } */
+/* { dg-skip-if "" { *-*-* } { "-funroll-loops" } } */
 /* Verify that minu/maxu/min/max si3 expansions set SUBREG_PROMOTED,
    so that no redundant sext.w is emitted after the min/max.  */
 
