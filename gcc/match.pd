@@ -12389,6 +12389,69 @@ and,
   (if (can_fold)
     (view_convert (vec_perm @0 @1 @2)))))
 
+/* Simplify
+     v = VEC_PERM_EXPR <op0, op1, sel>;
+     res = BIT_INSERT_EXPR <v, new_elt, bit_pos>;
+   by replacing either op0 or op1 with the other one when
+     1) BIT_INSERT_EXPR inserts exactly one full lane of v.
+     2) All other lanes come from a single source, either op0 or op1.
+
+   The vector operand that contributes only to the overwritten lane is dead.
+   Replacing it avoids materializing a filler vector.  */
+
+(simplify
+ (bit_insert (vec_perm:s @0 @1 VECTOR_CST@2) @3 INTEGER_CST@4)
+ (with
+  {
+    bool from0 = false;
+    bool from1 = false;
+    tree single_op = NULL_TREE;
+    unsigned elt_size = vector_element_bits (type);
+
+    unsigned HOST_WIDE_INT nelts;
+    unsigned ins_lane_idx;
+    vec_perm_indices sel;
+
+    /* Require fixed-length vectors, different operands to VEC_PERM_EXPR and
+       BIT_INSERT_EXPR to insert exactly one full lane.  */
+    if (TYPE_VECTOR_SUBPARTS (type).is_constant (&nelts)
+	&& @0 != @1
+	&& tree_to_vec_perm_indices (&sel, @0, @1, @2)
+	&& tree_to_uhwi (TYPE_SIZE (TREE_TYPE (@3))) == elt_size
+	&& multiple_p (tree_to_uhwi (@4), elt_size, &ins_lane_idx))
+      {
+	for (unsigned i = 0; i < nelts; i++)
+	  {
+	    /* Skip the overwritten lane.  */
+	    if (i == ins_lane_idx)
+	      continue;
+
+	    /* Set FROM0 / FROM1 if current lane comes from @0 / @1.  */
+	    unsigned HOST_WIDE_INT elt = sel[i].to_constant ();
+	    if (elt < nelts)
+	      from0 = true;
+	    else
+	      from1 = true;
+	  }
+
+	/* If only one of FROM0 and FROM1 is true, all live lanes come from
+	   a single source.  */
+	if (from0 ^ from1)
+	  {
+	    single_op = from0 ? @0 : @1;
+	    vec_perm_indices new_sel;
+	    if (!tree_to_vec_perm_indices (&new_sel, single_op, single_op, @2)
+		|| !can_vec_perm_const_p (TYPE_MODE (type),
+					  TYPE_MODE (TREE_TYPE (single_op)),
+					  new_sel,
+					  false))
+	      single_op = NULL_TREE;
+	  }
+      }
+  }
+  (if (single_op != NULL_TREE)
+    (bit_insert (vec_perm { single_op; } { single_op; } @2) @3 @4))))
+
 #if GIMPLE
 /* Simplify (a >> 1) + (b >> 1) + ((a | b) & 1) to .AVG_CEIL (a, b).
    Similar for (a | b) - ((a ^ b) >> 1).  */
