@@ -1257,6 +1257,13 @@ namespace
 			      std::error_code& ec,
 			      fs::path& result)
   {
+    if (!fs::__detail::__is_handle_symlink(link_handle.handle, ec))
+      {
+	if (!ec)
+	  ec.assign(EINVAL, std::generic_category()); // not a symlink
+	return;
+      }
+
     PREPARSE_DATA_BUFFER reparse_buffer = nullptr;
     std::unique_ptr<char[]> big_buffer;
 
@@ -1374,23 +1381,8 @@ fs::path fs::read_symlink(const path& p, error_code& ec)
 #elif defined(_GLIBCXX_FILESYSTEM_IS_WINDOWS) \
       && defined(SYMBOLIC_LINK_FLAG_DIRECTORY)
   auto_win_file_handle link_handle(p.c_str(), ec, false);
-  if (!link_handle)
-    return result;
-
-  int is_symlink = __detail::__is_handle_symlink(link_handle.handle);
-  if (is_symlink == -1)
-    {
-      ec = __last_system_error();
-      return result;
-    }
-
-  if (!is_symlink)
-    {
-      ec.assign(EINVAL, std::generic_category());
-      return result;
-    }
-
-  windows_read_symlink_handle(link_handle, ec, result);
+  if (link_handle)
+    windows_read_symlink_handle(link_handle, ec, result);
 #else
   ec = std::make_error_code(std::errc::function_not_supported);
 #endif

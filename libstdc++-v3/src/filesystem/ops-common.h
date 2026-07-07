@@ -113,7 +113,9 @@ namespace __detail
 
   using stat_type = struct ::__stat64;
 
-  inline HANDLE __open_for_stat(const wchar_t* path, bool following_symlinks)
+  inline HANDLE
+  __open_for_stat(const wchar_t* path, bool following_symlinks,
+		  std::error_code& ec)
   {
     constexpr auto share_flags
       = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
@@ -124,10 +126,7 @@ namespace __detail
       = CreateFileW(path, 0, share_flags, 0, OPEN_EXISTING, file_flags, 0);
 
     if (handle == INVALID_HANDLE_VALUE)
-      {
-	// CreateFileW does not set errno.
-	errno = std::__last_system_error().default_error_condition().value();
-      }
+      ec = std::__last_system_error();
 
     return handle;
   }
@@ -138,14 +137,15 @@ namespace __detail
   // to a symlink or directory, then fix the result of _fstat64 accordingly.
   enum class FileType { Err = -1, Dir = S_IFDIR, Link = S_IFLNK, Other = 0 };
 
-  inline FileType __check_handle_type(HANDLE handle, bool following_symlinks)
+  inline FileType
+  __check_handle_type(HANDLE handle, bool following_symlinks, error_code& ec)
   {
 #ifdef SYMBOLIC_LINK_FLAG_DIRECTORY
     FILE_ATTRIBUTE_TAG_INFO type_info;
     if (!GetFileInformationByHandleEx(handle, FileAttributeTagInfo,
 				      &type_info, sizeof(type_info)))
       {
-	errno = std::__last_system_error().default_error_condition().value();
+	ec = std::__last_system_error();
 	return FileType::Err;
       }
     // A directory symlink has both DIRECTORY and REPARSE_POINT set,
@@ -160,32 +160,37 @@ namespace __detail
     return FileType::Other;
   }
 
-  // -1 error, 0 not a symlink, 1 a symlink
-  inline int __is_handle_symlink(HANDLE handle)
+  // If no error occurs and `handle` represents a symlink, returns true.
+  // Otherwise, returns false. Sets `ec` if an error occurred.
+  inline bool __is_handle_symlink(HANDLE handle, std::error_code& ec)
   {
-    FileType type = __check_handle_type(handle, false);
-    if (type == FileType::Err)
-      return -1;
-    return type == FileType::Link;
+    return __check_handle_type(handle, false, ec) == FileType::Link;
   }
 
-  inline int __stat_windows(const wchar_t* path, stat_type* buffer,
-			    bool following_symlinks)
+  inline int
+  __stat_windows(const wchar_t* path, stat_type* buffer,
+		 bool following_symlinks)
   {
-    HANDLE handle = __open_for_stat(path, following_symlinks);
+    std::error_code ec;
+    HANDLE handle = __open_for_stat(path, following_symlinks, ec);
     if (handle == INVALID_HANDLE_VALUE)
-      return -1;
+      {
+	errno = ec.default_error_condition().value();
+	return -1;
+      }
     // Manually check for directory or symlink, because _fstat does not.
-    FileType type = __check_handle_type(handle, following_symlinks);
+    FileType type = __check_handle_type(handle, following_symlinks, ec);
     if (type == FileType::Err)
       {
 	CloseHandle(handle);
+	errno = ec.default_error_condition().value();
 	return -1;
       }
     int fd = ::_open_osfhandle((intptr_t)handle, _O_RDONLY);
     if (fd == -1)
       {
 	CloseHandle(handle);
+	errno = ec.default_error_condition().value();
 	return -1;
       }
     int stat_result = ::_fstat64(fd, buffer);
