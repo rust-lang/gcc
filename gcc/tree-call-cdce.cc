@@ -39,6 +39,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree-eh.h"
 #include "tree-ssanames.h"
 #include "gimple-fold.h"
+#include "value-query.h"
+#include "value-range.h"
 
 
 /* This pass serves two closely-related purposes:
@@ -1257,23 +1259,40 @@ use_internal_fn (gcall *call)
 					    is_arg_conds ? new_call : NULL);
 }
 
-/* Return true if LEN is an SSA_NAME known to have a boolean range, i.e. its
-   value is provably in [0, 1].  */
+/* Return the nonzero member of LEN's range if LEN is an SSA name with range
+   [0, 1] or the exact two-value set {0, N}.  Return NULL_TREE otherwise.  */
 
-static bool
-len_has_boolean_range_p (tree len, gimple *stmt)
+static tree
+get_len_nonzero_value (tree len, gimple *stmt)
 {
   if (TREE_CODE (len) != SSA_NAME || !INTEGRAL_TYPE_P (TREE_TYPE (len)))
-    return false;
-  return ssa_name_has_boolean_range (len, stmt);
+    return NULL_TREE;
+
+  if (ssa_name_has_boolean_range (len, stmt))
+    return build_one_cst (TREE_TYPE (len));
+
+  int_range<2> range (TREE_TYPE (len));
+  if (!get_range_query (cfun)->range_of_expr (range, len, stmt)
+      || range.num_pairs () != 2)
+    return NULL_TREE;
+
+  if (!wi::eq_p (range.lower_bound (0), 0)
+      || !wi::eq_p (range.upper_bound (0), 0))
+    return NULL_TREE;
+
+  if (!wi::eq_p (range.lower_bound (1), range.upper_bound (1)))
+    return NULL_TREE;
+
+  return wide_int_to_tree (TREE_TYPE (len), range.lower_bound (1));  
 }
 
 /* Return true if CALL is a supported length-taking builtin whose length
-   argument is an SSA name known to have a boolean range.  On success,
-   set LEN_ARG to the argument index of the length.  */
+   argument is an SSA name known to have a suitable range.  On success,
+   set LEN_ARG to the argument index of the length and, if NONZERO_LEN is
+   nonnull, set it to the nonzero member of the range.  */
 
 static bool
-can_shrink_wrap_len_p (gcall *call, unsigned *len_arg)
+can_shrink_wrap_len_p (gcall *call, unsigned *len_arg, tree *nonzero_len)
 {
   if (!gimple_call_builtin_p (call, BUILT_IN_MEMSET)
       || !gimple_vdef (call))
@@ -1284,10 +1303,13 @@ can_shrink_wrap_len_p (gcall *call, unsigned *len_arg)
     return false;
 
   tree len = gimple_call_arg (call, memset_len_arg);
-  if (!len_has_boolean_range_p (len, call))
+  tree value = get_len_nonzero_value (len, call);
+  if (!value)
     return false;
 
   *len_arg = memset_len_arg;
+  if (nonzero_len)
+    *nonzero_len = value;
   return true;
 }
 
@@ -1305,13 +1327,14 @@ gen_zero_len_conditions (tree len, vec<gimple *> &conds, unsigned *nconds)
   *nconds = 1;
 }
 
-/* Shrink-wrap CALL whose LEN_ARG argument is known to be in [0, 1].
-   ZERO_LEN_RESULT is the value of the call result when its length is zero.
-   On the guarded path the length is one, so pin it to a constant for
-   subsequent folding.  */
+/* Shrink-wrap CALL whose LEN_ARG argument is known to be in [0, 1] or
+   {0, N}.  ZERO_LEN_RESULT is the value of the call result when its length
+   is zero.  On the guarded path the length is NONZERO_LEN, so pin it to that
+   constant for subsequent folding.  */
 
 static void
-shrink_wrap_len_call (gcall *call, unsigned len_arg, tree zero_len_result)
+shrink_wrap_len_call (gcall *call, unsigned len_arg, tree zero_len_result,
+		      tree nonzero_len)
 {
   tree lhs = gimple_call_lhs (call);
 
@@ -1341,8 +1364,8 @@ shrink_wrap_len_call (gcall *call, unsigned len_arg, tree zero_len_result)
 
   shrink_wrap_one_built_in_call_with_conds (call, conds, nconds);
 
-  /* On the guarded path the length is one.  */
-  gimple_call_set_arg (call, len_arg, build_one_cst (TREE_TYPE (len)));
+  /* On the guarded path the length is NONZERO_LEN.  */
+  gimple_call_set_arg (call, len_arg, nonzero_len);
   update_stmt (call);
   gimple_stmt_iterator gsi = gsi_for_stmt (call);
   fold_stmt (&gsi);
@@ -1363,8 +1386,10 @@ shrink_wrap_conditional_dead_built_in_calls (const vec<gcall *> &calls)
       unsigned len_arg;
 
       /* memset returns its destination pointer on the zero-length path.  */
-      if (can_shrink_wrap_len_p (bi_call, &len_arg))
-	shrink_wrap_len_call (bi_call, len_arg, gimple_call_arg (bi_call, 0));
+      tree nonzero_len;
+      if (can_shrink_wrap_len_p (bi_call, &len_arg, &nonzero_len))
+	shrink_wrap_len_call (bi_call, len_arg, gimple_call_arg (bi_call, 0),
+			      nonzero_len);
       else if (gimple_call_lhs (bi_call))
 	use_internal_fn (bi_call);
       else
@@ -1427,7 +1452,7 @@ pass_call_cdce::execute (function *fun)
 	  unsigned len_arg;
           if (stmt
 	      && gimple_call_builtin_p (stmt, BUILT_IN_NORMAL)
-	      && (can_shrink_wrap_len_p (stmt, &len_arg)
+	      && (can_shrink_wrap_len_p (stmt, &len_arg, nullptr)
 		  || (gimple_call_lhs (stmt)
 		      ? can_use_internal_fn (stmt)
 		      : can_test_argument_range (stmt)))
