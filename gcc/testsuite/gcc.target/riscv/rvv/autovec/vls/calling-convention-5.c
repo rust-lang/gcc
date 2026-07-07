@@ -1,5 +1,5 @@
 /* { dg-do compile } */
-/* { dg-options "-march=rv64gcv_zvfh_zvl4096b -mrvv-vector-bits=scalable -mabi=lp64d -O3 -fno-schedule-insns2 -mrvv-max-lmul=m8" } */
+/* { dg-options "-march=rv64gcv_zvfh_zvl4096b -mrvv-vector-bits=scalable -mabi=lp64d -O3 -fno-schedule-insns2 -mrvv-max-lmul=m8 -fno-unroll-loops" } */
 
 #include "def.h"
 

@@ -1,6 +1,6 @@
 /* { dg-do compile } */
 /* { dg-require-effective-target supports_stack_clash_protection } */
-/* { dg-options "-O3 -march=rv64gcv -mabi=lp64d -fstack-clash-protection -fno-stack-protector" } */
+/* { dg-options "-O3 -march=rv64gcv -mabi=lp64d -fstack-clash-protection -fno-stack-protector -fno-unroll-loops" } */
 /* { dg-skip-if "" { *-*-* } {"-O0" "-O1" "-O2" "-Og" "-Os" "-Oz" "-funroll-loops"} } */
 
 #include <stdint.h>

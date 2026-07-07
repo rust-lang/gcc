@@ -1349,6 +1349,7 @@ See RS/6000 and PowerPC Options.
 -mno-inline-atomics  -mno-inline-strlen
 -mno-inline-strcmp  -mno-inline-strncmp
 -mstringop-strategy=@var{strategy}
+-munroll-only-small-loops  -mno-unroll-only-small-loops
 -mtls-dialect=desc  -mtls-dialect=trad
 -mrvv-vector-bits=@var{value}  -mrvv-max-lmul=@var{value}
 -madjust-lmul-cost  -mmax-vectorization  -mno-autovec-segment}
@@ -31564,6 +31565,20 @@ of TLS variables.
 @item -mtls-dialect=trad
 Use traditional TLS as the thread-local storage mechanism for dynamic accesses
 of TLS variables.  This is the default.
+
+@opindex munroll-only-small-loops
+@opindex mno-unroll-only-small-loops
+@item -munroll-only-small-loops
+@itemx -mno-unroll-only-small-loops
+Controls conservative small loop unrolling.  It is enabled by default at
+@option{-O2} and above.  When enabled, only loops whose RTL instruction
+count does not exceed a tune-specific threshold are unrolled, and the
+unroll factor is capped by a tune-specific parameter.  This gives better
+utilization of the instruction decoding pipeline without enlarging bigger
+loops.  You can disable it with @option{-mno-unroll-only-small-loops}; it
+is also turned off when @option{-funroll-loops} or
+@option{-funroll-all-loops} is explicitly enabled, so that an explicit
+unrolling request applies to loops of any size.
 
 @opindex mrvv-vector-bits
 @item -mrvv-vector-bits=@var{value}

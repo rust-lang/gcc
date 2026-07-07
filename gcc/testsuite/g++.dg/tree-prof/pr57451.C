@@ -1,6 +1,7 @@
 // Explicit { dg-require-effective-target exceptions_enabled } so that dependent tests don't turn UNRESOLVED for '-fno-exceptions'.
 // { dg-require-effective-target freorder }
 // { dg-options "-O2 -freorder-blocks-and-partition -g" }
+/* { dg-additional-options "-fno-unroll-loops" { target riscv*-*-* } } */
 
 extern "C" void abort (void);
 struct MyException {};

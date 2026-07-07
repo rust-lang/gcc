@@ -1,6 +1,6 @@
 /* { dg-do compile } */
-/* { dg-options "-O2 -march=rv64gcbv -mabi=lp64d" { target { rv64 } } } */
-/* { dg-options "-O2 -march=rv32gcbv -mabi=ilp32" { target { rv32 } } } */
+/* { dg-options "-O2 -march=rv64gcbv -mabi=lp64d -fno-unroll-loops" { target { rv64 } } } */
+/* { dg-options "-O2 -march=rv32gcbv -mabi=ilp32 -fno-unroll-loops" { target { rv32 } } } */
 
 typedef struct
 {

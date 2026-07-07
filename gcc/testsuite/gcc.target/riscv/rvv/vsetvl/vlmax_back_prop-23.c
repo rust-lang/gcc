@@ -1,5 +1,5 @@
 /* { dg-do compile } */
-/* { dg-options "-mrvv-vector-bits=scalable -march=rv32gcv -mabi=ilp32 -fno-tree-vectorize" } */
+/* { dg-options "-mrvv-vector-bits=scalable -march=rv32gcv -mabi=ilp32 -fno-tree-vectorize -fno-unroll-loops" } */
 
 #include "riscv_vector.h"
 

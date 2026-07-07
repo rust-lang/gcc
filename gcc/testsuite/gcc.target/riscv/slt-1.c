@@ -1,5 +1,5 @@
 /* { dg-do compile } */
-/* { dg-options "-march=rv64gc -mabi=lp64d -mbranch-cost=4" } */
+/* { dg-options "-march=rv64gc -mabi=lp64d -mbranch-cost=4 -fno-unroll-loops" } */
 /* { dg-skip-if "" { *-*-* } { "-O0" "-Og" "-Os" "-Oz" } } */
 
 #include <stdint.h>

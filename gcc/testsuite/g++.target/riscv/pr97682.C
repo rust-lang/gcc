@@ -1,6 +1,6 @@
 /* PR target/97682 */
 /* { dg-do compile } */
-/* { dg-options "-fPIC -O2 -march=rv64g -mabi=lp64" } */
+/* { dg-options "-fPIC -O2 -march=rv64g -mabi=lp64 -fno-unroll-loops" } */
 
 template <typename ab, int ac> struct g { ab b[ac]; };
 long i, m;
