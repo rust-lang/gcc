@@ -184,12 +184,37 @@
 (define_register_constraint "vm" "TARGET_VECTOR ? VM_REGS : NO_REGS"
   "A vector mask register (if available).")
 
-;; Dependent (dynamic) constraint:
-;; "The source group must overlap the highest-numbered part of the
-;; "destination group", i.e. this operand depends on operand 0.
-(define_register_constraint "Wtt" "TARGET_VECTOR ? V_REGS : NO_REGS"
-  "Vector widening overlap"
-  "riscv_widen_overlap_ok (regno, mode, ref_regno, ref_mode)"
+;; Dependent (dynamic) constraint for widening overlap:
+;; The RVV widening constraints for register overlap, aka dest EEW > src EEW.
+;; Quote from RVV spec 1.0:
+;;
+;; The destination EEW is greater than the source EEW, the source EMUL is at
+;; least 1, and the overlap is in the highest-numbered part of the destination
+;; register group (e.g., when LMUL=8, vzext.vf4 v0, v6 is legal, but a source
+;; of v0, v2, or v4 is not).
+;;
+;; Take vzext.vfN for example, only below cases are valid.
+;; Source EMUL = LMUL * (Source EEW / SEW) = LMUL * SEW / (N * SEW) = LMUL / N
+;;
+;; +-----------+------------+------------+----------+
+;; |           | LMUL = 8   | LMUL = 4   | LMUL = 2 |
+;; +-----------+------------+------------+----------+
+;; | vzext.vf2 | EMUL = 4   | EMUL = 2   | EMUL = 1 |
+;; +-----------+------------+------------+----------+
+;; |           | v0-7, v4-7 | v0-3, v2-3 | v0-1, v1 |
+;; +-----------+------------+------------+----------+
+;; | vzext.vf4 | EMUL = 2   | EMUL = 1   |          |
+;; +-----------+------------+------------+----------+
+;; |           | v0-7, v6-7 | v0-3, v3   |          |
+;; +-----------+------------+------------+----------+
+;; | vzext.vf8 | EMUL = 1   |            |          |
+;; +-----------+------------+------------+----------+
+;; |           | v0-7, v7   |            |          |
+;; +-----------+------------+------------+----------+
+;;
+(define_register_constraint "Wvr" "TARGET_VECTOR ? V_REGS : NO_REGS"
+  "Widening vector reg constraint"
+  "riscv_vector::riscv_v_widen_constraint_ok (regno, mode, ref_regno, ref_mode)"
   "0")
 
 ;; This constraint is used to match instruction "csrr %0, vlenb" which is generated in "mov<mode>".

@@ -4101,7 +4101,7 @@
 	     (reg:SI VL_REGNUM)
 	     (reg:SI VTYPE_REGNUM)] UNSPEC_VPREDICATE)
 	  (any_extend:VWEXTI
-	    (match_operand:<V_DOUBLE_TRUNC> 3 "register_operand" "Wtt,Wtt,Wtt,Wtt"))
+	    (match_operand:<V_DOUBLE_TRUNC> 3 "register_operand" "Wvr,Wvr,Wvr,Wvr"))
 	  (match_operand:VWEXTI 2 "vector_merge_operand"         " vu,  0, vu,  0")))]
   "TARGET_VECTOR && !TARGET_XTHEADVECTOR"
   "v<sz>ext.vf2\t%0,%3%p1"

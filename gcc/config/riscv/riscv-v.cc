@@ -6473,4 +6473,55 @@ splat_to_scalar_move_p (rtx *ops)
 	 && known_ge (GET_MODE_SIZE (Pmode), GET_MODE_SIZE (GET_MODE (ops[3])));
 }
 
+/* Return true if REGNO in MODE can be used as source in a widening
+   instruction with destination WIDE_REGNO in WIDE_MODE.
+   This is true if either there is no overlap at all, or the overlap
+   is in the highest-numbered part of the destination group.  */
+
+bool
+riscv_v_widen_constraint_ok (unsigned int regno, machine_mode mode,
+			     unsigned int wide_regno, machine_mode wide_mode)
+{
+  /* If the referenced regno is no hard reg, allow everything.
+     Note: Even if we don't have a wide_regno yet, here we could also decline
+	   operands based on just regno alone.  If we decided to accept only
+	   overlapping registers in this constraint, we'd might need to e.g.
+	   decline a regno = v0 right away, even if we don't know wide_regno
+	   yet.  Otherwise, the return true here could get us into unsatisfiable
+	   situations in LRA later, as no wide reg can overlap v0 in the high
+	   part.  */
+  if (wide_regno == INVALID_REGNUM)
+    return true;
+
+  if (!V_REG_P (regno) || !V_REG_P (wide_regno) || regno == wide_regno)
+    return false;
+
+  gcc_checking_assert (riscv_vector_mode_p (mode)
+		       && riscv_vector_mode_p (wide_mode));
+
+  if (riscv_tuple_mode_p (mode))
+     return false;
+
+  unsigned int wide_nregs = riscv_hard_regno_nregs (wide_regno, wide_mode);
+  unsigned int nregs = riscv_hard_regno_nregs (regno, mode);
+
+  if (wide_nregs == nregs) /* Source LMUL < 1.  */
+    {
+      gcc_checking_assert (nregs == 1);
+
+      return true;
+    }
+
+  gcc_checking_assert (wide_nregs > nregs);
+  gcc_checking_assert ((wide_nregs % nregs) == 0);
+
+  /* No overlap.  */
+  if (regno + nregs <= wide_regno || wide_regno + wide_nregs <= regno)
+    return true;
+
+  unsigned int highest_num = wide_nregs - nregs;
+
+  return (regno % wide_nregs) == highest_num;
+}
+
 } // namespace riscv_vector

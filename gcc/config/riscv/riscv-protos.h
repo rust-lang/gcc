@@ -175,8 +175,6 @@ extern poly_uint64 riscv_regmode_natural_size (machine_mode);
 extern bool riscv_vla_mode_p (machine_mode);
 extern bool riscv_tuple_mode_p (machine_mode);
 extern bool riscv_vls_mode_p (machine_mode);
-extern bool riscv_widen_overlap_ok (unsigned int, machine_mode,
-				    unsigned int, machine_mode);
 extern int riscv_get_v_regno_alignment (machine_mode);
 extern bool riscv_shamt_matches_mask_p (int, HOST_WIDE_INT);
 extern void riscv_subword_address (rtx, rtx *, rtx *, rtx *, rtx *);
@@ -206,6 +204,8 @@ extern std::string riscv_arch_str (bool version_p = true);
 extern void riscv_parse_arch_string (const char *, struct gcc_options *, location_t);
 
 extern bool riscv_hard_regno_rename_ok (unsigned, unsigned);
+extern bool riscv_vector_mode_p (machine_mode);
+extern unsigned int riscv_hard_regno_nregs (unsigned int, machine_mode);
 
 rtl_opt_pass * make_pass_shorten_memrefs (gcc::context *ctxt);
 rtl_opt_pass * make_pass_avlprop (gcc::context *ctxt);
@@ -825,6 +825,8 @@ bool whole_reg_loadstore_p (rtx dest, rtx src, rtx mask, rtx avl, rtx
 			    avl_type);
 bool splat_to_scalar_move_p (rtx *);
 rtx get_fp_rounding_coefficient (machine_mode);
+bool riscv_v_widen_constraint_ok (unsigned int, machine_mode, unsigned int,
+				  machine_mode);
 }
 
 /* We classify builtin types into two classes:
