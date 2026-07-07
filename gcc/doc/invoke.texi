@@ -22083,8 +22083,6 @@ Enable the TIndex Exception-like Vector Extension.
 Enable the TLBI Domains Extension.
 @item gcie
 Enable the GICv5 (Generic Interrupt Controller) CPU Interface Extension.
-@item mpamv2
-Enable MPAMv2 system registers.
 @item lscp
 Enable the load acquire and store release pair extension.
 @item mops-go
