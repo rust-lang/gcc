@@ -17,8 +17,7 @@ struct Task {
 // We do not permit co_await, co_yield outside a function, and so uses in
 // noexcept or requirements are covered by that.
 Task foo()  {
-    /* This one will currently fail - see PR68604.  */
-    const std::type_info& ti1 = typeid (co_await std::suspend_never{}); // { dg-error {'co_await' cannot be used in an unevaluated context} "" { xfail *-*-* } }
+    const std::type_info& ti1 = typeid (co_await std::suspend_never{}); // { dg-error {'co_await' cannot be used in an unevaluated context} }
     std::size_t x = sizeof (co_yield (19)); // { dg-error {'co_yield' cannot be used in an unevaluated context} }
     decltype (co_await std::suspend_never{}) A; // { dg-error {'co_await' cannot be used in an unevaluated context} }
     co_return;

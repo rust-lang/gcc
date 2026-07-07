@@ -292,7 +292,8 @@ static void missing_template_diag
 static FILE *cp_lexer_debug_stream;
 
 /* Nonzero if we are parsing an unevaluated operand: an operand to
-   sizeof, typeof, or alignof.  */
+   sizeof, typeof, or alignof.  This is a count since operands to
+   sizeof can be nested.  */
 int cp_unevaluated_operand;
 
 /* Nonzero if we are parsing a reflect-expression and shouldn't strip
@@ -8570,9 +8571,33 @@ cp_parser_postfix_expression (cp_parser *parser, bool address_p, bool cast_p,
 	else
 	  {
 	    tree expression;
+	    /* [expr.typeid]/4-5: parse the operand unevaluated first; if it is
+	       a polymorphic glvalue, roll back and re-parse it evaluated,
+	       since an evaluated parse has irreversible side-effects
+	       (mark_used -> instantiation; lambda capture).  */
+	    cp_lexer_save_tokens (parser->lexer);
+	    {
+	      cp_unevaluated u;
+	      expression = cp_parser_expression (parser, &idk);
+	    }
+	    /* If we're already within an unevaluated operand, everything
+	       in the subtree stays not potentially evaluated regardless
+	       of [expr.typeid]/4 ([basic.def.odr]/3), so the evaluated
+	       re-parse below can have nothing to do; skip it.  */
+	    if (expression != error_mark_node
+		&& processing_template_decl == 0
+		&& !cp_unevaluated_operand
+		&& typeid_evaluated_p (expression))
+	      {
+		/* Re-parse the operand evaluated so the /4 side-effects occur.
+		   The unevaluated pass above called no mark_used and captured
+		   nothing, so rolling back has nothing to undo.  */
+		cp_lexer_rollback_tokens (parser->lexer);
+		expression = cp_parser_expression (parser, &idk);
+	      }
+	    else
+	      cp_lexer_commit_tokens (parser->lexer);
 
-	    /* Look for an expression.  */
-	    expression = cp_parser_expression (parser, & idk);
 	    /* Compute its typeid.  */
 	    postfix_expression = build_typeid (expression, tf_warning_or_error);
 	    /* Look for the `)' token.  */

@@ -340,6 +340,32 @@ typeid_ok_p (void)
   return true;
 }
 
+/* True if EXP is a glvalue expression of polymorphic class type whose
+   dynamic type is not known statically, so that typeid (EXP) must be
+   evaluated per ([expr.typeid]/4).  */
+
+bool
+typeid_evaluated_p (tree exp)
+{
+  if (exp == error_mark_node)
+    return false;
+  tree t = TREE_TYPE (exp);
+  if (!t || t == error_mark_node)
+    return false;
+  if (TYPE_REF_P (t))
+    t = TREE_TYPE (t);
+  if (TREE_CODE (t) != RECORD_TYPE && TREE_CODE (t) != UNION_TYPE)
+    return false;
+  int nonnull = 0;
+  return (TYPE_POLYMORPHIC_P (t)
+	  && !resolves_to_fixed_type_p (exp, &nonnull)
+	  /* Only a glvalue operand is evaluated ([expr.typeid]/4).
+	     The following check is only necessary because
+	     resolves_to_fixed_type_p does not handle all
+	     prvalue cases such as COMPOUND_EXPR.  */
+	  && glvalue_p (exp));
+}
+
 /* Return an expression for "typeid(EXP)".  The expression returned is
    an lvalue of type "const std::type_info".  */
 
@@ -347,7 +373,6 @@ tree
 build_typeid (tree exp, tsubst_flags_t complain)
 {
   tree cond = NULL_TREE, initial_expr = exp;
-  int nonnull = 0;
 
   if (exp == error_mark_node || !typeid_ok_p ())
     return error_mark_node;
@@ -355,17 +380,18 @@ build_typeid (tree exp, tsubst_flags_t complain)
   if (processing_template_decl)
     return build_min (TYPEID_EXPR, const_type_info_type_node, exp);
 
-  if (CLASS_TYPE_P (TREE_TYPE (exp))
-      && TYPE_POLYMORPHIC_P (TREE_TYPE (exp))
-      && ! resolves_to_fixed_type_p (exp, &nonnull)
-      && ! nonnull)
+  if (typeid_evaluated_p (exp))
     {
-      /* So we need to look into the vtable of the type of exp.
-         Make sure it isn't a null lvalue.  */
-      exp = cp_build_addr_expr (exp, complain);
-      exp = save_expr (exp);
-      cond = cp_convert (boolean_type_node, exp, complain);
-      exp = cp_build_fold_indirect_ref (exp);
+      int nonnull = 0;
+      resolves_to_fixed_type_p (exp, &nonnull);
+      if (!nonnull)
+	{
+	  /* Make sure it isn't a null lvalue; evaluate it once.  */
+	  exp = cp_build_addr_expr (exp, complain);
+	  exp = save_expr (exp);
+	  cond = cp_convert (boolean_type_node, exp, complain);
+	  exp = cp_build_fold_indirect_ref (exp);
+	}
     }
 
   exp = get_tinfo_ptr_dynamic (exp, complain);
