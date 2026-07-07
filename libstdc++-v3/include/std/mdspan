@@ -1893,6 +1893,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	  for (size_t __i = 0; __i < extents_type::rank(); ++__i)
 	    _M_strides[__i] =
 	      __mdspan::__index_type_cast<index_type>(as_const(__strides[__i]));
+
+	  __glibcxx_assert(_M_check_unique());
 	}
 
       template<typename _OIndexType>
@@ -2027,6 +2029,75 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	}
 
     private:
+      using _Strides = typename __array_traits<index_type,
+					       extents_type::rank()>::_Type;
+
+      constexpr bool
+      _M_check_unique() const
+      {
+	constexpr size_t __rank = extents_type::rank();
+	if constexpr (__rank == 0)
+	  return true;
+	// _GLIBCXX_RESOLVE_LIB_DEFECTS
+	// 4603. `layout_stride` should accept zero strides for empty `extents`
+	else if (__mdspan::__empty(_M_extents))
+	  return true;
+	else if constexpr (__rank == 1)
+	  return _M_strides[0] > 0;
+	else if (__mdspan::__contains_zero<const index_type, __rank>(_M_strides))
+	  return false;
+	else if constexpr (__rank == 2)
+	  return (_M_strides[1] >= _M_strides[0] * _M_extents.extent(0))
+	      || (_M_strides[0] >= _M_strides[1] * _M_extents.extent(1));
+	else
+	  {
+	    // This is necessary, but not sufficient condition for uniqueness.
+	    // It requires computation in range of call of operator(), so check
+	    // if first, also in non-debug mode.
+	    if (required_span_size() < __mdspan::__size(_M_extents))
+	      return false;
+
+	    // Checking for a valid permutation of strides is O(rank^2) so
+	    // so enabled only in debug mode.
+#ifdef _GLIBCXX_DEBUG
+	    size_t __perm[__rank];
+	    for (size_t __i = 0; __i < __rank; ++__i)
+	      __perm[__i] = __i;
+
+	    auto __popmin = [&](size_t __from)
+	    {
+	      size_t __min = __perm[__rank - 1];
+	      for (size_t __i = __rank - 1; __i > __from; --__i)
+		{
+		  const size_t __cur = __perm[__i - 1];
+		  const auto __res = _M_strides[__cur] <=> _M_strides[__min];
+		  // Equal strides are allowed only for extent one, so apply it first.
+		  if (__res < 0 || (__res == 0 && _M_extents.extent(__cur) == 1))
+		    {
+		      __perm[__i] = __min;
+		      __min = __cur;
+		    }
+		  else
+		    __perm[__i] = __cur;
+		}
+	      __perm[__from] = __min;
+	      return __min;
+	    };
+
+	    // We use eager insertion-sort based algorithm to permute the __perm.
+	    size_t __prev = __popmin(0);
+	    for (size_t __i = 1; __i < __rank; ++__i)
+	      {
+		const size_t __next = __popmin(__i);
+		if (_M_strides[__next] < _M_strides[__prev] * _M_extents.extent(__prev))
+		  return false;
+		__prev = __next;
+	      }
+#endif
+	    return true;
+	  }
+      }
+
 #if __glibcxx_submdspan
       template<typename... _Slices>
 	requires (extents_type::rank() == sizeof...(_Slices))
@@ -2047,8 +2118,6 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	}
 #endif
 
-      using _Strides = typename __array_traits<index_type,
-					       extents_type::rank()>::_Type;
       [[no_unique_address]] extents_type _M_extents;
       [[no_unique_address]] _Strides _M_strides;
     };

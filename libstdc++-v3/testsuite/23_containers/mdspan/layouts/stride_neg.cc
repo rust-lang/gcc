@@ -1,7 +1,5 @@
 // { dg-do compile { target c++23 } }
 #include <mdspan>
-
-#include "../layout_traits.h"
 #include <cstdint>
 
 constexpr size_t dyn = std::dynamic_extent;
@@ -26,6 +24,76 @@ test_stride_negative()
   return true;
 }
 static_assert(test_stride_negative()); // { dg-error "expansion of" } 
+
+
+using std::array;
+template<size_t Rank>
+ using mapping = std::layout_stride::mapping<std::dextents<size_t, Rank>>;
+
+constexpr auto m0 = mapping<0>(array<int, 0>{}, array<int, 0>{}); // { dg-bogus "expansion of" }
+
+// Zero strides allowed for empty mappings
+constexpr auto m00 = mapping<1>(array{0}, array{0}); // { dg-bogus "expansion of" }
+constexpr auto m01 = mapping<2>(array{0, 1}, array{3, 0}); // { dg-bogus "expansion of" }
+constexpr auto m02 = mapping<2>(array{0, 1}, array{0, 0}); // { dg-bogus "expansion of" }
+constexpr auto m03 = mapping<3>(array{0, 1, 2}, array{3, 0, 0}); // { dg-bogus "expansion of" }
+constexpr auto m04 = mapping<3>(array{0, 1, 2}, array{3, 3, 0}); // { dg-bogus "expansion of" }
+constexpr auto m05 = mapping<4>(array{0, 1, 2, 3}, array{5, 3, 0, 2}); // { dg-bogus "expansion of" }
+
+// Otherwise leads to non-unique mappings.
+constexpr auto m06 = mapping<1>(array{1}, array{0});                   // { dg-error "expansion of" }
+constexpr auto m07 = mapping<2>(array{1, 2}, array{3, 0});             // { dg-error "expansion of" } 
+constexpr auto m08 = mapping<3>(array{1, 2, 3}, array{3, 3, 0});       // { dg-error "expansion of" }         
+constexpr auto m09 = mapping<4>(array{1, 2, 3, 5}, array{5, 3, 0, 2}); // { dg-error "expansion of" } 
+
+// required_span_size is smaller size of multidimensional index space
+constexpr auto m10 = mapping<2>(array{3, 4}, array{2, 3}); // { dg-error "expansion of" }
+constexpr auto m11 = mapping<2>(array{3, 4}, array{1, 2}); // { dg-error "expansion of" }
+constexpr auto m12 = mapping<3>(array{3, 4, 5}, array{1, 3, 11}); // { dg-error "expansion of" }
+constexpr auto m13 = mapping<3>(array{3, 4, 5}, array{1, 2, 12}); // { dg-error "expansion of" }
+constexpr auto m14 = mapping<4>(array{3, 4, 5, 6}, array{1, 3, 12, 50}); // { dg-error "expansion of" }
+constexpr auto m15 = mapping<4>(array{3, 4, 5, 6}, array{1, 3, 11, 60}); // { dg-error "expansion of" }
+constexpr auto m16 = mapping<4>(array{3, 4, 5, 6}, array{1, 2, 12, 60}); // { dg-error "expansion of" }
+
+// Passes required_span_size check (smaller and bigger stride), detected only in debug mode
+constexpr auto m17 = mapping<3>(array{3, 4, 5}, array{1, 2, 25}); // { dg-error "expansion of" "" { target debug_mode } }
+constexpr auto m18 = mapping<3>(array{3, 4, 5}, array{1, 5, 12}); // { dg-error "expansion of" "" { target debug_mode } }
+constexpr auto m19 = mapping<4>(array{3, 4, 5, 6}, array{1, 2, 12, 100}); // { dg-error "expansion of" "" { target debug_mode } }
+constexpr auto m20 = mapping<4>(array{3, 4, 5, 6}, array{1, 5, 12, 60});  // { dg-error "expansion of" "" { target debug_mode } }
+
+// Equal indicies allowed if extents are 1
+constexpr auto m21 = mapping<2>(array{5, 1}, array{1, 1}); // { dg-bogus "expansion of" }
+constexpr auto m22 = mapping<3>(array{1, 5, 1}, array{1, 1, 1}); // { dg-bogus "expansion of" }
+constexpr auto m23 = mapping<4>(array{1, 1, 5, 1}, array{1, 1, 1, 1}); // { dg-bogus "expansion of" }
+constexpr auto m24 = mapping<5>(array{3, 4, 1, 1, 5}, array{3, 10, 3, 3, 45}); // { dg-bogus "expansion of" }
+constexpr auto m25 = mapping<5>(array{3, 4, 1, 1, 5}, array{3, 10, 3, 10, 45}); // { dg-bogus "expansion of" }
+constexpr auto m26 = mapping<5>(array{3, 4, 1, 1, 5}, array{3, 10, 10, 3, 45}); // { dg-bogus "expansion of" } 
+constexpr auto m27 = mapping<5>(array{3, 4, 1, 1, 5}, array{3, 10, 10, 10, 45}); // { dg-bogus "expansion of" }
+
+// Only some permutations are valid, invalid permutations detected only in debug mode.
+
+// Unique if stride 3 corresponds to extent 3
+constexpr auto m28 = mapping<2>(array{3, 4}, array{3, 10}); // { dg-bogus "expansion of" }
+constexpr auto m29 = mapping<2>(array{3, 4}, array{10, 3}); // { dg-error "expansion of" "" { target debug_mode } }
+constexpr auto m30 = mapping<2>(array{4, 3}, array{10, 3}); // { dg-bogus "expansion of" }
+constexpr auto m31 = mapping<2>(array{4, 3}, array{3, 10}); // { dg-error "expansion of" "" { target debug_mode } }
+
+// Unique if stride 11 corresponds to extent 3, as 11 * 3 < 35, and 2 * 5 < 11
+constexpr auto m32 = mapping<3>(array{3, 4, 5}, array{11, 2, 35}); // { dg-bogus "expansion of" } 
+constexpr auto m33 = mapping<3>(array{3, 4, 5}, array{11, 35, 2}); // { dg-bogus "expansion of" }
+constexpr auto m34 = mapping<3>(array{3, 4, 5}, array{2, 11, 35}); // { dg-error "expansion of" "" { target debug_mode } }
+constexpr auto m35 = mapping<3>(array{3, 4, 5}, array{35, 2, 11}); // { dg-error "expansion of" "" { target debug_mode } }
+constexpr auto m36 = mapping<3>(array{5, 4, 3}, array{2, 35, 11}); // { dg-bogus "expansion of" }
+constexpr auto m37 = mapping<3>(array{5, 4, 3}, array{2, 11, 35}); // { dg-error "expansion of" "" { target debug_mode } }
+constexpr auto m38 = mapping<3>(array{5, 3, 4}, array{35, 11, 2}); // { dg-bogus "expansion of" }
+constexpr auto m39 = mapping<3>(array{3, 5, 4}, array{35, 2, 11}); // { dg-error "expansion of" "" { target debug_mode } }
+
+// Unique for stride -> extent mapping: 3 * 5 < 16, 15 * 4 < 65, 65 * 3 < 200 
+constexpr auto m40 = mapping<4>(array{3, 4, 5, 6}, array{65, 16, 3, 200}); // { dg-bogus "expansion of" }
+constexpr auto m41 = mapping<4>(array{3, 4, 5, 6}, array{3, 16, 65, 200}); // { dg-error "expansion of" "" { target debug_mode } } 
+constexpr auto m42 = mapping<4>(array{3, 4, 5, 6}, array{200, 65, 3, 16}); // { dg-error "expansion of" "" { target debug_mode } } 
+constexpr auto m43 = mapping<4>(array{5, 3, 6, 4}, array{3, 65, 200, 16}); // { dg-bogus "expansion of" }
+constexpr auto m44 = mapping<4>(array{5, 3, 6, 4}, array{3, 16, 200, 65}); // { dg-error "expansion of" "" { target debug_mode } }
 
 // { dg-prune-output "non-constant condition for static assertion" }
 // { dg-prune-output "__glibcxx_assert_fail()" }
