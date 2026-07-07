@@ -4059,3 +4059,40 @@
 
   const vuq __builtin_vsx_xsrebase3t3uqm (vuq, vuq, vuq);
     XSREBASE3T3UQM vsx_xsrebase3t3uqm {}
+
+  const vull __builtin_altivec_uncompresshh (vui, vuc);
+    VUCMPRHH altivec_vucmprhh {}
+
+  const vull __builtin_altivec_uncompresslh (vui, vuc);
+    VUCMPRLH altivec_vucmprlh {}
+
+  const vsc __builtin_altivec_unpack_hsn_to_byte (vull);
+    VUPKHSNTOB altivec_vupkhsntob {}
+
+  const vsc __builtin_altivec_unpack_lsn_to_byte (vull);
+    VUPKLSNTOB altivec_vupklsntob {}
+
+[future-altivec]
+  const vus __builtin_altivec_uncompresshn (vuc, vui);
+    VUCMPRHN altivec_vucmprhn {}
+
+  const vui __builtin_altivec_uncompresshb (vus, vus);
+    VUCMPRHB altivec_vucmprhb {}
+
+  const vus __builtin_altivec_uncompressln (vuc, vui);
+    VUCMPRLN altivec_vucmprln {}
+
+  const vui __builtin_altivec_uncompresslb (vus, vus);
+    VUCMPRLB altivec_vucmprlb {}
+
+  const vuc __builtin_altivec_unpack_int4_to_bf16 (vus, const int<2>);
+    VUPKINT4TOBF16 altivec_vupkint4tobf16 {}
+
+  const vuc __builtin_altivec_unpack_int8_to_bf16 (vus, const int<1>);
+    VUPKINT8TOBF16 altivec_vupkint8tobf16 {}
+
+  const vf __builtin_altivec_unpack_int4_to_fp32 (vui, const int<3>);
+    VUPKINT4TOFP32 altivec_vupkint4tofp32 {}
+
+  const vf __builtin_altivec_unpack_int8_to_fp32 (vui, const int<2>);
+    VUPKINT8TOFP32 altivec_vupkint8tofp32 {}
