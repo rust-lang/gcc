@@ -982,6 +982,9 @@ can_convert_eh (tree to, tree from)
   if (same_type_ignoring_top_level_qualifiers_p (to, from))
     return true;
 
+  if (NULLPTR_TYPE_P (from) && TYPE_PTR_OR_PTRMEM_P (to))
+    return true;
+
   if (TYPE_PTR_P (to) && TYPE_PTR_P (from))
     {
       to = TREE_TYPE (to);
