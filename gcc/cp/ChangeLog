@@ -1,3 +1,98 @@
+2026-07-06  Marek Polacek  <polacek@redhat.com>
+
+	PR c++/125901
+	* cp-tree.h (finish_trait_expr): Adjust declaration.
+	* reflect.cc (eval_constant_of): Adjust the call to
+	eval_is_array_type.
+	(eval_reflect_object): Adjust the call to eval_is_object_type.
+	(eval_type_trait): Emit a diagnostic when finish_trait_expr
+	returns error_mark_node and set *non_constant_p.  Adjust the
+	call to eval_type_trait.
+	(eval_is_array_type): Adjust the call to eval_type_trait.
+	(eval_is_pointer_type): Likewise.
+	(eval_is_member_object_pointer_type): Likewise.
+	(eval_is_member_function_pointer_type): Likewise.
+	(eval_is_enum_type): Likewise.
+	(eval_is_union_type): Likewise.
+	(eval_is_class_type): Likewise.
+	(eval_is_reference_type): Likewise.
+	(eval_is_member_pointer_type): Likewise.
+	(eval_is_object_type): Likewise.
+	(eval_is_trivially_copyable_type): Use eval_type_trait.
+	(eval_is_standard_layout_type): Likewise.
+	(eval_is_empty_type): Adjust the call to eval_type_trait.
+	(eval_is_polymorphic_type): Likewise.
+	(eval_is_abstract_type): Use eval_type_trait.
+	(eval_is_final_type): Adjust the call to eval_type_trait.
+	(eval_is_aggregate_type): Use eval_type_trait.
+	(eval_is_structural_type): Adjust the call to eval_type_trait.
+	(eval_is_bounded_array_type): Likewise.
+	(eval_is_constructible_type): Use eval_type_trait.
+	(eval_is_default_constructible_type): Likewise.
+	(eval_is_copy_constructible_type): Likewise.
+	(eval_is_move_constructible_type): Likewise.
+	(eval_is_assignable_type): Adjust the call to eval_type_trait.
+	(eval_is_copy_assignable_type): Use eval_type_trait.
+	(eval_is_move_assignable_type): Use eval_type_trait.
+	(eval_is_destructible_type): Adjust the call to eval_type_trait.
+	(eval_is_trivially_constructible_type): Use eval_type_trait.
+	(eval_is_trivially_default_constructible_type): Likewise.
+	(eval_is_trivially_copy_constructible_type): Likewise.
+	(eval_is_trivially_move_constructible_type): Likewise.
+	(eval_is_trivially_assignable_type): Adjust the call to
+	eval_type_trait.
+	(eval_is_trivially_copy_assignable_type): Use eval_type_trait.
+	(eval_is_trivially_move_assignable_type): Likewise.
+	(eval_is_trivially_destructible_type): Adjust the call to
+	eval_type_trait.
+	(eval_is_nothrow_constructible_type): Use eval_type_trait.
+	(eval_is_nothrow_default_constructible_type): Likewise.
+	(eval_is_nothrow_copy_constructible_type): Likewise.
+	(eval_is_nothrow_move_constructible_type): Likewise.
+	(eval_is_nothrow_assignable_type): Adjust the call to
+	eval_type_trait.
+	(eval_is_nothrow_copy_assignable_type): Use eval_type_trait.
+	(eval_is_nothrow_move_assignable_type): Likewise.
+	(eval_is_nothrow_destructible_type): Adjust the call to
+	eval_type_trait.
+	(eval_is_implicit_lifetime_type): Use eval_type_trait.
+	(eval_has_virtual_destructor): Likewise.
+	(eval_has_unique_object_representations): Likewise.
+	(eval_reference_constructs_from_temporary): Adjust the call to
+	eval_type_trait.
+	(eval_reference_converts_from_temporary): Likewise.
+	(eval_extent): Adjust the call to eval_is_bounded_array_type.
+	Check != boolean_true_node rather than == boolean_false_node when
+	checking eval_is_bounded_array_type.
+	(eval_is_same_type): Adjust the call to eval_type_trait.
+	(eval_is_base_of_type): Likewise.
+	(eval_is_virtual_base_of_type): Likewise.
+	(eval_is_convertible_type): Likewise.
+	(eval_is_nothrow_convertible_type): Likewise.
+	(eval_is_layout_compatible_type): Likewise.
+	(eval_is_pointer_interconvertible_base_of_type): Likewise.
+	(eval_is_invocable_type): Use eval_type_trait.
+	(eval_is_nothrow_invocable_type): Likewise.
+	(eval_data_member_spec): Adjust the calls to eval_is_array_type
+	and eval_is_object_type.  Check != boolean_true_node rather than
+	== boolean_false_node when checking eval_is_object_type.
+	(eval_extract): Adjust the call to eval_is_reference_type.
+	(process_metafunction): Adjust the calls to various
+	metafunctions.
+	* semantics.cc (check_trait_type): Remove a default argument.
+	Add a complain parameter.  If not emitting error messages, always
+	return false for incomplete types.
+	(finish_trait_expr): Add a complain parameter.  Use it.  Call
+	complete_type_or_maybe_complain instead of
+	complete_type_or_else.
+
+2026-07-06  Jason Merrill  <jason@redhat.com>
+
+	PR c++/126031
+	PR c++/121552
+	* decl.cc (maybe_diagnose_non_c_class_typedef_for_linkage): Handle
+	incomplete type.
+
 2026-07-03  Jakub Jelinek  <jakub@redhat.com>
 
 	PR c++/126057

@@ -1,3 +1,25 @@
+2026-07-06  James K. Lowden  <jklowden@cobolworx.com>
+
+	* cbldiag.h (struct cbl_loc_t): Add as_first_line() function.
+	(location_dump): Shorten diagnostic message.
+	* cdf-copy.cc (copybook_elem_t::open_file): Same.
+	* copybook.h (class copybook_t): Remove debug message.
+	* lexio.cc (parse_copy_directive): Clarify comment.
+	(cdftext::lex_open): Set please_push_filename boolean for open_input.
+	(cdftext::open_input): Issue push directive where COPY appeared.
+	(cdftext::output_push_directive): New function.
+	(cdftext::process_file): Relocate PUSH/POP directives.
+	* lexio.h (class cdftext): Add please_push_filename and output_push_directive().
+	* parse.y: Improve PERFORM diagnostics.
+	* parse_ante.h (ast_enter_exit_section): Correct paragraph section ancestor.
+	* scan.l: Update gcc location for PUSH directive.
+	* symbols.cc (cbl_perform_tgt_t::recurses): New validation function.
+	* symbols.h (struct cbl_perform_tgt_t): Same.
+	* util.cc (cobol_filename): Clarify diagnostic message.
+	(gcc_location_set_impl): Remove function.
+	(gcc_location_set): Implement directly.
+	(gcc_location_dump): Add newline to output.
+
 2026-06-30  Robert Dubner  <rdubner@symas.com>
 
 	* compare.cc (alpha_compare_figconst): Make the code endian-agnostic.

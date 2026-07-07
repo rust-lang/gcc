@@ -1,3 +1,23 @@
+2026-07-06  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* gnatlink.adb: Remove clause for System.CRTL.
+	(Store_File_Context): Remove clause for System.CRTL.long.
+	* gcc-interface/targtyps.cc (ADA_LONG_TYPE_SIZE): Delete.
+	(get_target_long_size): Use LONG_TYPE_SIZE.
+	* libgnat/i-c.ads: Remove clause for System.Parameters.
+	(long): Declare as derived from Long_Integer.
+	* libgnat/i-cstrin.ads: Add clause for System.Parameters.
+	* libgnat/s-crtl.ads: Remove clause for System.Parameters.
+	(long): Declare as subtype of Long_Integer.
+	* libgnat/s-parame.ads (long_bits): Delete.
+	* libgnat/s-parame__hpux.ads (long_bits): Likewise.
+	* libgnat/s-parame__vxworks.ads (long_bits): Likewise.
+
+2026-07-06  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* gcc-interface/decl.cc (gnat_to_gnu_entity): Use the precision of
+	longest_float_type_node to compute the maximum size of FP types.
+
 2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
 
 	* link.c: Check HAVE_LD_AT_FILE instead of HAVE_GNU_LD.

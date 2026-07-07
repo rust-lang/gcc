@@ -1,3 +1,92 @@
+2026-07-06  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	PR tree-optimization/124545
+	* gcc.dg/pr124545-2.c: Use __UINT32_TYPE__ / __UINT64_TYPE__
+	instead of unsigned int/long/long long so the runtime check
+	works on ILP32 targets.
+
+2026-07-06  Harald Anlauf  <anlauf@gmx.de>
+
+	PR fortran/121366
+	* gfortran.dg/trigd_1.f90: New test.
+
+2026-07-06  Jim Lin  <jim@andestech.com>
+
+	* gcc.target/riscv/ext-dce-4.c (test_half_sign_needed): Shift
+	by 4 instead of 8 to keep the lh load.
+
+2026-07-06  Jim Lin  <jim@andestech.com>
+
+	* gcc.target/riscv/shift-shift-7.c: Skip under -Og.
+
+2026-07-06  Marek Polacek  <polacek@redhat.com>
+
+	PR c++/125901
+	* g++.dg/reflect/type_trait16.C: New test.
+	* g++.dg/reflect/type_trait17.C: New test.
+	* g++.dg/reflect/type_trait18.C: New test.
+
+2026-07-06  Jason Merrill  <jason@redhat.com>
+
+	PR c++/126031
+	PR c++/121552
+	* g++.dg/cpp2a/typedef2.C: New test.
+
+2026-07-06  Jim Lin  <jim@andestech.com>
+
+	* gcc.target/riscv/zbb-min-max-05.c: Skip under -funroll-loops.
+
+2026-07-06  Mark Zhuang  <zhuangqiubin@linux.spacemit.com>
+
+	* gcc.target/riscv/mcpu-spacemit-x60.c: New test.
+
+2026-07-06  Torbjörn SVENSSON  <torbjorn.svensson@foss.st.com>
+
+	* gcc.target/arm/tls-disable-literal-pool.c: Add quotation for
+	command line arguments.
+
+2026-07-06  Kyrylo Tkachov  <ktkachov@nvidia.com>
+
+	PR tree-optimization/120892
+	* gcc.dg/tree-ssa/split-path-1.c: Move to...
+	* gcc.c-torture/execute/split-path-1.c: ...here.  Adjust to a plain
+	compile and run test without the split-paths dump scan.
+	* gcc.dg/tree-ssa/split-path-2.c: Move to...
+	* gcc.c-torture/compile/split-path-2.c: ...here.  Adjust to a
+	compile-only test without the split-paths dump scan.
+	* gcc.dg/tree-ssa/split-path-3.c: Move to...
+	* gcc.c-torture/compile/split-path-3.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-4.c: Move to...
+	* gcc.c-torture/compile/split-path-4.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-5.c: Move to...
+	* gcc.c-torture/compile/split-path-5.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-6.c: Move to...
+	* gcc.c-torture/compile/split-path-6.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-7.c: Move to...
+	* gcc.c-torture/compile/split-path-7.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-8.c: Move to...
+	* gcc.c-torture/compile/split-path-8.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-9.c: Move to...
+	* gcc.c-torture/compile/split-path-9.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-10.c: Move to...
+	* gcc.c-torture/compile/split-path-10.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-11.c: Move to...
+	* gcc.c-torture/compile/split-path-11.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-12.c: Move to...
+	* gcc.c-torture/compile/split-path-12.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/split-path-13.c: Move to...
+	* gcc.c-torture/compile/split-path-13.c: ...here.  Likewise.
+	* gcc.dg/tree-ssa/pr69270.c: Move to...
+	* gcc.c-torture/compile/pr69270.c: ...here.  Likewise.
+	* g++.dg/tree-ssa/pr88797.C: Move to...
+	* g++.dg/torture/pr88797.C: ...here.  Adjust to a compile-only test.
+	* gcc.target/i386/pr106450.c: Remove -fsplit-paths from dg-options.
+
+2026-07-06  liuhongt  <hongtao.liu@intel.com>
+
+	PR target/126098
+	* gcc.target/i386/pr126098.c: New test.
+
 2026-07-05  Jakub Jelinek  <jakub@redhat.com>
 
 	* g++.dg/opt/20260703-1.C: New test.

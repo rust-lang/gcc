@@ -1,3 +1,15 @@
+2026-07-06  Harald Anlauf  <anlauf@gmx.de>
+
+	PR fortran/121366
+	* intrinsic.texi: Remove documentation of GNU intrinsic extensions
+	(CCOSD,ZCOSD,CDCOSD) that were never implemented.
+	* iresolve.cc (gfc_resolve_trig): Fix resolution of degree
+	trigonometric functions and generate references to the proper
+	library functions.
+	(gfc_resolve_trig2): Likewise.
+	* trans-decl.cc (gfc_get_extern_function_decl): Ensure that isym
+	is set when resolving intrinsic procedures.
+
 2026-07-05  Sandra Loosemore  <sloosemore@baylibre.com>
 
 	* trans.cc (trans_code): Do not try to set location on non-expr

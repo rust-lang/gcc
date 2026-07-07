@@ -1,3 +1,124 @@
+2026-07-07  Andrew MacLeod  <amacleod@redhat.com>
+
+	PR tree-optimization/125758
+	* gimple-range.cc (gimple_ranger::gimple_ranger): Create prefill stack.
+	(gimple_ranger::gimple_ranger): Dispose of prefill stack.
+	(gimple_ranger::prefill_name): Maybe push name on prefill stack.
+	(gimple_ranger::prefill_stmt_dependencies): Implement a DFS
+	stack for dependency satisfaction.
+	* gimple-range.h (struct prefill_frame): New.
+	(m_prefill_stack): New.
+	(prefill_name): Sadjust parameters.
+	(m_active_prefill): New.
+
+2026-07-07  Andrew MacLeod  <amacleod@redhat.com>
+
+	PR tree-optimization/125758
+	* gimple-range-cache.cc (struct time_stamp): New.
+	(set_timestamp): Deleted.
+	(set_timestamp_stored): New.
+	(set_timestamp_calc): New.
+	(set_always_current): Remove a parameter.
+	(temporal_value): Remove.
+	(temporal_value_stored): New.,
+	(temporal_value_calc): New.
+	(m_timestamp): Change to vector of struct time_stamp.
+	(temporal_cache::temporal_cache): Adjust.
+	(temporal_cache::current_p): Use both timestamps.
+	(temporal_cache::set_always_current): 0 means always current.
+	(temporal_cache::always_current_p): Check for 0.
+	(ranger_cache::get_global_range): adjust params.
+	(ranger_cache::update_consumers): Set stored timestamp.
+	(ranger_cache::set_global_range): Use new timestamps.
+
+2026-07-06  Mark Zhuang  <zhuangqiubin@linux.spacemit.com>
+
+	* config/riscv/riscv-cores.def (spacemit-x60): Use rva22u64
+	profile shorthand, add missing entries.
+
+2026-07-06  Richard Biener  <rguenther@suse.de>
+
+	* tree-vect-slp.cc (vect_build_slp_instance): For BB reductions
+	note the first root stmt.
+
+2026-07-06  Andrew Stubbs  <ams@baylibre.com>
+
+	* config/gcn/gcn-valu.md (*vec_set<mode>): Ad TImode instruction.
+
+2026-07-06  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* config/vms/vms.h (ADA_LONG_TYPE_SIZE): Delete.
+	* doc/tm.texi.in (ADA_LONG_TYPE_SIZE): Likewise.
+	* doc/tm.texi: Regenerate.
+	* system.h (ADA_LONG_TYPE_SIZE): Poison.
+
+2026-07-06  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* config/aarch64/aarch64.h (WIDEST_HARDWARE_FP_SIZE): Delete.
+	* config/alpha/alpha.h (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* config/i386/i386.h (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* config/ia64/vms.h (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* config/pa/pa.h (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* config/rs6000/rs6000.h (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* config/s390/s390.h (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* config/sparc/sparc.h (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* config/visium/visium.h (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* doc/tm.texi.in (WIDEST_HARDWARE_FP_SIZE): Likewise.
+	* doc/tm.texi: Regenerate.
+	* system.h (WIDEST_HARDWARE_FP_SIZE): Poison.
+
+2026-07-06  Kyrylo Tkachov  <ktkachov@nvidia.com>
+
+	PR tree-optimization/120892
+	* gimple-ssa-split-paths.cc: Remove.
+	* passes.def (pass_split_paths): Remove.
+	* tree-pass.h (make_pass_split_paths): Remove.
+	* Makefile.in (OBJS): Remove gimple-ssa-split-paths.o.
+	* timevar.def (TV_SPLIT_PATHS): Remove.
+	* opts.cc (default_options_table): Remove the OPT_LEVELS_3_PLUS entry
+	for OPT_fsplit_paths.
+	* common.opt (fsplit-paths): Make it a deprecated no-op using Ignore.
+	* doc/invoke.texi (-fsplit-paths): Document as deprecated and remove it
+	from the option summary and the -O3 list.
+
+2026-07-06  H.J. Lu  <hjl.tools@gmail.com>
+	    Richard Biener  <rguenther@suse.de>
+
+	PR target/109780
+	PR target/109093
+	PR target/123210
+	PR target/124098
+	PR target/124165
+	PR target/124684
+	PR target/124759
+	PR target/124789
+	* alias.cc (static_reg_base_value): Moved to rtl.h.
+	(find_base_term): Remove static.
+	* alias.h (find_base_term): New prototype.
+	* function.cc (thread_prologue_and_epilogue_insns): Call
+	init_alias_analysis and end_alias_analysis.
+	* rtl.h (static_reg_base_value): Moved from alias.cc.
+	* config/i386/i386.cc (stack_access_data): Removed.
+	(ix86_find_all_reg_uses_1): Likewise.
+	(ix86_find_all_reg_uses): Likewise.
+	(ix86_access_stack_p): Likewise.
+	(ix86_need_alignment_p_2): Likewise.
+	(ix86_need_alignment_p_1): Likewise.
+	(ix86_need_alignment_p): Likewise.
+	(ix86_update_stack_alignment_2): New function.
+	(ix86_update_stack_alignment_1): Likewise.
+	(ix86_update_stack_alignment): Rewrite.
+	(ix86_find_max_used_stack_alignment): If check_stack_slot is
+	true, call ix86_update_stack_alignment on each INSN.
+
+2026-07-06  liuhongt  <hongtao.liu@intel.com>
+
+	PR target/126098
+	* config/i386/sse.md (VI1_AVX512VNNIBW): Remove.
+	(sdot_prod<ssedvecmodelower><mode>): Use VI1_AVX512 instead of
+	VI1_AVX512VNNIBW so V64QI is enabled only under AVX512BW.
+	(udot_prod<ssedvecmodelower><mode>): Likewise.
+
 2026-07-05  Roger Sayle  <roger@nextmovesoftware.com>
 
 	PR target/126094
