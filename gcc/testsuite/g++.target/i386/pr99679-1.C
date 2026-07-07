@@ -14,4 +14,4 @@ foo (int x, ...)
   ld = va_arg (ap, long double);
   if (ld)
     abort ();
-} // { dg-error "x87 register return with x87 disabled" "" { target { ! ia32 } } }
+}

@@ -2010,12 +2010,12 @@ find_func_aliases_for_builtin_call (struct function *fn, gcall *t)
 	    {
 	      fi = lookup_vi_for_tree (fn->decl);
 	      rhs = get_function_part_constraint (fi, ~0);
-	      rhs.type = ADDRESSOF;
+	      rhs.type = SCALAR;
 	    }
 	  else
 	    {
 	      rhs.var = nonlocal_id;
-	      rhs.type = ADDRESSOF;
+	      rhs.type = SCALAR;
 	      rhs.offset = 0;
 	    }
 	  FOR_EACH_VEC_ELT (lhsc, i, lhsp)
@@ -2107,6 +2107,21 @@ find_func_aliases_for_call (struct function *fn, gcall *t)
       && fndecl_built_in_p (fndecl)
       && find_func_aliases_for_builtin_call (fn, t))
     return;
+
+  if (gimple_call_internal_p (t, IFN_VA_ARG)
+      && gimple_call_lhs (t))
+    {
+      tree valist = gimple_call_arg (t, 0);
+      auto_vec<ce_s, 1> rhsc, lhsc;
+      get_constraint_for_rhs (valist, &rhsc);
+      do_deref (&rhsc);
+      get_constraint_for (gimple_call_lhs (t), &lhsc);
+      process_all_all_constraints (lhsc, rhsc);
+      /* va_list is used and clobbered.  */
+      make_constraint_to (get_call_use_vi (t)->id, valist);
+      make_constraint_to (get_call_clobber_vi (t)->id, valist);
+      return;
+    }
 
   if (gimple_call_internal_p (t, IFN_DEFERRED_INIT))
     return;
