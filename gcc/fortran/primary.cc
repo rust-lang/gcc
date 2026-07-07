@@ -4025,7 +4025,8 @@ gfc_match_rvalue (gfc_expr **result)
 	 end up here.  Unfortunately, sym->value->expr_type is set to
 	 EXPR_CONSTANT, and so the if () branch would be followed without
 	 the !sym->as check.  */
-      if (sym->value && sym->value->expr_type != EXPR_ARRAY && !sym->as)
+      if (sym->value && sym->value->expr_type != EXPR_ARRAY
+	  && sym->value->expr_type != EXPR_VARIABLE && !sym->as)
 	e = gfc_copy_expr (sym->value);
       else
 	{
