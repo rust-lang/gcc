@@ -1,4 +1,4 @@
-/* { dg-do assemble } */
+/* { dg-do compile { target { aarch64-*-* } } } */
 
 #include <arm_neon.h>
 
