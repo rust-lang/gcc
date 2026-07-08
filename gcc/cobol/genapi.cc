@@ -737,29 +737,6 @@ parser_call_target_convention( tree func )
   return cbl_call_cobol_e;
   }
 
-void
-parser_call_targets_dump()
-  {
-    dbgmsg( "call targets for #" HOST_SIZE_T_PRINT_UNSIGNED " NOT dumping",
-            (fmt_size_t)current_program_index() );
-#if 0 // A change to call_targets rendered this routine useless.  Until we get
-      // around to repairing it, this code is left for reference.
-    for( const auto& elem : call_targets ) {
-      const auto& k = elem.first;
-      const auto& v = elem.second;
-      fprintf(stderr, "\t#%-3" GCC_PRISZ "u %s calls %s ",
-              (fmt_size_t)k.caller, cbl_label_of(symbol_at(k.caller))->name,
-              k.called);
-      char ch = '[';
-      for( auto func : v ) {
-        fprintf( stderr, "%c %s", ch, IDENTIFIER_POINTER(DECL_NAME(func)) );
-        ch = ',';
-      }
-      fprintf(stderr, " ]\n");
-    }
-#endif
-  }
-
 size_t
 parser_call_target_update( size_t caller,
                            const char plain_name[],

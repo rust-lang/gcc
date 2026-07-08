@@ -941,10 +941,15 @@ struct tgt_list_t {
   list<cbl_num_result_t> targets;
 };
 
-static struct cbl_label_t *
+static cbl_label_t *
 label_add( const cbl_loc_t& loc, enum cbl_label_type_t type, const char name[] );
-static struct cbl_label_t *
+static cbl_label_t *
+label_add_once( cbl_label_type_t type, const char name[] );
+static cbl_label_t *
 label_add( enum cbl_label_type_t type, const char name[], int line );
+static cbl_label_t *
+label_instantiate( const cbl_loc_t& loc, size_t program,
+                   cbl_label_type_t type, size_t section, const char name[]);
 
 static struct cbl_label_t *
 paragraph_reference( const cbl_loc_t& loc, const char name[], size_t section );
@@ -1714,6 +1719,7 @@ static class current_t {
   program_stack_t programs;
   unique_typedefs_t typedefs;
   std::set<function_descr_t> udfs;
+  std::set<size_t> undefined_labels;
   int first_statement;
   bool in_declaratives;
   // from command line or early TURN
@@ -1979,6 +1985,14 @@ static class current_t {
     return client->second;
   }
 
+  void forward_add( size_t isym ) {
+    assert( LblNone == cbl_label_of(symbol_at(isym))->type );
+    undefined_labels.insert(isym);
+  }
+  auto& forwards() {
+    return undefined_labels;
+  }
+
   void alpha_encoding( size_t isym, cbl_encoding_t encoding ) {
     prog_descr_t& program = programs.top();
     program.alphabet.alpha.set(isym, encoding);
@@ -2189,7 +2203,6 @@ static class current_t {
         }
       callers_we_have_seen.insert(caller);
       }
-      if( yydebug ) parser_call_targets_dump();
     }
 
     parser_leave_paragraph( programs.top().paragraph );
@@ -3526,8 +3539,8 @@ ast_enter_exit_section( cbl_label_t * section ) {
     parser_leave_section(prior.sect);
   }
   if( section ) {
-    dbgmsg( "%s:%d: entering section %s", __func__, __LINE__,
-            section->name );
+    dbgmsg( "%s:%d: entering section #%lu %s", __func__, __LINE__,
+            (unsigned long)symbol_index(symbol_elem_of(section)), section->name );
     parser_enter_section(section);
     parser_enter_paragraph(paragraph);
   }

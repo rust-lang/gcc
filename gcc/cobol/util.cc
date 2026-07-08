@@ -2685,29 +2685,9 @@ namespace match_proc {
     }
   };
 
-  struct proc_t {
-    size_t n, isym; // index of first of n matching pairs
-    std::string para, sect;
-    proc_t( size_t n, size_t isym,
-            const std::string& para,
-            const std::string& sect )
-      : n(n), isym(isym), para(para), sect(sect)
-    {}
-    bool operator<( const proc_t& that ) const {
-      if( para == that.para ) {
-        return sect < that.sect;
-      }
-      return para < that.para;
-    }
-    static bool implicit( const std::string& input ) {
-      return input[0] == '_';
-    }
-  };
-
   class procedures_t {
     std::set<sect_t> sects;
     std::set<para_t> paras;
-    std::set<proc_t> procs;
     friend bool statements_verify();
     template <typename T>
     // If the element name is not unique, set its isym to 0 so it can't be referenced.
@@ -2739,21 +2719,6 @@ namespace match_proc {
           }
         }
       }
-      // join sections and paragraphs, unreduced
-      std::vector<proc_t> all;
-      for( const auto& para : paras ) {
-        std::set<sect_t> parents;
-        std::copy_if( sects.begin(), sects.end(), std::inserter(parents, parents.begin()),
-                      [para]( const auto& sect ) {
-                        return sect.is_unique()
-                          &&   para.parent_name() == sect.name;
-                      } );
-        std::transform( parents.begin(), parents.end(), std::back_inserter(all), 
-                        [para]( const auto& sect ) {
-                          proc_t proc(1, para.isym, para.name, sect.name);
-                          return proc;
-                        } );
-      }
       // insert paragraph procedures
       struct stat_t {
         size_t n, isym;
@@ -2764,59 +2729,32 @@ namespace match_proc {
           return *this;
         }
       };
-      std::map<proc_t, stat_t> nprocs;
-      for( const auto& proc : all ) {
-        if( ! proc.implicit(proc.para) ) {
-          auto& stat = nprocs[proc];
-          stat.update( proc.isym );
-        }
-      }
-      std::transform(nprocs.begin(), nprocs.end(), std::inserter(procs, procs.begin()),
-                     []( const auto& elem ) {
-                       proc_t proc ( elem.second.n, elem.second.isym,
-                                     elem.first.para, elem.first.sect );
-                       const char * para = proc.para.empty()? "" : proc.para.c_str();
-                       const char * sect = proc.sect.empty()? "" : proc.sect.c_str();
-                       dbgmsg("%s: insert para #%ld %s of %s", __func__,
-                              proc.isym, para, sect);
-                       return proc;
-                     } );
       // insert section procedures
       std::map<sect_t, stat_t> nsects;
       for( const auto& sect : sects ) {
         auto& stat = nsects[sect];
         stat.update( sect.isym );
       }
-      std::transform(nsects.begin(), nsects.end(), std::inserter(procs, procs.begin()),
-                     []( const auto& elem ) {
-                       proc_t proc ( elem.second.n, elem.second.isym,
-                                     std::string(), elem.first.name );
-                       const char * para = proc.para.empty()? "" : proc.para.c_str();
-                       const char * sect = proc.sect.empty()? "" : proc.sect.c_str();
-                       dbgmsg("%s: insert sect #%ld %s of %s", __func__,
-                              proc.isym, para, sect);
-                       return proc;
-                     } );
     }
 
     stmt_t::found_t
     find( const stmt_t& stmt, const stmt_t::tgt_t& tgt ) {
       if( tgt.empty() ) return stmt_t::found_t();
       std::string curr ( lcase( cbl_label_of(symbol_at(stmt.curr))->name ) );
-      std::set<proc_t> matched;
+      std::set<para_t> matched;
 
       // Match a paragraph name tgt.proc within curr, the current section.
-      std::copy_if(procs.cbegin(), procs.cend(),
+      std::copy_if(paras.cbegin(), paras.cend(),
                    std::inserter(matched, matched.begin()),
-                   [curr, tgt](const auto& proc) {
-                     return match_in_section(proc, tgt, curr);
+                   [curr, tgt](const auto& para) {
+                     return match_in_section(para, tgt, curr);
                    });
       // Match a section name if unqualified and unique.
       if( matched.empty() && tgt.qual.empty() ) {
         // target does not name a paragraph
-        if( std::none_of(procs.cbegin(), procs.cend(),
-                         [tgt](const auto& proc) {
-                           return match_any_paragraph(proc, tgt);
+        if( std::none_of(paras.cbegin(), paras.cend(),
+                         [tgt](const auto& para) {
+                           return match_any_paragraph(para, tgt);
                          }) ) {
           // target may name a section
           if( ! sects.empty() ) {
@@ -2825,52 +2763,59 @@ namespace match_proc {
             fake.name = tgt.name;
             auto p = sects.find(fake); // matches by name only, not isym
             if( p != sects.end() && p->is_unique()) {
-              proc_t proc ( 1, p->isym, std::string(), p->name );
-              matched.insert(proc);
+              para_t para( p->isym );
+              matched.insert(para);
             }
           }
         }
       }
       if( matched.empty() ){
         // Match a paragraph or section anywhere in the program.
-        std::copy_if(procs.cbegin(), procs.cend(),
+        std::copy_if(paras.cbegin(), paras.cend(),
                      std::inserter(matched, matched.begin()),
-                     [tgt](const auto& proc) {
-                       return match(proc, tgt);
+                     [tgt](const auto& para) {
+                       return match(para, tgt);
                    });
       };
 
       size_t n = matched.size();
       stmt_t::found_t found = {n, 0};
       if( n ) {
-        const proc_t& proc(*matched.begin());
-        found.isym = proc.isym;
+        const para_t& para(*matched.begin());
+        found.isym = para.isym;
+        if( yydebug && 1 < n ) {
+          for( const auto& para : matched ) {
+            fprintf(stderr, "procedures_t::find:%d: ambig: %s of #%lu, %s\n", __LINE__,
+                    para.name.c_str(), (unsigned long)para.parent, 
+                    para.parent_name().c_str());
+          }
+        }
       }
       return found;
     }
   protected:
-    static bool match_in_section( const proc_t& proc,
+    static bool match_in_section( const para_t& para,
                                   const stmt_t::tgt_t& tgt,
                                   const std::string& curr )
     {
-      return proc.para == tgt.name && proc.sect == curr
+      return para.name == tgt.name && para.parent_name() == curr
         &&   (tgt.qual == curr || tgt.qual.empty());
     }
-    static bool match_any_paragraph( const proc_t& proc,
+    static bool match_any_paragraph( const para_t& para,
                                      const stmt_t::tgt_t& tgt )
     {
       assert( tgt.qual.empty() ); 
-      return proc.para == tgt.name;
+      return para.name == tgt.name;
     }
-    static bool match( const proc_t& proc,
+    static bool match( const para_t& para,
                        const stmt_t::tgt_t& tgt )
     {
       if( tgt.qual.empty() ) {
-        return proc.sect == tgt.name
-          ||   proc.para == tgt.name;
+        return para.parent_name() == tgt.name
+          ||   para.name == tgt.name;
       } 
-      return proc.para == tgt.name
-        &&   proc.sect == tgt.qual;
+      return para.name == tgt.name
+        &&   para.parent_name() == tgt.qual;
     }
 
     void dump(const stmt_t& stmt) {
@@ -2895,13 +2840,6 @@ namespace match_proc {
       for( auto para : paras ) {
         fprintf(stderr, "\t" "#%lu %s of #%lu\n",
                 (unsigned long)para.isym, para.name.c_str(), (unsigned long)para.parent);
-      }
-      fprintf(stderr, "%lu Procedures:\n", (unsigned long)procs.size());
-      for( auto proc : procs ) {
-        std::string section("");
-        if( ! proc.sect.empty() ) section += "of " + proc.sect;
-        fprintf(stderr, "\t" "n=%lu %s %s\n",
-                (unsigned long)proc.isym, proc.para.c_str(), section.c_str());
       }
       return;
     }

@@ -582,7 +582,6 @@ void parser_clear_exception();
 void parser_push_exception();
 void parser_pop_exception();
 
-void parser_call_targets_dump();
 size_t parser_call_target_update( size_t caller,
                                   const char extant[],
                                   const char mangled_tgt[] );

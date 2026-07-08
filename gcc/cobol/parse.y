@@ -5647,10 +5647,11 @@ sentences:      sentence {
         |       paragraph_name[para] '.'
                 {
                   location_set(@para);
-                  cbl_label_t *label = label_add(@para, LblParagraph, $para);
-                  if( !label ) {
-                    YYERROR;
-                  }
+                  cbl_label_t
+                    *label = label_instantiate(@para, PROGRAM, LblParagraph,
+                                               current.program_section(),
+                                               $para);
+                  assert(label);
                   ast_enter_paragraph(@para, label);
                   current.new_paragraph(label);
                   apply_declaratives();
@@ -5664,10 +5665,11 @@ sentences:      sentence {
         |       sentences paragraph_name[para] '.'
                 {
                   location_set(@para);
-                  cbl_label_t *label = label_add(@para, LblParagraph, $para);
-                  if( !label ) {
-                    YYERROR;
-                  }
+                  cbl_label_t
+                    *label = label_instantiate(@para, PROGRAM, LblParagraph,
+                                               current.program_section(),
+                                               $para);
+                  assert(label);
                   ast_enter_paragraph(@para, label);
                   current.new_paragraph(label);
                   apply_declaratives();
@@ -7048,7 +7050,7 @@ if_statements:  %empty        %prec ADD
         |       statements    %prec ADD
         |       NEXT SENTENCE %prec ADD
                 {
-                  next_sentence = label_add(LblNone, "next_sentence", 0);
+                  next_sentence = label_add_once(LblNone, "next_sentence");
                   parser_label_goto(next_sentence);
                 }
                 ;
@@ -7110,7 +7112,7 @@ eval_case:      eval_objects statements %prec ADD {
                 {
 		  auto& ev( eval_stack.current() );
 		  ev.write_when_label();
-                  next_sentence = label_add(LblNone, "next_sentence", 0);
+                  next_sentence = label_add_once(LblNone, "next_sentence");
                   parser_label_goto(next_sentence);
                 }
                 ;
@@ -8017,14 +8019,14 @@ cce_factor:     NUMSTR {
 section_name:	NAME section_kw '.'
                 {
                   statement_begin(@1, SECTION);
-		  $$ = label_add(@1, LblSection, $1);
+		  $$ = label_instantiate(@1, PROGRAM, LblSection, 0, $1);
                   ast_enter_section(@1, $$);
                   apply_declaratives();
                 }
 	|	NAME section_kw // lexer swallows '.' before USE
                 <label>{
                   statement_begin(@1, SECTION);
-		  $$ = label_add(@1, LblSection, $1);
+		  $$ = label_instantiate(@1, PROGRAM, LblSection, 0, $1);
                   ast_enter_section(@1, $$);
                   apply_declaratives();
                 } [label]
@@ -9812,7 +9814,7 @@ search_2_case:  WHEN { parser_bsearch_conditional(search_current()); }
 
 search_stmts:   statements    %prec ADD
         |       NEXT SENTENCE %prec ADD {
-                  next_sentence = label_add(LblNone, "next_sentence", 0);
+                  next_sentence = label_add_once(LblNone, "next_sentence");
                   parser_label_goto(next_sentence);
                 }
                 ;
@@ -10891,13 +10893,16 @@ label_1:        qname
 
                   if( namelocs.size() == 2 ) {
 		    auto nameloc = namelocs.front();
-                    cbl_label_t *sect = label_add(nameloc.loc, LblSection, nameloc.name);
+                    cbl_label_t *sect = symbol_label(PROGRAM,
+                                                     LblSection, 0, nameloc.name);
+                    if( !sect ) sect = label_add(nameloc.loc, LblNone, nameloc.name);
                     isect = symbol_index(symbol_elem_of(sect));
                   }
 
                   $$ = paragraph_reference(@1, para, isect);
                   assert($$);
-                  dbgmsg( "using procedure %s of line %d", $$->name, $$->line );
+                  size_t isym = symbol_index(symbol_elem_of($$));
+                  dbgmsg( "using procedure #%lu %s of line %d", isym, $$->name, $$->line );
                 }
         |       NUMSTR
                 {
@@ -13213,7 +13218,7 @@ class label_named {
 typedef label_named<LblSection> section_named;
 typedef label_named<LblParagraph> paragraph_named;
 
-static struct cbl_label_t *
+static cbl_label_t *
 label_add( const cbl_loc_t& loc,
 	   enum cbl_label_type_t type, const char name[] ) {
   size_t parent = 0;
@@ -13256,7 +13261,28 @@ label_add( const cbl_loc_t& loc,
 
   assert( !(p->type == LblSection && p->parent > 0) );
 
+  if( type == LblNone ) {
+    auto isym = symbol_index(symbol_elem_of(p));
+    current.forward_add(isym);
+    dbgmsg("%s: add forward %s %s #%lu", __func__,
+           p->type_str(), p->name, (unsigned long)isym);
+  }
   return p;
+}
+
+/*
+ * Special treatment for the "next_sentence" label, which the compiler creates and
+ * remains LblNone.
+ */
+static cbl_label_t *
+label_add_once( cbl_label_type_t type, const char name[] ) {
+  cbl_label_t *L = symbol_label(PROGRAM, type, 0, name);
+  if( L ) return L;
+
+  cbl_label_t label = { type, 0, 0 }; // no parent, line 0
+  strcpy(label.name, name);
+  
+  return symbol_label_add(PROGRAM, &label);
 }
 
 /*
@@ -13264,10 +13290,55 @@ label_add( const cbl_loc_t& loc,
  * bounds. Often they are created far away from the yacc metavariables, so
  * there's no location to access.
  */
-static struct cbl_label_t *
+static cbl_label_t *
 label_add( enum cbl_label_type_t type, const char name[], int line ) {
   cbl_loc_t loc { line, 1, line, 1 };
   return label_add(loc, type, name);
+}
+
+// When a Section or Paragraph is defined, first see if a LblNone exists for
+// it.  If so, imbue it as now defined. Else create one.  
+static cbl_label_t *
+label_instantiate( const cbl_loc_t& loc, size_t program,
+                          cbl_label_type_t type, size_t section,
+                          const char name[] )
+{
+  cbl_label_t *label = symbol_label(program, type, section, name);
+  if( ! label && type == LblParagraph ) {
+    // A forward reference could be mistakenly attached to a section with no
+    // such paragraph.
+    auto& forwards = current.forwards();
+
+    for( auto isym : forwards ) {
+      auto para = cbl_label_of(symbol_at(isym));
+      if( para->type == LblNone ) {
+        if( 0 == strcasecmp(para->name, name) ) {
+          assert(para->parent);
+          auto sect = cbl_label_of(symbol_at(para->parent));            
+          if( 0 == strcasecmp(sect->name, current.section()->name) ) {
+            // The current section has the same name as a prior one, and that
+            // prior one was parsed without instantiating a forward reference
+            // that was attached to it.  So, use it.  
+            label = para;
+            forwards.erase(isym);
+            break;
+          }
+        }
+      }
+    }
+  }
+  if( label && label->type == LblNone ) {
+    label->type = type;
+    label->parent = section;
+    label->line = loc.first_line;
+    dbgmsg("%s:%d: instantiated %s", __func__, __LINE__, label->str());
+    return label;
+  }
+
+  label = label_add(loc, type, name);
+  dbgmsg("%s:%d: add %s", __func__, __LINE__, label->str());
+  
+  return label;
 }
 
 cbl_label_t *
@@ -13309,15 +13380,28 @@ perform_t::ec_labels_t::new_label( cbl_label_type_t type,
 static struct cbl_label_t *
 paragraph_reference( const cbl_loc_t& loc, const char name[], size_t section )
 {
-  // A reference has line == 0.  It is LblParagraph if the section is
-  // explicitly named, else LblNone (because we don't know).
-  struct cbl_label_t *p, label = { section? LblParagraph : LblNone, section };
+  dbgmsg("%s: find '%s' in section #%lu", __func__, name, (unsigned long)section);
+  // A reference has line == 0.  It is LblNone, possibly with a parent, until instantiated.
+  cbl_label_t label = { LblNone, section };
   assert(strlen(name) < sizeof(label.name)); // caller ensures
   strcpy(label.name, name);
-  if( label.type == LblNone ) assert(label.parent == 0);
 
-  p = symbol_label_add(PROGRAM, &label);
-  assert(p);
+  auto p = symbol_label(PROGRAM, LblParagraph, label.parent, label.name);
+  if( !p && section == 0 ) {
+    p = symbol_label(PROGRAM, LblSection, label.parent, label.name);
+  }
+  if( ! p  ) {
+    p = symbol_label_add(PROGRAM, &label);
+    assert(p);
+    if( p->type == LblNone ) {
+      auto isym = symbol_index(symbol_elem_of(p));
+      current.forward_add(isym);
+      dbgmsg("%s: add forward %s %s #%lu in section %lu", __func__,
+             p->type_str(), p->name,
+             (unsigned long)isym, (unsigned long)p->parent);
+    }
+  }
+  
   const char *para_name = p->name;
   const char *sect_name = section? cbl_label_of(symbol_at(section))->name : NULL;
   
