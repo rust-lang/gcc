@@ -9879,6 +9879,10 @@ sort_table:     SORT tableref[table] sort_keys sort_dup sort_seq {
 		    error_msg(@1, "%s has no OCCURS clause", $table->field->name);
                     YYERROR;
 		  }
+		  if( !$table->field->occurs.keys ) {
+		    error_msg(@1, "%s: no key defined", $table->field->name);
+                    YYERROR;
+		  }
                   cbl_key_t
                     key = cbl_key_t($table->field->occurs.keys[0]),
                     guess(1, &$table->field);
