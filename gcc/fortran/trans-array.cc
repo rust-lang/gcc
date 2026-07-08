@@ -6069,6 +6069,8 @@ gfc_array_init_size (tree descriptor, int rank, int corank, tree * poffset,
 	   && expr3 && expr3->ts.type != BT_CLASS
 	   && expr3_elem_size != NULL_TREE && expr3_desc == NULL_TREE)
     {
+      tmp = gfc_conv_descriptor_dtype (descriptor);
+      gfc_add_modify (pblock, tmp, gfc_get_dtype (type));
       tmp = gfc_conv_descriptor_elem_len (descriptor);
       gfc_add_modify (pblock, tmp,
 		      fold_convert (TREE_TYPE (tmp), expr3_elem_size));
