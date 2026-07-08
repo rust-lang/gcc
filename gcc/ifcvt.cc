@@ -1797,12 +1797,12 @@ noce_try_store_flag_logical (struct noce_if_info *if_info)
   if (!noce_simple_bbs (if_info))
     return false;
 
-  bool swapped = false;
+  bool swapped = STORE_FLAG_VALUE == -1;
   if (a == CONSTM1_RTX (GET_MODE (dest))
       && if_info->rev_cond)
     {
       std::swap (a, b);
-      swapped = true;
+      swapped = !swapped;
     }
 
   if (b != CONSTM1_RTX (GET_MODE (dest)))
