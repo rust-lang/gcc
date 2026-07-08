@@ -13,8 +13,8 @@ DEF_GROUP_OVERLAP_UNARY_0(
   vsext_vf,
   LOOP_UNARY_BODY_X16)
 
-/* { dg-final { scan-assembler-not {vsext\.vf2\s+v0,v1} } } */
-/* { dg-final { scan-assembler-not {vsext\.vf2\s+v2,v3} } } */
+/* { dg-final { scan-assembler-not {vsext\.vf2\s+v0,v1([^0-9]|$)} } } */
+/* { dg-final { scan-assembler-not {vsext\.vf2\s+v2,v3([^0-9]|$)} } } */
 /* { dg-final { scan-assembler-not {vsext\.vf2\s+v4,v5} } } */
 /* { dg-final { scan-assembler-not {vsext\.vf2\s+v6,v7} } } */
 /* { dg-final { scan-assembler-not {vsext\.vf2\s+v8,v9} } } */

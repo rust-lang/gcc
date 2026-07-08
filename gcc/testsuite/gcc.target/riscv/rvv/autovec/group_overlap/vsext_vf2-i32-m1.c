@@ -13,5 +13,5 @@ DEF_GROUP_OVERLAP_UNARY_0(
   vsext_vf,
   LOOP_UNARY_BODY_X16)
 
-/* { dg-final { scan-assembler-times {vsext\.vf2\s+v0,v1} 1 } } */
-/* { dg-final { scan-assembler-times {vsext\.vf2\s+v2,v3} 1 } } */
+/* { dg-final { scan-assembler-times {vsext\.vf2\s+v0,v1([^0-9]|$)} 1 } } */
+/* { dg-final { scan-assembler-times {vsext\.vf2\s+v2,v3([^0-9]|$)} 1 } } */
