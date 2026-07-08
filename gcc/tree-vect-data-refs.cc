@@ -1037,10 +1037,10 @@ vect_slp_analyze_store_dependences (vec_info *vinfo, slp_tree node)
   stmt_vec_info last_access_info = vect_find_last_scalar_stmt_in_slp (node);
   gcc_assert (DR_IS_WRITE (STMT_VINFO_DATA_REF (last_access_info)));
 
-  for (unsigned k = 0; k < SLP_TREE_SCALAR_STMTS (node).length (); ++k)
+  for (auto stmt_vinfo : SLP_TREE_SCALAR_STMTS (node))
     {
       stmt_vec_info access_info
-	= vect_orig_stmt (SLP_TREE_SCALAR_STMTS (node)[k]);
+	= vect_orig_stmt (stmt_vinfo);
       if (access_info == last_access_info)
 	continue;
       data_reference *dr_a = STMT_VINFO_DATA_REF (access_info);
@@ -1103,12 +1103,12 @@ vect_slp_analyze_load_dependences (vec_info *vinfo, slp_tree node,
   stmt_vec_info first_access_info = vect_find_first_scalar_stmt_in_slp (node);
   gcc_assert (DR_IS_READ (STMT_VINFO_DATA_REF (first_access_info)));
 
-  for (unsigned k = 0; k < SLP_TREE_SCALAR_STMTS (node).length (); ++k)
+  for (auto stmt_vinfo : SLP_TREE_SCALAR_STMTS (node))
     {
-      if (! SLP_TREE_SCALAR_STMTS (node)[k])
+      if (! stmt_vinfo)
 	continue;
       stmt_vec_info access_info
-	= vect_orig_stmt (SLP_TREE_SCALAR_STMTS (node)[k]);
+	= vect_orig_stmt (stmt_vinfo);
       if (access_info == first_access_info)
 	continue;
       data_reference *dr_a = STMT_VINFO_DATA_REF (access_info);
@@ -1245,8 +1245,8 @@ vect_slp_analyze_instance_dependence (vec_info *vinfo, slp_instance instance)
 
       /* Mark stores in this instance and remember the last one.  */
       last_store_info = vect_find_last_scalar_stmt_in_slp (store);
-      for (unsigned k = 0; k < SLP_TREE_SCALAR_STMTS (store).length (); ++k)
-	gimple_set_visited (SLP_TREE_SCALAR_STMTS (store)[k]->stmt, true);
+      for (auto stmt_vinfo : SLP_TREE_SCALAR_STMTS (store))
+	gimple_set_visited (STMT_VINFO_STMT (stmt_vinfo), true);
     }
 
   bool res = true;
@@ -1265,8 +1265,8 @@ vect_slp_analyze_instance_dependence (vec_info *vinfo, slp_instance instance)
 
   /* Unset the visited flag.  */
   if (store)
-    for (unsigned k = 0; k < SLP_TREE_SCALAR_STMTS (store).length (); ++k)
-      gimple_set_visited (SLP_TREE_SCALAR_STMTS (store)[k]->stmt, false);
+    for (auto stmt_vinfo : SLP_TREE_SCALAR_STMTS (store))
+      gimple_set_visited (STMT_VINFO_STMT (stmt_vinfo), false);
 
   /* If this is a SLP instance with a store check if there's a dependent
      load that cannot be forwarded from a previous iteration of a loop

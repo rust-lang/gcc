@@ -3601,17 +3601,13 @@ vect_bb_slp_mark_stmts_vectorized (bb_vec_info vinfo)
 static void
 vect_mark_slp_stmts_relevant (slp_tree node, hash_set<slp_tree> &visited)
 {
-  int i;
-  stmt_vec_info stmt_info;
-  slp_tree child;
-
   if (SLP_TREE_DEF_TYPE (node) != vect_internal_def)
     return;
 
   if (visited.add (node))
     return;
 
-  FOR_EACH_VEC_ELT (SLP_TREE_SCALAR_STMTS (node), i, stmt_info)
+  for (auto stmt_info : SLP_TREE_SCALAR_STMTS (node))
     if (stmt_info)
       {
 	gcc_assert (!STMT_VINFO_RELEVANT (stmt_info)
@@ -3619,7 +3615,7 @@ vect_mark_slp_stmts_relevant (slp_tree node, hash_set<slp_tree> &visited)
 	STMT_VINFO_RELEVANT (stmt_info) = vect_used_in_scope;
       }
 
-  FOR_EACH_VEC_ELT (SLP_TREE_CHILDREN (node), i, child)
+  for (auto child: SLP_TREE_CHILDREN (node))
     if (child)
       vect_mark_slp_stmts_relevant (child, visited);
 }
@@ -3665,9 +3661,7 @@ stmt_vec_info
 vect_find_last_scalar_stmt_in_slp (slp_tree node)
 {
   stmt_vec_info last = NULL;
-  stmt_vec_info stmt_vinfo;
-
-  for (int i = 0; SLP_TREE_SCALAR_STMTS (node).iterate (i, &stmt_vinfo); i++)
+  for (auto stmt_vinfo : SLP_TREE_SCALAR_STMTS (node))
     if (stmt_vinfo)
       {
 	stmt_vinfo = vect_orig_stmt (stmt_vinfo);
@@ -3683,9 +3677,8 @@ stmt_vec_info
 vect_find_first_scalar_stmt_in_slp (slp_tree node)
 {
   stmt_vec_info first = NULL;
-  stmt_vec_info stmt_vinfo;
 
-  for (int i = 0; SLP_TREE_SCALAR_STMTS (node).iterate (i, &stmt_vinfo); i++)
+  for (auto stmt_vinfo : SLP_TREE_SCALAR_STMTS (node))
     if (stmt_vinfo)
       {
 	stmt_vinfo = vect_orig_stmt (stmt_vinfo);
@@ -4025,7 +4018,7 @@ vect_build_slp_store_interleaving (vec<slp_tree> &rhs_nodes,
 	    .quick_push (SLP_TREE_CHILDREN (rhs_nodes[j])[l]);
 	  SLP_TREE_CHILDREN (rhs_nodes[j])[l]->refcnt++;
 	  for (unsigned k = 0;
-	       k < SLP_TREE_SCALAR_STMTS (rhs_nodes[j]).length (); ++k)
+	       k < SLP_TREE_LANES (rhs_nodes[j]); ++k)
 	    {
 	      /* ???  We should populate SLP_TREE_SCALAR_STMTS
 		 or SLP_TREE_SCALAR_OPS but then we might have
@@ -6094,9 +6087,7 @@ vect_analyze_slp (vec_info *vinfo, unsigned max_tree_size,
 	    {
 	      if (!SLP_TREE_LOAD_PERMUTATION (load_node).exists ())
 		continue;
-	      unsigned k;
-	      stmt_vec_info load_info;
-	      FOR_EACH_VEC_ELT (SLP_TREE_SCALAR_STMTS (load_node), k, load_info)
+	      for (unsigned k = 0; k < SLP_TREE_LANES (load_node); k++)
 		if (SLP_TREE_LOAD_PERMUTATION (load_node)[k] != k)
 		  {
 		    loads_permuted = true;
@@ -9201,14 +9192,11 @@ vect_slp_prune_covered_roots (slp_tree node, hash_set<stmt_vec_info> &roots,
       || visited.add (node))
     return;
 
-  stmt_vec_info stmt;
-  unsigned i;
-  FOR_EACH_VEC_ELT (SLP_TREE_SCALAR_STMTS (node), i, stmt)
+  for (auto stmt : SLP_TREE_SCALAR_STMTS (node))
     if (stmt)
       roots.remove (vect_orig_stmt (stmt));
 
-  slp_tree child;
-  FOR_EACH_VEC_ELT (SLP_TREE_CHILDREN (node), i, child)
+  for (auto child : SLP_TREE_CHILDREN (node))
     if (child)
       vect_slp_prune_covered_roots (child, roots, visited);
 }
@@ -9418,10 +9406,7 @@ vect_bb_partition_graph_r (bb_vec_info bb_vinfo,
 			   hash_map<slp_tree, slp_instance> &node_to_instance,
 			   hash_map<slp_instance, slp_instance> &instance_leader)
 {
-  stmt_vec_info stmt_info;
-  unsigned i;
-
-  FOR_EACH_VEC_ELT (SLP_TREE_SCALAR_STMTS (node), i, stmt_info)
+  for (auto stmt_info : SLP_TREE_SCALAR_STMTS (node))
     if (stmt_info)
       vect_map_to_instance (instance, stmt_info, stmt_to_instance,
 			    instance_leader);
@@ -9430,8 +9415,7 @@ vect_bb_partition_graph_r (bb_vec_info bb_vinfo,
 			    instance_leader))
     return;
 
-  slp_tree child;
-  FOR_EACH_VEC_ELT (SLP_TREE_CHILDREN (node), i, child)
+  for (auto child : SLP_TREE_CHILDREN (node))
     if (child && SLP_TREE_DEF_TYPE (child) == vect_internal_def)
       vect_bb_partition_graph_r (bb_vinfo, instance, child, stmt_to_instance,
 				 node_to_instance, instance_leader);
@@ -12067,10 +12051,7 @@ vect_remove_slp_scalar_calls (vec_info *vinfo,
 {
   gimple *new_stmt;
   gimple_stmt_iterator gsi;
-  int i;
-  slp_tree child;
   tree lhs;
-  stmt_vec_info stmt_info;
 
   if (!node || SLP_TREE_DEF_TYPE (node) != vect_internal_def)
     return;
@@ -12078,10 +12059,10 @@ vect_remove_slp_scalar_calls (vec_info *vinfo,
   if (visited.add (node))
     return;
 
-  FOR_EACH_VEC_ELT (SLP_TREE_CHILDREN (node), i, child)
+  for (auto child : SLP_TREE_CHILDREN (node))
     vect_remove_slp_scalar_calls (vinfo, child, visited);
 
-  FOR_EACH_VEC_ELT (SLP_TREE_SCALAR_STMTS (node), i, stmt_info)
+  for (auto stmt_info : SLP_TREE_SCALAR_STMTS (node))
     {
       if (!stmt_info)
 	continue;
