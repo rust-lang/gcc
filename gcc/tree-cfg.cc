@@ -1893,6 +1893,7 @@ replace_uses_by (tree name, tree val)
   use_operand_p use;
   gimple *stmt;
   edge e;
+  auto_bitmap eh_cleanup_bbs;
 
   FOR_EACH_IMM_USE_STMT (stmt, imm_iter, name)
     {
@@ -1950,9 +1951,12 @@ replace_uses_by (tree name, tree val)
 	    }
 
 	  if (maybe_clean_or_replace_eh_stmt (orig_stmt, stmt))
-	    gimple_purge_dead_eh_edges (gimple_bb (stmt));
+	    bitmap_set_bit (eh_cleanup_bbs, gimple_bb (stmt)->index);
 	}
     }
+
+  if (!bitmap_empty_p (eh_cleanup_bbs))
+    gimple_purge_all_dead_eh_edges (eh_cleanup_bbs);
 
   gcc_checking_assert (has_zero_uses (name));
 
