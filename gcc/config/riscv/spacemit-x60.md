@@ -116,7 +116,7 @@
   (and (eq_attr "tune" "spacemit_x60")
        (eq_attr "type" "unknown,const,arith,shift,slt,multi,auipc,nop,logical,\
 			move,bitmanip,min,max,minu,maxu,clz,ctz,rotate,\
-			condmove,crypto,mvpair,zicond,cpop"))
+			condmove,crypto,mvpair,zicond"))
   "spacemit_x60_alu")
 
 (define_insn_reservation "spacemit_x60_alu2c" 2
