@@ -2054,6 +2054,27 @@ get_vlmul (machine_mode mode)
   return mode_vtype_infos.vlmul[mode];
 }
 
+bool
+is_frac_vlmul_p (machine_mode mode)
+{
+  switch (get_vlmul (mode))
+    {
+    case LMUL_1:
+    case LMUL_2:
+    case LMUL_4:
+    case LMUL_8:
+      return false;
+    case LMUL_F8:
+    case LMUL_F4:
+    case LMUL_F2:
+      return true;
+    default:
+      break;
+    }
+
+  gcc_unreachable ();
+}
+
 /* Return the VLMAX rtx of vector mode MODE.  */
 rtx
 get_vlmax_rtx (machine_mode mode)
@@ -6505,7 +6526,7 @@ riscv_v_widen_constraint_ok (unsigned int regno, machine_mode mode,
   unsigned int wide_nregs = riscv_hard_regno_nregs (wide_regno, wide_mode);
   unsigned int nregs = riscv_hard_regno_nregs (regno, mode);
 
-  if (wide_nregs == nregs) /* Source LMUL < 1.  */
+  if (wide_nregs == nregs) /* Dest LMUL <= 1.  */
     {
       gcc_checking_assert (nregs == 1);
 
@@ -6518,6 +6539,9 @@ riscv_v_widen_constraint_ok (unsigned int regno, machine_mode mode,
   /* No overlap.  */
   if (regno + nregs <= wide_regno || wide_regno + wide_nregs <= regno)
     return true;
+
+  if (is_frac_vlmul_p (mode)) /* Source LMUL < 1.  */
+    return false;
 
   unsigned int highest_num = wide_nregs - nregs;
 

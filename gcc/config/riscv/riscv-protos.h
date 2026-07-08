@@ -642,6 +642,7 @@ void emit_nonvlmax_insn (unsigned, unsigned, rtx *, rtx);
 void emit_avltype_insn (unsigned, unsigned, rtx *, avl_type, rtx = nullptr);
 void emit_vlmax_insn_lra (unsigned, unsigned, rtx *, rtx);
 enum vlmul_type get_vlmul (machine_mode);
+bool is_frac_vlmul_p (machine_mode);
 rtx get_vlmax_rtx (machine_mode);
 unsigned int get_ratio (machine_mode);
 unsigned int get_nf (machine_mode);
