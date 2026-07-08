@@ -228,6 +228,9 @@ extern int fprintf_unlocked (FILE *, const char *, ...);
 #ifdef INCLUDE_SSTREAM
 # include <sstream>
 #endif
+#ifdef INCLUDE_ITERATOR
+# include <iterator>
+#endif
 # include <memory>
 # include <cstring>
 # include <initializer_list>
