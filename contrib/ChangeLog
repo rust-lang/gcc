@@ -1,3 +1,20 @@
+2026-07-07  Richard Earnshaw  <rearnsha@arm.com>
+
+	* add-write-after.py: New file.
+
+2026-07-07  Richard Earnshaw  <rearnsha@arm.com>
+
+	* gen-MAINTAINERS.py: New file.
+	* maintainer_utils.py: New file.
+	* check-MAINTAINERS.py: Delete.
+
+2026-07-07  Arsen Arsenović  <aarsenovic@baylibre.com>
+
+	* download_prerequisites (gettext): Set gettext source file to
+	gettext-1.0.tar.gz.
+	* prerequisites.md5: Update gettext hash.
+	* prerequisites.sha512: Update gettext hash.
+
 2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
 
 	* config-list.mk (sparc64-sun-solaris2.11): Remove --with-gnu-ld.

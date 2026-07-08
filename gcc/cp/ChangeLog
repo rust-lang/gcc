@@ -1,3 +1,18 @@
+2026-07-07  Egas Ribeiro  <egas.g.ribeiro@gmail.com>
+
+	* except.cc (can_convert_eh): Handle a nullptr_t exception
+	caught by a pointer or pointer-to-member handler.
+
+2026-07-07  Vladislav Semykin  <vladislav.semykin@gmail.com>
+
+	PR c++/125886
+	PR c++/116385
+	PR c++/68604
+	* parser.cc (cp_parser_postfix_expression): Two-pass typeid parse.
+	* pt.cc (tsubst_expr): Same for TYPEID_EXPR.
+	* rtti.cc (typeid_evaluated_p, build_typeid): Shared predicate.
+	* cp-tree.h: Declare typeid_evaluated_p.
+
 2026-07-06  Marek Polacek  <polacek@redhat.com>
 
 	PR c++/125901

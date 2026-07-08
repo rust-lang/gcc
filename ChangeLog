@@ -1,3 +1,12 @@
+2026-07-07  Richard Earnshaw  <rearnsha@arm.com>
+
+	* MAINTAINERS.yml: New file.
+	* MAINTAINERS: Regenerate from MAINTAINERS.yml.
+
+2026-07-07  Richard Earnshaw  <rearnsha@arm.com>
+
+	* .editorconfig (*.yaml/.yml): Add rules.
+
 2026-07-06  Nina Ranns  <dinka.ranns@gmail.com>
 
 	* MAINTAINERS (Write After Approval): Add myself.

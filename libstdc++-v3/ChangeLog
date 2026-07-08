@@ -1,3 +1,39 @@
+2026-07-07  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/std/mdspan
+	(layout_stride::mapping::mapping(const extent_type&, span<...>)):
+	Convert strides using __index_type_cast, which bring asserts
+	for negative and unrepresentable values.
+	* testsuite/23_containers/mdspan/layouts/stride_neg.cc: New test.
+
+2026-07-07  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* config/abi/pre/gnu.ver (GLIBCXX_3.4.36): Export basic_format_arg
+	_M_handle_unrecognized method of specializations of
+	format_context and wformat_context.
+	* include/std/format (basic_format_arg::_M_handle_unrecognized):
+	Declare with explicit specializations for (w)format_context
+	if _GLIBCXX_EXTERN_TEMPLATE, and define otherwise.
+	(basic_format_arg::_M_visit): Remove __type parameter, and use
+	_M_type instead. Call _M_handle_unrecognized for unrecognized
+	_Arg_t values.
+	(basic_format_arg::_M_visit_user): Remove __type parameter,
+	and use _M_type instead. Adjust calls to _M_visit.
+	(basic_format_arg::visit, std::visit_format_arg)
+	(__format::__visit_format_arg): Remove _M_type argument from
+	_M_visit(_user) calls.
+	* src/c++20/format-inst.cc
+	(basic_format_arg::_M_handle_unrecognized): Define and export
+	explicit specializations for (w)format_context.
+
+2026-07-07  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/bits/version.def (allocate_at_least): Add comment
+	listing papers adding values and LWG3887.
+	* include/bits/stl_iterator.h: Add comment for LWG3953.
+	* include/std/format: Add comment for LWG3892.
+	* include/std/type_traits: Add comment for LWG3655.
+
 2026-07-06  Thomas Schwinge  <tschwinge@baylibre.com>
 	    Jonathan Wakely  <jwakely@redhat.com>
 

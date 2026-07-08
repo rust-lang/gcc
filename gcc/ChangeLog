@@ -1,3 +1,114 @@
+2026-07-07  Richard Earnshaw  <rearnsha@arm.com>
+
+	* config/aarch64/aarch64-option-extensions.def (AARCH64_OPT_EXTENSION):
+	Remove +mpamv2.
+	* config/aarch64/aarch64-sys-regs.def: Remove sysregs associated
+	with MPAMv2_VID and adjust other related sysregs to use the
+	base permitted architecture.
+	* doc/invoke.texi (aarch64: +mpamv2): Remove option.
+
+2026-07-07  Dhruv Chawla  <dhruvc@nvidia.com>
+
+	* config/aarch64/aarch64-cores.def (rigel): New entry.
+	* config/aarch64/aarch64-tune.md: Regenerate.
+	* doc/invoke.texi (AArch64 Options): Document the above.
+
+2026-07-07  wangjue  <juewang@linux.alibaba.com>
+
+	* common/config/riscv/riscv-common.cc (riscv_option_optimization_table):
+	Enable -funroll-loops and -munroll-only-small-loops at -O2 and above.
+	* config/riscv/riscv.cc (struct riscv_tune_param): Add fields
+	small_loop_unroll_ninsns and small_loop_unroll_factor.
+	(xt_c9501_tune_info): Set them.
+	(riscv_loop_unroll_adjust): New function.
+	(riscv_option_override): Turn off -munroll-only-small-loops when
+	-funroll-loops or -funroll-all-loops is explicitly given.
+	(TARGET_LOOP_UNROLL_ADJUST): Define.
+	* config/riscv/riscv.opt (munroll-only-small-loops): New option.
+	* config/riscv/riscv.opt.urls: Regenerate.
+	* doc/invoke.texi (RISC-V Options): Document -munroll-only-small-loops.
+
+2026-07-07  Alfie Richards  <alfie.richards@arm.com>
+
+	* config/aarch64/aarch64-simd.md (*aarch64_abs_plus<mode>): New
+	define_insn_and_split.
+
+2026-07-07  Kyrylo Tkachov  <ktkachov@nvidia.com>
+
+	PR target/124146
+	* config/aarch64/aarch64.cc (aarch64_function_arg_alignment):
+	Ignore user alignment left on a type's main variant; use the
+	mode's natural alignment instead.
+
+2026-07-07  Kishan Parmar  <kishan@linux.ibm.com>
+
+	* config/rs6000/altivec.md (UNSPEC_VUCMPRHN): New unspec entry.
+	(UNSPEC_VUCMPRLN): Likewise.
+	(UNSPEC_VUCMPRHB): Likewise.
+	(UNSPEC_VUCMPRLB): Likewise.
+	(UNSPEC_VUCMPRHH): Likewise.
+	(UNSPEC_VUCMPRLH): Likewise.
+	(UNSPEC_VUPKHSNTOB): Likewise.
+	(UNSPEC_VUPKLSNTOB): Likewise.
+	(UNSPEC_VUPKINT4TOBF16): Likewise.
+	(UNSPEC_VUPKINT8TOBF16): Likewise.
+	(UNSPEC_VUPKINT4TOFP32): Likewise.
+	(UNSPEC_VUPKINT8TOFP32): Likewise.
+	(vu_hl): New attribute.
+	(vu_lh): Likewise.
+	(VUPKNTOB): New int iterator.
+	(altivec_vupkhsntob): New define_insn.
+	(altivec_vupklsntob): Likewise.
+	(altivec_vupkint4tobf16): Likewise.
+	(altivec_vupkint8tobf16): Likewise.
+	(altivec_vupkint4tofp32): Likewise.
+	(altivec_vupkint8tofp32): Likewise.
+	(vucmpr_splat): New attribute.
+	(vucmpr_pcv): Likewise.
+	(vucmpr_uim): Likewise.
+	(VUCMPR_N): New int iterator.
+	(VUCMPR_B): Likewise.
+	(VUCMPR_H): Likewise.
+	(altivec_vucmpr<vu_hl>n): New define_expand.
+	(altivec_vucmpr<vu_hl>n_direct): New define_insn for vucmpr<vu_hl>n.
+	(altivec_vucmpr<vu_hl>b): New define_expand.
+	(altivec_vucmpr<vu_hl>b_direct): New define_insn for vucmpr<vu_hl>b.
+	(altivec_vucmpr<vu_hl>h): New define_expand.
+	(altivec_vucmpr<vu_hl>h_direct): New define_insn for vucmpr<vu_hl>h.
+	* config/rs6000/rs6000-builtins.def: Add vector uncompress and unpack
+	builtins under [future].
+	* config/rs6000/rs6000-overload.def: Add vec_uncompress* and vec_unpack*
+	interfaces.
+
+2026-07-07  Stafford Horne  <shorne@gmail.com>
+
+	PR target/126081
+	* config/or1k/or1k.cc (or1k_hard_regno_mode_ok): Stop allowing
+	SImode for FLAG_REGS.
+	(or1k_can_change_mode_class): Stop allowing SImode for
+	FLAG_REGS.
+	(or1k_noce_conversion_profitable_p): Always check
+	or1k_is_cmov_insn.
+
+2026-07-07  Naveen  <naveen.siddegowda@oss.qualcomm.com>
+
+	PR tree-optimization/102202
+	* tree-call-cdce.cc: Include "value-query.h" and "value-range.h".
+	(len_has_boolean_range_p): Remove.
+	(get_len_nonzero_value): New function. Return the nonzero member of
+	LEN's value range when it is a boolean range [0, 1] or an exact
+	two-value set {0, N}.
+	(can_shrink_wrap_len_p): Replace len_has_boolean_range_p call with
+	get_len_nonzero_value. Add NONZERO_LEN output parameter and set it
+	to the returned nonzero value on success.
+	(shrink_wrap_len_call): Use it to pin the length argument on the
+	guarded call path instead of build_one_cst.
+	(shrink_wrap_conditional_dead_built_in_calls): Declare local
+	nonzero_len and pass it to can_shrink_wrap_len_p and forward it to
+	shrink_wrap_len_call.
+	(pass_call_cdce::execute): Pass nullptr as NONZERO_LEN to
+	can_shrink_wrap_len_p.
+
 2026-07-07  Andrew MacLeod  <amacleod@redhat.com>
 
 	PR tree-optimization/125758

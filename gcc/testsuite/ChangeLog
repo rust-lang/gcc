@@ -1,3 +1,160 @@
+2026-07-07  Egas Ribeiro  <egas.g.ribeiro@gmail.com>
+
+	* g++.dg/eh/can-convert-nullptr.C: New test.
+
+2026-07-07  Vladislav Semykin  <vladislav.semykin@gmail.com>
+
+	PR c++/125886
+	PR c++/116385
+	PR c++/68604
+	* g++.dg/cpp0x/pr125886.C: New test.
+	* g++.dg/rtti/typeid14.C, g++.dg/rtti/typeid15.C: New tests.
+	* g++.dg/coroutines/unevaluated.C: Drop stale xfail.
+
+2026-07-07  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/103367
+	* gfortran.dg/pr103367_2.f90: New test.
+	* gfortran.dg/pr103367_3.f90: New test.
+	* gfortran.dg/pr103367_4.f90: New test.
+
+2026-07-07  wangjue  <juewang@linux.alibaba.com>
+
+	* gcc.target/riscv/unroll-explicit.c: New test.
+	* gcc.target/riscv/unroll-large-loop.c: New test.
+	* gcc.target/riscv/unroll-pragma.c: New test.
+	* gcc.target/riscv/unroll-small-loop-tune.c: New test.
+	* gcc.target/riscv/unroll-small-loop.c: New test.
+	* g++.dg/tree-prof/pr57451.C: Add -fno-unroll-loops.
+	* g++.target/riscv/pr97682.C: Likewise.
+	* gcc.dg/tree-ssa/pr117973-1.c: Likewise.
+	* gcc.dg/vect/vect-alias-check-4.c: Likewise.
+	* gcc.target/riscv/pr67731.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/pr113206-1.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/unop/math-nearbyint-0.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls-vlmax/vec_extract-1u.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls-vlmax/vec_extract-2u.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls-vlmax/vec_extract-3u.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls-vlmax/vec_extract-4u.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls/calling-convention-1.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls/calling-convention-2.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls/calling-convention-3.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls/calling-convention-4.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls/calling-convention-5.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls/calling-convention-6.c: Likewise.
+	* gcc.target/riscv/rvv/autovec/vls/calling-convention-7.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-39.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-41.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-45.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-46.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-48.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-49.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-50.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-52.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-56.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-59.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-60.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-61.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-62.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-64.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-65.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-66.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-67.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-68.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-69.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-70.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-dynamic-frm-71.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-frm-insert-4.c: Likewise.
+	* gcc.target/riscv/rvv/base/float-point-frm-insert-5.c: Likewise.
+	* gcc.target/riscv/rvv/base/pr114352-3.c: Likewise.
+	* gcc.target/riscv/rvv/base/scalar_move-7.c: Likewise.
+	* gcc.target/riscv/rvv/base/spill-10.c: Likewise.
+	* gcc.target/riscv/rvv/base/spill-11.c: Likewise.
+	* gcc.target/riscv/rvv/base/spill-12.c: Likewise.
+	* gcc.target/riscv/rvv/base/spill-8.c: Likewise.
+	* gcc.target/riscv/rvv/base/spill-9.c: Likewise.
+	* gcc.target/riscv/rvv/base/vwaddsub-1.c: Likewise.
+	* gcc.target/riscv/rvv/base/zvbb_vandn_vx_constraint.c: Likewise.
+	* gcc.target/riscv/rvv/base/zvbc_vx_constraint-2.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/avl_multiple-3.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/avl_multiple-4.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/avl_single-4.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/avl_single-6.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/avl_single-66.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/imm_loop_invariant-1.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/imm_loop_invariant-2.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/imm_loop_invariant-3.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/imm_loop_invariant-4.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/imm_loop_invariant-5.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/imm_loop_invariant-6.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-1.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-10.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-14.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-15.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-16.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-17.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-18.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-19.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-20.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-21.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-22.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-23.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-25.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-27.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-28.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-29.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-3.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-30.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-31.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-35.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-37.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-7.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-8.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_back_prop-9.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_bb_prop-17.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_bb_prop-18.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_bb_prop-19.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_bb_prop-20.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_conflict-11.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_switch_vtype-14.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_switch_vtype-15.c: Likewise.
+	* gcc.target/riscv/rvv/vsetvl/vlmax_switch_vtype-16.c: Likewise.
+	* gcc.target/riscv/slt-1.c: Likewise.
+	* gcc.target/riscv/struct_vect_24.c: Likewise.
+
+2026-07-07  Alfie Richards  <alfie.richards@arm.com>
+
+	* gcc.target/aarch64/add_abs.c: New test.
+
+2026-07-07  Kyrylo Tkachov  <ktkachov@nvidia.com>
+
+	PR target/124146
+	* gcc.target/aarch64/pr124146.c: New test.
+	* gcc.target/aarch64/pr124146-2.c: New test.
+	* gcc.target/aarch64/pr124146-3.c: New test.
+	* gcc.target/aarch64/pr124146-4.c: New test.
+
+2026-07-07  Kishan Parmar  <kishan@linux.ibm.com>
+
+	* gcc.target/powerpc/future-vucmpr-altivec.c: New test.
+	* gcc.target/powerpc/future-vucmpr-vsx.c: Likewise.
+	* gcc.target/powerpc/future-vupk.c: Likewise.
+
+2026-07-07  Richard Earnshaw  <rearnsha@arm.com>
+
+	* gcc.src/maintainers.exp:
+
+2026-07-07  Stafford Horne  <shorne@gmail.com>
+
+	PR target/126081
+	* gcc.target/or1k/pr126081.c: New test.
+
+2026-07-07  Naveen  <naveen.siddegowda@oss.qualcomm.com>
+
+	PR tree-optimization/102202
+	* gcc.dg/pr102202-3.c: New test.
+	* gcc.dg/pr102202-4.c: New test.
+
 2026-07-06  Philipp Tomsich  <philipp.tomsich@vrull.eu>
 
 	PR tree-optimization/124545

@@ -1,3 +1,14 @@
+2026-07-07  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/103367
+	* expr.cc (simplify_const_ref): Hoist the call to
+	remove_subobject_ref up a level.
+	* primary.cc (gfc_match_rvalue): Don't copy the value expr
+	if the type is an EXPR_VARIABLE.
+	not
+	* trans-array.cc (gfc_conv_array_initializer): Only copy the expr
+	value if it does not have a ref.
+
 2026-07-06  Harald Anlauf  <anlauf@gmx.de>
 
 	PR fortran/121366
