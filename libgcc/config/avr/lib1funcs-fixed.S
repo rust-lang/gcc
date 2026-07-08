@@ -1118,10 +1118,7 @@ ENDF __udivuha3
 DEFUN   __divsa3
     mov     r0, r_arg1HH
     eor     r0, r_divHH
-    sbrs    r_divHH, 7
-    rjmp    1f
-    NEG4    r_divL
-1:
+    .call_if_neg r_divHH, __negsi2_r18
     sbrs    r_arg1HH, 7
     rjmp    2f
     NEG4    r_arg1L

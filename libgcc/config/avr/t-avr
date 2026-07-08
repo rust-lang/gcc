@@ -14,6 +14,7 @@ LIB1ASMFUNCS = \
 	_udivmodsi4 \
 	_divmodsi4 \
 	_negsi2 \
+	_negsi2_r18 \
 	_exit \
 	_cleanup \
 	_tablejump2 \

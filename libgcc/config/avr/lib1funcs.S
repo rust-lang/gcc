@@ -1504,41 +1504,20 @@ ENDF __udivmodsi4
 #if defined (L_divmodsi4)
 DEFUN __divmodsi4
     mov     __tmp_reg__,r_arg2HH
-    bst     r_arg1HH,7          ; store sign of dividend
+    bst     r_arg1HH,7                  ; store sign of dividend
     brtc    0f
-    com     __tmp_reg__         ; r0.7 is sign of result
-    XCALL   __negsi2            ; dividend negative: negate
+    com     __tmp_reg__                 ; r0.7 is sign of result
+    XCALL   __negsi2                    ; dividend negative: negate
 0:
-    sbrc    r_arg2HH,7
-    rcall   __divmodsi4_neg2    ; divisor negative: negate
-    XCALL   __udivmodsi4        ; do the unsigned div/mod
-    sbrc    __tmp_reg__, 7      ; correct quotient sign
-    rcall   __divmodsi4_neg2
-    brtc    __divmodsi4_exit    ; correct remainder sign
+    .call_if_neg r_arg2HH, __negsi2_r18 ; divisor negative: negate
+    XCALL   __udivmodsi4                ; do the unsigned div/mod
+    .call_if_neg __tmp_reg__, __negsi2_r18 ; correct quotient sign
+    brtc    __divmodsi4_exit            ; correct remainder sign
     XJMP    __negsi2
-__divmodsi4_neg2:
-    ;; correct divisor/quotient sign
-    com     r_arg2HH
-    com     r_arg2HL
-    com     r_arg2H
-    neg     r_arg2L
-    sbci    r_arg2H,0xff
-    sbci    r_arg2HL,0xff
-    sbci    r_arg2HH,0xff
 __divmodsi4_exit:
     ret
 ENDF __divmodsi4
 #endif /* defined (L_divmodsi4) */
-
-#if defined (L_negsi2)
-;; (set (reg:SI 22)
-;;      (neg:SI (reg:SI 22)))
-;; Sets the V flag for signed overflow tests
-DEFUN __negsi2
-    NEG4    22
-    ret
-ENDF __negsi2
-#endif /* L_negsi2 */
 
 #undef r_remHH
 #undef r_remHL
@@ -1553,6 +1532,26 @@ ENDF __negsi2
 #undef r_arg2H
 #undef r_arg2L
 #undef r_cnt
+
+#if defined (L_negsi2)
+;; (set (reg:SI 22)
+;;      (neg:SI (reg:SI 22)))
+;; Sets the V flag for signed overflow tests
+DEFUN __negsi2
+    NEG4    22
+    ret
+ENDF __negsi2
+#endif /* L_negsi2 */
+
+#if defined (L_negsi2_r18)
+;; (set (reg:SI 18)
+;;      (neg:SI (reg:SI 18)))
+;; Sets the V flag for signed overflow tests
+DEFUN __negsi2_r18
+    NEG4    18
+    ret
+ENDF __negsi2_r18
+#endif /* L_negsi2_r18 */
 
 /* *di routines use registers below R19 and won't work with tiny arch
    right now. */

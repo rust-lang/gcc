@@ -159,6 +159,21 @@
 .endm ; .branch_plus
 
 
+;;; [R]CALL label LABL when REG is negative (REG.7 = 1).
+;;; Otherwise, fallthrough.
+.macro  .call_if_neg  reg, labl
+#ifdef __AVR_ERRATA_SKIP_JMP_CALL__
+    ;; Some cores have a problem skipping 2-word instructions.
+    tst     \reg
+    brpl    .L.call_if_neg.\@
+#else
+    sbrc    \reg, 7
+#endif /* skip erratum */
+    XCALL   \labl
+.L.call_if_neg.\@:
+.endm ; .call_if_neg
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Macros for convenience.
 
