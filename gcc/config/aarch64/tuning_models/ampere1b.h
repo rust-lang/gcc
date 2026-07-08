@@ -57,6 +57,36 @@ static const advsimd_vec_cost ampere1b_advsimd_vector_cost =
   1  /* store_cost  */
 };
 
+static const aarch64_scalar_vec_issue_info ampere1b_scalar_issue_info =
+{
+  3, /* loads_stores_per_cycle  */
+  1, /* stores_per_cycle  */
+  4, /* general_ops_per_cycle  */
+  0, /* fp_simd_load_general_ops  */
+  1 /* fp_simd_store_general_ops  */
+};
+
+static const aarch64_advsimd_vec_issue_info ampere1b_advsimd_issue_info =
+{
+  {
+    2, /* loads_stores_per_cycle  */
+    2, /* stores_per_cycle  */
+    4, /* general_ops_per_cycle  */
+    0, /* fp_simd_load_general_ops  */
+    1 /* fp_simd_store_general_ops  */
+  },
+  2, /* ld2_st2_general_ops  */
+  2, /* ld3_st3_general_ops  */
+  3 /* ld4_st4_general_ops  */
+};
+
+static const aarch64_vec_issue_info ampere1b_vec_issue_info =
+{
+  &ampere1b_scalar_issue_info,
+  &ampere1b_advsimd_issue_info,
+  nullptr /* sve  */
+};
+
 /* Ampere-1B costs for vector insn classes.  */
 static const struct cpu_vector_cost ampere1b_vector_cost =
 {
@@ -68,7 +98,7 @@ static const struct cpu_vector_cost ampere1b_vector_cost =
   1, /* cond_not_taken_branch_cost  */
   &ampere1b_advsimd_vector_cost, /* advsimd  */
   nullptr, /* sve  */
-  nullptr  /* issue_info  */
+  &ampere1b_vec_issue_info /* issue_info  */
 };
 
 static const struct tune_params ampere1b_tunings =
