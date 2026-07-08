@@ -479,17 +479,45 @@ found:
 }
 
 
+static int close_unit_1 (gfc_unit *, int, bool);
+
+
+/*  Helper to check if an internal unit is reserved.  */
+
+static inline bool
+is_internal_reserved (gfc_unit *u)
+{
+  return u->internal_reserved && u->internal_unit_kind == 0;
+}
+
+
 gfc_unit *
 find_unit (int n)
 {
-  return get_gfc_unit (n, 0);
+  gfc_unit *u = get_gfc_unit (n, 0);
+
+  if (u != NULL && is_internal_reserved (u))
+    {
+      unlock_unit (u);
+      return NULL;
+    }
+
+  return u;
 }
 
 
 gfc_unit *
 find_or_create_unit (int n)
 {
-  return get_gfc_unit (n, 1);
+  gfc_unit *u = get_gfc_unit (n, 1);
+
+  if (u != NULL && is_internal_reserved (u))
+    {
+      close_unit_1 (u, 0, false);
+      u = get_gfc_unit (n, 1);
+    }
+
+  return u;
 }
 
 
@@ -625,6 +653,7 @@ get_unit (st_parameter_dt *dtp, int do_create)
       dtp->u.p.unit_is_internal = 1;
       dtp->common.unit = newunit_alloc ();
       unit = get_gfc_unit (dtp->common.unit, do_create);
+      unit->internal_reserved = true;
       set_internal_unit (dtp, unit, kind);
       fbuf_init (unit, 128);
       return unit;
@@ -787,7 +816,7 @@ init_units (void)
 
 
 static int
-close_unit_1 (gfc_unit *u, int locked)
+close_unit_1 (gfc_unit *u, int locked, bool free_newunit)
 {
   int i, rc;
 
@@ -817,7 +846,7 @@ close_unit_1 (gfc_unit *u, int locked)
   free_format_hash_table (u);
   fbuf_destroy (u);
 
-  if (u->unit_number <= NEWUNIT_START)
+  if (free_newunit && u->unit_number <= NEWUNIT_START)
     newunit_free (u->unit_number);
 
   if (!locked)
@@ -853,7 +882,7 @@ unlock_unit (gfc_unit *u)
 int
 close_unit (gfc_unit *u)
 {
-  return close_unit_1 (u, 0);
+  return close_unit_1 (u, 0, true);
 }
 
 
@@ -869,7 +898,7 @@ close_units (void)
 {
   WRLOCK (&unit_rwlock);
   while (unit_root != NULL)
-    close_unit_1 (unit_root, 1);
+    close_unit_1 (unit_root, 1, true);
   RWUNLOCK (&unit_rwlock);
 
   free (newunits);
