@@ -1,3 +1,30 @@
+2026-07-08  Martin Uecker  <uecker@tugraz.at>
+
+	* c-tree.h (zero_length_array_type_p,
+	c_build_array_type_zero_size) Add prototypes.
+	* c-decl.cc (zero_length_array_type_p): External linkage.
+	(c_build_array_type_zero_size): New.
+	(grokdeclarator): Use new function.
+	* c-typeck.cc (c_verify_type): New consistency checks.
+	(c_build_array_type_zero_size): New function
+	(composite_type_internal): Refactor.
+	(comptypes_internal): Refactor.
+
+2026-07-08  Martin Uecker  <uecker@tugraz.at>
+
+	* c-decl.cc (grokdeclarator): Add assertion.
+	(add_flexible_array_elts_to_size): Adapt.
+	(is_flexible_array_member_p): Adapt.
+	(verify_counted_by_attribute): Adapt.
+	(finish_struct): Adapt.
+	* c-typeck.cc (check_counted_by_attribute): Adapt.
+	(build_counted_by_ref): Adapt.
+	(build_access_with_size_for_counted_by): Adapt.
+	(handle_counted_by_for_component_ref): Adapt.
+	(c_incomplete_type_error): Use new helper function.
+	(digest_init): Use new helper function.
+	(pop_init_level): Use new helper function.
+
 2026-06-30  Chung-Lin Tang  <cltang@baylibre.com>
 
 	* c-typeck.cc (c_finish_omp_clauses): Fix comments.

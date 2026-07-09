@@ -1,3 +1,535 @@
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* typecheck/rust-hir-type-check-expr.cc (TypeCheckExpr::visit): respect context for labels
+
+2026-07-08  Lucas Ly Ba  <hi@lucaslyba.com>
+
+	* hir/tree/rust-hir-item.h (ExternBlock): Track whether the ABI
+	was explicit and expose it through has_abi.
+	* hir/tree/rust-hir-item.cc (ExternBlock::ExternBlock): Likewise.
+	(ExternBlock::operator=): Likewise.
+	* hir/rust-ast-lower-base.cc (ASTLoweringBase::lower_extern_block):
+	Forward the AST has_abi flag to the HIR node.
+	* checks/lints/unused/rust-unused-checker.cc (UnusedChecker::visit):
+	New.
+	* checks/lints/unused/rust-unused-checker.h (UnusedChecker::visit):
+	New.
+
+2026-07-08  Enes Cevik  <enes@nsvke.com>
+
+	* backend/rust-compile.cc
+	(HIRCompileBase::compute_address_for_trait_item): Ensure the
+	impl block type matches the receiver type.
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* rust-gcc.cc (pointer_type): turn on can alias
+
+2026-07-08  Enes Cevik  <enes@nsvke.com>
+
+	* backend/rust-compile-intrinsic.cc (generic_intrinsics): Add
+	min_align_of_val_handler to the map.
+	* backend/rust-intrinsic-handlers.cc (min_align_of_val_handler):
+	New function.
+	* backend/rust-intrinsic-handlers.h (min_align_of_val_handler):
+	New declaration.
+	* typecheck/rust-hir-type-check-intrinsic.cc
+	(IntrinsicChecker::intrinsic_rules): Add min_align_of_val
+	signature rule to the map.
+	* util/rust-intrinsic-values.h (class Intrinsics): Add
+	MIN_ALIGN_OF_VAL constexpr.
+
+2026-07-08  Enes Cevik  <enes@nsvke.com>
+
+	* backend/rust-compile-intrinsic.cc (generic_intrinsics): Add
+	size_of_val_handler to the map.
+	* backend/rust-intrinsic-handlers.cc (size_of_val_handler): New
+	function.
+	* backend/rust-intrinsic-handlers.h (size_of_val_handler): New
+	declaration.
+	* typecheck/rust-hir-type-check-intrinsic.cc
+	(IntrinsicChecker::intrinsic_rules): Add size_of_val signature
+	rule to the map.
+	* util/rust-intrinsic-values.h (class Intrinsics): Add
+	SIZE_OF_VAL constexpr.
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* typecheck/rust-unify.cc (UnifyRules::expect_adt): check defid
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* typecheck/rust-hir-type-check-item.cc (TypeCheckItem::visit): check valid
+
+2026-07-08  João Novo  <joao.c.novo@tecnico.ulisboa.pt>
+
+	* typecheck/rust-hir-type-check-item.cc (TypeCheckItem::visit):
+	Add check for infer type on struct's attribute or its subtypes.
+	* typecheck/rust-tyty.cc (BaseType::contains_infer):
+	Add check for an array type's capacity being an infer type.
+
+2026-07-08  Enes Cevik  <enes@nsvke.com>
+
+	* ast/rust-expr.h (BoxExpr): Add comment description to class.
+	* backend/rust-compile-block.h (visit): Add stub for BoxExpr.
+	* backend/rust-compile-expr.cc (compile_box_struct): New
+	function.
+	(compile_box): New function.
+	(build_box_inner_ptr): New function.
+	(CompileExpr::visit): Implement BoxExpr lowering using
+	exchange_malloc and constructor expressions. Handle owned_box
+	in FieldAccessExpr and DereferenceExpr.
+	(HIRCompileBase::resolve_deref_adjustment): Support owned_box
+	in deref adjustments.
+	* backend/rust-compile-expr.h (visit): Declare BoxExpr visitor.
+	* checks/errors/borrowck/rust-bir-builder-expr-stmt.cc
+	(ExprStmtBuilder::visit): Evaluate inner expression and push
+	tmp assignment for BoxExpr.
+	* checks/errors/borrowck/rust-bir-builder-expr-stmt.h (visit):
+	Declare BoxExpr visitor.
+	* checks/errors/borrowck/rust-bir-builder-lazyboolexpr.h
+	(visit): Mark BoxExpr as unreachable.
+	* checks/errors/borrowck/rust-bir-builder-struct.h (visit):
+	Likewise.
+	* checks/errors/borrowck/rust-function-collector.h (visit):
+	Add visit stub for BoxExpr.
+	* checks/errors/privacy/rust-privacy-reporter.cc
+	(PrivacyReporter::visit): Delegate privacy reporting to inner
+	expression of BoxExpr.
+	* checks/errors/privacy/rust-privacy-reporter.h (visit):
+	Declare BoxExpr visitor.
+	* checks/errors/rust-const-checker.cc (ConstChecker::visit):
+	Delegate const checking to inner expression.
+	* checks/errors/rust-const-checker.h (visit): Declare BoxExpr
+	visitor.
+	* checks/errors/rust-hir-pattern-analysis.cc
+	(PatternChecker::visit): Delegate pattern analysis to inner
+	expression.
+	* checks/errors/rust-hir-pattern-analysis.h (visit): Declare
+	BoxExpr visitor.
+	* checks/errors/rust-unsafe-checker.cc (UnsafeChecker::visit):
+	Delegate unsafe checking to inner expression.
+	* checks/errors/rust-unsafe-checker.h (visit): Declare BoxExpr
+	visitor.
+	* checks/lints/rust-lint-marklive.cc (MarkLive::visit): Resolve
+	inner ADT type for owned_box when marking live fields.
+	* checks/lints/rust-lint-marklive.h (visit): Declare BoxExpr
+	visitor.
+	* hir/rust-ast-lower-expr.cc (ASTLoweringExpr::visit): Translate
+	AST BoxExpr to HIR BoxExpr.
+	* hir/rust-hir-dump.cc (Dump::visit): Dump HIR BoxExpr.
+	* hir/rust-hir-dump.h (visit): Declare BoxExpr visitor.
+	* hir/tree/rust-hir-expr-abstract.h (ExprType): Add Box to enum.
+	* hir/tree/rust-hir-expr.cc (BoxExpr::BoxExpr): Implement
+	constructors for BoxExpr. (BoxExpr::operator=): Implement
+	assignment operator.
+	* hir/tree/rust-hir-expr.h (class BoxExpr): Define HIR BoxExpr
+	node.
+	* hir/tree/rust-hir-full-decls.h (class BoxExpr): Forward
+	declaration.
+	* hir/tree/rust-hir-visitor.cc (DefaultHIRVisitor::walk): Walk
+	inner expression of BoxExpr.
+	* hir/tree/rust-hir-visitor.h (visit): Add routing for BoxExpr.
+	* hir/tree/rust-hir.cc (BoxExpr::to_string): Implement
+	to_string.
+	(BoxExpr::accept_vis): Implement visitor acceptance.
+	* typecheck/rust-autoderef.cc (AutoderefCycle::cycle): Attempt
+	autoderef using the owned_box lang item.
+	* typecheck/rust-hir-type-check-expr.cc (TypeCheckExpr::visit):
+	Implement type checking, validation, and generic substitution
+	for BoxExpr. Support owned_box autoderef in field access and
+	dereferencing operations.
+	* typecheck/rust-tyty.cc (try_get_box_inner_type): New function.
+	* typecheck/rust-tyty.h (try_get_box_inner_type): New
+	declaration.
+	* typecheck/rust-hir-type-check-expr.h (visit): Declare BoxExpr
+	visitor.
+	* util/rust-lang-item.cc (Rust::LangItem::lang_items): Register
+	owned_box to BiMap.
+	* util/rust-lang-item.h (LangItem::Kind): Add OWNED_BOX.
+
+2026-07-08  Lishin  <lishin1008@gmail.com>
+
+	* Make-lang.in: Add rust-compile-drop-builder.o.
+	* backend/rust-compile-base.cc
+	(HIRCompileBase::compile_function_body):
+	Update CompileDrop calls.
+	* backend/rust-compile-block.cc (CompileBlock::visit):
+	Update CompileDrop calls.
+	* backend/rust-compile-context.h (Context): Allow
+	DropBuilder to access drop candidate storage and move
+	drop candidate APIs to DropBuilder.
+	* backend/rust-compile-drop.cc (CompileDrop::CompileDrop):
+	Add constructor.
+	(CompileDrop::type_has_drop_impl): Use stored Context member.
+	(CompileDrop::compile_drop_call): Likewise.
+	(CompileDrop::emit_current_scope_drop_calls): Use stored
+	Context member and get drop candidates from DropBuilder.
+	* backend/rust-compile-drop.h: Store Context as a member.
+	* backend/rust-compile-pattern.cc (CompilePatternLet::visit):
+	Use DropBuilder and update CompileDrop calls.
+	* backend/rust-compile-drop-builder.cc: New file.
+	* backend/rust-compile-drop-builder.h: New file.
+
+2026-07-08  Enes Cevik  <enes@nsvke.com>
+
+	* backend/rust-compile-context.h (class Context): Add
+	insert_vtable and lookup_vtable methods.
+	* backend/rust-compile-expr.cc
+	(CompileExpr::get_fn_addr_from_dyn): Change access method
+	array access to struct field access.
+	* backend/rust-compile-type.cc
+	(TyTyResolveCompile::create_dyn_obj_record): Create vtable type
+	as a record instead of an array.
+	* backend/rust-compile.cc
+	(HIRCompileBase::coerce_to_dyn_object): Change vtable structure.
+
+2026-07-08  Enes Cevik  <enes@nsvke.com>
+
+	* backend/rust-compile-intrinsic.cc (generic_intrinsics): Add
+	arith_offset handler to map.
+	* backend/rust-intrinsic-handlers.cc (arith_offset_handler): New
+	function.
+	* backend/rust-intrinsic-handlers.h (arith_offset_handler): New
+	declaration.
+	* typecheck/rust-hir-type-check-intrinsic.cc
+	(IntrinsicChecker::intrinsic_rules): Add arith_offset rule.
+	* util/rust-intrinsic-values.h (class Intrinsics): Add
+	ARITH_OFFSET constexpr.
+
+2026-07-08  Enes Cevik  <enes@nsvke.com>
+
+	* backend/rust-compile-intrinsic.cc (generic_intrinsics): Add
+	write_bytes handler to map.
+	* backend/rust-intrinsic-handlers.cc (write_bytes_handler): New
+	function.
+	* backend/rust-intrinsic-handlers.h (write_bytes_handler): New
+	declaration.
+	* typecheck/rust-hir-type-check-intrinsic.cc
+	(IntrinsicChecker::intrinsic_rules): Add write_bytes rule.
+	* util/rust-intrinsic-values.h (class Intrinsics): Add
+	WRITE_BYTES constexpr.
+
+2026-07-08  Lucas Ly Ba  <lucas.ly-ba@outlook.com>
+
+	* backend/rust-compile-expr.cc (CompileExpr::visit): Associate the loop
+	result temporary with the loop label.
+
+2026-07-08  Lucas Ly Ba  <lucas.ly-ba@outlook.com>
+
+	* typecheck/rust-hir-type-check-item.cc (TypeCheckItem::visit): Resolve
+	the generic parameters of a type alias.
+
+2026-07-08  Lucas Ly Ba  <hi@lucaslyba.com>
+
+	* checks/lints/unused/rust-unused-checker.cc (UnusedChecker::visit):
+	New.
+	* checks/lints/unused/rust-unused-checker.h (UnusedChecker::visit):
+	New.
+
+2026-07-08  Owen Avery  <powerboat9.gamer@gmail.com>
+
+	* expand/rust-macro-expand.cc
+	(MacroExpander::expand_eager_invocations): Handle errors during
+	eager expansion.
+	(MacroExpander::expand_invoc): Avoid expanding macros which have
+	pending eager invocations and return error fragments in more
+	cases.
+
+2026-07-08  Yap Zhi Heng  <yapzhhg@gmail.com>
+
+	* backend/rust-compile-expr.cc (CompileExpr::visit (FieldAccessExpr)):
+	Handle DST fat pointers by reinterpreting the fat pointer as its field type.
+
+2026-07-08  Yap Zhi Heng  <yapzhhg@gmail.com>
+
+	* util/rust-lang-item.h (LangItem::Kind): New CSTR kind.
+	* util/rust-lang-item.cc (LangItem::lang_items): Ditto.
+	* backend/rust-compile-type.cc (visit(TyTy::ReferenceType)): Add specific record
+	type for CStr.
+	* typecheck/rust-tyty.h (ReferenceType): Add function definition for is_dyn_cstr_type.
+	* typecheck/rust-tyty.cc (ReferenceType::is_dyn_object): Update to include
+	is_dyn_cstr_type.
+	(ReferenceType::is_dyn_cstr_type): Add implementation to check whether the
+	ReferenceType is of type CStr.
+	* typecheck/rust-hir-type-check-base.cc(resolve_literal): Update C_STRING case to
+	resolve to the CStr language item instead.
+
+2026-07-08  Yap Zhi Heng  <yapzhhg@gmail.com>
+
+	* lang.opt: Add new -frust-c-style-string-literals option.
+	* parse/rust-parse.h: Import options.h for reading flag_c_style_string_literals.
+	* parse/rust-parse-impl-expr.hxx (Parser<ManagedTokenSource>::parse_literal_expr):
+	Abort parsing C-style string literals if flag_c_style_string_literals is not set.
+	(Parser<ManagedTokenSource>::null_denotation_not_path): Ditto.
+
+2026-07-08  Yap Zhi Heng  <yapzhhg@gmail.com>
+
+	* lex/rust-token.h (RS_TOKEN_LIST): Add C_STRING_LITERAL and RAW_C_STRING_LITERAL
+	(unused for now).
+	* lex/rust-lex.h (Lexer): Define new parse_c_string function.
+	* lex/rust-lex.cc (Lexer::build_token): Implement lexing for C-style string
+	literals.
+	(Lexer::parse_c_string): Add implementation.
+	* hir/tree/rust-hir-literal.h (HIR::Literal): Define new C_STRING LitType.
+	* hir/rust-ast-lower-base.cc (ASTLoweringBase::lower_literal): Add new case for
+	C_STRING.
+	* parse/rust-parse-impl-attribute.hxx (Parser<ManagedTokenSource>::parse_attr_input):
+	Add new case for C_STRING.
+	* parse/rust-parse-impl-expr.hxx (Parser<ManagedTokenSource>::parse_literal_expr):
+	Add new case for parsing C_STRING.
+	(Parser<ManagedTokenSource>::null_denotation_not_path): Add new case for C_STRING.
+	* ast/rust-ast.h (Token::is_string_lit): Add new case for C_STRING_LITERAL.
+	* ast/rust-ast.cc (AttributeParser::parse_meta_item_inner): Add new case for
+	C_STRING_LITERAL.
+	* ast/rust-ast-collector.cc (TokenCollector::visit): Add new case for
+	C_STRING_LITERAL.
+	* typecheck/rust-hir-type-check-base.cc (TypeCheckBase::resolve_literal):
+	Implement type checking for the new C_STRING type.
+	* backend/rust-compile-expr.h (CompileExpr): Define new function
+	compile_c_string_literal.
+	* backend/rust-compile-expr.cc (CompileExpr::visit(LiteralExpr)): Add new case
+	for C_STRING.
+	(CompileExpr::compile_c_string_literal): Implement compilation of C-style string
+	literals.
+
+2026-07-08  hriztam  <hritamstark05@gmail.com>
+
+	* parse/rust-parse-error.h (StructExprField): Add
+	STRUCT_BASE_ATTRIBUTES.
+	* parse/rust-parse-impl-expr.hxx
+	(Parser<ManagedTokenSource>::parse_struct_expr_field):
+	Reject attributes before struct-base `..`.
+	(Parser<ManagedTokenSource>::parse_struct_expr_struct_partial):
+	Handle struct-base parse results without dereferencing an errored
+	expected.
+
+2026-07-08  Lucas Ly Ba  <lucas.ly-ba@outlook.com>
+
+	* checks/lints/unused/rust-unused-checker.cc (UnusedChecker::visit):
+	New.
+	* checks/lints/unused/rust-unused-checker.h (UnusedChecker::visit):
+	New.
+
+2026-07-08  Lucas Ly Ba  <lucas.ly-ba@outlook.com>
+
+	* checks/lints/unused/rust-unused-checker.cc (UnusedChecker::visit):
+	Warn on a visibility qualifier on a `const _` item.
+
+2026-07-08  Owen Avery  <powerboat9.gamer@gmail.com>
+
+	* expand/rust-macro-builtins-log-debug.cc
+	(MacroBuiltin::assert_handler): Forward any custom message on to
+	the built-in panic macro.
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* backend/rust-compile-resolve-path.cc: use error_mark_node
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* typecheck/rust-hir-type-check-item.cc (TypeCheckItem::visit): remove error_at
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* backend/rust-compile-extern.h: add expr locus
+	* backend/rust-compile-intrinsic.cc (Intrinsics::compile): likewise
+	* backend/rust-compile-intrinsic.h: likewise
+	* backend/rust-compile-resolve-path.cc: likewise
+	* backend/rust-intrinsic-handlers.cc (op_with_overflow): likewise
+	(rotate_left): likewise
+	(rotate_right): likewise
+	(wrapping_op): likewise
+	(atomic_store): likewise
+	(atomic_load): likewise
+	(unchecked_op): likewise
+	(copy): likewise
+	(expect): likewise
+	(try_handler): likewise
+	(sorry): likewise
+	(assume): likewise
+	(discriminant_value): likewise
+	(variant_count): likewise
+	(move_val_init): likewise
+	(uninit): likewise
+	(prefetch_read_data): likewise
+	(prefetch_write_data): likewise
+	(transmute): likewise
+	(sizeof_handler): likewise
+	(min_align_of_handler): likewise
+	(offset): likewise
+	(bswap_handler): likewise
+	(ctlz_handler): likewise
+	(ctlz_nonzero_handler): likewise
+	(cttz_handler): likewise
+	(cttz_nonzero_handler): likewise
+	* backend/rust-intrinsic-handlers.h (std::function<tree): likewise
+	(rotate_left): likewise
+	(rotate_right): likewise
+	(offset): likewise
+	(sizeof_handler): likewise
+	(min_align_of_handler): likewise
+	(transmute): likewise
+	(uninit): likewise
+	(move_val_init): likewise
+	(assume): likewise
+	(discriminant_value): likewise
+	(variant_count): likewise
+	(bswap_handler): likewise
+	(ctlz_handler): likewise
+	(ctlz_nonzero_handler): likewise
+	(cttz_handler): likewise
+	(cttz_nonzero_handler): likewise
+	(wrapping_op): likewise
+	(prefetch_read_data): likewise
+	(prefetch_write_data): likewise
+	(sorry): likewise
+	* backend/rust-tree.cc (pointer_offset_expression): check for size
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* backend/rust-compile-item.cc (CompileItem::visit): check instead of assert
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* backend/rust-compile-expr.cc (CompileExpr::generate_closure_fntype):
+	Stop eagerly setting FnOnce::Output
+	* backend/rust-compile-item.cc (CompileItem::visit): Push impl-trait
+	* backend/rust-compile-type.cc (TyTyResolveCompile::visit): Normalize
+	projection types
+	* backend/rust-intrinsic-handlers.cc (discriminant_value): Handle
+	projection
+	* checks/errors/privacy/rust-privacy-reporter.cc
+	(PrivacyReporter::check_base_type_privacy): Skip unresolved
+	* typecheck/rust-hir-type-check-intrinsic.cc (IntrinsicChecker::check_type): make permissive
+	* typecheck/rust-autoderef.cc: remove old
+	* typecheck/rust-hir-impl-trait-context.h: New file.
+	* typecheck/rust-hir-trait-reference.cc (TraitReference::on_resolved):
+	Pass the trait reference into item resolution.
+	(TraitReference::clear_associated_types): Remove.
+	(TraitReference::clear_associated_type_projections): Remove.
+	(AssociatedImplTrait::AssociatedImplTrait): Store an impl trait frame
+	(AssociatedImplTrait::get_frame): New function.
+	* typecheck/rust-hir-trait-reference.h: Add impl trait context
+	* typecheck/rust-hir-trait-resolve.cc (TraitItemReference::on_resolved):
+	Pass trait reference
+	(TraitItemReference::resolve_item): Represent associated types as
+	projection types
+	(TraitItemReference::associated_type_set): Remove.
+	(TraitItemReference::associated_type_reset): Remove.
+	(AssociatedImplTrait::setup_raw_associated_types): Remove.
+	(AssociatedImplTrait::bind_impl_for_projection): New function.
+	(AssociatedImplTrait::bind_impl_for_bound): New function.
+	(AssociatedImplTrait::reset_associated_types): Remove.
+	* typecheck/rust-hir-type-check-base.cc
+	(TypeCheckBase::ResolvePredicateFromBound): New function.
+	* typecheck/rust-hir-type-check-base.h
+	(TypeCheckBase::ResolvePredicateFromBound): Declare.
+	* typecheck/rust-hir-type-check-expr.cc (TypeCheckExpr::visit):
+	Handle projection
+	(TypeCheckExpr::resolve_fn_trait_call): monomorphized
+	* typecheck/rust-hir-type-check-implitem.cc
+	(TypeCheckImplItemWithTrait::visit): Store impl associated types as
+	projections
+	* typecheck/rust-hir-type-check-item.cc
+	(TypeCheckItem::ResolveImplBlockSubstitutions): New function.
+	(TypeCheckItem::ResolveImplTraitAssociatedTypes): New function.
+	(TypeCheckItem::validate_trait_impl_block): cleanup
+	(TypeCheckItem::visit): Split inherent and trait impl handling.
+	(TypeCheckItem::resolve_impl_block): New function.
+	(TypeCheckItem::resolve_trait_impl_block): New function.
+	(TypeCheckItem::resolve_impl_block_substitutions): cleanup
+	* typecheck/rust-hir-type-check-item.h: helpers
+	* typecheck/rust-hir-type-check-path.cc (TypeCheckExpr::visit):
+	cleanup
+	(TypeCheckExpr::resolve_segments): Use lazy projection normalization
+	* typecheck/rust-hir-type-check-type.cc (TypeCheckType::visit):
+	Normalize type path projections and build qualified associated types
+	* typecheck/rust-hir-type-check.h (class ScopedPush): New class.
+	(class ImplTraitFrameGuard): New class.
+	* typecheck/rust-type-util.cc (query_type): Push impl trait frames
+	while resolving impl items.
+	(rebind_projection_self_from_fn): New function.
+	(normalize_projection): New function.
+	* typecheck/rust-type-util.h (normalize_projection): Declare.
+	(rebind_projection_self_from_fn): Declare.
+	* typecheck/rust-typecheck-context.cc
+	(TypeCheckContext::find_matching_impl_trait_frame): New function.
+	(TypeCheckContext::have_impl_trait_context): New function.
+	(TypeCheckContext::push_impl_trait_context): New function.
+	(TypeCheckContext::pop_impl_trait_context): New function.
+	(TypeCheckContext::peek_impl_trait_context): New function.
+	* typecheck/rust-tyty-bounds.cc
+	(TypeBoundPredicate::apply_argument_mappings): Stop mutating
+	associated type items for binding arguments.
+	(TypeBoundPredicateItem::get_tyty_for_receiver): Rebase projections
+	using trait substitution coordinates.
+	(TypeBoundPredicate::handle_substitions): Stop mutating associated
+	type items for binding arguments.
+	* typecheck/rust-tyty-call.cc (TypeCheckCallExpr::visit): Rebind
+	projection self types after function monomorphization.
+	* typecheck/rust-tyty-subst.cc
+	(SubstitutionParamMapping::fill_param_ty): Guard recursive
+	(SubstitutionRef::get_mappings_from_generic_args): Account for outer
+	GAT parameters.
+	(SubstitutionRef::prepare_higher_ranked_bounds): Remove.
+	(SubstitutionRef::monomorphize): Bind matching impls
+	* typecheck/rust-tyty-subst.h
+	(SubstitutionRef::get_outer_param_count): New function.
+	(SubstitutionRef::prepare_higher_ranked_bounds): Remove.
+	* typecheck/rust-tyty.cc (BaseType::satisfies_bound): Check
+	associated type bindings through projection types.
+	(BaseType::destructure): Stop destructuring through projections.
+	(BaseType::monomorphized_clone): Normalize projection clones.
+	(BaseType::is_concrete): Handle projections
+	(ClosureType::setup_fn_once_output): Remove.
+	(destructure_through_projections): New function.
+	(ReferenceType::is_dyn_slice_type): Normalize projections
+	(ReferenceType::is_dyn_str_type): Likewise.
+	(ReferenceType::is_dyn_obj_type): Likewise.
+	(PointerType::is_dyn_slice_type): Likewise.
+	(PointerType::is_dyn_str_type): Likewise.
+	(PointerType::is_dyn_obj_type): Likewise.
+	(ParamType::get_name): Guard recursive
+	(PlaceholderType::set_associated_type): Remove
+	(PlaceholderType::clear_associated_type): Remove
+	(ProjectionType::ProjectionType): Track projection self type and
+	inherited trait substitutions.
+	(ProjectionType::is_trait_position): New function
+	(ProjectionType::get): Handle non-trait-position projections
+	(ProjectionType::get_self): New function.
+	(ProjectionType::get_trait_ref): New function.
+	(ProjectionType::get_item_defid): New function.
+	(ProjectionType::as_string): Include projection self and trait
+	(ProjectionType::clone): Clone projection self and preserve bounds
+	(ProjectionType::handle_substitions): Substitute projection self
+	* typecheck/rust-tyty.h: Update projection
+	* typecheck/rust-unify.cc (UnifyRules::go): Normalize projections
+	(UnifyRules::expect_projection): Support projection-to-projection
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* typecheck/rust-hir-type-check-expr.cc (TypeCheckExpr::visit): push expected type
+	* typecheck/rust-hir-type-check-stmt.cc (TypeCheckStmt::visit): apply expected ty on tail
+	* typecheck/rust-hir-type-check.h: helpers
+	* typecheck/rust-typecheck-context.cc (TypeCheckContext::push_expected_type): likewise
+	(TypeCheckContext::pop_expected_type): likewise
+	(TypeCheckContext::peek_expected_type): likewise
+	* typecheck/rust-tyty-call.cc (TypeCheckCallExpr::visit): check expected
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* ast/rust-ast-collector.cc (TokenCollector::visit): check for lang item
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* typecheck/rust-tyty-bounds.cc (TypeBoundPredicate::TypeBoundPredicate): missing argument
+	(TypeBoundPredicate::operator=): likewise
+
+2026-07-08  Philip Herron  <herron.philip@googlemail.com>
+
+	* typecheck/rust-tyty-subst.cc: we can optionally apply inherited arguments
+
 2026-06-28  Kevin Stefanov  <kevinstefanov15@gmail.com>
 
 	PR middle-end/125274

@@ -1,3 +1,54 @@
+2026-07-08  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	* trans-array.cc (gfc_array_init_size): Set the rank for the
+	dtype.
+
+2026-07-08  Harald Anlauf  <anlauf@gmx.de>
+
+	PR fortran/126127
+	* interface.cc (find_symtree0): Check for NULL pointer.
+	(gfc_find_sym_in_symtree): Also search user-defined operator list
+	when the symbol refers to a function.
+
+2026-07-08  Mikael Morin  <mikael@gcc.gnu.org>
+
+	* trans-types.h (gfc_array_dim_rank_type): New type node
+	declaration.
+	* trans-types.cc (gfc_array_dim_rank_type): Likewise.
+	(gfc_init_types) : Initialize the new type node.
+	(get_dtype_type_node): Use the new type for the rank field.
+	* trans-descriptor.cc (gfc_conv_descriptor_rank): Likewise.
+	* trans-const.h (gfc_index_zero_node, gfc_index_one_node): Make
+	each macro a separate node declaration.
+	* trans-const.cc (gfc_index_zero_node, gfc_index_one_node):
+	Declare new nodes.
+	(gfc_init_constants): Initialize them.  Use the new type for the
+	constants of the gfc_rank_cst array.
+	* trans-array.cc (gfc_tree_array_size): Use the new type for the
+	RANK, IDX and DIM variables.  Avoid negative intermediary value
+	in comparison using the new type.
+	(gfc_conv_array_parameter): Use the new type when assigning a
+	value to the descriptor's rank.  Use the new type for the IDX
+	variable.
+	* trans-decl.cc (gfc_conv_cfi_to_gfc): Use the new type for the
+	rank, and the dimension index variable (including loop initial
+	value and step).
+	* trans-expr.cc (gfc_conv_gfc_desc_to_cfi_desc): Likewise.
+	(gfc_conv_variable): Use the new type for the rank variable.
+	(gfc_trans_structure_assign): Use the new type when assigning a
+	value to the descriptor's rank.
+	* trans-openmp.cc (gfc_omp_get_array_size): Use the new type
+	for the dimension index variable and the loop initialization,
+	bound and step.
+	* trans-intrinsic.cc (gfc_conv_intrinsic_bound): Use the new
+	type for the DIM argument and the rank.
+	(conv_intrinsic_cobound): Likewise.
+	(trans_this_image): Likewise.  Use the new type for the loop
+	variable, initialization, bound and step.
+	(gfc_conv_intrinsic_sizeof): Likewise.
+	* trans-stmt.cc (gfc_trans_select_rank_cases): Use signed char
+	as type for the select value.
+
 2026-07-07  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 
 	PR fortran/103367

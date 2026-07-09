@@ -1,3 +1,11 @@
+2026-07-08  Georg-Johann Lay  <avr@gjlay.de>
+
+	* config/avr/t-avr (LIB1ASMFUNCS): Add _negsi2_r18.
+	* config/avr/asm-defs.h (.call_if_neg): New .macro.
+	* config/avr/lib1funcs.S (__divmodsi4): Use .call_if_neg.
+	(__negsi2_r18): New function.
+	* config/avr/lib1funcs-fixed.S (__divsa3): Use .call_if_neg.
+
 2026-07-05  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
 
 	* configure.ac (solaris_ld_v2_maps): Remove.

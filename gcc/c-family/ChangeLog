@@ -1,3 +1,9 @@
+2026-07-08  Martin Uecker  <uecker@tugraz.at>
+
+	* c-attribs.cc (handle_counted_by_attribute): Adapt.
+	* c-common.h (c_flexible_array_member_type_p): Remove.
+	* c-common.cc (c_flexible_array_member_type_p): Remove.
+
 2026-06-30  Jakub Jelinek  <jakub@redhat.com>
 
 	PR c++/125837

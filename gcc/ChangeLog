@@ -1,3 +1,230 @@
+2026-07-08  Jim Lin  <jim@andestech.com>
+
+	* config/riscv/riscv.h (TARGET_SFB_ALU): Add andes_45_series.
+
+2026-07-08  Uros Bizjak  <ubizjak@gmail.com>
+
+	PR target/126148
+	* config/i386/i386-expand.cc (ix86_gen_ccmp_first): Restrict
+	floating-point modes accepted for ccmp according to the
+	available floating-point instruction set.
+
+2026-07-08  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	PR rtl-optimization/126136
+	* ifcvt.cc (noce_try_store_flag_logical): Fix for STORE_FLAG_VALUE
+	of -1.
+
+2026-07-08  Jim Lin  <jim@andestech.com>
+
+	* config/riscv/spacemit-x60.md (spacemit_x60_alu): Remove cpop
+	from the type list.
+
+2026-07-08  Richard Biener  <rguenther@suse.de>
+
+	* tree-vect-slp.cc (vect_build_slp_tree_1): Remove group_size
+	argument and adjust.
+	(vect_build_slp_tree_2): Likewise.
+	(vect_build_slp_tree): Likewise.
+	(optimize_load_redistribution_1): Likewise.
+	(vect_build_slp_instance): Likewise.
+	(vect_analyze_slp_reduc_chain): Likewise.
+	(vect_analyze_slp_reduction): Likewise.
+	(vect_analyze_slp_reduction_group): Likewise.
+	(vect_analyze_slp_instance): Likewise.
+	(vect_lower_load_permutations): Likewise.
+
+2026-07-08  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/126150
+	* tree-cfg.cc (replace_uses_by): Delay purging of EH edges
+	until after FOR_EACH_IMM_USE_STMT finished.
+
+2026-07-08  Martin Uecker  <uecker@tugraz.at>
+
+	* tree.h (flexible_array_member_type_p): New helper function.
+	* tree.cc (flexible_array_member_type_p): New helper function.
+	(flexible_array_type_p): Use new helper function.
+
+2026-07-08  Richard Biener  <rguenther@suse.de>
+
+	PR tree-optimization/126159
+	* tree-data-ref.cc (dr_analyze_indices): Handle non-aggregate
+	union field accesses.
+	(access_fn_component_p): Adjust.
+
+2026-07-08  Pengfei Li  <Pengfei.Li2@arm.com>
+
+	* match.pd: Simplify SAD(x, x, acc) into acc.
+
+2026-07-08  Evgeny Karpov  <evgeny.karpov@arm.com>
+
+	* config/i386/cygming.h (TARGET_ASM_FUNCTION_END_PROLOGUE):
+	Rename.
+	(TARGET_ASM_EMIT_EXCEPT_PERSONALITY): Likewise.
+	(TARGET_ASM_INIT_SECTIONS): Likewise.
+	(SUBTARGET_ASM_UNWIND_INIT): Likewise.
+	(ASM_DECLARE_FUNCTION_SIZE): Likewise.
+	(ASM_DECLARE_COLD_FUNCTION_SIZE): Likewise.
+	* config/i386/i386-protos.h (i386_pe_end_function):
+	Remove declarations.
+	(i386_pe_end_cold_function): Likewise.
+	(i386_pe_seh_init): Likewise.
+	(i386_pe_seh_end_prologue): Likewise.
+	(i386_pe_seh_cold_init): Likewise.
+	(i386_pe_seh_emit_except_personality): Likewise.
+	(i386_pe_seh_init_sections): Likewise.
+	* config/mingw/winnt.cc (defined): Update.
+	(struct seh_frame_state): Move to mingw/winnt.h.
+	(i386_pe_seh_init): Rename into ...
+	(mingw_pe_seh_init): ... this.
+	(i386_pe_seh_end_prologue): Rename into ...
+	(mingw_pe_seh_end_prologue): ... this.
+	(i386_pe_seh_cold_init): Rename into ...
+	(mingw_pe_seh_cold_init): ... this.
+	(i386_pe_seh_fini): Rename into ...
+	(mingw_pe_seh_fini): ... this.
+	(seh_emit_stackalloc): Rename into ...
+	(mingw_pe_seh_emit_stackalloc): ... this.
+	(seh_cfa_adjust_cfa): Update.
+	(seh_frame_related_expr): Update.
+	(i386_pe_seh_emit_except_personality): Rename into ...
+	(mingw_pe_seh_emit_except_personality): ... this.
+	(i386_pe_seh_init_sections): Rename into ...
+	(mingw_pe_seh_init_sections): ... this.
+	(i386_pe_end_function): Rename into ...
+	(mingw_pe_end_function): ... this.
+	(i386_pe_end_cold_function): Rename into ...
+	(mingw_pe_end_cold_function): ... this.
+	* config/mingw/winnt.h (struct seh_frame_state):
+	Move from mingw/winnt.cc.
+	(mingw_pe_end_cold_function): Add declarations.
+	(mingw_pe_end_function): Likewise.
+	(mingw_pe_seh_init): Likewise.
+	(mingw_pe_seh_init_sections): Likewise.
+	(mingw_pe_seh_cold_init): Likewise.
+	(mingw_pe_seh_emit_except_personality): Likewise.
+	(mingw_pe_seh_end_prologue): Likewise.
+
+2026-07-08  Tamar Christina  <tamar.christina@arm.com>
+
+	* tree-vect-data-refs.cc (vect_create_addr_base_for_vector_ref):
+	Restructure computations to force separate base.
+
+2026-07-08  Tamar Christina  <tamar.christina@arm.com>
+
+	* tree-vect-data-refs.cc (vect_slp_analyze_store_dependences,
+	vect_slp_analyze_load_dependences,
+	vect_slp_analyze_instance_dependence): Use for-each over for with len.
+	* tree-vect-slp.cc (vect_mark_slp_stmts_relevant,
+	,vect_find_last_scalar_stmt_in_slp, vect_find_first_scalar_stmt_in_slp,
+	vect_build_slp_store_interleaving, vect_analyze_slp,
+	vect_slp_prune_covered_roots, vect_bb_partition_graph_r,
+	vect_remove_slp_scalar_calls): Likewise.
+
+2026-07-08  Richard Biener  <rguenther@suse.de>
+
+	* gimple-ssa-pta-constraints.cc (find_func_aliases_for_builtin_call):
+	Correctly use SCALAR rhs from the variadic argument part of
+	the function info or from NONLOCAL in case of intra-PTA.
+	(find_func_aliases_for_call): Handle .VA_ARG.
+
+2026-07-08  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	* config/aarch64/tuning_models/ampere1.h (ampere1_scalar_issue_info)
+	(ampere1_advsimd_issue_info, ampere1_vec_issue_info): New.
+	(ampere1_vector_cost): Use ampere1_vec_issue_info for issue_info.
+	* config/aarch64/tuning_models/ampere1b.h (ampere1b_scalar_issue_info)
+	(ampere1b_advsimd_issue_info, ampere1b_vec_issue_info): New.
+	(ampere1b_vector_cost): Use ampere1b_vec_issue_info for issue_info.
+
+2026-07-08  H.J. Lu  <hjl.tools@gmail.com>
+	    Richard Sandiford  <rdsandiford@googlemail.com>
+
+	PR target/124798
+	PR target/125436
+	* config/i386/i386-expand.cc: Include "function-abi.h".
+	(x86_64_ms_sysv_extra_clobbered_registers): Removed.
+	(ix86_expand_call): Don't add explicit call and ABI-switch
+	clobbers.
+	* config/i386/i386-features.cc (ix86_emit_tls_call): Call
+	ix86_tls_get_addr_abi to get GNU TLS ABI and use it, instead of
+	default_function_abi, for registers clobbered by GNU TLS call.
+	(ix86_place_single_tls_call): Set CALL_INSN_ABI_ID on TLS calls.
+	* config/i386/i386-options.cc (ix86_set_current_function): Don't
+	call reinit_regs.
+	* config/i386/i386-protos.h
+	(ix86_type_no_callee_saved_registers_p): Removed.
+	(ix86_tls_get_addr_abi): New.
+	* config/i386/i386.cc (ix86_alternate_abi): New prototype.
+	(ix86_conditional_register_usage): Changed to describe the
+	system ABI.
+	(ix86_type_no_callee_saved_registers_p): Make it static.
+	(ix86_function_value_regno_p): Replace ix86_cfun_abi () with
+	ix86_abi.
+	(ix86_save_reg): Only check TYPE_NO_CALLEE_SAVED_REGISTERS as
+	a special case.
+	(ix86_tls_get_addr_abi): New.
+	(legitimize_tls_address): Set CALL_INSN_ABI_ID on TLS calls.
+	Call ix86_alternate_abi to initialize the alternate function ABI.
+	(ix86_initialize_abi): New function.
+	(ix86_no_callee_saved_abi): Likewise.
+	(ix86_no_caller_saved_abi): Likewise.
+	(ix86_standard_abi): Likewise.
+	(ix86_alternate_abi): Likewise.
+	(ix86_function_abi_id): Likewise.
+	(ix86_fntype_abi): Likewise.
+	(ix86_hard_regno_call_part_clobbered): Handle newly added ABIs.
+	(TARGET_FNTYPE_ABI): New.
+	* config/i386/i386.md: Add ABI_ALTERNATE, ABI_NO_CALLEE_SAVED,
+	ABI_NO_CALLER_SAVED_RETURN_VOID, ABI_NO_CALLER_SAVED_RETURN_AX,
+	ABI_NO_CALLER_SAVED_RETURN_AX_DX,
+	ABI_NO_CALLER_SAVED_RETURN_AX_XMM0,
+	ABI_NO_CALLER_SAVED_RETURN_XMM0 and
+	ABI_NO_CALLER_SAVED_RETURN_XMM0_XMM1.
+
+2026-07-08  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* config/i386/i386.cc (ix86_function_arg): Remove always-true
+	condition.
+
+2026-07-08  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* config/i386/i386-features.cc: Include function-abi.h.
+	(ix86_emit_tls_call): Use default_function_abi instead of
+	call_used_regs.
+	* config/i386/i386.cc (x86_order_regs_for_local_alloc): Likewise.
+	(ix86_save_reg, x86_64_select_profile_regnum): Use crtl->abi
+	instead of call_used_regs.
+
+2026-07-08  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* config/i386/i386-protos.h (ix86_fntype_call_saved_registers):
+	Declare.
+	* config/i386/i386-options.cc (ix86_fntype_call_saved_registers): New
+	function, split out from...
+	(ix86_set_func_type): ...here.  Avoid calling it if the result
+	would be ignored.
+	* config/i386/i386.cc (ix86_type_no_callee_saved_registers_p): Use
+	ix86_fntype_call_saved_registers instead of querying attributes
+	directly.
+
+2026-07-08  Pan Li  <pan2.li@intel.com>
+
+	* config/riscv/constraints.md (Wtt): Rename to Wvr to
+	indicate widen vector register constraint.
+	* config/riscv/riscv-protos.h (riscv_widen_overlap_ok): Rename
+	from...
+	(riscv_vector_mode_p): Add new decl for riscv-v.cc visibile.
+	(riscv_hard_regno_nregs): Ditto.
+	(riscv_v_widen_constraint_ok): Rename to...
+	* config/riscv/riscv-v.cc (riscv_v_widen_constraint_ok): Rename
+	to... and take care of Wvr constraint.
+	* config/riscv/riscv.cc (riscv_vector_mode_p): Remove static.
+	(riscv_hard_regno_nregs): Ditto.
+	(riscv_widen_overlap_ok): Remove.
+	* config/riscv/vector.md: Rename to Wvr.
+
 2026-07-07  Richard Earnshaw  <rearnsha@arm.com>
 
 	* config/aarch64/aarch64-option-extensions.def (AARCH64_OPT_EXTENSION):

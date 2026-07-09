@@ -1,3 +1,16 @@
+2026-07-08  Nathan Myers  <ncm@cantrip.org>
+
+	PR libstdc++/118851
+	* include/bits/stl_tree.h (_M_equal_range_tr): Rewrite to match
+	non-heterogeneous equal_range implementation.
+	* testsuite/23_containers/map/operations/hetero/equal_range.cc:
+	New test.
+	* testsuite/23_containers/multimap/operations/hetero/equal_range.cc:
+	Same.
+	* testsuite/23_containers/multiset/operations/hetero/equal_range.cc:
+	Same.
+	* testsuite/23_containers/set/operations/hetero/equal_range.cc: Same.
+
 2026-07-07  Tomasz Kamiński  <tkaminsk@redhat.com>
 
 	* include/std/mdspan

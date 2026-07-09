@@ -1,3 +1,47 @@
+2026-07-08  James K. Lowden  <jklowden@cobolworx.com>
+
+	* genapi.cc (parser_call_targets_dump): Remove function.
+	* genapi.h (parser_call_targets_dump): Same.
+	* parse.y: Instantiate forward labels consistently.
+	(label_add) Capture forward references for efficiency.
+	(paragraph_reference) Use forward reference.
+	(label_add_once): New function.
+	* parse_ante.h (label_add_once): Declare function.
+	(label_instantiate): New function.
+	(ast_enter_exit_section): Improve debug message.
+	* symbols.cc (label_cmp): Allow forward reference to have a parent.
+	(cbl_label_ref_t): Remove class.
+	(symbol_label): Whitespace.
+	(symbols_dump): Add information to output.
+	(symbol_add): Remove program label symbol-assignment to symbol_label_add.
+	(cbl_label_t::str): Add information to output.
+	(symbol_label_add): Assign id to program label.
+	* symbols.h (class cbl_label_ref_t): Remove.
+	(struct symbol_elem_t): Remove struct keyword.
+	(struct cbl_label_t): Same.
+	(struct cbl_special_name_t): Same.
+	(struct cbl_field_t): Same.
+	(symbol_typedef): Same.
+	(symbol_field): Same.
+	(symbol_label): Same.
+	(symbol_function): Same.
+	(symbol_function_any): Same.
+	(symbol_program): Same.
+	(symbol_literalA): Same.
+	(symbol_special): Same.
+	(symbol_locale): Same.
+	(symbol_alphabet): Same.
+	(symbol_file): Same.
+	(symbol_file_record): Same.
+	(struct cbl_section_t): Same.
+	(symbol_section): Same.
+	(parent_of): Same.
+	* util.cc: (match_proc::find) Use only section and paragraph names.
+
+2026-07-08  James K. Lowden  <jklowden@cobolworx.com>
+
+	* parse.y (literal_refmod_valid): Do not deference NULL pointer.
+
 2026-07-06  James K. Lowden  <jklowden@cobolworx.com>
 
 	* cbldiag.h (struct cbl_loc_t): Add as_first_line() function.
