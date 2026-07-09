@@ -1255,7 +1255,7 @@ expand_block_move (rtx dst_in, rtx src_in, rtx length_in, bool movmem_p)
 	  && length > riscv_memmove_size_threshold)
 	return false;
       else if (!movmem_p
-	       && riscv_memmove_size_threshold >= 0
+	       && riscv_memcpy_size_threshold >= 0
 	       && length > riscv_memcpy_size_threshold)
 	return false;
     }
