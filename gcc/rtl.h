@@ -426,6 +426,9 @@ struct GTY((desc("0"), tag("0"),
        HOST_WIDE_INTs in the hwivec_def.  */
     unsigned int num_elem;
 
+    /* The unique identifier of a VALUE rtx.  */
+    int value_uid;
+
     /* Information about a CONST_VECTOR.  */
     struct
     {
@@ -1624,6 +1627,10 @@ jump_table_for_label (const rtx_code_label *label)
 /* In a VALUE, the value cselib has assigned to RTX.
    This is a "struct cselib_val", see cselib.h.  */
 #define CSELIB_VAL_PTR(RTX) X0CSELIB (RTX, 0)
+
+/* A VALUE's unique identifier.  */
+#define CSELIB_VAL_UID(RTX) \
+  RTL_FLAG_CHECK1 ("CSELIB_VAL_UID", (RTX), VALUE)->u2.value_uid
 
 /* Holds a list of notes on what this insn does to various REGs.
    It is a chain of EXPR_LIST rtx's, where the second operand is the

@@ -319,7 +319,7 @@ rtx_writer::print_rtx_operand_code_0 (const_rtx in_rtx ATTRIBUTE_UNUSED,
     {
       cselib_val *val = CSELIB_VAL_PTR (in_rtx);
 
-      fprintf (m_outfile, " %u:%u", val->uid, val->hash);
+      fprintf (m_outfile, " %u:%u", CSELIB_VAL_UID (in_rtx), val->hash);
       dump_addr (m_outfile, " @", in_rtx);
       dump_addr (m_outfile, "/", (void*)val);
     }

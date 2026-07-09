@@ -360,14 +360,15 @@ new_elt_loc_list (cselib_val *val, rtx loc)
 
       if (val->val_rtx == loc)
 	return;
-      else if (val->uid > loc_val->uid)
+      else if (CSELIB_VAL_UID (val->val_rtx) > CSELIB_VAL_UID (loc))
 	{
 	  /* Reverse the insertion.  */
 	  new_elt_loc_list (loc_val, val->val_rtx);
 	  return;
 	}
 
-      gcc_checking_assert (val->uid < loc_val->uid);
+      gcc_checking_assert (CSELIB_VAL_UID (val->val_rtx)
+			   < CSELIB_VAL_UID (loc));
 
       if (loc_val->locs)
 	{
@@ -658,7 +659,6 @@ cselib_find_slot (machine_mode mode, rtx x, hashval_t hash,
 {
   cselib_val **slot = NULL;
   cselib_hasher::key lookup = { mode, x, memmode };
-  hash &= cselib_val::HASH_MASK;
   if (cselib_preserve_constants)
     slot = cselib_preserved_hash_table->find_slot_with_hash (&lookup, hash,
 							     NO_INSERT);
@@ -1683,7 +1683,6 @@ new_cselib_val (hashval_t hash, machine_mode mode, rtx x)
   e->hash = hash;
   e->in_preserved_table_p = false;
   e->all_locs_preserved_p = false;
-  e->uid = next_uid++;
   /* We use an alloc pool to allocate this RTL construct because it
      accounts for about 8% of the overall memory usage.  We know
      precisely when we can have VALUE RTXen (when cselib is active)
@@ -1694,6 +1693,7 @@ new_cselib_val (hashval_t hash, machine_mode mode, rtx x)
   PUT_CODE (e->val_rtx, VALUE);
   PUT_MODE (e->val_rtx, mode);
   CSELIB_VAL_PTR (e->val_rtx) = e;
+  CSELIB_VAL_UID (e->val_rtx) = next_uid++;
   e->addr_list = 0;
   e->locs = 0;
   e->next_containing_mem = 0;
@@ -1721,7 +1721,8 @@ new_cselib_val (hashval_t hash, machine_mode mode, rtx x)
 
   if (dump_file && (dump_flags & TDF_CSELIB))
     {
-      fprintf (dump_file, "cselib value %u:%u ", e->uid, hash);
+      fprintf (dump_file, "cselib value %u:%u ",
+	       CSELIB_VAL_UID (e->val_rtx), hash);
       if (flag_dump_noaddr || flag_dump_unnumbered)
 	fputs ("# ", dump_file);
       else
@@ -2571,7 +2572,7 @@ cselib_lookup (rtx x, machine_mode mode,
       fputs ("cselib lookup ", dump_file);
       print_inline_rtx (dump_file, x, 2);
       fprintf (dump_file, " => %u:%u\n",
-	       ret ? ret->uid : 0,
+	       ret ? CSELIB_VAL_UID (ret->val_rtx) : 0,
 	       ret ? ret->hash : 0);
     }
 

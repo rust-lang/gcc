@@ -2271,10 +2271,10 @@ base_alias_check (rtx x, rtx x_base, rtx y, rtx y_base,
 static bool
 refs_newer_value_p (const_rtx expr, rtx v)
 {
-  int minuid = CSELIB_VAL_PTR (v)->uid;
+  int minuid = CSELIB_VAL_UID (v);
   subrtx_iterator::array_type array;
   FOR_EACH_SUBRTX (iter, array, expr, NONCONST)
-    if (GET_CODE (*iter) == VALUE && CSELIB_VAL_PTR (*iter)->uid >= minuid)
+    if (GET_CODE (*iter) == VALUE && CSELIB_VAL_UID (*iter) >= minuid)
       return true;
   return false;
 }

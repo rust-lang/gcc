@@ -23,11 +23,8 @@ along with GCC; see the file COPYING3.  If not see
 /* Describe a value.  */
 struct cselib_val
 {
-  /* A mask equivalent of HASH's bitfield width.  */
-  static const unsigned int HASH_MASK = 0x3fffffff;
-
   /* The hash value.  */
-  unsigned int hash : 30;
+  unsigned int hash;
 
   /* True if this value is entered in cselib_preserved_hash_table.  */
   unsigned int in_preserved_table_p : 1;
@@ -35,9 +32,6 @@ struct cselib_val
   /* True if every value referenced by every element of LOCS is known
      to be a preserved value.  */
   unsigned int all_locs_preserved_p : 1;
-
-  /* A unique id assigned to values.  */
-  int uid;
 
   /* A VALUE rtx that points back to this structure.  */
   rtx val_rtx;
@@ -130,7 +124,7 @@ canonical_cselib_val (cselib_val *val)
 
   if (!val->locs || val->locs->next
       || !val->locs->loc || GET_CODE (val->locs->loc) != VALUE
-      || val->uid < CSELIB_VAL_PTR (val->locs->loc)->uid)
+      || CSELIB_VAL_UID (val->val_rtx) < CSELIB_VAL_UID (val->locs->loc))
     return val;
 
   canon = CSELIB_VAL_PTR (val->locs->loc);

@@ -452,7 +452,7 @@ static inline dvuid
 dv_uid (decl_or_value dv)
 {
   if (dv_is_value_p (dv))
-    return CSELIB_VAL_PTR (dv_as_value (dv))->uid;
+    return CSELIB_VAL_UID (dv_as_value (dv));
   else
     return DECL_UID (dv_as_decl (dv));
 }
@@ -1723,8 +1723,7 @@ shared_hash_find (shared_hash *vars, decl_or_value dv)
 static inline bool
 canon_value_cmp (rtx tval, rtx cval)
 {
-  return !cval
-    || CSELIB_VAL_PTR (tval)->uid < CSELIB_VAL_PTR (cval)->uid;
+  return !cval || CSELIB_VAL_UID (tval) < CSELIB_VAL_UID (cval);
 }
 
 static bool dst_can_be_shared;
@@ -4531,7 +4530,8 @@ variable_post_merge_new_vals (variable **slot, dfset_post_merge *dfpm)
 		      if (dump_file)
 			fprintf (dump_file,
 				 "Created new value %u:%u for reg %i\n",
-				 v->uid, v->hash, REGNO (node->loc));
+				 CSELIB_VAL_UID (v->val_rtx), v->hash,
+				 REGNO (node->loc));
 		    }
 
 		  var_reg_decl_set (*dfpm->permp, node->loc,

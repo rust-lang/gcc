@@ -1220,7 +1220,7 @@ canon_address (rtx mem,
   if (dump_file && (dump_flags & TDF_DETAILS))
     {
       fprintf (dump_file, "  varying cselib base=%u:%u offset = ",
-	       (*base)->uid, (*base)->hash);
+	       CSELIB_VAL_UID ((*base)->val_rtx), (*base)->hash);
       print_dec (*offset, dump_file);
       fprintf (dump_file, "\n");
     }
