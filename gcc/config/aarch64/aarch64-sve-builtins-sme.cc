@@ -339,7 +339,7 @@ public:
 class svluti_lane_zt_impl : public read_zt0<function_base>
 {
 public:
-  CONSTEXPR svluti_lane_zt_impl (unsigned int bits) : m_bits (bits) {}
+  constexpr svluti_lane_zt_impl (unsigned int bits) : m_bits (bits) {}
 
   rtx
   expand (function_expander &e) const override
@@ -359,7 +359,7 @@ public:
 class svluti_zt_impl : public read_zt0<function_base>
 {
 public:
-  CONSTEXPR svluti_zt_impl (unsigned int bits) : m_bits (bits) {}
+  constexpr svluti_zt_impl (unsigned int bits) : m_bits (bits) {}
 
   unsigned int call_properties (const function_instance &) const override
   {

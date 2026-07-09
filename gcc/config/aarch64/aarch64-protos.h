@@ -257,7 +257,7 @@ struct sve_vec_cost : simd_vec_cost
 {
   sve_vec_cost () = default;
 
-  CONSTEXPR sve_vec_cost (const simd_vec_cost &base,
+  constexpr sve_vec_cost (const simd_vec_cost &base,
 			  unsigned int clast_cost,
 			  unsigned int fadda_f16_cost,
 			  unsigned int fadda_f32_cost,
@@ -369,7 +369,7 @@ struct aarch64_simd_vec_issue_info : aarch64_base_vec_issue_info
 {
   aarch64_simd_vec_issue_info () = default;
 
-  CONSTEXPR aarch64_simd_vec_issue_info (aarch64_base_vec_issue_info base,
+  constexpr aarch64_simd_vec_issue_info (aarch64_base_vec_issue_info base,
 					 unsigned int ld2_st2_general_ops,
 					 unsigned int ld3_st3_general_ops,
 					 unsigned int ld4_st4_general_ops)
@@ -399,7 +399,7 @@ struct aarch64_sve_vec_issue_info : aarch64_simd_vec_issue_info
 {
   aarch64_sve_vec_issue_info () = default;
 
-  CONSTEXPR aarch64_sve_vec_issue_info
+  constexpr aarch64_sve_vec_issue_info
     (aarch64_simd_vec_issue_info base,
      unsigned int pred_ops_per_cycle,
      unsigned int while_pred_ops,
@@ -771,7 +771,7 @@ struct aarch64_required_extensions
 {
   /* Return a requirement that includes FLAGS on top of any existing
      requirements.  */
-  inline CONSTEXPR aarch64_required_extensions
+  inline constexpr aarch64_required_extensions
   and_also (aarch64_feature_flags flags)
   {
     return { sm_off ? sm_off | flags : 0,
@@ -780,7 +780,7 @@ struct aarch64_required_extensions
 
   /* Return a requirement that is as restrictive as possible while still being
      no more restrictive than THIS and no more restrictive than OTHER.  */
-  inline CONSTEXPR aarch64_required_extensions
+  inline constexpr aarch64_required_extensions
   common_denominator (const aarch64_required_extensions &other)
   {
     return { sm_off && other.sm_off
@@ -792,14 +792,14 @@ struct aarch64_required_extensions
   }
 
   /* Require non-streaming mode and the features in FLAGS.  */
-  static inline CONSTEXPR aarch64_required_extensions
+  static inline constexpr aarch64_required_extensions
   nonstreaming_only (aarch64_feature_flags flags)
   {
     return { AARCH64_FL_SM_OFF | flags, 0 };
   }
 
   /* Likewise, and also require SVE.  */
-  static inline CONSTEXPR aarch64_required_extensions
+  static inline constexpr aarch64_required_extensions
   nonstreaming_sve (aarch64_feature_flags flags)
   {
     return nonstreaming_only (AARCH64_FL_SVE | flags);
@@ -807,14 +807,14 @@ struct aarch64_required_extensions
 
   /* Allow both streaming and non-streaming mode, requiring the features
      in FLAGS for both cases.  */
-  static inline CONSTEXPR aarch64_required_extensions
+  static inline constexpr aarch64_required_extensions
   streaming_compatible (aarch64_feature_flags flags)
   {
     return { AARCH64_FL_SM_OFF | flags, AARCH64_FL_SM_ON | flags };
   }
 
   /* Likewise, and also require SVE for non-streaming mode.  */
-  static inline CONSTEXPR aarch64_required_extensions
+  static inline constexpr aarch64_required_extensions
   ssve (aarch64_feature_flags flags)
   {
     return streaming_compatible (AARCH64_FL_SVE | flags, flags);
@@ -823,7 +823,7 @@ struct aarch64_required_extensions
   /* Allow both streaming and non-streaming mode, requiring the features
      in SM_OFF for non-streaming mode and the features in SM_ON for
      streaming mode.  */
-  static inline CONSTEXPR aarch64_required_extensions
+  static inline constexpr aarch64_required_extensions
   streaming_compatible (aarch64_feature_flags sm_off,
 			aarch64_feature_flags sm_on)
   {
@@ -831,14 +831,14 @@ struct aarch64_required_extensions
   }
 
   /* Likewise, and also require SVE for non-streaming mode.  */
-  static inline CONSTEXPR aarch64_required_extensions
+  static inline constexpr aarch64_required_extensions
   sve_and_sme (aarch64_feature_flags sm_off, aarch64_feature_flags sm_on)
   {
     return streaming_compatible (AARCH64_FL_SVE | sm_off, sm_on);
   }
 
   /* Require streaming mode and the features in FLAGS.  */
-  static inline CONSTEXPR aarch64_required_extensions
+  static inline constexpr aarch64_required_extensions
   streaming_only (aarch64_feature_flags flags)
   {
     return { 0, AARCH64_FL_SM_ON | flags };

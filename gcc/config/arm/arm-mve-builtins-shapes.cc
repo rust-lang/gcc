@@ -373,7 +373,7 @@ half_type_suffix (function_resolver &r,
 /* Declare the function shape NAME, pointing it to an instance
    of class <NAME>_def.  */
 #define SHAPE(NAME)							\
-  static CONSTEXPR const NAME##_def NAME##_obj;				\
+  static constexpr const NAME##_def NAME##_obj;				\
   namespace shapes { const function_shape *const NAME = &NAME##_obj; }	\
   extern int __require_trailing_semicolon ATTRIBUTE_UNUSED
 

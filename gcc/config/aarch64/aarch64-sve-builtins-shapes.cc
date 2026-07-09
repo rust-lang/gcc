@@ -580,7 +580,7 @@ long_type_suffix (function_resolver &r, type_suffix_index type)
 /* Declare the function shape NAME, pointing it to an instance
    of class <NAME>_def.  */
 #define SHAPE(NAME)							\
-  static CONSTEXPR const NAME##_def NAME##_obj;				\
+  static constexpr const NAME##_def NAME##_obj;				\
   namespace shapes { const function_shape *const NAME = &NAME##_obj; }	\
   extern int __require_trailing_semicolon ATTRIBUTE_UNUSED
 
@@ -822,7 +822,7 @@ struct ext_base : public overloaded_base<0>
 /* Base class for inc_dec and inc_dec_pat.  */
 struct inc_dec_base : public overloaded_base<0>
 {
-  CONSTEXPR inc_dec_base (bool pat_p) : m_pat_p (pat_p) {}
+  constexpr inc_dec_base (bool pat_p) : m_pat_p (pat_p) {}
 
   /* Resolve based on the first argument only, which must be either a
      scalar or a vector.  If it's a scalar, it must be a 32-bit or
@@ -2819,7 +2819,7 @@ SHAPE (dup_neonq);
    whose size is tied to the [bhwd] suffix of "svfoo".  */
 struct inc_dec_def : public inc_dec_base
 {
-  CONSTEXPR inc_dec_def () : inc_dec_base (false) {}
+  constexpr inc_dec_def () : inc_dec_base (false) {}
 
   void
   build (function_builder &b, const function_group_info &group) const override
@@ -2844,7 +2844,7 @@ SHAPE (inc_dec);
    whose size is tied to the [bhwd] suffix of "svfoo".  */
 struct inc_dec_pat_def : public inc_dec_base
 {
-  CONSTEXPR inc_dec_pat_def () : inc_dec_base (true) {}
+  constexpr inc_dec_pat_def () : inc_dec_base (true) {}
 
   void
   build (function_builder &b, const function_group_info &group) const override

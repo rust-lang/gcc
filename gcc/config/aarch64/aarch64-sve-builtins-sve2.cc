@@ -81,7 +81,7 @@ unspec_sqrdcmlah (int rot)
 class ld1uxq_st1xq_base : public function_base
 {
 public:
-  CONSTEXPR ld1uxq_st1xq_base (machine_mode memory_mode)
+  constexpr ld1uxq_st1xq_base (machine_mode memory_mode)
     : m_memory_mode (memory_mode) {}
 
   tree
@@ -103,7 +103,7 @@ protected:
 class ld234q_st234q_base : public full_width_access
 {
 public:
-  CONSTEXPR ld234q_st234q_base (unsigned int vector_count, machine_mode mode)
+  constexpr ld234q_st234q_base (unsigned int vector_count, machine_mode mode)
     : full_width_access (vector_count), m_mode (mode)
   {}
 
@@ -224,8 +224,7 @@ public:
 class svcvt_fp8_impl : public function_base
 {
 public:
-  CONSTEXPR
-  svcvt_fp8_impl (int unspec) : m_unspec (unspec) {}
+  constexpr svcvt_fp8_impl (int unspec) : m_unspec (unspec) {}
 
   rtx
   expand (function_expander &e) const override
@@ -294,9 +293,8 @@ public:
 class svfirst_lastp_impl : public function_base
 {
 public:
-  CONSTEXPR svfirst_lastp_impl (bool first)
-    : m_first (first)
-  {}
+  constexpr svfirst_lastp_impl (bool first)
+    : m_first (first) {}
 
   gimple *
   fold (gimple_folder &f) const override
@@ -448,7 +446,7 @@ public:
 class svmatch_svnmatch_impl : public function_base
 {
 public:
-  CONSTEXPR svmatch_svnmatch_impl (int unspec) : m_unspec (unspec) {}
+  constexpr svmatch_svnmatch_impl (int unspec) : m_unspec (unspec) {}
   gimple *
   fold (gimple_folder &f) const override
   {
@@ -587,7 +585,7 @@ public:
 class svqrshl_impl : public unspec_based_function
 {
 public:
-  CONSTEXPR svqrshl_impl ()
+  constexpr svqrshl_impl ()
     : unspec_based_function (UNSPEC_SQRSHL, UNSPEC_UQRSHL, -1) {}
 
   gimple *
@@ -623,7 +621,7 @@ public:
 class svqshl_impl : public unspec_based_function
 {
 public:
-  CONSTEXPR svqshl_impl ()
+  constexpr svqshl_impl ()
     : unspec_based_function (UNSPEC_SQSHL, UNSPEC_UQSHL, -1) {}
 
   gimple *
@@ -660,7 +658,7 @@ public:
 class svrshl_impl : public unspec_based_function
 {
 public:
-  CONSTEXPR svrshl_impl ()
+  constexpr svrshl_impl ()
     : unspec_based_function (UNSPEC_SRSHL, UNSPEC_URSHL, -1) {}
 
   gimple *
@@ -852,7 +850,7 @@ public:
 class svtbl2_impl : public quiet<multi_vector_function>
 {
 public:
-  CONSTEXPR svtbl2_impl () : quiet<multi_vector_function> (2) {}
+  constexpr svtbl2_impl () : quiet<multi_vector_function> (2) {}
 
   rtx
   expand (function_expander &e) const override
@@ -892,7 +890,7 @@ public:
 class svuzpq_impl : public binary_permute
 {
 public:
-  CONSTEXPR svuzpq_impl (unsigned int base)
+  constexpr svuzpq_impl (unsigned int base)
     : binary_permute (base ? UNSPEC_UZPQ2 : UNSPEC_UZPQ1), m_base (base) {}
 
   gimple *
@@ -921,7 +919,7 @@ public:
 class svwhilerw_svwhilewr_impl : public full_width_access
 {
 public:
-  CONSTEXPR svwhilerw_svwhilewr_impl (int unspec) : m_unspec (unspec) {}
+  constexpr svwhilerw_svwhilewr_impl (int unspec) : m_unspec (unspec) {}
 
   rtx
   expand (function_expander &e) const override
@@ -940,7 +938,7 @@ public:
 class svzipq_impl : public binary_permute
 {
 public:
-  CONSTEXPR svzipq_impl (unsigned int base)
+  constexpr svzipq_impl (unsigned int base)
     : binary_permute (base ? UNSPEC_ZIPQ2 : UNSPEC_ZIPQ1), m_base (base) {}
 
   gimple *
@@ -967,8 +965,7 @@ public:
 class svluti_lane_impl : public function_base
 {
 public:
-  CONSTEXPR svluti_lane_impl (unsigned int bits) : m_bits (bits)
-  {}
+  constexpr svluti_lane_impl (unsigned int bits) : m_bits (bits) {}
 
   rtx expand (function_expander &e) const override
   {
@@ -984,9 +981,8 @@ public:
 class faminmaximpl : public function_base
 {
 public:
-  CONSTEXPR faminmaximpl (int cond_unspec, int uncond_unspec)
-    : m_cond_unspec (cond_unspec), m_uncond_unspec (uncond_unspec)
-    {}
+  constexpr faminmaximpl (int cond_unspec, int uncond_unspec)
+    : m_cond_unspec (cond_unspec), m_uncond_unspec (uncond_unspec) {}
 
   rtx
   expand (function_expander &e) const override

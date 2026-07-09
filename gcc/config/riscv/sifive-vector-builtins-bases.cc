@@ -271,13 +271,13 @@ public:
   }
 };
 
-static CONSTEXPR const sf_vqmacc sf_vqmacc_obj;
-static CONSTEXPR const sf_vqmaccu sf_vqmaccu_obj;
-static CONSTEXPR const sf_vqmaccsu sf_vqmaccsu_obj;
-static CONSTEXPR const sf_vqmaccus sf_vqmaccus_obj;
-static CONSTEXPR const sf_vfnrclip_x_f_qf<UNSPEC_SF_VFNRCLIP> sf_vfnrclip_x_f_qf_obj;
-static CONSTEXPR const sf_vfnrclip_xu_f_qf<UNSPEC_SF_VFNRCLIPU> sf_vfnrclip_xu_f_qf_obj;
-static CONSTEXPR const sf_vc sf_vc_obj;
+static constexpr const sf_vqmacc sf_vqmacc_obj;
+static constexpr const sf_vqmaccu sf_vqmaccu_obj;
+static constexpr const sf_vqmaccsu sf_vqmaccsu_obj;
+static constexpr const sf_vqmaccus sf_vqmaccus_obj;
+static constexpr const sf_vfnrclip_x_f_qf<UNSPEC_SF_VFNRCLIP> sf_vfnrclip_x_f_qf_obj;
+static constexpr const sf_vfnrclip_xu_f_qf<UNSPEC_SF_VFNRCLIPU> sf_vfnrclip_xu_f_qf_obj;
+static constexpr const sf_vc sf_vc_obj;
 
 /* Declare the function base NAME, pointing it to an instance
    of class <NAME>_obj.  */

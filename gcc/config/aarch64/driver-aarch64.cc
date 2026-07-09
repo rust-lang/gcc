@@ -65,7 +65,7 @@ struct aarch64_core_data
 #define AARCH64_CORE(CORE_NAME, CORE_IDENT, SCHED, ARCH, FLAGS, COSTS, IMP, PART, VARIANT) \
   { CORE_NAME, #ARCH, IMP, PART, unsigned(VARIANT), feature_deps::cpu_##CORE_IDENT },
 
-static CONSTEXPR const aarch64_core_data aarch64_cpu_data[] =
+static constexpr const aarch64_core_data aarch64_cpu_data[] =
 {
 #include "aarch64-cores.def"
   { NULL, NULL, INVALID_IMP, INVALID_CORE, ALL_VARIANTS, 0 }
@@ -83,7 +83,7 @@ struct aarch64_arch_driver_info
 #define AARCH64_ARCH(NAME, CORE, ARCH_IDENT, ARCH_REV, FLAGS) \
   { #ARCH_IDENT + 1, NAME, feature_deps::ARCH_IDENT ().enable },
 
-static CONSTEXPR const aarch64_arch_driver_info aarch64_arches[] =
+static constexpr const aarch64_arch_driver_info aarch64_arches[] =
 {
 #include "aarch64-arches.def"
   {NULL, NULL, 0}

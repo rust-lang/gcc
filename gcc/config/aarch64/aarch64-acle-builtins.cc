@@ -105,7 +105,7 @@ struct registered_function_hasher : ggc_ptr_hash <registered_function>
 };
 
 /* Information about each single-predicate or single-vector type.  */
-static CONSTEXPR const vector_type_info vector_types[] = {
+static constexpr const vector_type_info vector_types[] = {
 #define DEF_SVE_TYPE(ACLE_NAME, NCHARS, ABI_NAME, SCALAR_TYPE) \
   { #ACLE_NAME, #ABI_NAME, "u" #NCHARS #ABI_NAME },
 #include "aarch64-sve-builtins.def"
@@ -123,17 +123,16 @@ static const char *const pred_suffixes[NUM_PREDS + 1] = {
 };
 
 /* Static information about each mode_suffix_index.  */
-CONSTEXPR const mode_suffix_info mode_suffixes[] = {
+constexpr const mode_suffix_info mode_suffixes[] = {
 #define VECTOR_TYPE_none NUM_VECTOR_TYPES
 #define DEF_SVE_MODE(NAME, BASE, DISPLACEMENT, UNITS) \
   { "_" #NAME, VECTOR_TYPE_##BASE, VECTOR_TYPE_##DISPLACEMENT, UNITS_##UNITS },
 #include "aarch64-sve-builtins.def"
 #undef VECTOR_TYPE_none
-  { "", NUM_VECTOR_TYPES, NUM_VECTOR_TYPES, UNITS_none }
-};
+  {"", NUM_VECTOR_TYPES, NUM_VECTOR_TYPES, UNITS_none}};
 
 /* Static information about each type_suffix_index.  */
-CONSTEXPR const type_suffix_info type_suffixes[NUM_TYPE_SUFFIXES + 1] = {
+constexpr const type_suffix_info type_suffixes[NUM_TYPE_SUFFIXES + 1] = {
 #define DEF_SVE_NEON_TYPE_SUFFIX(NAME, ACLE_TYPE, CLASS, BITS, MODE, \
 				 NEON64, NEON128) \
   { "_" #NAME, \
@@ -175,7 +174,7 @@ CONSTEXPR const type_suffix_info type_suffixes[NUM_TYPE_SUFFIXES + 1] = {
     false, false, 0, VOIDmode, ARM_NEON_H_TYPES_LAST, ARM_NEON_H_TYPES_LAST }
 };
 
-CONSTEXPR const group_suffix_info group_suffixes[] = {
+constexpr const group_suffix_info group_suffixes[] = {
 #define DEF_SVE_GROUP_SUFFIX(NAME, VG, VECTORS_PER_TUPLE) \
   { "_" #NAME, VG, VECTORS_PER_TUPLE },
 #include "aarch64-sve-builtins.def"
@@ -198,7 +197,7 @@ constexpr const aarch64_acle::function_group_info neon_function_groups[] = {
 };
 
 /* A list of all arm_sve.h functions.  */
-static CONSTEXPR const function_group_info function_groups[] = {
+static constexpr const function_group_info function_groups[] = {
 #define DEF_SVE_FUNCTION_GS_FPM(NAME, SHAPE, TYPES, GROUPS, PREDS, FPM_MODE) \
   { #NAME, &functions::NAME, &shapes::SHAPE, types_##TYPES, groups_##GROUPS, \
     preds_##PREDS, aarch64_required_extensions::REQUIRED_EXTENSIONS, \
@@ -207,7 +206,7 @@ static CONSTEXPR const function_group_info function_groups[] = {
 };
 
 /* A list of all arm_neon_sve_bridge.h ACLE functions.  */
-static CONSTEXPR const function_group_info neon_sve_function_groups[] = {
+static constexpr const function_group_info neon_sve_function_groups[] = {
 #define DEF_NEON_SVE_FUNCTION(NAME, SHAPE, TYPES, GROUPS, PREDS) \
   { #NAME, &neon_sve_bridge_functions::NAME, &shapes::SHAPE, types_##TYPES, \
     groups_##GROUPS, preds_##PREDS, aarch64_required_extensions::ssve (0), \
@@ -216,7 +215,7 @@ static CONSTEXPR const function_group_info neon_sve_function_groups[] = {
 };
 
 /* A list of all arm_sme.h functions.  */
-static CONSTEXPR const function_group_info sme_function_groups[] = {
+static constexpr const function_group_info sme_function_groups[] = {
 #define DEF_SME_FUNCTION_GS_FPM(NAME, SHAPE, TYPES, GROUPS, PREDS, FPM_MODE) \
   { #NAME, &functions::NAME, &shapes::SHAPE, types_##TYPES, groups_##GROUPS, \
     preds_##PREDS, aarch64_required_extensions::REQUIRED_EXTENSIONS, \

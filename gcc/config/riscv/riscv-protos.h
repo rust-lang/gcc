@@ -304,7 +304,7 @@ struct common_vector_cost
 /* scalable vectorization (VLA) specific cost.  */
 struct scalable_vector_cost : common_vector_cost
 {
-  CONSTEXPR scalable_vector_cost (const common_vector_cost &base)
+  constexpr scalable_vector_cost (const common_vector_cost &base)
     : common_vector_cost (base)
   {}
 

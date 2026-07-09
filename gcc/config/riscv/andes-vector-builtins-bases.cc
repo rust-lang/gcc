@@ -150,18 +150,18 @@ public:
   }
 };
 
-static CONSTEXPR const nds_vfwcvtbf16_f nds_vfwcvt_s_obj;
-static CONSTEXPR const nds_vfncvtbf16_f<NO_FRM> nds_vfncvt_bf16_obj;
-static CONSTEXPR const nds_vfncvtbf16_f<HAS_FRM> nds_vfncvt_bf16_frm_obj;
-static CONSTEXPR const nds_nibbleload<true> nds_vln8_obj;
-static CONSTEXPR const nds_nibbleload<false> nds_vlnu8_obj;
-static CONSTEXPR const nds_vfpmad <UNSPEC_NDS_VFPMADT, NO_FRM> nds_vfpmadt_obj;
-static CONSTEXPR const nds_vfpmad <UNSPEC_NDS_VFPMADB, NO_FRM> nds_vfpmadb_obj;
-static CONSTEXPR const nds_vfpmad <UNSPEC_NDS_VFPMADT, HAS_FRM> nds_vfpmadt_frm_obj;
-static CONSTEXPR const nds_vfpmad <UNSPEC_NDS_VFPMADB, HAS_FRM> nds_vfpmadb_frm_obj;
-static CONSTEXPR const nds_vd4dot<SIGN_EXTEND> nds_vd4dots_obj;
-static CONSTEXPR const nds_vd4dot<ZERO_EXTEND> nds_vd4dotu_obj;
-static CONSTEXPR const nds_vd4dotsu nds_vd4dotsu_obj;
+static constexpr const nds_vfwcvtbf16_f nds_vfwcvt_s_obj;
+static constexpr const nds_vfncvtbf16_f<NO_FRM> nds_vfncvt_bf16_obj;
+static constexpr const nds_vfncvtbf16_f<HAS_FRM> nds_vfncvt_bf16_frm_obj;
+static constexpr const nds_nibbleload<true> nds_vln8_obj;
+static constexpr const nds_nibbleload<false> nds_vlnu8_obj;
+static constexpr const nds_vfpmad <UNSPEC_NDS_VFPMADT, NO_FRM> nds_vfpmadt_obj;
+static constexpr const nds_vfpmad <UNSPEC_NDS_VFPMADB, NO_FRM> nds_vfpmadb_obj;
+static constexpr const nds_vfpmad <UNSPEC_NDS_VFPMADT, HAS_FRM> nds_vfpmadt_frm_obj;
+static constexpr const nds_vfpmad <UNSPEC_NDS_VFPMADB, HAS_FRM> nds_vfpmadb_frm_obj;
+static constexpr const nds_vd4dot<SIGN_EXTEND> nds_vd4dots_obj;
+static constexpr const nds_vd4dot<ZERO_EXTEND> nds_vd4dotu_obj;
+static constexpr const nds_vd4dotsu nds_vd4dotsu_obj;
 
 /* Declare the function base NAME, pointing it to an instance
    of class <NAME>_obj.  */

@@ -32,7 +32,7 @@ template<typename T>
 class quiet : public T
 {
 public:
-  CONSTEXPR quiet () : T () {}
+  constexpr quiet () : T () {}
 
   unsigned int
   call_properties (const function_instance &) const override
@@ -53,7 +53,7 @@ public:
 class unspec_based_mve_function_base : public function_base
 {
 public:
-  CONSTEXPR unspec_based_mve_function_base (rtx_code code_for_sint,
+  constexpr unspec_based_mve_function_base (rtx_code code_for_sint,
 					    rtx_code code_for_uint,
 					    rtx_code code_for_fp,
 					    int unspec_for_sint,
@@ -209,7 +209,7 @@ unspec_based_mve_function_base::expand_unspec (function_expander &e) const
 class unspec_based_mve_function_exact_insn : public unspec_based_mve_function_base
 {
 public:
-  CONSTEXPR unspec_based_mve_function_exact_insn (rtx_code code_for_sint,
+  constexpr unspec_based_mve_function_exact_insn (rtx_code code_for_sint,
 						  rtx_code code_for_uint,
 						  rtx_code code_for_fp,
 						  int unspec_for_n_sint,
@@ -256,7 +256,7 @@ public:
 class unspec_mve_function_exact_insn : public unspec_based_mve_function_base
 {
 public:
-  CONSTEXPR unspec_mve_function_exact_insn (int unspec_for_sint,
+  constexpr unspec_mve_function_exact_insn (int unspec_for_sint,
 					    int unspec_for_uint,
 					    int unspec_for_fp,
 					    int unspec_for_n_sint,
@@ -297,7 +297,7 @@ public:
 class unspec_mve_function_exact_insn_pred_p : public unspec_based_mve_function_base
 {
 public:
-  CONSTEXPR unspec_mve_function_exact_insn_pred_p (int unspec_for_sint,
+  constexpr unspec_mve_function_exact_insn_pred_p (int unspec_for_sint,
 						   int unspec_for_uint,
 						   int unspec_for_fp,
 						   int unspec_for_p_sint,
@@ -389,7 +389,7 @@ public:
 class unspec_mve_function_exact_insn_vshl : public unspec_based_mve_function_base
 {
 public:
-  CONSTEXPR unspec_mve_function_exact_insn_vshl (int unspec_for_sint,
+  constexpr unspec_mve_function_exact_insn_vshl (int unspec_for_sint,
 						 int unspec_for_uint,
 						 int unspec_for_n_sint,
 						 int unspec_for_n_uint,
@@ -477,7 +477,7 @@ public:
 class unspec_based_mve_function_exact_insn_vbic : public unspec_based_mve_function_base
 {
 public:
-  CONSTEXPR unspec_based_mve_function_exact_insn_vbic (int unspec_for_n_sint,
+  constexpr unspec_based_mve_function_exact_insn_vbic (int unspec_for_n_sint,
 						       int unspec_for_n_uint,
 						       int unspec_for_m_sint,
 						       int unspec_for_m_uint,
@@ -531,7 +531,7 @@ public:
 class unspec_based_mve_function_exact_insn_vorn : public unspec_based_mve_function_base
 {
 public:
-  CONSTEXPR unspec_based_mve_function_exact_insn_vorn (int unspec_for_n_sint,
+  constexpr unspec_based_mve_function_exact_insn_vorn (int unspec_for_n_sint,
 						       int unspec_for_n_uint,
 						       int unspec_for_m_sint,
 						       int unspec_for_m_uint,
@@ -581,7 +581,7 @@ public:
 class unspec_based_mve_function_exact_insn_vcmp : public unspec_based_mve_function_base
 {
 public:
-  CONSTEXPR unspec_based_mve_function_exact_insn_vcmp (rtx_code code_for_sint,
+  constexpr unspec_based_mve_function_exact_insn_vcmp (rtx_code code_for_sint,
 						       rtx_code code_for_uint,
 						       rtx_code code_for_fp,
 						       int unspec_for_m_sint,
@@ -707,7 +707,7 @@ public:
 class unspec_mve_function_exact_insn_rot : public function_base
 {
 public:
-  CONSTEXPR unspec_mve_function_exact_insn_rot (int unspec_for_sint,
+  constexpr unspec_mve_function_exact_insn_rot (int unspec_for_sint,
 						int unspec_for_uint,
 						int unspec_for_fp,
 						int unspec_for_m_sint,
@@ -802,7 +802,7 @@ public:
 class unspec_mve_function_exact_insn_vmull : public function_base
 {
 public:
-  CONSTEXPR unspec_mve_function_exact_insn_vmull (int unspec_for_sint,
+  constexpr unspec_mve_function_exact_insn_vmull (int unspec_for_sint,
 						  int unspec_for_uint,
 						  int unspec_for_m_sint,
 						  int unspec_for_m_uint)
@@ -872,7 +872,7 @@ public:
 class unspec_mve_function_exact_insn_vmull_poly : public function_base
 {
 public:
-  CONSTEXPR unspec_mve_function_exact_insn_vmull_poly (int unspec_for_poly,
+  constexpr unspec_mve_function_exact_insn_vmull_poly (int unspec_for_poly,
 						       int unspec_for_m_poly)
     : m_unspec_for_poly (unspec_for_poly),
       m_unspec_for_m_poly (unspec_for_m_poly)
@@ -926,7 +926,7 @@ public:
 class multi_vector_function : public function_base
 {
 public:
-  CONSTEXPR multi_vector_function (unsigned int vectors_per_tuple)
+  constexpr multi_vector_function (unsigned int vectors_per_tuple)
     : m_vectors_per_tuple (vectors_per_tuple) {}
 
   unsigned int
@@ -945,7 +945,7 @@ public:
 class full_width_access : public multi_vector_function
 {
 public:
-  CONSTEXPR full_width_access (unsigned int vectors_per_tuple = 1)
+  constexpr full_width_access (unsigned int vectors_per_tuple = 1)
     : multi_vector_function (vectors_per_tuple) {}
 
   tree
@@ -972,14 +972,14 @@ public:
 class load_extending : public function_base
 {
 public:
-  CONSTEXPR load_extending (type_suffix_index signed_memory_type,
+  constexpr load_extending (type_suffix_index signed_memory_type,
 			    type_suffix_index unsigned_memory_type,
 			    type_suffix_index float_memory_type)
     : m_signed_memory_type (signed_memory_type),
       m_unsigned_memory_type (unsigned_memory_type),
       m_float_memory_type (float_memory_type)
   {}
-  CONSTEXPR load_extending (type_suffix_index signed_memory_type,
+  constexpr load_extending (type_suffix_index signed_memory_type,
 			    type_suffix_index unsigned_memory_type)
     : m_signed_memory_type (signed_memory_type),
       m_unsigned_memory_type (unsigned_memory_type),
@@ -1029,7 +1029,7 @@ public:
 class store_truncating : public function_base
 {
 public:
-  CONSTEXPR store_truncating (scalar_mode to_int_mode,
+  constexpr store_truncating (scalar_mode to_int_mode,
 			      opt_scalar_mode to_float_mode)
     : m_to_int_mode (to_int_mode), m_to_float_mode (to_float_mode)
   {}
@@ -1072,7 +1072,7 @@ public:
 /* Declare the global function base NAME, creating it from an instance
    of class CLASS with constructor arguments ARGS.  */
 #define FUNCTION(NAME, CLASS, ARGS) \
-  namespace { static CONSTEXPR const CLASS NAME##_obj ARGS; } \
+  namespace { static constexpr const CLASS NAME##_obj ARGS; } \
   namespace functions { const function_base *const NAME = &NAME##_obj; }
 
 #endif

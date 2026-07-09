@@ -331,7 +331,7 @@ class GTY(()) bitmap_head {
 public:
   static bitmap_obstack crashme;
   /* Poison obstack to not make it not a valid initialized GC bitmap.  */
-  CONSTEXPR bitmap_head()
+  constexpr bitmap_head()
     : indx (0), tree_form (false), padding (0), alloc_descriptor (0), first (NULL),
       current (NULL), obstack (&crashme)
   {}

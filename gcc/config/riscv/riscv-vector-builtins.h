@@ -361,7 +361,7 @@ struct function_type_info
 /* RVV Builtin argument information.  */
 struct rvv_arg_type_info
 {
-  CONSTEXPR rvv_arg_type_info (rvv_base_type base_type_in)
+  constexpr rvv_arg_type_info (rvv_base_type base_type_in)
     : base_type (base_type_in)
   {}
   enum rvv_base_type base_type;

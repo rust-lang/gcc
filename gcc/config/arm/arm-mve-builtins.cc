@@ -93,7 +93,7 @@ struct registered_function_hasher : nofree_ptr_hash <registered_function>
 static bool handle_arm_mve_types_p;
 
 /* Information about each single-predicate or single-vector type.  */
-static CONSTEXPR const vector_type_info vector_types[] = {
+static constexpr const vector_type_info vector_types[] = {
 #define DEF_MVE_TYPE(ACLE_NAME, SCALAR_TYPE) \
   { #ACLE_NAME, REQUIRES_FLOAT },
 #include "arm-mve-builtins.def"
@@ -110,7 +110,7 @@ static const char *const pred_suffixes[NUM_PREDS + 1] = {
 };
 
 /* Static information about each mode_suffix_index.  */
-CONSTEXPR const mode_suffix_info mode_suffixes[] = {
+constexpr const mode_suffix_info mode_suffixes[] = {
 #define VECTOR_TYPE_none NUM_VECTOR_TYPES
 #define DEF_MVE_MODE(NAME, BASE, DISPLACEMENT, UNITS) \
   { "_" #NAME, VECTOR_TYPE_##BASE, VECTOR_TYPE_##DISPLACEMENT, UNITS_##UNITS },
@@ -120,7 +120,7 @@ CONSTEXPR const mode_suffix_info mode_suffixes[] = {
 };
 
 /* Static information about each type_suffix_index.  */
-CONSTEXPR const type_suffix_info type_suffixes[NUM_TYPE_SUFFIXES + 1] = {
+constexpr const type_suffix_info type_suffixes[NUM_TYPE_SUFFIXES + 1] = {
 #define DEF_MVE_TYPE_SUFFIX(NAME, ACLE_TYPE, CLASS, BITS, MODE)	\
   { "_" #NAME, \
     VECTOR_TYPE_##ACLE_TYPE, \
@@ -357,7 +357,7 @@ static const predication_index preds_z_or_none[]
   = {PRED_z, PRED_none, NUM_PREDS};
 
 /* A list of all MVE ACLE functions.  */
-static CONSTEXPR const function_group_info function_groups[] = {
+static constexpr const function_group_info function_groups[] = {
 #define DEF_MVE_FUNCTION(NAME, SHAPE, TYPES, PREDS)			\
   { #NAME, &functions::NAME, &shapes::SHAPE, types_##TYPES, preds_##PREDS, \
     REQUIRES_FLOAT },
