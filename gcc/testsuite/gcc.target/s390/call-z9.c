@@ -12,5 +12,4 @@
 /* { dg-final { scan-assembler {brasl\t%r\d+,fooweak@PLT\n} } } */
 /* { dg-final { scan-assembler {larl\t%r2,fooweak\n} } } */
 
-/* { dg-final { scan-assembler {foos:\n\t.quad\tfoo\n\t.quad\tfoostatic\n\t.quad\tfooweak\n} { target lp64 } } } */
-/* { dg-final { scan-assembler {foos:\n\t.long\tfoo\n\t.long\tfoostatic\n\t.long\tfooweak\n} { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler {foos:\n\t.quad\tfoo\n\t.quad\tfoostatic\n\t.quad\tfooweak\n} } } */

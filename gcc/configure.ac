@@ -4220,23 +4220,6 @@ x:	.word 2
 	la.tls.gd a0,x
         call __tls_get_addr'
 	;;
-  s390-*-*)
-    conftest_s='
-	.section ".tdata","awT",@progbits
-foo:	.long	25
-	.text
-	.long	foo@TLSGD
-	.long	foo@TLSLDM
-	.long	foo@DTPOFF
-	.long	foo@NTPOFF
-	.long	foo@GOTNTPOFF
-	.long	foo@INDNTPOFF
-	l	%r1,foo@GOTNTPOFF(%r12)
-	l	%r1,0(%r1):tls_load:foo
-	bas	%r14,0(%r1,%r13):tls_gdcall:foo
-	bas	%r14,0(%r1,%r13):tls_ldcall:foo'
-	tls_as_opt="-m31"
-	;;
   s390x-*-*)
     conftest_s='
 	.section ".tdata","awT",@progbits
@@ -5545,7 +5528,7 @@ x:
       [AC_DEFINE(HAVE_AS_16B_ATOMIC, 1,
 	  [Define if your assembler supports LSX and SCQ for 16B atomic.])])
     ;;
-    s390*-*-*)
+    s390x-*-*)
     gcc_GAS_CHECK_FEATURE([.gnu_attribute support],
       gcc_cv_as_s390_gnu_attribute,,
       [.gnu_attribute 8,1],,
@@ -6952,14 +6935,14 @@ AS_IF([test x$gcc_cv_sys_sdt_h = xyes], [
 case "$target" in
   powerpc*-*-linux* | \
   sparc*-*-linux* | \
-  s390*-*-linux* | \
+  s390x-*-linux* | \
   alpha*-*-linux*)
     AC_ARG_WITH(long-double-128,
       [AS_HELP_STRING([--with-long-double-128],
 		      [use 128-bit long double by default])],
       gcc_cv_target_ldbl128="$with_long_double_128", [
       case "$target" in
-	s390*-*-linux-musl*)
+	s390x-*-linux-musl*)
 	  gcc_cv_target_ldbl128=yes
 	  ;;
 	powerpc*-*-linux-musl*)
@@ -7804,7 +7787,7 @@ AC_ARG_ENABLE(s390-excess-float-precision,
   [],[enable_s390_excess_float_precision=auto])
 
 case $target in
-  s390*-linux*)
+  s390x-linux*)
   if test x"$enable_s390_excess_float_precision" = xauto; then
     # Can we autodetect the behavior of the target libc?
     if test "$target" = "$host" -a "$host" = "$build"; then

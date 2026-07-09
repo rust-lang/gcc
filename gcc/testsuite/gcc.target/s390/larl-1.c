@@ -1,14 +1,13 @@
 /* Check if load-address-relative instructions are created */
 
-/* { dg-do compile { target { s390*-*-* } } } */
+/* { dg-do compile } */
 /* { dg-options "-O2 -march=z10 -mzarch -fno-section-anchors" } */
 
 /* An explicitly misaligned symbol.  This symbol is NOT aligned as
    mandated by our ABI.  However, the back-end needs to handle that in
    order to make things like __attribute__((packed)) work.  The symbol
    address is expected to be loaded from literal pool.  */
-/* { dg-final { scan-assembler "lgrl\t%r2," { target { lp64 } } } } */
-/* { dg-final { scan-assembler "lrl\t%r2," { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler "lgrl\t%r2," } } */
 extern char align1 __attribute__((aligned(1)));
 
 /* { dg-final { scan-assembler "larl\t%r2,align2" } } */

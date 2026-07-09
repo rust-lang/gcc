@@ -33,7 +33,6 @@
 	/* _ITM_beginTransaction (int props); props -> r2 */
 _ITM_beginTransaction:
 	cfi_startproc
-#ifdef __s390x__
 	lgr	%r3,%r15	/* backup stack pointer */
 	aghi	%r15,-304	/* jump buffer (144) + reg save area (160) */
 	cfi_adjust_cfa_offset(304)
@@ -53,22 +52,6 @@ _ITM_beginTransaction:
 	aghi	%r15,304
 	cfi_adjust_cfa_offset(-304)
 	br	%r1
-#else
-	lr	%r3,%r15	/* backup stack pointer */
-	ahi	%r15,-152	/* jump buffer (56) + reg save area (96) */
-	cfi_adjust_cfa_offset(152)
-	stm	%r6,%r14,96(%r15)
-	st	%r3,36+96(%r15)	/* store the old stack pointer */
-	std	%f4,40+96(%r15)
-	std	%f6,48+96(%r15)
-	la	%r3,96(%r15)	/* second argument to GTM_begin_transaction */
-	/* begin_transaction (uint32_t prop, const gtm_jmpbuf *jb) */
-	brasl	%r14,GTM_begin_transaction /* requires mzarch */
-	l	%r1,32+96(%r15)
-	ahi	%r15,152
-	cfi_adjust_cfa_offset(-152)
-	br	%r1
-#endif
 	cfi_endproc
 
 	.size _ITM_beginTransaction, .-_ITM_beginTransaction
@@ -84,7 +67,6 @@ GTM_longjmp:
 	   _ITM_beginTransaction (r2).
 	   Third parameter is ignored for now.  */
 	cfi_startproc
-#ifdef __s390x__
 	ld	%f8,80(%r3)
 	ld	%f9,88(%r3)
 	ld	%f10,96(%r3)
@@ -95,12 +77,6 @@ GTM_longjmp:
 	ld	%f15,136(%r3)
 	lmg	%r6,%r15,0(%r3)
 	br	%r14
-#else
-	ld	%f4,40(%r3)
-	ld	%f6,48(%r3)
-	lm	%r6,%r15,0(%r3)
-	br	%r14
-#endif
 	cfi_endproc
 
 	.size GTM_longjmp, .-GTM_longjmp

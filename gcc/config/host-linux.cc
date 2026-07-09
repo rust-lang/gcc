@@ -78,8 +78,6 @@
 # define TRY_EMPTY_VM_SPACE	0x60000000
 #elif defined(__s390x__)
 # define TRY_EMPTY_VM_SPACE	0x8000000000
-#elif defined(__s390__)
-# define TRY_EMPTY_VM_SPACE	0x60000000
 #elif defined(__sparc__) && defined(__LP64__)
 # define TRY_EMPTY_VM_SPACE	0x8000000000
 #elif defined(__sparc__)

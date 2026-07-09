@@ -1,7 +1,6 @@
 /* { dg-do compile } */
 /* { dg-require-effective-target bswap } */
 /* { dg-options "-O2 -fno-tree-vectorize -fdump-tree-optimized -fno-inline-functions" } */
-/* { dg-additional-options "-march=z900" { target s390-*-* } } */
 
 struct L { unsigned int l[2]; };
 union U { double a; struct L l; } u;

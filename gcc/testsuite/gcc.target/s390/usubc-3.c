@@ -2,12 +2,9 @@
 /* { dg-options "-O2 -march=z13 -mzarch -save-temps -fdump-tree-optimized" }  */
 /* { dg-final { scan-tree-dump-times "\\.USUBC \\(\[^,\]+, \[^,\]+, 0\\)" 1 "optimized" } } */
 /* { dg-final { scan-tree-dump-times "\\.USUBC \\(\[^,\]+, \[^,\]+, _.+\\)" 1 "optimized" } } */
-/* { dg-final { scan-assembler-times "slg\t" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "alcgr\t" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "slbg\t" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "sl\t" 1 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "alcr\t" 1 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "slb\t" 1 { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler-times "slg\t" 1 } } */
+/* { dg-final { scan-assembler-times "alcgr\t" 1 } } */
+/* { dg-final { scan-assembler-times "slbg\t" 1 } } */
 
 static unsigned long
 usubc (unsigned long x, unsigned long y, unsigned long carry_in, unsigned long *carry_out)

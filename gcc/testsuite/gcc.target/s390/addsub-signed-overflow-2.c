@@ -1,5 +1,5 @@
 /* { dg-do run } */
-/* { dg-options "-O3 -march=z13 -mzarch --save-temps" } */
+/* { dg-options "-O3 -march=z13 --save-temps" } */
 
 #include <stddef.h>
 #include <limits.h>
@@ -73,10 +73,7 @@ main ()
 /* { dg-final { scan-assembler-not "\tcgr" } } */
 /* { dg-final { scan-assembler-not "\txgr" } } */
 /* { dg-final { scan-assembler-not "\tngr" } } */
-/* On 31 bit the long long variants use risbgn to merge the 32 bit
-   regs into a 64 bit reg.  */
-/* { dg-final { scan-assembler-not "\trisbg" { target { lp64 } } } } */
+/* { dg-final { scan-assembler-not "\trisbg" } } */
 /* Just one for the ret != 3 comparison.  */
 /* { dg-final { scan-assembler-times "ci" 1 } } */
-/* { dg-final { scan-assembler-times "\tlochio\t" 6 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "\tlocghio\t" 6 { target lp64 } } } */
+/* { dg-final { scan-assembler-times "\tlocghio\t" 6 */

@@ -21,10 +21,6 @@
    see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
    <http://www.gnu.org/licenses/>.  */
 
-#if ! __s390x__
-# error "soft-fp implemented for s390x only"
-#endif
-
 #define _FP_W_TYPE_SIZE         64
 #define _FP_W_TYPE              unsigned long long
 #define _FP_WS_TYPE             signed long long

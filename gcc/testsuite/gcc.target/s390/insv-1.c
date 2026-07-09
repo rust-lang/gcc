@@ -109,10 +109,4 @@ foo4c (unsigned long a, unsigned long b)
 }
 
 /* The functions foo3, foo4, foo3b, foo4b no longer use risbg but rosbg instead.
-
-   On 64 bit, four risbg go away and four new ones appear in other functions
-     { dg-final { scan-assembler-times "risbg" 6 { target { lp64 } } } }
-
-   ... but not on 31 bit.
-     { dg-final { scan-assembler-times "risbg" 2 { target { ! lp64 } } } }
-*/
+   { dg-final { scan-assembler-times "risbg" 6 } }  */

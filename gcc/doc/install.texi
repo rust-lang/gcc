@@ -879,7 +879,7 @@ mips64orion, mips64vr, mipsel, mipsisa32, mipsisa32r2, mipsisa64, mipsisa64r2,
 mipsisa64r2el, mipsisa64sb1, mipsisa64sr71k, mipstx39, mmix, mn10300, moxie,
 msp430, nds32be, nds32le, nvptx, or1k, pdp11, powerpc, powerpc64,
 powerpc64le, powerpcle, pru, riscv32, riscv32be, riscv64, riscv64be, rl78, rx,
-s390, s390x, sh, shle, sparc, sparc64, tic6x, v850,
+s390x, sh, shle, sparc, sparc64, tic6x, v850,
 v850e, v850e1, vax, visium, x86_64, xstormy16, xtensa
 @end quotation
 
@@ -2239,7 +2239,7 @@ you are building a bi-arch or multi-arch Binutils in a combined tree.
 On mips-linux, this will build a tri-arch compiler (ABI o32/n32/64),
 defaulted to o32.
 Currently, this option only affects sparc-linux, powerpc-linux, x86-linux,
-mips-linux and s390-linux.
+and mips-linux.
 
 @item --enable-default-pie
 Turn on @option{-fPIE} and @option{-pie} by default.
@@ -2732,7 +2732,7 @@ target if target Binutils supported.
 
 @item --enable-s390-excess-float-precision
 @itemx --disable-s390-excess-float-precision
-On s390(x) targets, enable treatment of float expressions with double precision
+On s390x targets, enable treatment of float expressions with double precision
 when in standards-compliant mode (e.g., when @code{--std=c99} or
 @code{-fexcess-precision=standard} are given).
 

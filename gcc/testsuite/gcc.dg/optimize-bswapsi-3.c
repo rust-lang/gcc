@@ -2,7 +2,6 @@
 /* { dg-require-effective-target bswap } */
 /* { dg-require-effective-target stdint_types } */
 /* { dg-options "-O2 -fdump-tree-optimized" } */
-/* { dg-additional-options "-march=z900" { target s390-*-* } } */
 
 typedef int SItype __attribute__ ((mode (SI)));
 typedef int DItype __attribute__ ((mode (DI)));

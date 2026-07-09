@@ -10,5 +10,4 @@ void a(void)
     c(b);
 }
 
-/* { dg-final { scan-assembler-times {\n\tear\t} 2 { target { lp64 } } } } */
-/* { dg-final { scan-assembler-times {\n\tear\t} 1 { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler-times {\n\tear\t} 2 } } */

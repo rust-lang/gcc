@@ -1,12 +1,9 @@
 /* { dg-do compile } */
 /* { dg-options "-O2 -fstack-protector-all" } */
-/* { dg-final { scan-assembler-times {\tear\t%r[0-9]+,%a[01]} 8 { target lp64 } } } */
-/* { dg-final { scan-assembler-times {\tsllg\t%r[0-9]+,%r[0-9]+,32} 4 { target lp64 } } } */
-/* { dg-final { scan-assembler-times {\tear\t%r[0-9]+,%a[01]} 3 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times {\tmvc\t160\(8,%r15\),40\(%r[0-9]+\)} 2 { target lp64 } } } */
-/* { dg-final { scan-assembler-times {\tmvc\t100\(4,%r15\),20\(%r[0-9]+\)} 2 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times {\tclc\t160\(8,%r15\),40\(%r[0-9]+\)} 2 { target lp64 } } } */
-/* { dg-final { scan-assembler-times {\tclc\t100\(4,%r15\),20\(%r[0-9]+\)} 2 { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler-times {\tear\t%r[0-9]+,%a[01]} 8 } } */
+/* { dg-final { scan-assembler-times {\tsllg\t%r[0-9]+,%r[0-9]+,32} 4 } } */
+/* { dg-final { scan-assembler-times {\tmvc\t160\(8,%r15\),40\(%r[0-9]+\)} 2 } } */
+/* { dg-final { scan-assembler-times {\tclc\t160\(8,%r15\),40\(%r[0-9]+\)} 2 } } */
 
 /* Computing the address of the thread pointer on s390 involves multiple
    instructions and therefore bears the risk that the address of the canary or

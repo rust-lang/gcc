@@ -1,11 +1,10 @@
 /* { dg-do run { target { s390_useable_hw } } } */
 /* { dg-options "-O2 -march=z13 -mzarch -save-temps -fdump-tree-optimized" }  */
-/* { dg-final { scan-tree-dump-times "\\.USUBC \\(" 4 "optimized" { target lp64 } } } */
-/* { dg-final { scan-tree-dump-times "\\.USUBC \\(" 2 "optimized" { target { ! lp64 } } } } */
+/* { dg-final { scan-tree-dump-times "\\.USUBC \\(" 4 "optimized" } } */
 /* { dg-final { scan-assembler-times "\\tslbr\\t" 1 } } */
 /* { dg-final { scan-assembler-times "\\tslb\\t" 1 } } */
-/* { dg-final { scan-assembler-times "\\tslbgr\\t" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "\\tslbg\\t" 1 { target lp64 } } } */
+/* { dg-final { scan-assembler-times "\\tslbgr\\t" 1 } } */
+/* { dg-final { scan-assembler-times "\\tslbg\\t" 1 } } */
 
 #include <assert.h>
 

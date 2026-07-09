@@ -2,7 +2,6 @@
 /* { dg-do compile } */
 /* { dg-require-effective-target bswap } */
 /* { dg-options "-O2 -fno-tree-vectorize -fdump-tree-optimized" } */
-/* { dg-additional-options "-march=z900" { target s390-*-* } } */
 
 static unsigned int
 f1 (unsigned int x)

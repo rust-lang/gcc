@@ -4,7 +4,6 @@
 /* { dg-additional-options "-mtune-ctrl=^one_if_conv_insn" { target { i?86-*-* x86_64-*-* } } } */
 /* { dg-skip-if "Multiple set if-conversion not guaranteed on all subtargets" { "arm*-*-* avr-*-* cris-*-* hppa*64*-*-* visium-*-*" riscv*-*-* msp430-*-* pru-*-* loongarch32-*-* } }  */
 /* { dg-skip-if "" { { sparc*-*-* } && { ! sparc_v9 } } }  */
-/* { dg-skip-if "" { "s390x-*-*" } { "-m31" } }  */
 
 typedef int word __attribute__((mode(word)));
 

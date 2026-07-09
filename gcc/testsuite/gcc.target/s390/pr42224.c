@@ -1,6 +1,8 @@
 /* { dg-do compile } */
 /* { dg-options "-O0 -Wno-implicit-function-declaration" } */
 
+#ifdef __tpf__
+
 typedef char* __char_ptr32 __attribute__ (( mode (SI) ));
 typedef __char_ptr32 *__char_ptr_char_ptr32 __attribute__ ((mode (SI)));
 
@@ -33,3 +35,4 @@ to_ptr32_ptr32 (char **ptr64)
 
 }
 
+#endif

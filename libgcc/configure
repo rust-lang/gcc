@@ -5336,7 +5336,7 @@ $as_echo "$libgcc_cv_powerpc_3_1_float128_hw" >&6; }
 esac
 
 case ${host} in
-s390*-*-linux*)
+s390x-*-linux*)
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking Support float16 on s390" >&5
 $as_echo_n "checking Support float16 on s390... " >&6; }
 if ${libgcc_cv_s390_float16+:} false; then :

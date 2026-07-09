@@ -44,11 +44,13 @@ Variable
 long s390_cost_pointer
 
 m31
-Target RejectNegative Negative(m64) InverseMask(64BIT)
-31 bit ABI.
+Target Var(flag_m31) Undocumented
 
+; After removing -m31, -m64 is the only supported ABI.
+; Therefore, specifying -m64 doesn't have any additional effect.
+; However, keep it for backwards compatibility.
 m64
-Target RejectNegative Negative(m31) Mask(64BIT)
+Target Ignore
 64 bit ABI.
 
 march=
@@ -139,7 +141,7 @@ Target Mask(DEBUG_ARG) Save
 Additional debug prints.
 
 mesa
-Target RejectNegative Negative(mzarch) InverseMask(ZARCH)
+Target Var(flag_mesa) Undocumented
 ESA/390 architecture.
 
 mhard-dfp
@@ -243,8 +245,11 @@ mwarn-framesize=
 Target RejectNegative Joined UInteger Var(s390_warn_framesize) Save
 Warn if a single function's framesize exceeds the given framesize.
 
+; After removing ESA/390 support, z/Architecture is the only supported
+; cpu mode.  Therefore, specifying -mzarch doesn't have any additional
+; effect.  However, keep it for backwards compatibility.
 mzarch
-Target RejectNegative Negative(mesa) Mask(ZARCH)
+Target Ignore
 z/Architecture.
 
 ; This option was added to fix some testsuite failures.

@@ -276,15 +276,6 @@ case ${target} in
     fi;;
 esac
 
-case ${target} in
-  s390-*)
-    if test "x$enable_obsolete" != xyes; then
-      echo "*** Configuration ${target} is deprecated and will be removed." >&2
-      echo "*** Specify --enable-obsolete to build it anyway." >&2
-      exit 1
-    fi;;
-esac
-
 # Unsupported targets list.  Do not put an entry in this list unless
 # it would otherwise be caught by a more permissive pattern.  The list
 # should be in alphabetical order.
@@ -310,6 +301,7 @@ case ${target}${target_min} in
  | pdp11-*-bsd				\
  | powerpc*-*-linux*paired*		\
  | powerpc*-*-*spe*			\
+ | s390-*-*				\
  | sparc-hal-solaris2*			\
  | spu*-*-*				\
  | thumb-*-*				\
@@ -603,7 +595,7 @@ sparc*-*-*)
 	d_target_objs="sparc-d.o"
 	extra_headers="visintrin.h"
 	;;
-s390*-*-*)
+s390x-*-*)
 	cpu_type=s390
 	d_target_objs="s390-d.o"
 	extra_options="${extra_options} fused-madd.opt"
@@ -3270,17 +3262,8 @@ rx-*-linux*)
 	tm_file="elfos.h linux.h glibc-stdint.h rx/linux.h ../../libgcc/config/rx/rx-abi.h"
 	tmake_file="${tmake_file} rx/t-linux"
 	;;
-s390-*-linux*)
-	tm_file="s390/s390.h elfos.h gnu-user.h linux.h glibc-stdint.h s390/linux.h"
-	c_target_objs="${c_target_objs} s390-c.o"
-	cxx_target_objs="${cxx_target_objs} s390-c.o"
-	if test x$enable_targets = xall; then
-		tmake_file="${tmake_file} s390/t-linux64"
-	fi
-	tmake_file="${tmake_file} s390/t-s390"
-	;;
 s390x-*-linux*)
-	tm_file="s390/s390x.h s390/s390.h elfos.h gnu-user.h linux.h glibc-stdint.h s390/linux.h"
+	tm_file="s390/s390.h elfos.h gnu-user.h linux.h glibc-stdint.h s390/linux.h"
 	tm_p_file="linux-protos.h s390/s390-protos.h"
 	c_target_objs="${c_target_objs} s390-c.o"
 	cxx_target_objs="${cxx_target_objs} s390-c.o"
@@ -3290,7 +3273,7 @@ s390x-*-linux*)
 	tmake_file="${tmake_file} s390/t-linux64 s390/t-s390"
 	;;
 s390x-ibm-tpf*)
-	tm_file="s390/s390x.h s390/s390.h elfos.h glibc-stdint.h s390/tpf.h"
+	tm_file="s390/s390.h elfos.h glibc-stdint.h s390/tpf.h"
 	tm_p_file=s390/s390-protos.h
 	c_target_objs="${c_target_objs} s390-c.o"
 	cxx_target_objs="${cxx_target_objs} s390-c.o"
@@ -5883,7 +5866,7 @@ case "${target}" in
 		fi
 		;;
 
-	s390*-*-*)
+	s390x-*-*)
 		supported_defaults="arch mode tune"
 
 		for which in arch tune; do
@@ -5900,8 +5883,12 @@ case "${target}" in
 		done
 
 		case ${with_mode} in
-		"" | esa | zarch)
+		"" | zarch)
 			# OK
+			;;
+		esa)
+			echo "ESA/390 mode is no longer supported." 1>&2
+			exit 1
 			;;
 		*)
 			echo "Unknown architecture mode used in --with-mode=$with_mode." 1>&2

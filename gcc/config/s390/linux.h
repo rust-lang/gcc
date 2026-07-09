@@ -24,14 +24,10 @@ along with GCC; see the file COPYING3.  If not see
 
 /* Target specific type definitions.  */
 
-/* For 31 bit our size type differs from most other targets (where it
-   is "unsigned int").  The difference tends to cause trouble e.g.:
-   Glibc BZ #16712, GCC BZ #79358 but cannot be changed due to ABI
-   issues.  */
 #undef  SIZE_TYPE
 #define SIZE_TYPE "long unsigned int"
 #undef  PTRDIFF_TYPE
-#define PTRDIFF_TYPE (TARGET_64BIT ? "long int" : "int")
+#define PTRDIFF_TYPE "long int"
 
 #undef  WCHAR_TYPE
 #define WCHAR_TYPE "int"
@@ -51,10 +47,13 @@ along with GCC; see the file COPYING3.  If not see
 
 /* Target specific assembler settings.  */
 /* Rewrite -march=arch* options to the original CPU name in order to
-   make it work with older binutils.  */
+   make it work with older binutils.  The spec is incomplete in the sense that
+   it passes -march=z* but filters -march=archX with X>11 out.  However,
+   starting with binutils 2.22 the .machine pseudo-op is supported which
+   overrides command line option -march anyway.  */
 #undef  ASM_SPEC
 #define ASM_SPEC					\
-  "%{m31&m64}%{mesa&mzarch}%{march=z*}"			\
+  "%{march=z*}"						\
   "%{march=arch5:-march=z900}"				\
   "%{march=arch6:-march=z990}"				\
   "%{march=arch7:-march=z9-ec}"				\
@@ -66,30 +65,22 @@ along with GCC; see the file COPYING3.  If not see
 
 /* Target specific linker settings.  */
 
-#ifdef DEFAULT_TARGET_64BIT
 #define MULTILIB_DEFAULTS { "m64" }
-#else
-#define MULTILIB_DEFAULTS { "m31" }
-#endif
 
-#define GLIBC_DYNAMIC_LINKER32 "/lib/ld.so.1"
 #define GLIBC_DYNAMIC_LINKER64 "/lib/ld64.so.1"
 
-#undef MUSL_DYNAMIC_LINKER32
-#define MUSL_DYNAMIC_LINKER32 "/lib/ld-musl-s390.so.1"
 #undef MUSL_DYNAMIC_LINKER64
 #define MUSL_DYNAMIC_LINKER64 "/lib/ld-musl-s390x.so.1"
 
 #undef  LINK_SPEC
 #define LINK_SPEC \
-  "%{m31:-m elf_s390}%{m64:-m elf64_s390} \
+  "-m elf64_s390 \
    %{shared:-shared} \
    %{!shared: \
       %{static:-static} \
       %{!static:%{!static-pie: \
 	%{rdynamic:-export-dynamic} \
-	%{m31:-dynamic-linker " GNU_USER_DYNAMIC_LINKER32 "} \
-	%{m64:-dynamic-linker " GNU_USER_DYNAMIC_LINKER64 "}}}} \
+	-dynamic-linker " GNU_USER_DYNAMIC_LINKER64 "}}} \
    %{static-pie:-static -pie --no-dynamic-linker -z text}"
 
 #define CPP_SPEC "%{posix:-D_POSIX_SOURCE} %{pthread:-D_REENTRANT}"
@@ -97,9 +88,7 @@ along with GCC; see the file COPYING3.  If not see
 #define TARGET_ASM_FILE_END file_end_indicate_exec_stack
 
 #ifdef TARGET_LIBC_PROVIDES_SSP
-/* s390 glibc provides __stack_chk_guard in 0x14(tp),
-   s390x glibc provides it at 0x28(tp).  */
-#define TARGET_THREAD_SSP_OFFSET        (TARGET_64BIT ? 0x28 : 0x14)
+#define TARGET_THREAD_SSP_OFFSET 0x28
 #endif
 
 /* Define if long doubles should be mangled as 'g'.  */

@@ -173,9 +173,9 @@ case ${host} in
 	;;
     esac
     ;;
-  s390-*-* | s390x-*-*)
+  s390x-*-*)
     case ${target} in
-      s390-*-* | s390x-*-*)
+      s390x-*-*)
         host_extra_gcc_objs="driver-native.o"
         host_xmake_file="${host_xmake_file} s390/x-native"
         ;;

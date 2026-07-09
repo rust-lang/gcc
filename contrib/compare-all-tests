@@ -29,7 +29,6 @@ mips_opts='-msoft-float/-mgp32/-mips16 -mabi=32/-mfp32/-mgp32/-mips16 -mabi=o64/
 mn10300_opts='-mam33 -mam33-2'
 pa_opts='-march=2.0 -march=1.0 -march=1.1'
 ppc_opts='-m32 -m64'
-s390_opts='-m31 -m31/-mzarch -m64'
 sh_opts='-m3 -m3e -m4 -m4a -m4al -m4/-mieee -m1 -m1/-mno-cbranchdi -m2a -m2a/-mieee -m2e -m2e/-mieee'
 sparc_opts='-mcpu=v8/-m32 -mcpu=v9/-m32 -m64'
 

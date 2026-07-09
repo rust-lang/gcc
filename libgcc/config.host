@@ -188,7 +188,7 @@ sparc*-*-*)
 	cpu_type=sparc
 	tmake_file="${tmake_file} sparc/t-sparc"
 	;;
-s390*-*-*)
+s390x-*-*)
 	cpu_type=s390
 	;;
 # Note the 'l'; we need to be able to match e.g. "shle" or "shl".
@@ -1385,20 +1385,12 @@ rx-*-linux*)
 	tmake_file="rx/t-rx t-fdpbit"
 	tm_file="$tm_file rx/rx-lib.h"
 	;;
-s390-*-linux*)
-	tmake_file="${tmake_file} s390/t-crtstuff s390/t-linux s390/32/t-floattodi t-stack s390/t-stack-s390"
-	md_unwind_header=s390/linux-unwind.h
-	;;
 s390x-*-linux*)
 	tmake_file="${tmake_file} s390/t-crtstuff s390/t-linux t-stack s390/t-stack-s390"
-	if test "${host_address}" = 32; then
-	   tmake_file="${tmake_file} s390/32/t-floattodi"
-	else
-	   if test "$libgcc_cv_s390_float16" = "yes"; then
+	if test "$libgcc_cv_s390_float16" = "yes"; then
 		tmake_file="${tmake_file} s390/t-float16"
-	   fi
-	   tmake_file="${tmake_file} s390/t-softfp t-softfp"
 	fi
+	tmake_file="${tmake_file} s390/t-softfp t-softfp"
 	md_unwind_header=s390/linux-unwind.h
 	;;
 s390x-ibm-tpf*)

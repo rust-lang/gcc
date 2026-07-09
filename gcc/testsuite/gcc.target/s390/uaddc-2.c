@@ -1,9 +1,8 @@
 /* { dg-do compile } */
 /* { dg-options "-O2 -march=z13 -mzarch -save-temps -fdump-tree-optimized" }  */
 /* { dg-final { scan-tree-dump-times "\\.UADDC \\(" 6 "optimized" } } */
-/* { dg-final { scan-assembler-times "\\talcr\\t" 6 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "\\talcr\\t" 3 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "\\talcgr\\t" 3 { target lp64 } } } */
+/* { dg-final { scan-assembler-times "\\talcr\\t" 3 } } */
+/* { dg-final { scan-assembler-times "\\talcgr\\t" 3 } } */
 
 #define TEST(T, V, OP) \
   unsigned T \

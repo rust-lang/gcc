@@ -336,9 +336,6 @@ case "${host}" in
       powerpc64*)
         abi_baseline_pair=powerpc64-linux-gnu
         ;;
-      s390)
-        abi_baseline_pair=s390-linux-gnu
-        ;;
       s390x)
         abi_baseline_pair=s390x-linux-gnu
         ;;

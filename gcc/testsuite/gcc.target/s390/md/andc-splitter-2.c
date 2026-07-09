@@ -16,25 +16,25 @@
 __attribute__ ((noinline))
 unsigned int andc_vv(unsigned int a, unsigned int b)
 { return ~b & a; }
-/* { dg-final { scan-assembler ":18:.\* \{\\*andsi3_\(esa\|zarch\)\}" } } */
+/* { dg-final { scan-assembler ":18:.\* \{\\*andsi3\}" } } */
 /* { dg-final { scan-assembler ":18:.\* \{\\*xorsi3\}" } } */
 
 __attribute__ ((noinline))
 unsigned int andc_pv(unsigned int *a, unsigned int b)
 { return ~b & *a; }
-/* { dg-final { scan-assembler ":24:.\* \{\\*andsi3_\(esa\|zarch\)\}" } } */
+/* { dg-final { scan-assembler ":24:.\* \{\\*andsi3\}" } } */
 /* { dg-final { scan-assembler ":24:.\* \{\\*xorsi3\}" } } */
 
 __attribute__ ((noinline))
 unsigned int andc_vp(unsigned int a, unsigned int *b)
 { return ~*b & a; }
-/* { dg-final { scan-assembler ":30:.\* \{\\*andsi3_\(esa\|zarch\)\}" } } */
+/* { dg-final { scan-assembler ":30:.\* \{\\*andsi3\}" } } */
 /* { dg-final { scan-assembler ":30:.\* \{\\*xorsi3\}" } } */
 
 __attribute__ ((noinline))
 unsigned int andc_pp(unsigned int *a, unsigned int *b)
 { return ~*b & *a; }
-/* { dg-final { scan-assembler ":36:.\* \{\\*andsi3_\(esa\|zarch\)\}" } } */
+/* { dg-final { scan-assembler ":36:.\* \{\\*andsi3\}" } } */
 /* { dg-final { scan-assembler ":36:.\* \{\\*xorsi3\}" } } */
 
 /* { dg-final { scan-assembler-times "\tng\?r\?k\?\t" 4 } } */

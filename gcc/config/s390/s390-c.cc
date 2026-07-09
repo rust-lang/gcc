@@ -420,10 +420,8 @@ s390_cpu_cpp_builtins (cpp_reader *pfile)
   cpp_assert (pfile, "cpu=s390");
   cpp_assert (pfile, "machine=s390");
   cpp_define (pfile, "__s390__");
-  if (TARGET_ZARCH)
-    cpp_define (pfile, "__zarch__");
-  if (TARGET_64BIT)
-    cpp_define (pfile, "__s390x__");
+  cpp_define (pfile, "__zarch__");
+  cpp_define (pfile, "__s390x__");
   if (TARGET_LONG_DOUBLE_128)
     cpp_define (pfile, "__LONG_DOUBLE_128__");
   cl_target_option_save (&opts, &global_options, &global_options_set);

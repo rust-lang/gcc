@@ -53,8 +53,7 @@ enum processor_flags
 #define s390_tune_attr ((enum attr_cpu)(s390_tune > PROCESSOR_9175_Z17 ? PROCESSOR_9175_Z17 : s390_tune ))
 
 /* These flags indicate that the generated code should run on a cpu
-   providing the respective hardware facility regardless of the
-   current cpu mode (ESA or z/Architecture).  */
+   providing the respective hardware facility.  */
 
 #define TARGET_CPU_IEEE_FLOAT \
 	(s390_arch_flags & PF_IEEE_FLOAT)
@@ -135,72 +134,46 @@ enum processor_flags
    providing the respective hardware facility when run in
    z/Architecture mode.  */
 
-#define TARGET_LONG_DISPLACEMENT \
-	(TARGET_ZARCH && TARGET_CPU_LONG_DISPLACEMENT)
+#define TARGET_LONG_DISPLACEMENT TARGET_CPU_LONG_DISPLACEMENT
 #define TARGET_LONG_DISPLACEMENT_P(opts) \
-	(TARGET_ZARCH_P (opts->x_target_flags) \
-	 && TARGET_CPU_LONG_DISPLACEMENT_P (opts))
-#define TARGET_EXTIMM \
-	(TARGET_ZARCH && TARGET_CPU_EXTIMM)
-#define TARGET_EXTIMM_P(opts) \
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_EXTIMM_P (opts))
-#define TARGET_DFP \
-	(TARGET_ZARCH && TARGET_CPU_DFP && TARGET_HARD_FLOAT)
+	(TARGET_CPU_LONG_DISPLACEMENT_P (opts))
+#define TARGET_EXTIMM TARGET_CPU_EXTIMM
+#define TARGET_EXTIMM_P(opts) (TARGET_CPU_EXTIMM_P (opts))
+#define TARGET_DFP (TARGET_CPU_DFP && TARGET_HARD_FLOAT)
 #define TARGET_DFP_P(opts) \
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_DFP_P (opts) \
+	(TARGET_CPU_DFP_P (opts) \
 	 && TARGET_HARD_FLOAT_P (opts->x_target_flags))
-#define TARGET_Z10 \
-	(TARGET_ZARCH && TARGET_CPU_Z10)
-#define TARGET_Z10_P(opts) \
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_Z10_P (opts))
-#define TARGET_Z196 \
-	(TARGET_ZARCH && TARGET_CPU_Z196)
-#define TARGET_Z196_P(opts) \
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_Z196_P (opts))
-#define TARGET_ZEC12 \
-	(TARGET_ZARCH && TARGET_CPU_ZEC12)
-#define TARGET_ZEC12_P(opts) \
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_ZEC12_P (opts))
+#define TARGET_Z10 TARGET_CPU_Z10
+#define TARGET_Z10_P(opts) (TARGET_CPU_Z10_P (opts))
+#define TARGET_Z196 TARGET_CPU_Z196
+#define TARGET_Z196_P(opts) (TARGET_CPU_Z196_P (opts))
+#define TARGET_ZEC12 TARGET_CPU_ZEC12
+#define TARGET_ZEC12_P(opts) (TARGET_CPU_ZEC12_P (opts))
 #define TARGET_HTM (TARGET_OPT_HTM)
 #define TARGET_HTM_P(opts) (TARGET_OPT_HTM_P (opts->x_target_flags))
-#define TARGET_Z13 \
-	(TARGET_ZARCH && TARGET_CPU_Z13)
-#define TARGET_Z13_P(opts) \
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_Z13_P (opts))
-#define TARGET_VX \
-	(TARGET_ZARCH && TARGET_CPU_VX && TARGET_OPT_VX && TARGET_HARD_FLOAT)
+#define TARGET_Z13 TARGET_CPU_Z13
+#define TARGET_Z13_P(opts) (TARGET_CPU_Z13_P (opts))
+#define TARGET_VX (TARGET_CPU_VX && TARGET_OPT_VX && TARGET_HARD_FLOAT)
 #define TARGET_VX_P(opts) \
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_VX_P (opts) \
+	(TARGET_CPU_VX_P (opts) \
 	 && TARGET_OPT_VX_P (opts->x_target_flags) \
 	 && TARGET_HARD_FLOAT_P (opts->x_target_flags))
-#define TARGET_Z14 (TARGET_ZARCH && TARGET_CPU_Z14)
-#define TARGET_Z14_P(opts)						\
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_Z14_P (opts))
-#define TARGET_VXE				\
-	(TARGET_VX && TARGET_CPU_VXE)
-#define TARGET_VXE_P(opts)						\
-	(TARGET_VX_P (opts) && TARGET_CPU_VXE_P (opts))
-#define TARGET_Z15 (TARGET_ZARCH && TARGET_CPU_Z15)
-#define TARGET_Z15_P(opts)						\
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_Z15_P (opts))
-#define TARGET_VXE2					\
-	(TARGET_VX && TARGET_CPU_VXE2)
-#define TARGET_VXE2_P(opts)						\
-	(TARGET_VX_P (opts) && TARGET_CPU_VXE2_P (opts))
-#define TARGET_Z16 (TARGET_ZARCH && TARGET_CPU_Z16)
-#define TARGET_Z16_P(opts)						\
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_Z16_P (opts))
-#define TARGET_NNPA					\
-	(TARGET_ZARCH && TARGET_CPU_NNPA)
-#define TARGET_NNPA_P(opts)						\
-	(TARGET_ZARCH_P (opts) && TARGET_CPU_NNPA_P (opts))
-#define TARGET_VXE3 \
-	(TARGET_VX && TARGET_CPU_VXE3)
-#define TARGET_VXE3_P(opts)						\
-	(TARGET_VX_P (opts) && TARGET_CPU_VXE3_P (opts))
-#define TARGET_Z17 (TARGET_ZARCH && TARGET_CPU_Z17)
-#define TARGET_Z17_P(opts)						\
-	(TARGET_ZARCH_P (opts->x_target_flags) && TARGET_CPU_Z17_P (opts))
+#define TARGET_Z14 TARGET_CPU_Z14
+#define TARGET_Z14_P(opts) (TARGET_CPU_Z14_P (opts))
+#define TARGET_VXE (TARGET_VX && TARGET_CPU_VXE)
+#define TARGET_VXE_P(opts) (TARGET_VX_P (opts) && TARGET_CPU_VXE_P (opts))
+#define TARGET_Z15 TARGET_CPU_Z15
+#define TARGET_Z15_P(opts) (TARGET_CPU_Z15_P (opts))
+#define TARGET_VXE2 (TARGET_VX && TARGET_CPU_VXE2)
+#define TARGET_VXE2_P(opts) (TARGET_VX_P (opts) && TARGET_CPU_VXE2_P (opts))
+#define TARGET_Z16 TARGET_CPU_Z16
+#define TARGET_Z16_P(opts) (TARGET_CPU_Z16_P (opts))
+#define TARGET_NNPA TARGET_CPU_NNPA
+#define TARGET_NNPA_P(opts) (TARGET_CPU_NNPA_P (opts))
+#define TARGET_VXE3 (TARGET_VX && TARGET_CPU_VXE3)
+#define TARGET_VXE3_P(opts) (TARGET_VX_P (opts) && TARGET_CPU_VXE3_P (opts))
+#define TARGET_Z17 TARGET_CPU_Z17
+#define TARGET_Z17_P(opts) (TARGET_CPU_Z17_P (opts))
 
 #if defined(HAVE_AS_VECTOR_LOADSTORE_ALIGNMENT_HINTS_ON_Z13)
 #define TARGET_VECTOR_LOADSTORE_ALIGNMENT_HINTS TARGET_Z13
@@ -267,18 +240,12 @@ enum processor_flags
 /* Target CPU builtins.  */
 #define TARGET_CPU_CPP_BUILTINS() s390_cpu_cpp_builtins (pfile)
 
-#ifdef DEFAULT_TARGET_64BIT
-#define TARGET_DEFAULT     (MASK_64BIT | MASK_ZARCH | MASK_HARD_DFP	\
-			    | MASK_OPT_HTM | MASK_OPT_VX)
-#else
-#define TARGET_DEFAULT             0
-#endif
+#define TARGET_DEFAULT (MASK_HARD_DFP | MASK_OPT_HTM | MASK_OPT_VX)
 
 /* Support for configure-time defaults.
    The order here is important so that -march doesn't squash the
    tune values.  */
 #define OPTION_DEFAULT_SPECS					\
-  { "mode", "%{!mesa:%{!mzarch:-m%(VALUE)}}" },			\
   { "tune", "%{!mtune=*:%{!march=*:-mtune=%(VALUE)}}" },	\
   { "arch", "%{!march=*:-march=%(VALUE)}" }
 
@@ -290,22 +257,14 @@ extern const char *s390_host_detect_local_cpu (int argc, const char **argv);
 #define MARCH_MTUNE_NATIVE_SPECS				\
   "%{mtune=native:%<mtune=native %:local_cpu_detect(tune)} "	\
   "%{march=native:%<march=native"				\
-  " %:local_cpu_detect(arch %{mesa|mzarch:mesa_mzarch})}"
+  " %:local_cpu_detect(arch)}"
 #else
 # define MARCH_MTUNE_NATIVE_SPECS ""
-#endif
-
-#ifdef DEFAULT_TARGET_64BIT
-#define S390_TARGET_BITS_STRING "64"
-#else
-#define S390_TARGET_BITS_STRING "31"
 #endif
 
 /* Defaulting rules.  */
 #define DRIVER_SELF_SPECS					\
   MARCH_MTUNE_NATIVE_SPECS,					\
-  "%{!m31:%{!m64:-m" S390_TARGET_BITS_STRING "}}",		\
-  "%{!mesa:%{!mzarch:%{m31:-mesa}%{m64:-mzarch}}}",		\
   "%{!march=*:-march=z900}"
 
 /* Target machine storage layout.  */
@@ -322,34 +281,14 @@ extern const char *s390_host_detect_local_cpu (int argc, const char **argv);
    being accessed.  */
 #define STACK_CHECK_MOVING_SP 1
 
-#ifndef IN_LIBGCC2
-
 /* Width of a word, in units (bytes).  */
-  #define UNITS_PER_WORD (TARGET_ZARCH ? 8 : 4)
-
-/* Width of a pointer.  To be used instead of UNITS_PER_WORD in
-   ABI-relevant contexts.  This always matches
-   GET_MODE_SIZE (Pmode).  */
-  #define UNITS_PER_LONG (TARGET_64BIT ? 8 : 4)
-  #define MIN_UNITS_PER_WORD 4
-  #define MAX_BITS_PER_WORD 64
-#else
-
-  /* In libgcc, UNITS_PER_WORD has ABI-relevant effects, e.g. whether
-     the library should export TImode functions or not.  Thus, we have
-     to redefine UNITS_PER_WORD depending on __s390x__ for libgcc.  */
-  #ifdef __s390x__
-    #define UNITS_PER_WORD 8
-  #else
-    #define UNITS_PER_WORD 4
-  #endif
-#endif
+#define UNITS_PER_WORD 8
 
 /* Width of a pointer, in bits.  */
-#define POINTER_SIZE (TARGET_64BIT ? 64 : 32)
+#define POINTER_SIZE 64
 
 /* Allocation boundary (in *bits*) for storing arguments in argument list.  */
-#define PARM_BOUNDARY (TARGET_64BIT ? 64 : 32)
+#define PARM_BOUNDARY 64
 
 /* Boundary (in *bits*) on which stack pointer should be aligned.  */
 #define STACK_BOUNDARY 64
@@ -375,7 +314,7 @@ extern const char *s390_host_detect_local_cpu (int argc, const char **argv);
    NONLOCAL needs twice Pmode to maintain both backchain and SP.  */
 #define STACK_SAVEAREA_MODE(LEVEL)					\
   ((LEVEL) == SAVE_FUNCTION ? VOIDmode					\
-   : (LEVEL) == SAVE_NONLOCAL ? (TARGET_64BIT ? OImode : TImode) : Pmode)
+   : (LEVEL) == SAVE_NONLOCAL ? OImode : Pmode)
 
 
 /* Type layout.  */
@@ -383,7 +322,7 @@ extern const char *s390_host_detect_local_cpu (int argc, const char **argv);
 /* Sizes in bits of the source language data types.  */
 #define SHORT_TYPE_SIZE 16
 #define INT_TYPE_SIZE 32
-#define LONG_TYPE_SIZE (TARGET_64BIT ? 64 : 32)
+#define LONG_TYPE_SIZE 64
 #define LONG_LONG_TYPE_SIZE 64
 
 /* We use "unsigned char" as default.  */
@@ -448,8 +387,7 @@ extern const char *s390_host_detect_local_cpu (int argc, const char **argv);
    The 'fake' hard registers are call-clobbered and fixed.
    The access registers are call-saved and fixed.
 
-   On 31-bit, FPRs 18-19 are call-clobbered;
-   on 64-bit, FPRs 24-31 are call-clobbered.
+   FPRs 24-31 are call-clobbered.
    The remaining FPRs are call-saved.
 
    All non-FP vector registers are call-clobbered v16-v31.  */
@@ -615,7 +553,7 @@ extern const enum reg_class regclass_map[FIRST_PSEUDO_REGISTER];
    dynamic allocations (alloca), and finally the local variables.  */
 
 /* Offset from stack-pointer to first location of outgoing args.  */
-#define STACK_POINTER_OFFSET (TARGET_64BIT ? 160 : 96)
+#define STACK_POINTER_OFFSET 160
 
 /* Offset from the stack pointer register to an item dynamically
    allocated on the stack, e.g., by `alloca'.  */
@@ -639,7 +577,7 @@ extern const enum reg_class regclass_map[FIRST_PSEUDO_REGISTER];
 #define DYNAMIC_CHAIN_ADDRESS(FRAME)                                          \
   (TARGET_PACKED_STACK ?                                                      \
    plus_constant (Pmode, (FRAME),					      \
-		  STACK_POINTER_OFFSET - UNITS_PER_LONG) : (FRAME))
+		  STACK_POINTER_OFFSET - UNITS_PER_WORD) : (FRAME))
 
 /* For -mpacked-stack this adds 160 - 8 (96 - 4) to the output of
    builtin_frame_address.  Otherwise arg pointer -
@@ -653,9 +591,6 @@ extern const enum reg_class regclass_map[FIRST_PSEUDO_REGISTER];
 
 #define RETURN_ADDR_RTX(COUNT, FRAME)					      \
   s390_return_addr_rtx ((COUNT), DYNAMIC_CHAIN_ADDRESS ((FRAME)))
-
-/* In 31-bit mode, we need to mask off the high bit of return addresses.  */
-#define MASK_RETURN_ADDR (TARGET_64BIT ? constm1_rtx : GEN_INT (0x7fffffff))
 
 
 /* Exception handling.  */
@@ -676,7 +611,7 @@ extern const enum reg_class regclass_map[FIRST_PSEUDO_REGISTER];
    : DW_EH_PE_absptr)
 
 /* Register save slot alignment.  */
-#define DWARF_CIE_DATA_ALIGNMENT (-UNITS_PER_LONG)
+#define DWARF_CIE_DATA_ALIGNMENT (-UNITS_PER_WORD)
 
 /* Let the assembler generate debug line info.  */
 #define DWARF2_ASM_LINE_DEBUG_INFO 1
@@ -744,11 +679,10 @@ CUMULATIVE_ARGS;
 #define LAST_VEC_ARG_REGNO 53
 
 /* Arguments can be placed in general registers 2 to 6, or in floating
-   point registers 0 and 2 for 31 bit and fprs 0, 2, 4 and 6 for 64
-   bit.  */
+   point registers 0, 2, 4 and 6.  */
 #define FUNCTION_ARG_REGNO_P(N)						\
   (((N) >=2 && (N) < 7) || (N) == 16 || (N) == 17			\
-   || (TARGET_64BIT && ((N) == 18 || (N) == 19))			\
+   || ((N) == 18 || (N) == 19)						\
    || (TARGET_VX && ((N) >= FIRST_VEC_ARG_REGNO && (N) <= LAST_VEC_ARG_REGNO)))
 
 
@@ -776,7 +710,7 @@ CUMULATIVE_ARGS;
 
 /* Trampolines for nested functions.  */
 
-#define TRAMPOLINE_SIZE		(TARGET_64BIT ? 32 : 16)
+#define TRAMPOLINE_SIZE		32
 #define TRAMPOLINE_ALIGNMENT	BITS_PER_WORD
 
 /* Addressing modes, and classification of registers for them.  */
@@ -836,12 +770,12 @@ CUMULATIVE_ARGS;
 
 /* An integer expression for the size in bits of the largest integer machine
    mode that should actually be used.  We allow pairs of registers.  */
-#define MAX_FIXED_MODE_SIZE GET_MODE_BITSIZE (TARGET_64BIT ? TImode : DImode)
+#define MAX_FIXED_MODE_SIZE GET_MODE_BITSIZE (TImode)
 
 /* The maximum number of bytes that a single instruction can move quickly
    between memory and registers or between two memory locations.  */
-#define MOVE_MAX (TARGET_ZARCH ? 16 : 8)
-#define MOVE_MAX_PIECES (TARGET_ZARCH ? 8 : 4)
+#define MOVE_MAX 16
+#define MOVE_MAX_PIECES 8
 #define MAX_MOVE_MAX 16
 
 /* Don't perform CSE on function addresses.  */
@@ -851,11 +785,8 @@ CUMULATIVE_ARGS;
    to split a struct move into several word-size moves.  For S/390
    only small values make sense here since struct moves are relatively
    cheap thanks to mvc so the small default value chosen for archs
-   with memmove patterns should be ok.  But this value is multiplied
-   in tree-sra with UNITS_PER_WORD to make a decision so we adjust it
-   here to compensate for that factor since mvc costs exactly the same
-   on 31 and 64 bit.  */
-#define MOVE_RATIO(speed) (TARGET_64BIT? 2 : 4)
+   with memmove patterns should be ok.  */
+#define MOVE_RATIO(speed) 2
 
 
 /* Sections.  */
@@ -868,18 +799,6 @@ CUMULATIVE_ARGS;
 
 /* Output before writable (uninitialized) data.  */
 #define BSS_SECTION_ASM_OP ".bss"
-
-/* S/390 constant pool breaks the devices in crtstuff.c to control section
-   in where code resides.  We have to write it as asm code.  */
-#ifndef __s390x__
-#define CRT_CALL_STATIC_FUNCTION(SECTION_OP, FUNC) \
-    asm (SECTION_OP "\n\
-	bras\t%r2,1f\n\
-0:	.long\t" USER_LABEL_PREFIX #FUNC " - 0b\n\
-1:	l\t%r3,0(%r2)\n\
-	bas\t%r14,0(%r3,%r2)\n\
-	.previous");
-#endif
 
 
 /* Position independent code.  */
@@ -945,7 +864,7 @@ CUMULATIVE_ARGS;
 #define ASM_OUTPUT_ADDR_VEC_ELT(FILE, VALUE)				\
 do {									\
   char buf[32];								\
-  fputs (integer_asm_op (UNITS_PER_LONG, TRUE), (FILE));		\
+  fputs (integer_asm_op (UNITS_PER_WORD, TRUE), (FILE));		\
   ASM_GENERATE_INTERNAL_LABEL (buf, "L", (VALUE));			\
   assemble_name ((FILE), buf);						\
   fputc ('\n', (FILE));							\
@@ -955,7 +874,7 @@ do {									\
 #define ASM_OUTPUT_ADDR_DIFF_ELT(FILE, BODY, VALUE, REL)		\
 do {									\
   char buf[32];								\
-  fputs (integer_asm_op (UNITS_PER_LONG, TRUE), (FILE));		\
+  fputs (integer_asm_op (UNITS_PER_WORD, TRUE), (FILE));		\
   ASM_GENERATE_INTERNAL_LABEL (buf, "L", (VALUE));			\
   assemble_name ((FILE), buf);						\
   fputc ('-', (FILE));							\
@@ -986,15 +905,12 @@ do {									\
 
 /* Specify the machine mode that this machine uses for the index in the
    tablejump instruction.  */
-#define CASE_VECTOR_MODE (TARGET_64BIT ? DImode : SImode)
+#define CASE_VECTOR_MODE DImode
 
 /* Specify the machine mode that pointers have.
    After generation of rtl, the compiler makes no further distinction
    between pointers and any other objects of this machine mode.  */
-#define Pmode (TARGET_64BIT ? DImode : SImode)
-
-/* This is -1 for "pointer mode" extend.  See ptr_extend in s390.md.  */
-#define POINTERS_EXTEND_UNSIGNED -1
+#define Pmode DImode
 
 /* A function address in a call instruction is a byte address (for
    indexing purposes) so give the MEM rtx a byte's mode.  */

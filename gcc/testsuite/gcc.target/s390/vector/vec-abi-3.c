@@ -1,6 +1,6 @@
 /* Check calling convention in the vector ABI regarding vector like structs.  */
 
-/* { dg-do compile { target { s390*-*-* } } } */
+/* { dg-do compile } */
 /* { dg-options "-O3 -mzarch -march=z13" } */
 
 /* addA */
@@ -24,10 +24,8 @@
 
 /* addF */
 /* { dg-final { scan-assembler-times "vab\t%v24,%v\[0-9\]*,%v\[0-9\]*" 1 } } */
-/* { dg-final { scan-assembler-times "srlg\t%r\[0-9\]*,%r2,32" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "srlg\t%r\[0-9\]*,%r3,32" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "llgfr\t%.*,%r2" 1 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "llgfr\t%.*,%r4" 1 { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler-times "srlg\t%r\[0-9\]*,%r2,32" 1 } } */
+/* { dg-final { scan-assembler-times "srlg\t%r\[0-9\]*,%r3,32" 1 } } */
 
 
 typedef double v2df __attribute__((vector_size(16)));

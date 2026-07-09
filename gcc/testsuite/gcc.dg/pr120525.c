@@ -1,6 +1,5 @@
 /* { dg-do compile { target fpic } } */
 /* { dg-options "-O2 -fpic -g" } */
-/* { dg-additional-options "-m31" { target s390x-*-* } } */
 
 typedef __SIZE_TYPE__ uintptr_t;
 static __thread uintptr_t start_sp;

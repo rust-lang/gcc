@@ -111,7 +111,5 @@ int a0h(void)
   return 8;
 }
 
-/* { dg-final { scan-assembler-times "\t.cfi_offset 15, -40" 10 { target { lp64 } } } } */
-/* { dg-final { scan-assembler-times "\t.cfi_offset 15, -8" 5 { target { lp64 } } } } */
-/* { dg-final { scan-assembler-times "\t.cfi_offset 15, -36" 10 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "\t.cfi_offset 15, -4" 5 { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler-times "\t.cfi_offset 15, -40" 10 } } */
+/* { dg-final { scan-assembler-times "\t.cfi_offset 15, -8" 5 } } */

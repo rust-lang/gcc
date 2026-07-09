@@ -435,8 +435,6 @@
 ; Vector scatter element
 
 ; vscef, vsceg
-
-; A 64 bit target address generated from 32 bit elements
 (define_insn "vec_scatter_element<V_HW_4:mode>_DI"
   [(set (mem:<non_vec>
 	 (plus:DI (zero_extend:DI
@@ -447,27 +445,10 @@
 	(vec_select:<non_vec>
 	 (match_operand:V_HW_4                    0 "register_operand"   "v")
 	 (parallel [(match_dup 3)])))]
-  "TARGET_VX && TARGET_64BIT && UINTVAL (operands[3]) < 4"
+  "TARGET_VX && UINTVAL (operands[3]) < 4"
   "vscef\t%v0,%O2(%v1,%R2),%3"
   [(set_attr "op_type" "VRV")])
 
-; A 31 bit target address is generated from 64 bit elements
-; vsceg
-(define_insn "vec_scatter_element<V_HW_2:mode>_SI"
-  [(set (mem:<non_vec>
-	 (plus:SI (subreg:SI
-		   (vec_select:<non_vec_int>
-		    (match_operand:<TOINTVEC>     1 "register_operand"   "v")
-		    (parallel [(match_operand:QI  3 "const_mask_operand" "C")])) 4)
-	  (match_operand:SI                       2 "address_operand"    "ZQ")))
-    (vec_select:<non_vec>
-     (match_operand:V_HW_2                        0 "register_operand"   "v")
-     (parallel [(match_dup 3)])))]
-  "TARGET_VX && !TARGET_64BIT && UINTVAL (operands[3]) < GET_MODE_NUNITS (<V_HW_2:MODE>mode)"
-  "vsce<V_HW_2:bhfgq>\t%v0,%O2(%v1,%R2),%3"
-  [(set_attr "op_type" "VRV")])
-
-; Element size and target address size is the same
 ; vscef, vsceg
 (define_insn "vec_scatter_element<mode>_<non_vec_int>"
   [(set (mem:<non_vec>
@@ -482,33 +463,6 @@
   "TARGET_VX && UINTVAL (operands[3]) < GET_MODE_NUNITS (<V_HW_32_64:MODE>mode)"
   "vsce<bhfgq>\t%v0,%O2(%v1,%R2),%3"
   [(set_attr "op_type" "VRV")])
-
-; Depending on the address size we have to expand a different pattern.
-; This however cannot be represented in s390-builtins.def so we do the
-; multiplexing here in the expander.
-(define_expand "vec_scatter_element<V_HW_32_64:mode>"
-  [(match_operand:V_HW_32_64 0 "register_operand" "")
-   (match_operand:<TOINTVEC> 1 "register_operand" "")
-   (match_operand 2 "address_operand" "")
-   (match_operand:QI 3 "const_mask_operand" "")]
-  "TARGET_VX"
-{
-  if (TARGET_64BIT)
-    {
-      PUT_MODE (operands[2], DImode);
-      emit_insn (
-	gen_vec_scatter_element<V_HW_32_64:mode>_DI (operands[0], operands[1],
-						     operands[2], operands[3]));
-    }
-  else
-    {
-      PUT_MODE (operands[2], SImode);
-      emit_insn (
-	gen_vec_scatter_element<V_HW_32_64:mode>_SI (operands[0], operands[1],
-						     operands[2], operands[3]));
-    }
-  DONE;
-})
 
 
 ; Vector select

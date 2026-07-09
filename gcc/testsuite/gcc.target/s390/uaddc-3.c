@@ -2,10 +2,8 @@
 /* { dg-options "-O2 -march=z13 -mzarch -save-temps -fdump-tree-optimized" }  */
 /* { dg-final { scan-tree-dump-times "\\.UADDC \\(\[^,\]+, \[^,\]+, 0\\)" 1 "optimized" } } */
 /* { dg-final { scan-tree-dump-times "\\.UADDC \\(\[^,\]+, \[^,\]+, _.+\\)" 1 "optimized" } } */
-/* { dg-final { scan-assembler-times "alg\t" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "ag\t" 2 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "al\t" 1 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "a\t" 2 { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler-times "alg\t" 1 } } */
+/* { dg-final { scan-assembler-times "ag\t" 2 } } */
 
 static unsigned long
 uaddc (unsigned long x, unsigned long y, unsigned long carry_in, unsigned long *carry_out)

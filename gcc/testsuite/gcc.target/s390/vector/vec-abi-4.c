@@ -4,10 +4,8 @@
 /* { dg-do compile { target { s390*-*-* } } } */
 /* { dg-options "-O3 -mzarch -march=z13" } */
 
-/* { dg-final { scan-assembler-times "lde\t%.*,160\\\(%r15\\\)" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "lde\t%.*,168\\\(%r15\\\)" 1 { target lp64 } } } */
-/* { dg-final { scan-assembler-times "lde\t%.*,96\\\(%r15\\\)" 1 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "lde\t%.*,100\\\(%r15\\\)" 1 { target { ! lp64 } } } } */
+/* { dg-final { scan-assembler-times "lde\t%.*,160\\\(%r15\\\)" 1 } } */
+/* { dg-final { scan-assembler-times "lde\t%.*,168\\\(%r15\\\)" 1 } } */
 
 typedef char __attribute__((vector_size(4))) v4qi;
 

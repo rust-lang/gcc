@@ -6,5 +6,4 @@ foo ()
 {
 }
 /* Make sure no stack frame is generated.  */
-/* { dg-final { scan-assembler-not "ahi" { target s390-*-* } } } */
 /* { dg-final { scan-assembler-not "aghi" { target s390x-*-* } } } */

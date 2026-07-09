@@ -480,7 +480,7 @@ powerpc*-*-linux*)
 esac
 
 case ${host} in
-s390*-*-linux*)
+s390x-*-linux*)
   AC_CACHE_CHECK([Support float16 on s390],
 		 [libgcc_cv_s390_float16],
 		 [AC_COMPILE_IFELSE(

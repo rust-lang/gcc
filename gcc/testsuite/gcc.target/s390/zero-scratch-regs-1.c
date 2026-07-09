@@ -14,24 +14,15 @@ void foo (void) { }
 /* { dg-final { scan-assembler "lghi\t%r4,0" } } */
 /* { dg-final { scan-assembler "lghi\t%r5,0" } } */
 
-/* { dg-final { scan-assembler-times "vzero\t" 30 { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler-times "vzero\t" 24 { target {   lp64 } } } } */
+/* { dg-final { scan-assembler-times "vzero\t" 24 } } */
 /* { dg-final { scan-assembler "vzero\t%v0" } } */
 /* { dg-final { scan-assembler "vzero\t%v1" } } */
 /* { dg-final { scan-assembler "vzero\t%v2" } } */
 /* { dg-final { scan-assembler "vzero\t%v3" } } */
-/* { dg-final { scan-assembler "vzero\t%v4" { target { lp64 } } } } */
+/* { dg-final { scan-assembler "vzero\t%v4" } } */
 /* { dg-final { scan-assembler "vzero\t%v5" } } */
-/* { dg-final { scan-assembler "vzero\t%v6" { target { lp64 } } } } */
+/* { dg-final { scan-assembler "vzero\t%v6" } } */
 /* { dg-final { scan-assembler "vzero\t%v7" } } */
-/* { dg-final { scan-assembler "vzero\t%v8"  { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler "vzero\t%v9"  { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler "vzero\t%v10" { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler "vzero\t%v11" { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler "vzero\t%v12" { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler "vzero\t%v13" { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler "vzero\t%v14" { target { ! lp64 } } } } */
-/* { dg-final { scan-assembler "vzero\t%v15" { target { ! lp64 } } } } */
 /* { dg-final { scan-assembler "vzero\t%v16" } } */
 /* { dg-final { scan-assembler "vzero\t%v17" } } */
 /* { dg-final { scan-assembler "vzero\t%v18" } } */

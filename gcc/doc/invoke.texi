@@ -1427,7 +1427,7 @@ See RS/6000 and PowerPC Options.
 -mlong-double-64  -mlong-double-128
 -mbackchain  -mpacked-stack
 -msmall-exec  -mmvcle
--m64  -m31  -mdebug  -mesa  -mzarch
+-m64  -mdebug  -mzarch
 -mhtm  -mvx  -mzvector
 -mtpf-trace  -mtpf-trace-skip  -mmain
 -mfused-madd  -mno-fused-madd
@@ -33232,29 +33232,19 @@ exceed 64k.  The default is to use the @code{basr} instruction instead,
 which does not have this limitation.
 
 @opindex m64
-@opindex m31
 @item -m64
-@itemx -m31
-When @option{-m31} is specified, generate code compliant to the
-GNU/Linux for S/390 ABI@.  When @option{-m64} is specified, generate
-code compliant to the GNU/Linux for zSeries ABI@.  This allows GCC in
-particular to generate 64-bit instructions.  For the @samp{s390}
-targets, the default is @option{-m31}, while the @samp{s390x}
-targets default to @option{-m64}.  Note, @option{-m31} is deprecated and
-support will be removed.
+After the removal of @option{-m31}, option @option{-m64} has no counterpart
+anymore.  For the sake of backwards compatibility, the option is still accepted
+but doesn't have any effect anymore.  Therefore, generated code comprises
+64-bit instructions and follows the GNU/Linux for zSeries ABI by default.
+
 
 @opindex mzarch
-@opindex mesa
 @item -mzarch
-@itemx -mesa
-When @option{-mzarch} is specified, generate code using the
-instructions available on z/Architecture.
-When @option{-mesa} is specified, generate code using the
-instructions available on ESA/390.  Note that @option{-mesa} is
-not possible with @option{-m64}.
-When generating code compliant to the GNU/Linux for S/390 ABI,
-the default is @option{-mesa}.  When generating code compliant
-to the GNU/Linux for zSeries ABI, the default is @option{-mzarch}.
+After the removal of @option{-mesa}, option @option{-mzarch} has no counterpart
+anymore.  For the sake of backwards compatibility, the option is still accepted
+but doesn't have any effect anymore.  Therefore, generated code comprises
+instructions available on z/Architecture by default.
 
 @opindex mhtm
 @opindex mno-htm

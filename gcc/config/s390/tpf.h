@@ -41,6 +41,8 @@ along with GCC; see the file COPYING3.  If not see
 #undef  WCHAR_TYPE_SIZE
 #define WCHAR_TYPE_SIZE 32
 
+/* This is -1 for "pointer mode" extend.  See ptr_extend in s390.md.  */
+#define POINTERS_EXTEND_UNSIGNED -1
 
 /* TPF OS specific stack-pointer offset.  */
 #undef STACK_POINTER_OFFSET
@@ -49,8 +51,7 @@ along with GCC; see the file COPYING3.  If not see
 /* When building for TPF, set a generic default target that is 64 bits. Also
    enable TPF profiling support and the standard backchain by default.  */
 #undef TARGET_DEFAULT
-#define TARGET_DEFAULT (MASK_TPF_PROFILING | MASK_64BIT | MASK_ZARCH \
-			| MASK_HARD_DFP | MASK_BACKCHAIN)
+#define TARGET_DEFAULT (MASK_TPF_PROFILING | MASK_HARD_DFP | MASK_BACKCHAIN)
 
 /* Exception handling.  */
 
@@ -93,7 +94,7 @@ along with GCC; see the file COPYING3.  If not see
    make it work with older binutils.  */
 #undef  ASM_SPEC
 #define ASM_SPEC					\
-  "%{m31&m64}%{mesa&mzarch}%{march=z*}"			\
+  "%{march=z*}"						\
   "%{march=arch5:-march=z900}"				\
   "%{march=arch6:-march=z990}"				\
   "%{march=arch7:-march=z9-ec}"				\
