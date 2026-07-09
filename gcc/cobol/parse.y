@@ -5468,19 +5468,17 @@ sign_separate:  %empty              { $$ = false; }
 type_clause: TYPE to typename
                 {
                   cbl_field_t *field = current_field();
-                  if( $typename ) {
-                    const auto e = symbol_field_same_as(field, $typename);
-		    symbol_field_location( symbol_index(e), @typename );
-                  }
+                  assert( $typename );
+                  const auto e = symbol_field_same_as(field, $typename);
+                  symbol_field_location( symbol_index(e), @typename );
                 }
         |       USAGE is typename
                 {
                   dialect_ok(@typename, MfUsageTypename, "USAGE TYPENAME");
                   cbl_field_t *field = current_field();
-                  if( $typename ) {
-                    const auto e = symbol_field_same_as(field, $typename);
-		    symbol_field_location( symbol_index(e), @typename );
-                  }
+                  assert( $typename );
+                  const auto e = symbol_field_same_as(field, $typename);
+                  symbol_field_location( symbol_index(e), @typename );
                 }
                 ;
 
@@ -7415,7 +7413,7 @@ typename:       NAME
                 {
                   auto e = symbol_typedef(PROGRAM, $NAME);
                   if( ! e ) {
-		    error_msg(@1, "DATA-ITEM '%s' not found", $NAME );
+		    error_msg(@1, "TYPE %qs not found", $NAME );
                     YYERROR;
                   }
                   $$ = cbl_field_of(e);

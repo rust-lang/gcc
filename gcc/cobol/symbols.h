@@ -2847,7 +2847,6 @@ cbl_namelist_t teed_up_names();
 
 size_t end_of_group( size_t igroup );
 
-symbol_elem_t * symbol_typedef( size_t program, std::list<const char *> names );
 symbol_elem_t * symbol_typedef( size_t program, const char name[] );
 symbol_elem_t * symbol_field( size_t program, size_t parent, const char name[] );
 cbl_label_t *   symbol_label( size_t program, cbl_label_type_t type,

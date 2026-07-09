@@ -2893,7 +2893,7 @@ symbol_typedef( size_t program, const char name[] )
   auto beg = std::reverse_iterator<symbol_elem_t *>(symbols_end());
   auto end = std::reverse_iterator<symbol_elem_t *>(symbols_begin(program));
 
-  auto p = std::find_if( beg, end,
+  auto p = std::find_if( ++beg, end,
                          [name]( const symbol_elem_t& sym ) {
                            if( sym.type == SymField ) {
                              auto f = cbl_field_of(&sym);

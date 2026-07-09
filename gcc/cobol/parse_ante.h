@@ -129,6 +129,15 @@ static bool successful_parse() {
 
 void input_file_status_notify();
 
+static void
+yylocation_print(FILE* file, const cbl_loc_t& loc) {
+  fprintf(file, "%d.%d-%d.%d", 
+          loc.first_line, loc.first_column, 
+          loc.last_line, loc.last_column);
+}
+
+#define YYLOCATION_PRINT(File, Loc) yylocation_print(File, *Loc)
+
 #define YYLLOC_DEFAULT(Current, Rhs, N)                                 \
   do {                                                                  \
       if (N)                                                            \
