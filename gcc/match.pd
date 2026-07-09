@@ -9425,7 +9425,28 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
        && TYPE_PRECISION (type) < TYPE_PRECISION (TREE_TYPE (@2))
        && direct_internal_fn_supported_p (IFN_COPYSIGN,
 					  type, OPTIMIZE_FOR_BOTH))
-    (IFN_COPYSIGN @0 @1))))
+    (IFN_COPYSIGN @0 @1)))
+ /* Simplify (trunc)copysign ((extend)x, CST) to copysign (x, -1.0/1.0).  */
+ (simplify
+  (convert (copysigns (convert@2 @0) REAL_CST@1))
+   (if (optimize
+       && !HONOR_SNANS (@2)
+       && types_match (type, TREE_TYPE (@0))
+       && TYPE_PRECISION (type) < TYPE_PRECISION (TREE_TYPE (@2))
+       && direct_internal_fn_supported_p (IFN_COPYSIGN,
+					  type, OPTIMIZE_FOR_BOTH))
+    (if (REAL_VALUE_NEGATIVE (TREE_REAL_CST (@1)))
+     (IFN_COPYSIGN @0 { build_minus_one_cst (type); })
+     (IFN_COPYSIGN @0 { build_one_cst (type); })))))
+
+/* (trunc)abs (extend x) --> abs (x)  */
+(simplify
+ (convert (abs (convert@1 @0)))
+  (if (optimize
+      && !HONOR_SNANS (@1)
+      && types_match (type, TREE_TYPE (@0))
+      && TYPE_PRECISION (type) < TYPE_PRECISION (TREE_TYPE (@1)))
+   (abs @0)))
 
 (for froms (BUILT_IN_FMAF BUILT_IN_FMA BUILT_IN_FMAL)
      tos (IFN_FMA IFN_FMA IFN_FMA)
