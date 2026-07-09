@@ -1704,6 +1704,12 @@ reassociation considers the benefit of parallelizing FMA's multiplication
 part and addition part, assuming FMUL and FMA use the same units that can
 also do FADD.
 
+@paindex widening-mul-defer-fma
+@item widening-mul-defer-fma
+When nonzero, the widening-multiply pass defers forming an FMA whose result
+feeds a loop-header PHI, leaving a separate multiply and add.  Set to zero to
+contract such loop-carried reductions into an FMA instead.
+
 @paindex sms-loop-average-count-threshold
 @item sms-loop-average-count-threshold
 A threshold on the average loop count considered by the swing modulo scheduler.

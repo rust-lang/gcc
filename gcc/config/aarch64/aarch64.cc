@@ -20095,11 +20095,17 @@ aarch64_override_options_internal (struct gcc_options *opts,
       && opts->x_optimize >= aarch64_tune_params.prefetch->default_opt_level)
     opts->x_flag_prefetch_loop_arrays = 1;
 
-  /* Avoid loop-dependant FMA chains.  */
+  /* Avoid loop-dependant FMA chains.  The reassoc-side reorder helper
+     keeps using --param=avoid-fma-max-bits; the widening-mul-side
+     deferring is gated separately by --param=widening-mul-defer-fma, so we
+     suppress only the deferring on these cores while leaving the reassoc
+     reorder active.  */
   if (aarch64_tune_params.extra_tuning_flags
       & AARCH64_EXTRA_TUNE_AVOID_CROSS_LOOP_FMA)
-    SET_OPTION_IF_UNSET (opts, opts_set, param_avoid_fma_max_bits,
-			 512);
+    {
+      SET_OPTION_IF_UNSET (opts, opts_set, param_avoid_fma_max_bits, 512);
+      SET_OPTION_IF_UNSET (opts, opts_set, param_widening_mul_defer_fma, 0);
+    }
 
   /* Consider fully pipelined FMA in reassociation.  */
   if (aarch64_tune_params.extra_tuning_flags

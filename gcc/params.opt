@@ -1323,4 +1323,10 @@ Maximum number of outgoing edges in a switch before VRP does not process it.
 Common Joined UInteger Var(param_vrp_vector_threshold) Init(250) Optimization Param
 Maximum number of basic blocks for VRP to use a basic cache vector.
 
+-param=widening-mul-defer-fma=
+Common Joined UInteger Var(param_widening_mul_defer_fma) Init(1) IntegerRange(0, 1) Param Optimization
+When nonzero, the widening-multiply pass defers forming an FMA whose result
+feeds a loop-header PHI, leaving a separate multiply and add.  Set to zero to
+contract such loop-carried reductions into an FMA instead.
+
 ; This comment is to ensure we retain the blank line above.

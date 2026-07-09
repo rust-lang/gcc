@@ -40,6 +40,10 @@ AARCH64_EXTRA_TUNING_OPTION ("cse_sve_vl_constants", CSE_SVE_VL_CONSTANTS)
 
 AARCH64_EXTRA_TUNING_OPTION ("matched_vector_throughput", MATCHED_VECTOR_THROUGHPUT)
 
+/* For cores whose pipeline disfavours loop-carried serial FMAs: set
+   avoid-fma-max-bits to its maximum (512, i.e. all FMA widths) to enable
+   the reassoc reorder for 3+ operand chains, and set widening-mul-defer-fma
+   to 0 to suppress the widening-mul pass's FMA deferring.  */
 AARCH64_EXTRA_TUNING_OPTION ("avoid_cross_loop_fma", AVOID_CROSS_LOOP_FMA)
 
 AARCH64_EXTRA_TUNING_OPTION ("fully_pipelined_fma", FULLY_PIPELINED_FMA)

@@ -6607,7 +6607,8 @@ math_opts_dom_walker::after_dom_children (basic_block bb)
 {
   gimple_stmt_iterator gsi;
 
-  fma_deferring_state fma_state (param_avoid_fma_max_bits > 0);
+  fma_deferring_state fma_state (param_avoid_fma_max_bits > 0
+				 && param_widening_mul_defer_fma);
 
   for (gphi_iterator psi_next, psi = gsi_start_phis (bb); !gsi_end_p (psi);
        psi = psi_next)
