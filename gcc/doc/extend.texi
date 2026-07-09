@@ -26985,6 +26985,8 @@ vector unsigned char);
 The following additional built-in functions are available for the
 PowerPC family of processors, starting with Future ISA.
 
+@subsubheading PowerPC Advanced Encryption Standard (AES) Acceleration Built-in Functions
+
 Future ISA of the PowerPC may add new instructions for accelerating AES
 algorithm. GCC provides support for these new instructions through the
 following built-in functions. The third argument to

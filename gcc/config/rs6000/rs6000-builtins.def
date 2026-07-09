@@ -3942,52 +3942,6 @@
   void __builtin_vsx_stxvp (v256, unsigned long, const v256 *);
     STXVP nothing {mma,pair}
 
-[future]
-  const v256 __builtin_aes_encrypt_paired (v256, v256, const int<2>);
-    XXAESENCP xxaesencp {}
-
-  const v256 __builtin_aes128_encrypt_paired (v256, v256);
-    XXAES128ENCP xxaes128encp {}
-
-  const v256 __builtin_aes192_encrypt_paired (v256, v256);
-    XXAES192ENCP xxaes192encp {}
-
-  const v256 __builtin_aes256_encrypt_paired (v256, v256);
-    XXAES256ENCP xxaes256encp {}
-
-  const v256 __builtin_aes_decrypt_paired (v256, v256, const int<2>);
-    XXAESDECP xxaesdecp {}
-
-  const v256 __builtin_aes128_decrypt_paired (v256, v256);
-    XXAES128DECP xxaes128decp {}
-
-  const v256 __builtin_aes192_decrypt_paired (v256, v256);
-    XXAES192DECP xxaes192decp {}
-
-  const v256 __builtin_aes256_decrypt_paired (v256, v256);
-    XXAES256DECP xxaes256decp {}
-
-  const v256 __builtin_aes_genlastkey_paired (v256, const int<2>);
-    XXAESGENLKP xxaesgenlkp {}
-
-  const v256 __builtin_aes128_genlastkey_paired (v256);
-    XXAES128GENLKP xxaes128genlkp {}
-
-  const v256 __builtin_aes192_genlastkey_paired (v256);
-    XXAES192GENLKP xxaes192genlkp {}
-
-  const v256 __builtin_aes256_genlastkey_paired (v256);
-    XXAES256GENLKP xxaes256genlkp {}
-
-  const vuc __builtin_galois_field_mult (vuc, vuc, const int<1>);
-    XXGFMUL128 xxgfmul128 {}
-
-  const vuc __builtin_galois_field_mult_gcm (vuc, vuc);
-    XXGFMUL128GCM xxgfmul128gcm {}
-
-  const vuc __builtin_galois_field_mult_xts (vuc, vuc);
-    XXGFMUL128XTS xxgfmul128xts {}
-
 [future-vsx]
   const vus __builtin_vsx_xvmulhuh (vus, vus);
     XVMULHUH umulv8hi3_highpart {}
@@ -4071,6 +4025,51 @@
 
   const vsc __builtin_altivec_unpack_lsn_to_byte (vull);
     VUPKLSNTOB altivec_vupklsntob {}
+
+  const v256 __builtin_aes_encrypt_paired (v256, v256, const int<2>);
+    XXAESENCP xxaesencp {}
+
+  const v256 __builtin_aes128_encrypt_paired (v256, v256);
+    XXAES128ENCP xxaes128encp {}
+
+  const v256 __builtin_aes192_encrypt_paired (v256, v256);
+    XXAES192ENCP xxaes192encp {}
+
+  const v256 __builtin_aes256_encrypt_paired (v256, v256);
+    XXAES256ENCP xxaes256encp {}
+
+  const v256 __builtin_aes_decrypt_paired (v256, v256, const int<2>);
+    XXAESDECP xxaesdecp {}
+
+  const v256 __builtin_aes128_decrypt_paired (v256, v256);
+    XXAES128DECP xxaes128decp {}
+
+  const v256 __builtin_aes192_decrypt_paired (v256, v256);
+    XXAES192DECP xxaes192decp {}
+
+  const v256 __builtin_aes256_decrypt_paired (v256, v256);
+    XXAES256DECP xxaes256decp {}
+
+  const v256 __builtin_aes_genlastkey_paired (v256, const int<2>);
+    XXAESGENLKP xxaesgenlkp {}
+
+  const v256 __builtin_aes128_genlastkey_paired (v256);
+    XXAES128GENLKP xxaes128genlkp {}
+
+  const v256 __builtin_aes192_genlastkey_paired (v256);
+    XXAES192GENLKP xxaes192genlkp {}
+
+  const v256 __builtin_aes256_genlastkey_paired (v256);
+    XXAES256GENLKP xxaes256genlkp {}
+
+  const vuc __builtin_galois_field_mult (vuc, vuc, const int<1>);
+    XXGFMUL128 xxgfmul128 {}
+
+  const vuc __builtin_galois_field_mult_gcm (vuc, vuc);
+    XXGFMUL128GCM xxgfmul128gcm {}
+
+  const vuc __builtin_galois_field_mult_xts (vuc, vuc);
+    XXGFMUL128XTS xxgfmul128xts {}
 
 [future-altivec]
   const vus __builtin_altivec_uncompresshn (vuc, vui);
