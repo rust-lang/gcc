@@ -258,6 +258,11 @@ Classes used:
 #endif
 #endif
 
+/* Provide fallback.  */
+#ifndef EOPNOTSUPP
+#define EOPNOTSUPP ENOTSUP
+#endif
+
 /* Some open(2) flag differences, what a colourful world it is!  */
 #if defined (O_CLOEXEC)
 // OK
@@ -1912,7 +1917,7 @@ elf_out::create_mapping (unsigned ext, bool extending)
     {
 #ifdef HAVE_POSIX_FALLOCATE
       int result = posix_fallocate (fd, offset, length);
-      if (result != EINVAL && result != ENOTSUP)
+      if (result != EINVAL && result != ENOTSUP && result != EOPNOTSUPP)
 	return result == 0;
       /* Not supported by the underlying filesystem, fallback to ftruncate.  */
 #endif
