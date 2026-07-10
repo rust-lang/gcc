@@ -3157,8 +3157,7 @@
 	 (any_extract:GPR
        (match_operand:GPR 1 "register_operand" " r")
        (match_operand     2 "const_int_operand")
-       (match_operand     3 "const_int_operand")))
-   (clobber (match_scratch:GPR  4 "=&r"))]
+       (match_operand     3 "const_int_operand")))]
   "!((TARGET_ZBS || TARGET_XTHEADBS || TARGET_ZICOND
       || TARGET_XVENTANACONDOPS || TARGET_SFB_ALU)
      && (INTVAL (operands[2]) == 1))
@@ -3169,10 +3168,10 @@
         && (INTVAL (operands[2]) + INTVAL (operands[3]) == 32))"
   "#"
   "&& reload_completed"
-  [(set (match_dup 4)
+  [(set (match_dup 0)
      (ashift:GPR (match_dup 1) (match_dup 2)))
    (set (match_dup 0)
-     (<extract_shift>:GPR (match_dup 4) (match_dup 3)))]
+     (<extract_shift>:GPR (match_dup 0) (match_dup 3)))]
 {
   int regbits = GET_MODE_BITSIZE (GET_MODE (operands[0])).to_constant ();
   int sizebits = INTVAL (operands[2]);
