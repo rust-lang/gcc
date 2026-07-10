@@ -1,3 +1,194 @@
+2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
+	    Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* c-c++-common/gomp/for-static-1.c: Update scan pattern to match
+	niter argument.
+	* c-c++-common/gomp/for-static-2.c: Likewise.
+	* c-c++-common/gomp/for-static-3.c: Likewise.
+
+2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
+
+	* c-c++-common/gomp/masked-1.c: Add scan-tree-dump-not check that
+	GOMP_masked_end is not emitted without -fopenmp-ompt.
+	* c-c++-common/gomp/for-8.c: Remove; superseded by for-static-*.c.
+	* c-c++-common/gomp/for-static-1.c: New test; checks that the plain
+	worksharing builtins are emitted without -fopenmp-ompt.
+	* c-c++-common/gomp/for-static-2.c: New test; checks that _start and
+	_end variants are emitted with -fopenmp-ompt.
+	* c-c++-common/gomp/for-static-3.c: New test; checks that _dispatch is
+	also emitted with -fopenmp-ompt-detailed.
+	* c-c++-common/gomp/for-static.h: New shared test header.
+	* c-c++-common/gomp/masked-3.c: New test for GOMP_masked_end emission
+	with -fopenmp-ompt.
+	* c-c++-common/gomp/openmp-ompt-1.c: New test; checks that
+	-fopenmp-ompt without -fopenmp is diagnosed.
+	* c-c++-common/gomp/openmp-ompt-2.c: New test; checks that
+	-fopenmp-ompt-detailed without -fopenmp is diagnosed.
+	* c-c++-common/gomp/single2.c: New test for GOMP_single_start_with_end
+	and GOMP_single_end emission with -fopenmp-ompt.
+
+2026-07-09  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	PR debug/126169
+	* gcc.dg/pr126169.c: New file.
+
+2026-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	PR target/126121
+	* gcc.dg/torture/pr126121.c: New test.
+
+2026-07-09  Karl Meakin  <karl.meakin@arm.com>
+
+	* gcc.target/aarch64/advsimd-intrinsics/vcopy_lane_indices.c:
+	Don't test this file on 32-bit targets.
+
+2026-07-09  Andrew Stubbs  <ams@baylibre.com>
+
+	* gcc.target/gcn/cond_fmaxnm_3.c: Fix assembler scan patterns.
+	* gcc.target/gcn/cond_fmaxnm_4.c: Fix assembler scan patterns.
+	* gcc.target/gcn/cond_fminnm_3.c: Fix assembler scan patterns.
+	* gcc.target/gcn/cond_fminnm_4.c: Fix assembler scan patterns.
+
+2026-07-09  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	* gcc.target/aarch64/widening-mul-defer-fma-1.c: New test.
+	* gcc.target/aarch64/widening-mul-defer-fma-2.c: New test.
+	* gcc.target/aarch64/widening-mul-defer-fma-3.c: New test.
+
+2026-07-09  Martin Jambor  <mjambor@suse.cz>
+
+	PR ipa/125207
+	* gcc.dg/ipa/pr125207.c: New test.
+	* gcc.dg/vla-1.c (f1): Make function f1 static.
+
+2026-07-09  Eikansh Gupta  <eikansh.gupta@oss.qualcomm.com>
+
+	PR tree-optimization/112472
+	* gcc.dg/tree-ssa/pr112472.c: New test.
+
+2026-07-09  Zhou Xuhang  <zhouxh2002@gmail.com>
+
+	* g++.target/i386/mul-overflow-widen-1.C: New test.
+	* g++.target/i386/mul-overflow-widen-2.C: New test.
+
+2026-07-09  Avinash Jayakar  <avinashd@linux.ibm.com>
+
+	* gcc.target/powerpc/aes-builtin-1.c: Add future_compile_ok and lp64
+	testsuite directive.
+	* gcc.target/powerpc/aes-builtin-2.c: Add future_compile_ok and lp64
+	testsuite directive.
+	* gcc.target/powerpc/aes-builtin-3.c: Add future_compile_ok and lp64
+	testsuite directive.
+
+2026-07-09  Stefan Schulze Frielinghaus  <stefansf@gcc.gnu.org>
+
+	* gcc.dg/asm-hard-reg-error-3.c: Remove target s390-*.
+	* gcc.dg/builtin-bswap-8.c: Remove target s390-*.
+	* gcc.dg/ifcvt-4.c: Remove -m31 part.
+	* gcc.dg/optimize-bswaphi-1.c: Ditto.
+	* gcc.dg/optimize-bswapsi-3.c: Ditto.
+	* gcc.dg/optimize-bswapsi-4.c: Ditto.
+	* gcc.dg/optimize-bswapsi-5.c: Ditto.
+	* gcc.dg/optimize-bswapsi-6.c: Ditto.
+	* gcc.dg/optimize-bswapsi-7.c: Ditto.
+	* gcc.dg/pr120525.c: Ditto.
+	* gcc.dg/tree-ssa/loop-1.c: Ditto.
+	* gcc.misc-tests/linkage.exp: Ditto.
+	* gcc.target/s390/addsub-signed-overflow-1.c: Ditto.
+	* gcc.target/s390/addsub-signed-overflow-2.c: Ditto.
+	* gcc.target/s390/asm-constant-1.c: Ditto.
+	* gcc.target/s390/call-z10-pic-nodatarel.c: Ditto.
+	* gcc.target/s390/call-z10-pic.c: Ditto.
+	* gcc.target/s390/call-z10.c: Ditto.
+	* gcc.target/s390/call-z9-pic-nodatarel.c: Ditto.
+	* gcc.target/s390/call-z9-pic.c: Ditto.
+	* gcc.target/s390/call-z9.c: Ditto.
+	* gcc.target/s390/fcall-saved.c: Ditto.
+	* gcc.target/s390/global-array-element-pic2.c: Ditto.
+	* gcc.target/s390/insv-1.c: Ditto.
+	* gcc.target/s390/isfinite-isinf-isnormal-signbit-2.c: Ditto.
+	* gcc.target/s390/isfinite-isinf-isnormal-signbit-3.c: Ditto.
+	* gcc.target/s390/larl-1.c: Ditto.
+	* gcc.target/s390/leaf-profile.c: Ditto.
+	* gcc.target/s390/load-relative-check.c: Ditto.
+	* gcc.target/s390/load-thread-pointer-once-2.c: Ditto.
+	* gcc.target/s390/load-thread-pointer-once.c: Ditto.
+	* gcc.target/s390/loc-1.c: Ditto.
+	* gcc.target/s390/md/andc-splitter-2.c: Ditto.
+	* gcc.target/s390/mrecord-mcount.c: Ditto.
+	* gcc.target/s390/mul-signed-overflow-1.c: Ditto.
+	* gcc.target/s390/mul-signed-overflow-2.c: Ditto.
+	* gcc.target/s390/not.c: Ditto.
+	* gcc.target/s390/pr42224.c: Guard as a TPF test.
+	* gcc.target/s390/preserve-args-1.c: Remove -m31 part.
+	* gcc.target/s390/preserve-args-3.c: Ditto.
+	* gcc.target/s390/risbg-ll-1.c: Ditto.
+	* gcc.target/s390/risbg-ll-2.c: Ditto.
+	* gcc.target/s390/risbg-ll-3.c: Ditto.
+	* gcc.target/s390/stack-protector-guard-tls-1.c: Ditto.
+	* gcc.target/s390/target-attribute/tattr-12.c: Ditto.
+	* gcc.target/s390/target-attribute/tattr-15.c: Ditto.
+	* gcc.target/s390/tls.c: Ditto.
+	* gcc.target/s390/uaddc-1.c: Ditto.
+	* gcc.target/s390/uaddc-2.c: Ditto.
+	* gcc.target/s390/uaddc-3.c: Ditto.
+	* gcc.target/s390/usubc-1.c: Ditto.
+	* gcc.target/s390/usubc-2.c: Ditto.
+	* gcc.target/s390/usubc-3.c: Ditto.
+	* gcc.target/s390/vector/pattern-avg-1.c: Ditto.
+	* gcc.target/s390/vector/vec-abi-1.c: Ditto.
+	* gcc.target/s390/vector/vec-abi-3.c: Ditto.
+	* gcc.target/s390/vector/vec-abi-4.c: Ditto.
+	* gcc.target/s390/vector/vec-abi-vararg-1.c: Ditto.
+	* gcc.target/s390/vector/vec-scalar-cmp-1.c: Ditto.
+	* gcc.target/s390/zero-scratch-regs-1.c: Ditto.
+	* gcc.target/s390/zvector/vec-cmp-1.c: Ditto.
+	* gcc.target/s390/20020926-1.c: Removed.
+	* gcc.target/s390/20140327-1.c: Removed.
+	* gcc.target/s390/dwarfregtable-1.c: Removed.
+	* gcc.target/s390/dwarfregtable-2.c: Removed.
+	* gcc.target/s390/fp2int1.c: Removed.
+	* gcc.target/s390/mnop-mcount-m31-mzarch.c: Removed.
+	* gcc.target/s390/pr102222.c: Removed.
+	* gcc.target/s390/pr106355-2.c: Removed.
+	* gcc.target/s390/pr106355-3.c: Removed.
+	* gcc.target/s390/pr119873-5.c: Removed.
+	* gcc.target/s390/pr61078.c: Removed.
+	* gcc.target/s390/stack-clash-4.c: Removed.
+	* gcc.target/s390/stack-clash-5.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-1.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-10.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-11.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-12.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-13.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-14.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-15.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-16.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-17.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-18.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-19.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-2.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-20.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-21.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-22.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-23.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-24.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-25.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-26.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-27.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-28.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-29.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-3.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-30.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-31.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-32.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-4.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-5.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-6.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-7.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-8.c: Removed.
+	* gcc.target/s390/target-attribute/tattr-m31-9.c: Removed.
+
 2026-07-08  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 
 	* gfortran.dg/allocate_with_mold_6.f90: New test.

@@ -1,3 +1,66 @@
+2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
+	    Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* config/gcn/teams.c (GOMP_distribute_static_worksharing): Add
+	long niter parameter (unused).
+	(GOMP_distribute_static_worksharing_start): Likewise.
+	* config/nvptx/teams.c (GOMP_distribute_static_worksharing):
+	Likewise.
+	(GOMP_distribute_static_worksharing_start): Likewise.
+	* libgomp.texi: Update function signatures; fix real/imaginary
+	description; document niter parameter.
+	* libgomp_g.h (GOMP_loop_static_worksharing): Update prototype.
+	(GOMP_distribute_static_worksharing): Likewise.
+	* loop.c (GOMP_loop_static_worksharing): Add long niter parameter
+	(unused).
+	(GOMP_loop_static_worksharing_start): Likewise.
+	* teams.c (GOMP_distribute_static_worksharing): Likewise.
+	(GOMP_distribute_static_worksharing_start): Likewise.
+	* testsuite/libgomp.c-c++-common/for-static-1.c: Update scan
+	pattern to match niter argument.
+	* testsuite/libgomp.c-c++-common/for-static-2.c: Likewise.
+	* testsuite/libgomp.c-c++-common/for-static-3.c: Likewise.
+
+2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
+
+	* config/gcn/teams.c (GOMP_distribute_static_worksharing_start,
+	GOMP_distribute_static_worksharing_dispatch,
+	GOMP_distribute_static_worksharing_end): New functions.
+	* config/nvptx/teams.c (GOMP_distribute_static_worksharing_start,
+	GOMP_distribute_static_worksharing_dispatch,
+	GOMP_distribute_static_worksharing_end): Likewise.
+	* libgomp.map (GOMP_6.0.2): Export new entry points.
+	* libgomp_g.h: Add prototypes for GOMP_loop_static_worksharing,
+	GOMP_loop_static_worksharing_start, GOMP_loop_static_worksharing_dispatch,
+	GOMP_loop_static_worksharing_end, GOMP_has_masked_thread_num,
+	GOMP_masked_end, GOMP_single_start_with_end, GOMP_single_end,
+	GOMP_distribute_static_worksharing_start,
+	GOMP_distribute_static_worksharing_dispatch, and
+	GOMP_distribute_static_worksharing_end.
+	* loop.c (GOMP_loop_static_worksharing): Move here from parallel.c.
+	(GOMP_loop_static_worksharing_start): New function.
+	(GOMP_loop_static_worksharing_dispatch): New stub.
+	(GOMP_loop_static_worksharing_end): New stub.
+	(GOMP_has_masked_thread_num): Move here from parallel.c.
+	(GOMP_masked_end): New stub.
+	* parallel.c (GOMP_loop_static_worksharing): Move to loop.c.
+	(GOMP_has_masked_thread_num): Move to loop.c.
+	* single.c (GOMP_single_start_with_end): New function.
+	(GOMP_single_end): New stub.
+	(GOMP_single_copy_start): Fix trailing whitespace.
+	* teams.c (GOMP_distribute_static_worksharing_start): New function.
+	(GOMP_distribute_static_worksharing_dispatch): New stub.
+	(GOMP_distribute_static_worksharing_end): New stub.
+	* testsuite/libgomp.c-c++-common/for-static-1.c: New test.
+	* testsuite/libgomp.c-c++-common/for-static-2.c: New test.
+	* testsuite/libgomp.c-c++-common/for-static-3.c: New test.
+	* testsuite/libgomp.c-c++-common/for-static.h: New test.
+
+2026-07-09  Martin Jambor  <mjambor@suse.cz>
+
+	PR ipa/125207
+	* testsuite/libgomp.c/ipcp-cb-spec1.c (test): Rework.
+
 2026-07-02  Thomas Schwinge  <tschwinge@baylibre.com>
 
 	* config/nvptx/allocator.c [PTX < 4.1]: Fix build.

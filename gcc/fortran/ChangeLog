@@ -1,3 +1,9 @@
+2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
+	    Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* types.def (BT_FN_COMPLEX_INT): Remove.
+	(BT_FN_COMPLEX_INT_ULONGLONG): New.
+
 2026-07-08  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 
 	* trans-array.cc (gfc_array_init_size): Set the rank for the

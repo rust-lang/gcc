@@ -1,3 +1,214 @@
+2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
+	    Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* builtin-types.def (BT_FN_COMPLEX_INT): Remove.
+	(BT_FN_COMPLEX_INT_ULONGLONG): New.
+	* omp-builtins.def (BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING): Use
+	BT_FN_COMPLEX_INT_ULONGLONG.
+	(BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_START): Likewise.
+	(BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING): Likewise.
+	(BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_START): Likewise.
+	* omp-expand.cc (expand_omp_for_static_nochunk): Move worksharing
+	builtin call after iteration count computation; pass n as niter.
+	(expand_omp_for_static_chunk): Likewise.
+
+2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
+
+	* common.opt (fopenmp-ompt): New option.
+	(fopenmp-ompt-detailed): New option.
+	* common.opt.urls: Regenerate.
+	* doc/invoke.texi (Option Summary): Add -fopenmp-ompt and
+	-fopenmp-ompt-detailed.
+	(OpenMP and OpenACC Options): Document -fopenmp-ompt and
+	-fopenmp-ompt-detailed.
+	* omp-builtins.def (BUILT_IN_GOMP_SINGLE_START_WITH_END): New builtin.
+	(BUILT_IN_GOMP_SINGLE_END): New builtin.
+	(BUILT_IN_GOMP_MASKED_END): New builtin.
+	(BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_START): New builtin.
+	(BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_END): New builtin.
+	(BUILT_IN_GOMP_LOOP_STATIC_WORKSHARING_DISPATCH): New builtin.
+	(BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_START): New builtin.
+	(BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_END): New builtin.
+	(BUILT_IN_GOMP_DISTRIBUTE_STATIC_WORKSHARING_DISPATCH): New builtin.
+	* omp-expand.cc (expand_omp_for_static_nochunk): With -fopenmp-ompt,
+	emit _start and _end variants instead of the plain worksharing call;
+	with -fopenmp-ompt-detailed, also emit _dispatch.
+	(expand_omp_for_static_chunk): Likewise.
+	* omp-low.cc (lower_omp_single_simple): With -fopenmp-ompt, use
+	GOMP_single_start_with_end instead of GOMP_single_start.
+	(lower_omp_single): With -fopenmp-ompt, emit GOMP_single_end.
+	(lower_omp_master): With -fopenmp-ompt, emit GOMP_masked_end.
+	* opts.cc (finish_options): Diagnose -fopenmp-ompt and
+	-fopenmp-ompt-detailed used without -fopenmp.
+
+2026-07-09  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	PR debug/126169
+	* rtl.h (rtx_def::u2): Add value_uid to the union.
+	(CSELIB_VAL_UID): New macro.
+	* cselib.h (cselib_val::HASH_MASK): Delete.
+	(cselib_val::hash): Restore to a full int.
+	(cselib_val::uid): Delete.
+	(canonical_cselib_val): Use CSELIB_VAL_UID instead of cselib_val::uid.
+	* alias.cc (refs_newer_value_p): Likewise.
+	* dse.cc (canon_address): Likewise.
+	* print-rtl.cc (rtx_writer::print_rtx_operand_code_0): Likewise.
+	* var-tracking.cc (dv_uid, canon_value_cmp): Likewise.
+	(variable_post_merge_new_vals): Likewise.
+	* cselib.cc (new_elt_loc_list, new_cselib_val): Likewise.
+	(cselib_lookup): Likewise.
+	(cselib_find_slot): Remove use of cselib_val::HASH_MASK.
+
+2026-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	PR target/126121
+	* config/m68k/m68k.md (bsetmemqi, *bsetmemqi_ext, bclrmemqi)
+	(*bclrmemqi_ext): Add AND with 7 around bit number.
+
+2026-07-09  Karl Meakin  <karl.meakin@arm.com>
+
+	* bitmap.h: Replace uses of `CONSTEXPR` with `constexpr`.
+	* config/aarch64/aarch64-acle-builtins.cc: Likewise.
+	* config/aarch64/aarch64-builtins.cc: Likewise.
+	* config/aarch64/aarch64-protos.h: Likewise.
+	* config/aarch64/aarch64-sve-builtins-base.cc: Likewise.
+	* config/aarch64/aarch64-sve-builtins-functions.h: Likewise.
+	* config/aarch64/aarch64-sve-builtins-shapes.cc: Likewise.
+	* config/aarch64/aarch64-sve-builtins-sme.cc: Likewise.
+	* config/aarch64/aarch64-sve-builtins-sve2.cc: Likewise.
+	* config/aarch64/aarch64.cc: Likewise.
+	* config/aarch64/driver-aarch64.cc: Likewise.
+	* config/arm/arm-mve-builtins-base.cc: Likewise.
+	* config/arm/arm-mve-builtins-functions.h: Likewise.
+	* config/arm/arm-mve-builtins-shapes.cc: Likewise.
+	* config/arm/arm-mve-builtins.cc: Likewise.
+	* config/riscv/andes-vector-builtins-bases.cc: Likewise.
+	* config/riscv/riscv-protos.h: Likewise.
+	* config/riscv/riscv-vector-builtins-bases.cc: Likewise.
+	* config/riscv/riscv-vector-builtins-shapes.cc: Likewise.
+	* config/riscv/riscv-vector-builtins.cc: Likewise.
+	* config/riscv/riscv-vector-builtins.h: Likewise.
+	* config/riscv/sifive-vector-builtins-bases.cc: Likewise.
+	* machmode.h: Likewise.
+
+2026-07-09  Philipp Tomsich  <philipp.tomsich@vrull.eu>
+
+	* doc/params.texi (widening-mul-defer-fma): Document.
+	* params.opt (-param=widening-mul-defer-fma=): New param.
+	* tree-ssa-math-opts.cc (math_opts_dom_walker::after_dom_children):
+	Gate fma_deferring_state's enable predicate on
+	param_widening_mul_defer_fma on top of param_avoid_fma_max_bits.
+	* config/aarch64/aarch64-tuning-flags.def (AVOID_CROSS_LOOP_FMA):
+	Update the comment for the widening-mul-defer-fma effect.
+	* config/aarch64/aarch64.cc (aarch64_override_options_internal):
+	Inside the AARCH64_EXTRA_TUNE_AVOID_CROSS_LOOP_FMA block, set
+	param_widening_mul_defer_fma to 0.
+
+2026-07-09  Nathan Sidwell  <nathan@acm.org>
+
+	* Makefile.in (genprogrtl, genprogmd, genprogerr, genprog): Append,
+	rather than set.
+	* config/riscv/t-riscv: Delete genrvv-type-indexer workaround rule,
+	it is no longer needed.
+
+2026-07-09  Martin Jambor  <mjambor@suse.cz>
+
+	PR ipa/125207
+	* ipa-cp.cc (decide_about_value): Add detailed dumping about skipping
+	a value when there are no edges for it.  Make dumping about skipping
+	because of growth limit violation consistent with other cases.
+	(decide_whether_version_node): Only create all-context nodes for local
+	nodes, remove the logic doing it in other cases, allow cloning for
+	single constant lattices for non-local nodes.  Adjust dumping.
+
+2026-07-09  Jim Lin  <jim@andestech.com>
+
+	* config/riscv/riscv-string.cc (riscv_vector_expand_block_move):
+	Gate the memcpy path on riscv_memcpy_size_threshold instead of
+	riscv_memmove_size_threshold.
+
+2026-07-09  Jovan Dmitrovic  <jovan.dmitrovic@htecgroup.com>
+
+	* tree-ssa-loop-ivopts.cc (ivopts_estimate_reg_pressure):
+	Return zero if there are enough registers to store new
+	invariants and induction variables.
+
+2026-07-09  Eikansh Gupta  <eikansh.gupta@oss.qualcomm.com>
+
+	PR tree-optimization/112472
+	* match.pd ((trunc)copysign ((extend)x, CST) --> copysign (x, -1.0/1.0)):
+	New pattern.
+
+2026-07-09  Zhou Xuhang  <zhouxh2002@gmail.com>
+
+	* match.pd: Canonicalize shifted high-half unsigned multiply
+	overflow checks to widened comparisons.  Simplify widened unsigned
+	multiply comparison against the narrow type maximum to IFN_MUL_OVERFLOW.
+
+2026-07-09  Avinash Jayakar  <avinashd@linux.ibm.com>
+
+	* config/rs6000/rs6000-builtins.def: Move AES builtins to future-vsx
+	stanza.
+	* doc/extend.texi: Add subheading for AES builtins.
+
+2026-07-09  Stefan Schulze Frielinghaus  <stefansf@gcc.gnu.org>
+
+	* config.gcc: Remove target s390-*. Don't accept
+	--with-mode=esa anymore.
+	* config.host: Remove target s390-*.
+	* config/host-linux.cc (TRY_EMPTY_VM_SPACE): Remove definition
+	for s390.
+	* config/s390/2827.md: Remove scheduling information for
+	mnemonics which are only used by -m31 but not by -m64.
+	* config/s390/2964.md: Ditto.
+	* config/s390/3906.md: Ditto.
+	* config/s390/3931.md: Ditto.
+	* config/s390/8561.md: Ditto.
+	* config/s390/9175.md: Ditto.
+	* config/s390/constraints.md (ZL): Remove TARGET_64BIT test.
+	* config/s390/driver-native.cc (s390_host_detect_local_cpu):
+	Remove handling for -mesa/-mzarch.
+	* config/s390/htmxlintrin.h (__TM_failure_address): Remove
+	-m31 part.
+	* config/s390/linux.h: Remove -m31 parts.
+	* config/s390/predicates.md: Ditto.
+	* config/s390/s390-builtins.def: Rename RTL expander name for
+	s390_vsce[fg].
+	* config/s390/s390-c.cc (s390_cpu_cpp_builtins): Remove
+	TARGET_{64BIT,ZARCH} tests.
+	* config/s390/s390-d.cc (s390_d_target_versions): Remove
+	TARGET_64BIT test.
+	* config/s390/s390.cc: Remove -m31 parts.  In particular, there
+	is no need to distinguish between 64-bit registers in ABI
+	contexts anymore which is why UNITS_PER_WORD and UNITS_PER_LONG
+	always equal, now.  Hence, replace UNITS_PER_LONG by
+	UNITS_PER_WORD.
+	* config/s390/s390.h: Ditto.
+	* config/s390/s390.md: Ditto. Mode iterator GPR is replaced by
+	DSI. Likewise, DGPR by new mode iterator TDSI.  Remove mode
+	iterators P, DW, W because they are singletons, now.
+	* config/s390/s390.opt: Keep -m64 and -mzarch for backwards
+	compatibility.  Mark -m31 and -mesa as undocumented.
+	* config/s390/s390.opt.urls: Regenerate.
+	* config/s390/t-linux64: Remove -m31 parts.
+	* config/s390/tpf.h (POINTERS_EXTEND_UNSIGNED): This is only
+	required for TPF which is why it is moved from s390.h here.
+	(TARGET_DEFAULT): Remove MASK_64BIT and MASK_ZARCH.
+	* config/s390/vector.md: Remove -m31 parts.
+	* config/s390/vx-builtins.md
+	(vec_scatter_element<V_HW_2:mode>_SI): There is no need for
+	multiplexing different address sizes for vec_scatter_element
+	anymore.
+	(vec_scatter_element<V_HW_32_64:mode>): Ditto.
+	* configure: Regenerate.
+	* configure.ac: Remove target s390-*.
+	* doc/install.texi: Remove mentions of s390 without also
+	referring to s390x.
+	* doc/invoke.texi: Remove options -m31 and -mesa.  Document that
+	-m64 and -mzarch are the defaults, now, and that they don't have
+	any additional effect when explicitly specified.
+	* config/s390/s390x.h: Removed.
+
 2026-07-08  Jim Lin  <jim@andestech.com>
 
 	* config/riscv/riscv.h (TARGET_SFB_ALU): Add andes_45_series.

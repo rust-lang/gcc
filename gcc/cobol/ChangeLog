@@ -1,3 +1,17 @@
+2026-07-09  James K. Lowden  <jklowden@cobolworx.com>
+
+	PR cobol/126105
+	* parse.y: Remove unnecessary test and improve diagnostic message.
+	* parse_ante.h (yylocation_print): New function.
+	(YYLOCATION_PRINT): Define, because user-defined cbl_loc_t location.
+	* symbols.cc (symbol_typedef): Exclude current field from type search.
+	* symbols.h (symbol_typedef): Delete unused overload.
+
+2026-07-09  James K. Lowden  <jklowden@cobolworx.com>
+
+	PR cobol/126106
+	* parse.y: Report error instead of crashing.
+
 2026-07-08  James K. Lowden  <jklowden@cobolworx.com>
 
 	* genapi.cc (parser_call_targets_dump): Remove function.

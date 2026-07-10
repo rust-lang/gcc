@@ -1,3 +1,8 @@
+2026-07-09  Stefan Schulze Frielinghaus  <stefansf@gcc.gnu.org>
+
+	* compare-all-tests: Remove opts -m31 and so on.
+	* config-list.mk: Remove s390-linux-gnu.
+
 2026-07-07  Richard Earnshaw  <rearnsha@arm.com>
 
 	* add-write-after.py: New file.
