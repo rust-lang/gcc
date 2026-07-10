@@ -391,7 +391,7 @@ static long long_optarg (const char *optarg, const char *optstr)
   errno = 0;
   ret = strtol(optarg, &end, 0);
 
-  while (isspace (*end))
+  while (isspace ((unsigned char) *end))
     ++end;
 
   if (errno || *end)
