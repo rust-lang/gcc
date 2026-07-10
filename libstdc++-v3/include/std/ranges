@@ -7918,14 +7918,17 @@ namespace views::__adaptor
     requires copy_constructible<_Tp>
     : _M_value(__value), _M_bound(__bound)
     {
-      if constexpr (!same_as<_Bound, unreachable_sentinel_t>)
+      if constexpr (__detail::__is_signed_integer_like<_Bound>)
 	__glibcxx_assert(__bound >= 0);
     }
 
     constexpr explicit
     repeat_view(_Tp&& __value, _Bound __bound = _Bound())
     : _M_value(std::move(__value)), _M_bound(__bound)
-    { }
+    {
+      if constexpr (__detail::__is_signed_integer_like<_Bound>)
+	__glibcxx_assert(__bound >= 0);
+    }
 
     template<typename... _Args, typename... _BoundArgs>
       requires constructible_from<_Tp, _Args...>
@@ -7936,7 +7939,10 @@ namespace views::__adaptor
 		tuple<_BoundArgs...> __bound_args = tuple<>{})
     : _M_value(std::make_from_tuple<_Tp>(std::move(__args))),
       _M_bound(std::make_from_tuple<_Bound>(std::move(__bound_args)))
-    { }
+    {
+      if constexpr (__detail::__is_signed_integer_like<_Bound>)
+	__glibcxx_assert(_M_bound >= 0);
+    }
 
     constexpr _Iterator
     begin() const
