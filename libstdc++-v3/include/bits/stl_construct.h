@@ -346,6 +346,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     inline _Tp*
     start_lifetime_as_array(void* __p, size_t __n) noexcept
     {
+      static_assert(sizeof(_Tp), "template argument must be a complete type");
+
       auto __q = reinterpret_cast<_Tp*>(__p);
       if (!__n)
 	return __q;
@@ -360,6 +362,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     inline const _Tp*
     start_lifetime_as_array(const void* __p, size_t __n) noexcept
     {
+      static_assert(sizeof(_Tp), "template argument must be a complete type");
+
       auto __q = reinterpret_cast<const _Tp*>(__p);
       if (!__n)
 	return __q;
@@ -376,6 +380,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     inline volatile _Tp*
     start_lifetime_as_array(volatile void* __p, size_t __n) noexcept
     {
+      static_assert(sizeof(_Tp), "template argument must be a complete type");
+
       auto __q = reinterpret_cast<volatile _Tp*>(__p);
       if (!__n)
 	return __q;
@@ -392,6 +398,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     inline const volatile _Tp*
     start_lifetime_as_array(const volatile void* __p, size_t __n) noexcept
     {
+      static_assert(sizeof(_Tp), "template argument must be a complete type");
+
       auto __q = reinterpret_cast<const volatile _Tp*>(__p);
       if (!__n)
 	return __q;
