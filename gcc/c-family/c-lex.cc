@@ -403,6 +403,13 @@ c_common_has_attribute (cpp_reader *pfile, bool std_syntax)
 		result = 1;
 	      if (result)
 		attr_name = NULL_TREE;
+	      /* gnu::trivial_abi is in the attribute table just
+		 to error on it and suggest using [[clang::trivial_abi]]
+		 or __attribute__((trivial_abi)).  Don't advertise it.  */
+	      else if (c_dialect_cxx ()
+		       && is_attribute_p ("gnu", attr_ns)
+		       && is_attribute_p ("trivial_abi", attr_id))
+		attr_name = NULL_TREE;
 	      else
 		attr_name = build_tree_list (attr_ns, attr_id);
 	    }
