@@ -3062,6 +3062,28 @@ emit_group_load_1 (rtx *tmps, rtx dst, rtx orig_src, tree type,
 	       && known_eq (bytelen, GET_MODE_SIZE (mode)))
 	/* Let emit_move_complex do the bulk of the work.  */
 	tmps[i] = src;
+      else if (SCALAR_INT_MODE_P (mode)
+	       && COMPLEX_MODE_P (GET_MODE (src))
+	       && known_eq (GET_MODE_SIZE (mode),
+			    GET_MODE_SIZE (GET_MODE (src)))
+	       && known_eq (bytelen, GET_MODE_SIZE (mode)))
+	{
+	  /* When passing a complex value in an integer mode of the same
+	     size, explicitly construct (highpart<<isize)+lowpart to
+	     avoid spilling to memory before reload.  */
+	  rtx tmp = read_complex_part (src, !BYTES_BIG_ENDIAN);
+	  scalar_int_mode imode = int_mode_for_mode (GET_MODE (tmp)).require();
+	  tmp = gen_lowpart (imode, tmp);
+	  tmp = simplify_gen_unary (ZERO_EXTEND, mode, tmp, imode);
+	  rtx result = force_reg (mode, tmp);
+	  result = expand_shift (LSHIFT_EXPR, mode, result,
+				 GET_MODE_BITSIZE (imode), NULL_RTX, 1);
+	  tmp = read_complex_part (src, BYTES_BIG_ENDIAN);
+	  tmp = gen_lowpart (imode, tmp);
+	  tmp = simplify_gen_unary (ZERO_EXTEND, mode, tmp, imode);
+	  result = simplify_gen_binary (PLUS, mode, result, tmp);
+	  tmps[i] = force_reg (mode, result);
+	}
       else if (GET_CODE (src) == CONCAT)
 	{
 	  poly_int64 slen = GET_MODE_SIZE (GET_MODE (src));
