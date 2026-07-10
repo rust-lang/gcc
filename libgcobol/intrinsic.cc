@@ -41,6 +41,7 @@
 #include <cwctype>
 #include <cmath>
 #include <cstring>
+#include <cstdlib>
 #include <ctime>
 
 #include <algorithm>
@@ -53,8 +54,10 @@
 #include "common-defs.h"
 #include "io.h"
 #include "gcobolio.h"
+#include "cobol-endian.h"
 #include "libgcobol.h"
 #include "charmaps.h"
+#include "cobol-endian.h"
 
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 
@@ -84,6 +87,68 @@ struct cobol_tm
 static int is_leap_year(int);
 
 typedef char * PCHAR;
+
+static inline char *
+as_chars(unsigned char *p)
+  {
+  return reinterpret_cast<char *>(p);
+  }
+
+static inline const char *
+as_chars(const unsigned char *p)
+  {
+  return reinterpret_cast<const char *>(p);
+  }
+
+static void *
+xrealloc(void *p, size_t new_size)
+  {
+  void *retval = realloc(p, new_size);
+  massert(retval);
+  return retval;
+  }
+
+static char *
+mconvert_to_c_string(cbl_encoding_t from,
+                     cbl_encoding_t to,
+               const void          *str,
+                     size_t         length,
+                     size_t        *outlength = nullptr)
+  {
+  size_t nbytes;
+  char *converted = __gg__miconverter(from,
+                                      to,
+                                      str,
+                                      length,
+                                      &nbytes);
+  massert(converted);
+
+  char *retval = static_cast<char *>(malloc(nbytes + 1));
+  massert(retval);
+  memcpy(retval, converted, nbytes);
+  retval[nbytes] = '\0';
+  free(converted);
+
+  if( outlength )
+    {
+    *outlength = nbytes;
+    }
+  return retval;
+  }
+
+static void
+ensure_char_capacity(char *&buffer, size_t &capacity, size_t required)
+  {
+  if( capacity == 0 )
+    {
+    capacity = 1;
+    }
+  while( capacity < required )
+    {
+    capacity *= 2;
+    buffer = static_cast<char *>(xrealloc(buffer, capacity));
+    }
+  }
 
 static void
 trim_trailing_spaces(PCHAR left, PCHAR &right, int mapped_space)
@@ -244,9 +309,9 @@ struct input_state
     nsubscript = N;
     if(N)
       {
-      subscript_alls   = static_cast<bool   *>(malloc(nsubscript));
-      subscripts       = static_cast<size_t *>(malloc(nsubscript));
-      subscript_limits = static_cast<size_t *>(malloc(nsubscript));
+      subscript_alls   = static_cast<bool   *>(malloc(nsubscript * sizeof(*subscript_alls)));
+      subscripts       = static_cast<size_t *>(malloc(nsubscript * sizeof(*subscripts)));
+      subscript_limits = static_cast<size_t *>(malloc(nsubscript * sizeof(*subscript_limits)));
       massert(subscript_alls);
       massert(subscripts);
       massert(subscript_limits);
@@ -563,7 +628,7 @@ get_all_time( const cblc_field_t *dest, // needed for the target encoding
 
   // Do these before the iconverter, because that routine can clobber the
   // return value 'converted'
-  charmap_t *charmap = __gg__get_charmap(dest->encoding);
+  const charmap_t *charmap = __gg__get_charmap(dest->encoding);
   size_t nbytes;
   const char *converted = __gg__iconverter(DEFAULT_SOURCE_ENCODING,
                                            dest->encoding,
@@ -1179,34 +1244,50 @@ __gg__char( cblc_field_t *dest,
     exception_raise(ec_argument_function_e);
     }
 
-  // We need to convert the ch character to the destination encoding.
-  // THIS IS A KLUDGE UNTIL WE MAKE THE CURRENT_COLLATION TO BE A MAP OF
-  // WIDE CHARACTERS!
-  charmap_t *charmap_dest = __gg__get_charmap(dest->encoding);
-
-  cbl_char_t achFrom = 0;
-  memcpy(&achFrom, &ch, 1);
-  size_t charsout;
-  const char *converted = __gg__iconverter(__gg__display_encoding,
-                                           dest->encoding,
-                                           &achFrom,
-                                           1,
-                                           &charsout );
-  // Pick up our character, because mapped_character() might clobber
-  // the converted contents.
-  int converted_char = 0;
-  memcpy(&converted_char, converted, charmap_dest->stride());
-  // Space fill the dest:
-
-  __gg__adjust_dest_size(dest, charmap_dest->stride());
-  charmap_dest-> memset(dest->data,
-                        charmap_dest->mapped_character(ascii_space),
-                        dest->capacity);
-  // Make the first character of the destination equal to our converted
-  // character:
-  if( ch > -1 && charsout == 1 )
+  // We need to convert that value to a character in the destination
+  // encoding.
+  const charmap_t *charmap_dest   = __gg__get_charmap(dest->encoding);
+  int stride = charmap_dest->stride();
+  __gg__adjust_dest_size(dest, stride);
+  switch(stride)
     {
-    charmap_dest->putch(converted_char, dest->data, size_t(0));
+    case 1:
+      {
+      dest->data[0] = ch;
+      break;
+      }
+    case 2:
+      {
+      if( charmap_dest->is_big_endian() )
+        {
+        dest->data[1] = ch;
+        dest->data[0] = 0;
+        }
+      else
+        {
+        dest->data[0] = ch;
+        dest->data[1] = 0;
+        }
+      break;
+      }
+    case 4:
+      {
+      if( charmap_dest->is_big_endian() )
+        {
+        dest->data[3] = ch;
+        dest->data[2] = 0;
+        dest->data[1] = 0;
+        dest->data[0] = 0;
+        }
+      else
+        {
+        dest->data[0] = ch;
+        dest->data[1] = 0;
+        dest->data[2] = 0;
+        dest->data[3] = 0;
+        }
+      break;
+      }
     }
   }
 
@@ -1580,13 +1661,13 @@ __gg__formatted_current_date( cblc_field_t *dest, // Destination string
   cbl_char_t format_z   = charmap_from->mapped_character(ascii_z);
 
   // Establish the formatting string:
-  const char *format     = PTRCAST(char, (input->data+input_offset));
+  const char *format     = as_chars(input->data + input_offset);
   const char *format_end = format + input_size;
 
   __gg__adjust_dest_size(dest, format_end-format);
 
   // Establish the destination, and set it to spaces
-  char *d    = PTRCAST(char, dest->data);
+  char *d    = as_chars(dest->data);
   const char *dend = d + dest->capacity;
   charmap_to->memset(d, dest_space, dest->capacity);
 
@@ -1653,7 +1734,7 @@ __gg__formatted_date(cblc_field_t *dest, // Destination string
   charmap_t *charmap_from = __gg__get_charmap(from);
 
   // Establish the formatting string:
-  char *format     = PTRCAST(char, (arg1->data+arg1_offset));
+  const char *format     = as_chars(arg1->data + arg1_offset);
   const char *format_end = format + arg1_size;
 
   __gg__adjust_dest_size(dest, format_end-format);
@@ -1661,7 +1742,7 @@ __gg__formatted_date(cblc_field_t *dest, // Destination string
   cbl_char_t dest_space = charmap_to->mapped_character(ascii_space);
 
   // Establish the destination, and set it to spaces
-  char *d    = PTRCAST(char, dest->data);
+  char *d    = as_chars(dest->data);
   const char *dend = d + dest->capacity;
   charmap_to->memset(d, dest_space, dest->capacity);
 
@@ -1707,7 +1788,7 @@ __gg__formatted_datetime( cblc_field_t *dest, // Destination string
   charmap_t *charmap_to   = __gg__get_charmap(to);
 
   // Establish the formatting string:
-  char *format     = PTRCAST(char, (par1->data+par1_o));
+  char *format     = as_chars(par1->data + par1_o);
   char *format_end = format + par1_s;
   trim_trailing_spaces(format, format_end, charmap_from->mapped_character(ascii_space));
   bool is_zulu = is_zulu_format(format, format_end, charmap_from);
@@ -1715,9 +1796,10 @@ __gg__formatted_datetime( cblc_field_t *dest, // Destination string
   __gg__adjust_dest_size(dest, format_end-format);
 
   // Establish the destination, and set it to spaces
-        char *d    = PTRCAST(char, (dest->data));
+  char *d          = as_chars(dest->data);
   const char *dend = d + dest->capacity;
-  memset(d, charmap_from->mapped_character(ascii_space), dest->capacity);
+  cbl_char_t dest_space = charmap_to->mapped_character(ascii_space);
+  charmap_to->memset(d, dest_space, dest->capacity);
 
 
   struct cobol_tm ctm = {};
@@ -1736,7 +1818,7 @@ __gg__formatted_datetime( cblc_field_t *dest, // Destination string
   get_all_time(dest, achftime, ctm);
   if( __gg__exception_code )
     {
-    memset(d, charmap_to->mapped_character(ascii_space), dend-d);
+    charmap_to->memset(d, dest_space, dend-d);
     }
   else
     {
@@ -1768,7 +1850,7 @@ __gg__formatted_time( cblc_field_t *dest,// Destination string
   int dest_space = charmap_to->mapped_character(ascii_space);
 
   // Establish the formatting string:
-  char *format     = PTRCAST(char, (par1->data+par1_o));
+  char *format     = as_chars(par1->data + par1_o);
   char *format_end = format + par1_s;
   trim_trailing_spaces( format,
                         format_end,
@@ -1778,7 +1860,7 @@ __gg__formatted_time( cblc_field_t *dest,// Destination string
   __gg__adjust_dest_size(dest, format_end-format);
 
   // Establish the destination, and set it to spaces
-  char *d          = PTRCAST(char, dest->data);
+  char *d          = as_chars(dest->data);
   const char *dend = d + dest->capacity;
   charmap_to->memset(d, dest_space, dest->capacity);
 
@@ -2140,7 +2222,7 @@ change_case( cblc_field_t *dest,
   {
   cbl_encoding_t enc_to   = dest->encoding;
   cbl_encoding_t enc_from = input->encoding;
-  cbl_encoding_t enc_work = DEFAULT_32_ENCODING;
+  cbl_encoding_t enc_work =  HOST_32_ENCODING;
 
   // In order to handle any input encoding, we convert to UTF32:
   size_t converted_bytes;
@@ -2149,23 +2231,23 @@ change_case( cblc_field_t *dest,
                                            input->data+input_offset,
                                            input_size,
                                            &converted_bytes);
-  // Make a copy of it to prevent the static nature of iconverter from causing
-  // trouble:
-  cbl_char_t *duped =
-          static_cast<cbl_char_t *>(__gg__memdup(converted, converted_bytes));
-  cbl_char_t *pend = duped + converted_bytes / width_of_utf32;
+  size_t nchars = converted_bytes / width_of_utf32;
+  std::vector<cbl_char_t> work(nchars);
+  for(size_t i=0; i<nchars; i++ )
+    {
+    memcpy(&work[i], converted + i * width_of_utf32, sizeof(work[i]));
+    }
 
   // Use the designated case changer:
-  std::transform(duped, pend, duped,
+  std::transform(work.begin(), work.end(), work.begin(),
                  [&changer](cbl_char_t c) { return changer(c); });
 
   // Convert that modified string to the destination encoding:
   converted = __gg__iconverter(enc_work,
                                enc_to,
-                               duped,
+                               work.data(),
                                converted_bytes,
                                &converted_bytes);
-  free(duped);
 
   char *duped2 = static_cast<char *>(__gg__memdup(converted, converted_bytes));
   __gg__adjust_dest_size(dest, converted_bytes);
@@ -2247,7 +2329,7 @@ __gg__median( cblc_field_t *dest,
       if(k_count >= list_size)
         {
         list_size *= 2;
-        the_list = PTRCAST(GCOB_FP128, realloc(the_list, list_size *sizeof(GCOB_FP128)));
+        the_list = static_cast<GCOB_FP128 *>(xrealloc(the_list, list_size * sizeof(GCOB_FP128)));
         massert(the_list);
         }
 
@@ -2501,7 +2583,7 @@ numval( cblc_field_t *dest,
   size_t nbytes;
   const char *p = __gg__iconverter(input->encoding,
                                    DEFAULT_SOURCE_ENCODING,
-                                   PTRCAST(char, input->data + input_offset),
+                                   as_chars(input->data + input_offset),
                                    input_size,
                                    &nbytes);
   const char *pend = p + nbytes;
@@ -2796,15 +2878,12 @@ numval_c( cblc_field_t *dest,
   {
   size_t errcode = 0;
 
-//  char *pstart = PTRCAST(char, (src->data+src_offset));
   size_t nbytes;
-  const char *converted = __gg__iconverter(src->encoding,
-                                  DEFAULT_SOURCE_ENCODING,
-                                  PTRCAST(char, src->data+src_offset),
-                                  src_size,
-                                  &nbytes);
-  char *pstart = strdup(converted);
-  massert(pstart);
+  char *pstart = mconvert_to_c_string(src->encoding,
+                                      DEFAULT_SOURCE_ENCODING,
+                                      src->data + src_offset,
+                                      src_size,
+                                      &nbytes);
   char *pend   = pstart + nbytes;
   char *p      = pstart;
 
@@ -2821,14 +2900,11 @@ numval_c( cblc_field_t *dest,
   const char *currency_end;
   if( crcy )
     {
-    converted = __gg__iconverter(crcy->encoding,
-                                 DEFAULT_SOURCE_ENCODING,
-                                 PTRCAST(char, crcy->data+crcy_offset),
-                                 crcy_size,
-                                 &nbytes);
-    currency_in_ascii = static_cast<char*>(malloc(nbytes+1));
-    massert(currency_in_ascii);
-    strcpy(currency_in_ascii, converted);
+    currency_in_ascii = mconvert_to_c_string(crcy->encoding,
+                                             DEFAULT_SOURCE_ENCODING,
+                                             crcy->data + crcy_offset,
+                                             crcy_size,
+                                             &nbytes);
     }
   else
     {
@@ -3194,14 +3270,24 @@ __gg__ord(cblc_field_t *dest,
           size_t /*input_size*/)
   {
   // FUNCTION ORD
-  const char *arg = PTRCAST(char, (input->data + input_offset));
+
+  // We haven't worked out how to handle things like UTF-16 and UTF-32.  So
+  // we are just going to work with the single byte equivalent.
+  const charmap_t *charmap = __gg__get_charmap(input->encoding);
+  if( charmap->is_big_endian() )
+    {
+    // Point to the low-order byte of the multi-byte character
+    input_offset += charmap->stride() - 1;
+    }
+
+  const unsigned char *arg = input->data + input_offset;
 
   // The ORD function takes a single-character string and returns the
   // ordinal position of that character within the current collation.
 
   const unsigned short *collation = __gg__current_collation();
 
-  size_t retval = (collation[arg[0]&0xFF]) + 1;
+  size_t retval = collation[arg[0]] + 1;
 
   __gg__int128_to_field(dest,
                         retval,
@@ -3613,7 +3699,7 @@ __gg__trim_a( cblc_field_t *dest,
 
   char *strippers = arg2;
   const char *strip_end = arg2 + arg2_size;
-  char *left  = reinterpret_cast<char *>(arg1->data) + arg1_offset;
+  char *left  = as_chars(arg1->data) + arg1_offset;
   char *right = left + arg1_size-stride; // Points AT the character, not beyond
 
   while( strippers < strip_end )
@@ -5361,9 +5447,9 @@ __gg__numval_f( cblc_field_t *dest,
   {
   // It's just easiest for this routine to operate in ASCII space:
   size_t nbytes;
-  char *converted = __gg__iconverter(source->encoding,
+  const char *converted = __gg__iconverter(source->encoding,
                                   DEFAULT_SOURCE_ENCODING,
-                                  PTRCAST(char, source->data + source_offset),
+                                  as_chars(source->data + source_offset),
                                   source_size,
                                   &nbytes);
   GCOB_FP128 value = 0;
@@ -5408,9 +5494,9 @@ __gg__test_numval_f(cblc_field_t *dest,
   {
   // It's just easiest for this routine to operate in ASCII space:
   size_t nbytes;
-  char *converted = __gg__iconverter(source->encoding,
+  const char *converted = __gg__iconverter(source->encoding,
                                   DEFAULT_SOURCE_ENCODING,
-                                  PTRCAST(char, source->data + source_offset),
+                                  as_chars(source->data + source_offset),
                                   source_size,
                                   &nbytes);
 
@@ -5428,15 +5514,14 @@ __gg__test_numval_f(cblc_field_t *dest,
 static bool
 ismatch(const char *a1, const char *a2, const char *b1, const char *b2)
   {
-  bool retval = true;
-  while( a1 < a2 && b1 < b2 )
+  size_t alen = a2 - a1;
+  size_t blen = b2 - b1;
+
+  if( blen > alen )
     {
-    if( *a1++ != *b1++ )
-      {
-      retval = false;
-      }
+    return false;
     }
-  return retval;
+  return memcmp(a1, b1, blen) == 0;
   }
 
 static bool
@@ -5464,31 +5549,32 @@ iscasematch(const char *a1, const char *a2,
     0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff,
     };
 
-  bool retval = true;
+  size_t alen = a2 - a1;
+  size_t blen = b2 - b1;
 
-  if( !is_ebcdic )
+  if( blen > alen )
     {
-    while( a1 < a2 && b1 < b2 )
+    return false;
+    }
+
+  for(size_t i=0; i<blen; i++ )
+    {
+    unsigned char ach = static_cast<unsigned char>(a1[i]);
+    unsigned char bch = static_cast<unsigned char>(b1[i]);
+
+    if( !is_ebcdic )
       {
-      if( std::tolower((unsigned char)*a1++)
-              != std::tolower((unsigned char)*b1++) )
+      if( std::tolower(ach) != std::tolower(bch) )
         {
-        retval = false;
+        return false;
         }
       }
-    }
-  else
-    {
-    while( a1 < a2 && b1 < b2 )
+    else if( ebcdic_lower[ach] != ebcdic_lower[bch] )
       {
-      if( ebcdic_lower[(unsigned int)(unsigned char)*a1++]
-                          != ebcdic_lower[(unsigned int)(unsigned char)*b1++] )
-        {
-        retval = false;
-        }
+      return false;
       }
     }
-  return retval;
+  return true;
   }
 
 static
@@ -5498,8 +5584,16 @@ strstr( const char *haystack,
         const char *needle,
         const char *needle_e)
   {
+  size_t haystack_len = haystack_e - haystack;
+  size_t needle_len   = needle_e - needle;
+
+  if( needle_len > haystack_len )
+    {
+    return NULL;
+    }
+
   const char *retval = NULL;
-  const char *pend = haystack_e - (needle_e - needle);
+  const char *pend = haystack_e - needle_len;
   while( haystack <= pend )
     {
     if(ismatch(haystack, haystack_e, needle, needle_e))
@@ -5520,8 +5614,16 @@ strcasestr( const char *haystack,
             const char *needle_e,
             bool is_ebcdic)
   {
+  size_t haystack_len = haystack_e - haystack;
+  size_t needle_len   = needle_e - needle;
+
+  if( needle_len > haystack_len )
+    {
+    return NULL;
+    }
+
   const char *retval = NULL;
-  const char *pend = haystack_e - (needle_e - needle);
+  const char *pend = haystack_e - needle_len;
   while( haystack <= pend )
     {
     if(iscasematch(haystack, haystack_e, needle, needle_e, is_ebcdic))
@@ -5541,8 +5643,16 @@ strlaststr( const char *haystack,
             const char *needle,
             const char *needle_e)
   {
+  size_t haystack_len = haystack_e - haystack;
+  size_t needle_len   = needle_e - needle;
+
+  if( needle_len > haystack_len )
+    {
+    return NULL;
+    }
+
   const char *retval = NULL;
-  const char *pend = haystack_e - (needle_e - needle);
+  const char *pend = haystack_e - needle_len;
   while( haystack <= pend )
     {
     if(ismatch(haystack, haystack_e, needle, needle_e))
@@ -5562,8 +5672,16 @@ strcaselaststr( const char *haystack,
                 const char *needle_e,
                 bool is_ebcdic)
   {
+  size_t haystack_len = haystack_e - haystack;
+  size_t needle_len   = needle_e - needle;
+
+  if( needle_len > haystack_len )
+    {
+    return NULL;
+    }
+
   const char *retval = NULL;
-  const char *pend = haystack_e - (needle_e - needle);
+  const char *pend = haystack_e - needle_len;
   while( haystack <= pend )
     {
     if(iscasematch(haystack, haystack_e, needle, needle_e, is_ebcdic))
@@ -5588,16 +5706,15 @@ __gg__substitute( const cblc_referlet_t *arg2,
   {
   // arg2 is the Group 1 triplet.
   // arg3 is the Group 2 triplet
-  ssize_t retval_size;
-  retval_size = 256;
+  size_t retval_size = 256;
   char  *retval = static_cast<char *>(malloc(retval_size));
   massert(retval);
   *retval = '\0';
 
-  const char *haystack   = PTRCAST(char, (arg1_f->data + arg1_o));
+  const char *haystack   = as_chars(arg1_f->data + arg1_o);
   const char *haystack_e = haystack + arg1_s;
 
-  ssize_t outdex = 0;
+  size_t outdex = 0;
 
   const char **pflasts = static_cast<const char **>(malloc(N * sizeof(char *)));
   massert(pflasts);
@@ -5624,16 +5741,16 @@ __gg__substitute( const cblc_referlet_t *arg2,
         {
         pflasts[i] = strcasestr(haystack,
                                 haystack_e,
-                                PTRCAST(char, (arg2[i].field->data+arg2[i].offset)),
-                                PTRCAST(char, (arg2[i].field->data+arg2[i].offset)) + arg2[i].size,
+                                as_chars(arg2[i].field->data + arg2[i].offset),
+                                as_chars(arg2[i].field->data + arg2[i].offset) + arg2[i].size,
                                 is_ebcdic);
         }
       else if( control[i] & substitute_last_e)
         {
         pflasts[i] = strcaselaststr(haystack,
                                 haystack_e,
-                                PTRCAST(char, (arg2[i].field->data+arg2[i].offset)),
-                                PTRCAST(char, (arg2[i].field->data+arg2[i].offset)) + arg2[i].size,
+                                as_chars(arg2[i].field->data + arg2[i].offset),
+                                as_chars(arg2[i].field->data + arg2[i].offset) + arg2[i].size,
                                 is_ebcdic);
         }
       else
@@ -5647,15 +5764,15 @@ __gg__substitute( const cblc_referlet_t *arg2,
         {
         pflasts[i] = strstr(haystack,
                             haystack_e,
-                            PTRCAST(char, (arg2[i].field->data+arg2[i].offset)),
-                            PTRCAST(char, (arg2[i].field->data+arg2[i].offset)) + arg2[i].size);
+                            as_chars(arg2[i].field->data + arg2[i].offset),
+                            as_chars(arg2[i].field->data + arg2[i].offset) + arg2[i].size);
         }
       else if( control[i] & substitute_last_e)
         {
         pflasts[i] = strlaststr(haystack,
                                 haystack_e,
-                                PTRCAST(char, (arg2[i].field->data+arg2[i].offset)),
-                                PTRCAST(char, (arg2[i].field->data+arg2[i].offset)) + arg2[i].size);
+                                as_chars(arg2[i].field->data + arg2[i].offset),
+                                as_chars(arg2[i].field->data + arg2[i].offset) + arg2[i].size);
         }
       else
         {
@@ -5671,13 +5788,7 @@ __gg__substitute( const cblc_referlet_t *arg2,
       {
       // Let's make sure that there is enough room in the case that we add this
       // arg
-      while( outdex - (ssize_t)arg2[i].size + (ssize_t)arg3[i].size
-                                                                 > retval_size )
-        {
-        retval_size *= 2;
-        retval = static_cast<char *>(realloc(retval, retval_size));
-        massert(retval);
-        }
+      ensure_char_capacity(retval, retval_size, outdex + arg3[i].size);
 
       // We checked earlier for FIRST/LAST matches
       bool matched = pflasts[i] == haystack;
@@ -5691,8 +5802,8 @@ __gg__substitute( const cblc_referlet_t *arg2,
           continue;
           }
 
-        const char *needle   = PTRCAST(char, arg2[i].field->data+arg2[i].offset);
-        const char *needle_e = PTRCAST(char, arg2[i].field->data+arg2[i].offset) + arg2[i].size;
+        const char *needle   = as_chars(arg2[i].field->data + arg2[i].offset);
+        const char *needle_e = as_chars(arg2[i].field->data + arg2[i].offset) + arg2[i].size;
         matched = (control[i] & substitute_anycase_e) && iscasematch(
                                                                  haystack,
                                                                  haystack_e,
@@ -5718,12 +5829,7 @@ __gg__substitute( const cblc_referlet_t *arg2,
       }
     if( !did_something )
       {
-      while( outdex + 1 > retval_size )
-        {
-        retval_size *= 2;
-        retval = static_cast<char *>(realloc(retval, retval_size));
-        massert(retval);
-        }
+      ensure_char_capacity(retval, retval_size, outdex + 1);
       retval[outdex++] = *haystack++;
       }
     }
@@ -5806,7 +5912,7 @@ void
 __gg__locale_date(cblc_field_t *dest,
             const cblc_field_t *arg1,
                   size_t        arg1_o,
-                  size_t        /*arg1_s*/,
+                  size_t        arg1_s,
             const cblc_field_t *arg_locale,
                   size_t        /*arg_locale_o*/,
                   size_t        /*arg_locale_s*/)
@@ -5821,14 +5927,18 @@ __gg__locale_date(cblc_field_t *dest,
   else
     {
     // Default locale
-    tm tm;
-    memcpy(ach, arg1->data+arg1_o, 8);
-    ach[8] = '\0';
-    long ymd    = atoi(ach);
-    tm.tm_year  = ymd/10000 - 1900;
-    tm.tm_mon   = ymd/100 % 100;
+    size_t nbytes;
+    char *converted = mconvert_to_c_string(arg1->encoding,
+                                           DEFAULT_SOURCE_ENCODING,
+                                           arg1->data + arg1_o,
+                                           arg1_s,
+                                           &nbytes);
+    tm tm = {};
+    long ymd    = strtol(converted, NULL, 10);
+    free(converted);
+    tm.tm_year  = ymd / 10000 - 1900;
+    tm.tm_mon   = (ymd / 100) % 100 - 1;
     tm.tm_mday  = ymd % 100;
-    strcpy(ach, nl_langinfo(D_FMT));
     strftime(ach, sizeof(ach), nl_langinfo(D_FMT), &tm);
     }
   size_t bytes_converted;
@@ -5847,7 +5957,7 @@ void
 __gg__locale_time(cblc_field_t *dest,
             const cblc_field_t *arg1,
                   size_t        arg1_o,
-                  size_t        /*arg1_s*/,
+                  size_t        arg1_s,
             const cblc_field_t *arg_locale,
                   size_t        /*arg_locale_o*/,
                   size_t        /*arg_locale_s*/)
@@ -5863,12 +5973,17 @@ __gg__locale_time(cblc_field_t *dest,
   else
     {
     // Default locale
+    size_t nbytes;
+    char *converted = mconvert_to_c_string(arg1->encoding,
+                                           DEFAULT_SOURCE_ENCODING,
+                                           arg1->data + arg1_o,
+                                           arg1_s,
+                                           &nbytes);
     tm tm = {};
-    memcpy(ach, arg1->data+arg1_o, 8);
-    ach[8] = '\0';
-    long hms    = atoi(ach);
-    tm.tm_hour  = hms/10000;
-    tm.tm_min   = hms/100 % 100;
+    long hms    = strtol(converted, NULL, 10);
+    free(converted);
+    tm.tm_hour  = hms / 10000;
+    tm.tm_min   = (hms / 100) % 100;
     tm.tm_sec   = hms % 100;
     strftime(ach, sizeof(ach), nl_langinfo(T_FMT), &tm);
     }

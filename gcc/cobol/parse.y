@@ -342,6 +342,11 @@ class locale_tgt_t {
 #include "cobol-system.h"
 #include "coretypes.h"
 #include "tree.h"
+#include "tree-iterator.h"
+#include "stringpool.h"
+#include "diagnostic-core.h"
+#include "target.h"
+#include "tm.h"
 #undef cobol_dialect
 #undef cobol_exceptions
 #undef yy_flex_debug
@@ -356,6 +361,7 @@ class locale_tgt_t {
 #include "genapi.h"
 #include "../../libgcobol/exceptl.h"
 #include "exceptg.h"
+#include "../../libgcobol/cobol-endian.h"
 #include "../../libgcobol/charmaps.h"
 #include "parse_ante.h"
 %}
@@ -15155,6 +15161,10 @@ field_binary_usage( cbl_loc_t loc, cbl_field_t *field,
     field->attr |= big_endian_e;
     __attribute__((fallthrough));
   case FldNumericBin5:
+    if( cobol_target_big_endian() ) // cppcheck-suppress knownConditionTrueFalse
+      {
+      field->attr |= big_endian_e;
+      }
     // If no capacity yet, then no picture, infer $comp.capacity.
     // If field has capacity, ensure USAGE is compatible.
     if( field->data.capacity() > 0 ) { // PICTURE before USAGE

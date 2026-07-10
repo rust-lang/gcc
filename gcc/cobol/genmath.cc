@@ -30,6 +30,7 @@
 #include "cobol-system.h"
 #include "coretypes.h"
 #include "tree.h"
+#include "tm.h"
 #include "../../libgcobol/ec.h"
 #include "../../libgcobol/common-defs.h"
 #include "util.h"
@@ -42,6 +43,7 @@
 #include "gengen.h"
 #include "structs.h"
 #include "../../libgcobol/gcobolio.h"
+#include "../../libgcobol/cobol-endian.h"
 #include "../../libgcobol/charmaps.h"
 #include "show_parse.h"
 

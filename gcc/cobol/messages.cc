@@ -37,6 +37,7 @@
 #include <cobol-system.h>
 #include <coretypes.h>
 #include <tree.h>
+#include "target.h"
 #undef yy_flex_debug
 
 #include <langinfo.h>
@@ -61,6 +62,7 @@
 #include "../../libgcobol/io.h"
 #include "genapi.h"
 #include "genutil.h"
+#include "../../libgcobol/cobol-endian.h"
 #include "../../libgcobol/charmaps.h"
 
 

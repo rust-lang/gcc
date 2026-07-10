@@ -54,6 +54,7 @@
 #include "genutil.h"
 #include "structs.h"
 #include "../../libgcobol/gcobolio.h"
+#include "../../libgcobol/cobol-endian.h"
 #include "../../libgcobol/charmaps.h"
 #include "show_parse.h"
 #include "../../libgcobol/exceptl.h"
@@ -2019,6 +2020,20 @@ binary_from_numdisp(tree &value,
 
   tree sign_location = gg_define_variable(UCHAR_P);
 
+  // We need to be able to handle encodings that are big-endian.  We do that
+  // here with a little bit of a stunt.  The 'location' we are handed points
+  // to the UCHAR that is the leftmost digit of a little-endian encoded value.
+
+  // By adding offset-1 to that value, we point to the UCHAR that is the
+  // leftmost digit of a big-endian encoding.  The subsequent processing all
+  // works off that base location.
+  if( charmap->is_big_endian() )
+    {
+    gg_assign(location,
+              gg_add(location,
+                     build_int_cst_type(SIZE_T, fstride-1)));
+    }
+
   if( field->attr & signable_e )
     {
     // The value is signable.
@@ -2523,8 +2538,8 @@ get_binary_value(tree &value, const cbl_refer_t &refer, tree type)
   {
   /* There are other get binary value routines.  This one is intended to be the
      "best in class" version, incorporating everything that's been learned
-     about the process, and incorporating compiler SSA guidelines. 
-     
+     about the process, and incorporating compiler SSA guidelines.
+
      On entry, value should be unassigned.  It will be given the type 'type',
      if present, and otherwise will be the same as the type derived from the
      source.   */
@@ -2655,7 +2670,7 @@ safe_cast(tree &target,         // A defined variable.
   {
   /* The construction here does the safe equivalent of
 
-      int target = *(int *)location.
+      <type> target = *(<type> *)location.
 
    It does this by copying through memcpy rather than dereferencing
    source_location as a source_type pointer.  This avoids creating a typed
@@ -2674,6 +2689,8 @@ void
 safe_cast(tree &target,         // A defined variable.
           const cbl_field_t *field)
   {
+  // Use this routine when you know the data at the field->location is
+  // of the source_type.
   tree source_type = tree_type_from_field(field);
   tree source_location;
   get_location(source_location, field);
@@ -2684,10 +2701,38 @@ void
 safe_cast(tree &target,         // A defined variable.
           const cbl_refer_t &refer)
   {
+  // Use this routine when you know the data at the refer/field->location is
+  // of the source_type.
   tree source_type = tree_type_from_field(refer.field);
   tree source_location;
   get_location(source_location, refer);
   safe_cast(target, source_location, source_type);
+  }
+
+void
+safe_assign(tree target, // A defined variable.
+            const cbl_field_t *field)
+  {
+  // This routine extracts a binary value from 'field', and safely assigns it
+  // to the target.
+  tree dest_type   = TREE_TYPE(target);
+  tree source_type = tree_type_from_field(field);
+  tree source;
+  get_binary_value(source, field, source_type);
+  gg_assign(target, gg_cast(dest_type, source));
+  }
+
+void
+safe_assign(tree target, // A defined variable.
+            const cbl_refer_t &refer)
+  {
+  // This routine extracts a binary value from 'field', and safely assigns it
+  // to the target.
+  tree dest_type   = TREE_TYPE(target);
+  tree source_type = tree_type_from_refer(refer);
+  tree source;
+  get_binary_value(source, refer, source_type);
+  gg_assign(target, gg_cast(dest_type, source));
   }
 
 void

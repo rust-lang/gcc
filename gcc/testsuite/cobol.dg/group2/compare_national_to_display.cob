@@ -6,7 +6,7 @@
         configuration section.
         special-names.
             locale greek is "cyrillic"
-            locale unicode is "utf16le".
+            locale unicode is "utf16".
         object-computer.
             xerox-parc-star
             character classification

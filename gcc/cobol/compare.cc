@@ -50,6 +50,7 @@
 #include "genmath.h"
 #include "structs.h"
 #include "../../libgcobol/gcobolio.h"
+#include "../../libgcobol/cobol-endian.h"
 #include "../../libgcobol/charmaps.h"
 #include "../../libgcobol/valconv.h"
 #include "show_parse.h"
@@ -606,15 +607,15 @@ alpha_compare_figconst( tree        &left,
 
   const charmap_t *charmap_left =
                        __gg__get_charmap(left_side.field->codeset.encoding);
-  charmap_t *charmap_right =
-                       __gg__get_charmap(right_side.field->codeset.encoding);
+////  charmap_t *charmap_right =
+////                       __gg__get_charmap(right_side.field->codeset.encoding);
 
   // We know the result of this mapping has to be an 8-bit value, because
   // all figconsts map to a single byte.  HIGH-VALUE is a bit of a problem,
   // but when is it not?  It usually will be 0xFF in the low-order byte, so
   // that's what we assume for now.
 
-  uint8_t char_right = charmap_right->figconst_character(figconst_right);
+  uint8_t char_right = char_from_figconst(figconst_right);
 
   size_t nbytes;
   char *converted;
@@ -798,10 +799,15 @@ alpha_compare(tree        &left,
     // R.J.Dubner; 2026-05-08
     static const long MAGIC_NUMBER = 16;
 
-    // We are going to need the space character in this encoding space.  We
-    // know the result of the mapping has to fit into a byte, so we do that
-    // to make things work in both little-endian and big-endian.
-    uint8_t space_char = charmap_left->mapped_character(ascii_space);
+    char ach_space[4];
+    char ch = ascii_space;
+    size_t nbytes;
+    const char *converted = __gg__iconverter(DEFAULT_SOURCE_ENCODING,
+                                             left_side.field->codeset.encoding,
+                                             &ch,
+                                             1,
+                                             &nbytes);
+    memcpy(ach_space, converted, nbytes);
     const char *the_routine;
     switch( charmap_left->stride() )
       {
@@ -850,12 +856,12 @@ alpha_compare(tree        &left,
                   {
                   IF( gg_indirect(location_left, count),
                       ne_op,
-                      build_int_cst_type(UCHAR, space_char) )
+                      build_int_cst_type(UCHAR, *ach_space) )
                     {
                     // We have a difference.  We need to calculate +1/-1
                     IF( gg_indirect(location_left, count),
                         gt_op,
-                        build_int_cst_type(UCHAR, space_char) )
+                        build_int_cst_type(UCHAR, *ach_space) )
                       {
                       gg_assign(left, integer_one_node);
                       }
@@ -897,12 +903,12 @@ alpha_compare(tree        &left,
                   {
                   IF( gg_indirect(location_right, count),
                       ne_op,
-                      build_int_cst_type(UCHAR, space_char) )
+                      build_int_cst_type(UCHAR, *ach_space) )
                     {
                     // We have a difference.  We need to calculate +1/-1
                     IF( gg_indirect(location_right, count),
                         lt_op,
-                        build_int_cst_type(UCHAR, space_char) )
+                        build_int_cst_type(UCHAR, *ach_space) )
                       {
                       gg_assign(left, integer_one_node);
                       }
@@ -993,7 +999,7 @@ alpha_compare(tree        &left,
             length_left,
             location_right,
             length_right,
-            build_int_cst_type(INT, space_char),
+            build_string_literal(charmap_left->stride(), ach_space),
             NULL_TREE);
     retval = true;
     goto done;

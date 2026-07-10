@@ -14,7 +14,7 @@
             *> to declare what is "right".  This code works with ASCII, EBCDIC,
             *> and UTF-8 as the ALPHANUMERIC/DISPLAY encoding.
 
-            locale unicode   is "utf16le"
+            locale unicode   is "utf16"
             CLASS HexNumber  IS "0" THRU "9", "A" THRU "F", 
                                                "a" THRU "f"
             CLASS RealName   IS "A" THRU "Z", 

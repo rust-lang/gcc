@@ -50,6 +50,7 @@
 #include "genmath.h"
 #include "structs.h"
 #include "../../libgcobol/gcobolio.h"
+#include "../../libgcobol/cobol-endian.h"
 #include "../../libgcobol/charmaps.h"
 #include "../../libgcobol/valconv.h"
 #include "show_parse.h"
@@ -262,59 +263,24 @@ mh_source_is_literalN(cbl_refer_t &destref,
       case FldPointer:
       case FldIndex:
         {
-        // We know this is a move to an eight-byte value:
         SHOW_PARSE1
           {
           SHOW_PARSE_INDENT
           SHOW_PARSE_TEXT("mh_source_is_literalN: pointer/index")
           }
 
-        if( sourceref.field->data.capacity() < 8 )
-          {
-          // There are too few bytes in sourceref
-          if( sourceref.field->attr & signable_e )
-            {
-            tree highbyte = gg_define_variable(UCHAR);
-            // Pick up the source byte that has the sign bit.
-            gg_assign(highbyte,
-                      gg_get_indirect_reference(gg_add(member(sourceref.field->var_decl_node,
-                                                              "data"),
-                                                build_int_cst_type(SIZE_T,
-                                                                   sourceref.field->data.capacity()-1)),
-                      integer_zero_node));
-            IF( gg_bitwise_and(highbyte, build_int_cst_type(UCHAR, 0x80)),
-                eq_op,
-                build_int_cst_type(UCHAR, 0x80) )
-              {
-              // We are dealing with a negative number
-              gg_memset(gg_add(member(destref.field->var_decl_node, "data"),
-                               refer_offset(destref)),
-                                build_int_cst_type(UCHAR, 0xFF),
-                                build_int_cst_type(SIZE_T, 8));
-              }
-            ELSE
-              gg_memset(gg_add(member(destref.field->var_decl_node, "data"),
-                               refer_offset(destref)),
-                                build_int_cst_type(UCHAR, 0x00),
-                                build_int_cst_type(SIZE_T, 8));
-              ENDIF
-            }
-          else
-            {
-            // The too-short source is positive.
-              gg_memset(gg_add(member(destref.field->var_decl_node, "data"),
-                               refer_offset(destref)),
-                              build_int_cst_type(UCHAR, 0x00),
-                              build_int_cst_type(SIZE_T, 8));
-            }
-          }
+        tree source;
+        get_binary_value(source, sourceref);
 
-        tree literalN_value = get_literalN_value(sourceref.field);
-        scale_by_power_of_ten_N(literalN_value, -sourceref.field->data.rdigits);
-        gg_memcpy(gg_add(member(destref.field->var_decl_node, "data"),
-                               refer_offset(destref)),
-                  gg_get_address_of(literalN_value),
-                  build_int_cst_type(SIZE_T, sourceref.field->data.capacity()));
+        tree dest_type = tree_type_from_refer(destref);
+        tree dest = gg_define_variable(dest_type);
+        gg_assign(dest, gg_cast(dest_type, source));
+
+        tree location;
+        get_location(location, destref);
+        gg_memcpy(location,
+                  gg_get_address_of(dest),
+                  build_int_cst_type(SIZE_T, gg_sizeof(dest_type)));
         moved = true;
 
         break;

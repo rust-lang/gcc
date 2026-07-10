@@ -37,12 +37,38 @@
 #include <unordered_map>
 #include <vector>
 
+#if defined(IN_GCC_FRONTEND)
+#include "cobol-system.h"
+#include "coretypes.h"
+#include "tree.h"
+#include "tree-iterator.h"
+#include "stringpool.h"
+#include "diagnostic-core.h"
+#include "target.h"
+#include "tm.h"
+#include "../../libgcobol/ec.h"
+#include "../../libgcobol/common-defs.h"
+#include "../../libgcobol/valconv.h"
+#include "../../libgcobol/cobol-endian.h"
+#include "../../libgcobol/charmaps.h"
+#include "../../libgcobol/exceptl.h"
+#else
 #include "ec.h"
 #include "common-defs.h"
 #include "valconv.h"
+#include "cobol-endian.h"
 #include "charmaps.h"
-
 #include "exceptl.h"
+static char
+TOUPPER(char ch)
+  {
+  if(ch >= 'a' && ch <= 'z' )
+    {
+    return 'A' + ch - 'a';
+    }
+  return ch;
+  }
+#endif
 
 std::unordered_map<size_t, alphabet_state> __gg__alphabet_states;
 
@@ -60,7 +86,11 @@ __gg__realloc_if_necessary(char **dest, size_t *dest_size, size_t new_size)
     new_size |= new_size>>16;
     new_size |= (new_size>>16)>>16;
     *dest_size = new_size + 1;
+#if defined(IN_GCC_FRONTEND)
+    *dest = static_cast<char *>(xrealloc(*dest, *dest_size));
+#else
     *dest = static_cast<char *>(realloc(*dest, *dest_size));
+#endif
     }
   }
 
@@ -253,8 +283,8 @@ __gg__string_to_numeric_edited( char * const dest,
   if( dlength >= 2 )
     {
     // It's a positive number, so we might have to get rid of a CR or DB:
-    char ch1 = toupper((unsigned char)dest[dlength-2]);
-    char ch2 = toupper((unsigned char)dest[dlength-1]);
+    char ch1 = TOUPPER((unsigned char)dest[dlength-2]);
+    char ch2 = TOUPPER((unsigned char)dest[dlength-1]);
     if(     (ch1 == ascii_D && ch2 == ascii_B)
             ||  (ch1 == ascii_C && ch2 == ascii_R) )
       {

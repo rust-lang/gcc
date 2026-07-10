@@ -27,29 +27,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef STRINGBIN_H_
-#define STRINGBIN_H_
 
-extern const unsigned char __gg__dp2bin[256];
+#ifndef COBOL_ENDIAN_H
+#define COBOL_ENDIAN_H
 
-extern "C"
-bool __gg__binary_to_string_ascii(char *result,
-                                  int digits,
-                                  __int128 value);
-extern "C"
-bool __gg__binary_to_string_encoded(char *result,
-                                    size_t digits, // Desired digits
-                                    __int128 value,
-                                    cbl_encoding_t encoding);
+/*
+   COBOL_TARGET_BIG_ENDIAN answers:
+     "Should this code treat COBOL target storage as big-endian?"
 
-extern "C"
-void __gg__binary_to_packed( unsigned char *result,
-                             int digits,
-                             __int128 value);
+   In the compiler front end, that means the GCC target.
+   In libgcobol, that means the actual runtime machine/library build.
+*/
 
-extern "C"
-__int128
-__gg__packed_to_binary(const unsigned char *psz,
-                             int            nplaces);
+#if defined(IN_GCC_FRONTEND)
+
+/* Front-end / compiler build.  This is compiler run time,
+   but target endianness. */
+
+static inline bool
+cobol_target_big_endian()
+  {
+  return BYTES_BIG_ENDIAN;
+  }
+
+#else
+
+/* Runtime library build.  This is target-program run time,
+   so it must be decided from the runtime library's build config. */
+
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+# define COBOL_BIG_ENDIAN 1
+# define COBOL_LITTLE_ENDIAN 0
+#elif defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+# define COBOL_BIG_ENDIAN 0
+# define COBOL_LITTLE_ENDIAN 1
+
+#elif defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+# define COBOL_BIG_ENDIAN 1
+# define COBOL_LITTLE_ENDIAN 0
+#elif defined(__LITTLE_ENDIAN__) || defined(_LITTLE_ENDIAN)
+# define COBOL_BIG_ENDIAN 0
+# define COBOL_LITTLE_ENDIAN 1
 
 #endif
+
+static inline bool
+cobol_target_big_endian()
+  {
+  return COBOL_BIG_ENDIAN != 0;
+  }
+
+static inline bool
+cobol_target_little_endian()
+  {
+  return COBOL_BIG_ENDIAN == 0;
+  }
+
+
+#endif
+
+#endif /* COBOL_ENDIAN_H */

@@ -31,6 +31,7 @@
 #include "config.h"
 
 #include "io.h"
+#include "cobol-endian.h"
 
 #include <cassert>
 #include <cerrno>
@@ -94,17 +95,34 @@ __gg__file_status_word( enum file_status_t status,
 
   return file_status_register;
 }
-   
+
 /*
  * This function is used by libgcobol_compat_gnu.
  * If status parameter is FsErrno, return the file_status_t for errno.
- * If status paramter is FsSuccess, return the file_status_t for errnum parameter. 
- * The output is byte-swapped per MF specification. 
+ * If status paramter is FsSuccess, return the file_status_t for errnum parameter.
+ * The output is byte-swapped per MF specification.
  */
 #include <cstring>
 extern "C"
-file_status_t
+uint16_t
 __compat_file_status_word( enum file_status_t status, int errnum) {
+  /* In July of 2026, I had to make this routine work on a big-endian machine.
+
+     By my recent standards, this routine is something of a mess.  It was
+     returning a four-byte native binary file_status_t.  The only place this
+     routine is called, however, is in cobrt-file-status.cbl, where
+     the function call to __compat_file_status_word expects a return value
+     of "01 FILE-STATUS PIC X(2) COMP-5.", which is a two-byte native binary
+     value.  On a little-endian machine, this works because the return value is
+     actually just sixteen bits in the low part half of the int, and the top
+     two x00 bytes are discarded.
+
+     That doesn't work on a big-endian architecture, where the actual return
+     information is the top two bytes that are being discarded.
+
+     So, I changed this routine to return a two-byte binary value, and adjusted
+     the mangling accordingly.  Dubner, 2026-07-04  */
+
   switch( status ) {
   case FsErrno:
     errnum = errno;
@@ -116,7 +134,7 @@ __compat_file_status_word( enum file_status_t status, int errnum) {
     assert( status == FsErrno || status == FsSuccess );
     break;
   }
-    
+
   switch( errnum ) {
   case EACCES:
   case EPERM:
@@ -162,16 +180,24 @@ __compat_file_status_word( enum file_status_t status, int errnum) {
     break;
   default:
       status = FsCobRt000; // No defined mapping for errno value
-  }    
+  }
 
-  // This function returns 9x status in the FsCobRt range. 
+  // This function returns 9x status in the FsCobRt range.
   assert( FsCobRt000 <= status && status <= 0x09FF );
 
   static_assert(sizeof(status) == 4);
 
-  // Arrange little-endian output per MF definition. 
-  const char output[4] = { '9', static_cast<char>((status & 0xF)), 0, 0 };
-  memcpy( reinterpret_cast<char*>(&status), output, 4);
-  
-  return status;
+  uint16_t retval;
+
+  if( !cobol_target_big_endian() ) // cppcheck-suppress knownConditionTrueFalse
+    {
+    // Arrange little-endian output per MF definition.
+    retval = ((status & 0xF)<<8) + '9';
+    }
+  else
+    {
+    retval = (('9')<<8) + (status & 0xF);
+    }
+
+  return retval;
 }

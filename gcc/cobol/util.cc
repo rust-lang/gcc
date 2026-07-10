@@ -55,6 +55,7 @@
 #include "cdfval.h"
 #include "lexio.h"
 
+#include "tm.h"
 #include "../../libgcobol/ec.h"
 #include "../../libgcobol/common-defs.h"
 #include "symbols.h"
@@ -62,6 +63,7 @@
 #include "../../libgcobol/io.h"
 #include "genapi.h"
 #include "genutil.h"
+#include "../../libgcobol/cobol-endian.h"
 #include "../../libgcobol/charmaps.h"
 #include "../../libgcobol/valconv.h"
 
@@ -1814,9 +1816,47 @@ cbl_field_t::encode_numeric( const char input[], cbl_loc_t loc ) {
             *pretval++ = ascii_plus;
             }
           }
-
+        if(     (attr & signable_e)
+            && !(attr & separate_e) )
+          {
+          // The value is signable and internal;
+          char *sign_loc;
+          if( attr & leading_e )
+            {
+            // The sign is in the first character
+            sign_loc = retval;
+            }
+          else
+            {
+            // The sign is in the final character
+            sign_loc = retval + char_capacity() - 1;
+            }
+          if( negative )
+            {
+            // We have to convert the very first digit into the negative flag
+            const charmap_t *charmap = __gg__get_charmap(codeset.encoding);
+            if( charmap->is_like_ebcdic() )
+              {
+              if( *sign_loc == ascii_zero )
+                {
+                /* When EBCDIC '0' is 0xF0.  The negative flag version is 0xD0,
+                   which is right left brace.  */
+                *sign_loc = ascii_rbrace;
+                }
+              else
+                {
+                /* EBCDIC '1' through '9' is 0xF1 through 0xF9, and they need
+                   to be converted to 0xD0 through 0xD9.  */
+                *sign_loc = (*sign_loc - ascii_zero) + ascii_J-1;
+                }
+              }
+            else
+              {
+              *sign_loc = (*sign_loc - ascii_zero) + ascii_p;
+              }
+            }
+          }
         // It's at this point we convert to the target encoding:
-        charmap_t *charmap = __gg__get_charmap(codeset.encoding);
         size_t retval_length = pretval - retval;
         if( retval_length != char_capacity() ) {
           cbl_errx( "%s: %s %lu %s %lu",
@@ -1842,38 +1882,6 @@ cbl_field_t::encode_numeric( const char input[], cbl_loc_t loc ) {
         }
         gcc_assert(nbytes == data.capacity());
         memcpy(retval, converted, data.capacity());
-        if(     (attr & signable_e)
-            && !(attr & separate_e) )
-          {
-          // This value is signable, and not separate.  So, the sign
-          // information goes into the first or last byte:
-          char *sign_location = attr & leading_e
-                        ? retval
-                        : retval + (data.digits-1) * charmap->stride() ;
-          cbl_char_t schar = charmap->set_digit_negative(*sign_location,
-                                                          negative);
-          switch(charmap->stride())
-            {
-            case 1:
-              {
-              uint8_t v = schar;
-              memcpy(sign_location, &v, charmap->stride());
-              break;
-              }
-            case 2:
-              {
-              uint16_t v = schar;
-              memcpy(sign_location, &v, charmap->stride());
-              break;
-              }
-            case 4:
-              {
-              uint32_t v = schar;
-              memcpy(sign_location, &v, charmap->stride());
-              break;
-              }
-            }
-          }
         break;
         }
 

@@ -42,13 +42,33 @@
 #include <vector>
 #include <langinfo.h>
 
+#if defined(IN_GCC_FRONTEND)
+#include "cobol-system.h"
+#include "coretypes.h"
+#include "tree.h"
+#include "tree-iterator.h"
+#include "stringpool.h"
+#include "diagnostic-core.h"
+#include "target.h"
+#include "tm.h"
+#include "../../libgcobol/ec.h"
+#include "../../libgcobol/common-defs.h"
+#include "../../libgcobol/io.h"
+#include "../../libgcobol/gcobolio.h"
+#include "../../libgcobol/valconv.h"
+#include "../../libgcobol/cobol-endian.h"
+#include "../../libgcobol/charmaps.h"
+#include "../../libgcobol/encodings.h"
+#else
 #include "ec.h"
 #include "common-defs.h"
 #include "io.h"
 #include "gcobolio.h"
 #include "valconv.h"
+#include "cobol-endian.h"
 #include "charmaps.h"
 #include "encodings.h"
+#endif
 
 // These values are in the ASCII space.
 int __gg__decimal_point        = '.'  ;
@@ -1432,7 +1452,11 @@ static const encodings_t *
 encoding_descr( const char name[] ) {
   static encodings_t *eoencodings = encodings + COUNT_OF(encodings);
 
+#if defined(IN_GCC_FRONTEND)
+  char *slashless = xstrdup(name);
+#else
   char *slashless = strdup(name);
+#endif
   assert(slashless);
   char *pslash = strchr(slashless, '/');
   if( pslash )
@@ -1509,7 +1533,12 @@ __gg__iconverter( cbl_encoding_t from,
   charmap_t *charmap_to = __gg__get_charmap(to);
 
   static size_t retsize = 1;
+
+#if defined(IN_GCC_FRONTEND)
+  static char *retval = static_cast<char *>(xmalloc(retsize));
+#else
   static char *retval = static_cast<char *>(malloc(retsize));
+#endif
 
   if( outlength_p ) *outlength_p = 0;
   if( iconv_retval_p ) *iconv_retval_p = 0;
@@ -1518,7 +1547,11 @@ __gg__iconverter( cbl_encoding_t from,
   if( retsize < needed )
     {
     retsize = needed;
+#if defined(IN_GCC_FRONTEND)
+    retval = static_cast<char *>(xrealloc(retval, retsize));
+#else
     retval = static_cast<char *>(realloc(retval, retsize));
+#endif
     }
 
   size_t outlength;
@@ -1589,7 +1622,11 @@ __gg__iconverter( cbl_encoding_t from,
       const charmap_t *map_from = __gg__get_charmap(from);
       if( map_from->is_like_ebcdic() )
         {
+#if defined(IN_GCC_FRONTEND)
+        inbuf_cpy = static_cast<char *>(xmalloc(length));
+#else
         inbuf_cpy = static_cast<char *>(malloc(length));
+#endif
         assert(inbuf_cpy);
         memcpy(inbuf_cpy, inbuf, length);
         inbuf = inbuf_cpy;
@@ -1612,6 +1649,7 @@ __gg__iconverter( cbl_encoding_t from,
     iconv_retval = 1; // This primes the pump:
     for(;;)
       {
+      errno = 0;
       iconv_retval = iconv( cd,
                             &inbuf, &inbytesleft,
                             &outbuf, &outbytesleft);
@@ -1707,7 +1745,11 @@ __gg__miconverter( cbl_encoding_t from,
                                            length,
                                            outlength_p,
                                            iconv_retval_p);
+#if defined(IN_GCC_FRONTEND)
+  char *retval = static_cast<char *>(xmalloc(*outlength_p + 4));
+#else
   char *retval = static_cast<char *>(malloc(*outlength_p + 4));
+#endif
   assert(retval);
   memcpy(retval, converted, *outlength_p);
   // Tack on four zeros to be a NUL in any encoding.
@@ -1756,3 +1798,109 @@ __gg__get_charmap(cbl_encoding_t encoding)
   return retval;
   }
 
+static void
+fixcode( char *ach, size_t N )
+  {
+  if(    strncasecmp(ach, "UTF16", N) == 0
+      || strncasecmp(ach, "UTF-16", N) == 0 )
+    {
+    strcpy(ach, "UTF-16" );
+    if( cobol_target_big_endian() ) // cppcheck-suppress knownConditionTrueFalse
+      {
+      strcat(ach, "BE");
+      }
+    else
+      {
+      strcat(ach, "LE");
+      }
+    }
+  else if(    strncasecmp(ach, "UTF32", N) == 0
+           || strncasecmp(ach, "UTF-32", N) == 0 )
+    {
+    strcpy(ach, "UTF-32" );
+    if( cobol_target_big_endian() ) // cppcheck-suppress knownConditionTrueFalse
+      {
+      strcat(ach, "BE");
+      }
+    else
+      {
+      strcat(ach, "LE");
+      }
+    }
+  else if( strncasecmp(ach, "UTF16BE", N) == 0 )
+    {
+    strcpy(ach, "UTF-16BE");
+    }
+  else if( strncasecmp(ach, "UTF16LE", N) == 0 )
+    {
+    strcpy(ach, "UTF-16LE");
+    }
+  else if( strncasecmp(ach, "UTF32BE", N) == 0 )
+    {
+    strcpy(ach, "UTF-32BE");
+    }
+  else if( strncasecmp(ach, "UTF32LE", N) == 0 )
+    {
+    strcpy(ach, "UTF-32LE");
+    }
+  }
+
+iconv_t
+helpful_iconv_open(const char *tocode, const char *fromcode)
+  {
+  // This routine is helpful in two ways.  FreeBSD systems provide for
+  // "utf-16le" as an iconv_open(3) input, but not "utf16le", as does Ubuntu.
+  // So it converts "utf16" to "utf-16"
+
+  // It also provides for converting "utf-16" to either "utf-16be" or "utf16le"
+  // depending on the endianness of the target machine.  Because we can't
+  // handle an unspecified "utf-16" because of the Byte Order Marker, this is
+  // my justification for forcing it to one or the other.
+
+  // When the programmer specifies "le" or "be", we let that be forced through.
+  // Specify disaster, and you get disaster.
+
+  char ach_to[32];
+  char ach_from[32];
+
+  strncpy(ach_to, tocode, sizeof(ach_to));
+  strncpy(ach_from, fromcode, sizeof(ach_from));
+
+  fixcode(ach_to, sizeof(ach_to));
+  fixcode(ach_from, sizeof(ach_from));
+
+  iconv_t cd = iconv_open(ach_to, ach_from);
+
+  return cd;
+  }
+
+char
+char_from_figconst(cbl_figconst_t figconst)
+  {
+  char retval;
+  switch(figconst)
+    {
+    case normal_value_e :
+      retval = 0;
+      break;
+    case low_value_e    :
+      retval = __gg__low_value_character;
+      break;
+    case null_value_e   :
+      retval = '\0';
+      break;
+    case zero_value_e   :
+      retval = ascii_zero;
+      break;
+    case space_value_e  :
+      retval = ascii_space;
+      break;
+    case quote_value_e  :
+      retval = __gg__quote_character;
+      break;
+    case high_value_e   :
+      retval = __gg__high_value_character;
+      break;
+    }
+  return retval;
+  }

@@ -149,4 +149,9 @@ void attribute_bit_clear(const struct cbl_field_t *var, cbl_field_attr_t bits);
 tree attribute_bit_get(const struct cbl_field_t *var, cbl_field_attr_t bits);
 void attribute_bit_set(const struct cbl_field_t *var, cbl_field_attr_t bits);
 
+void safe_assign(tree target, // A defined variable.
+           const cbl_field_t *field);
+void safe_assign(tree target, // A defined variable.
+           const cbl_refer_t &refer);
+
 #endif

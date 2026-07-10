@@ -88,9 +88,9 @@ void parser_accept_date_dow( cbl_field_t *tgt );
 void parser_accept_date_hhmmssff( cbl_field_t *tgt );
 
 void
-parser_alphabet( const cbl_alphabet_t& alphabet );
+parser_alphabet( const cbl_alphabet_t *alphabet );
 void
-parser_alphabet_use( cbl_alphabet_t& alphabet );
+parser_alphabet_use( const cbl_alphabet_t *alphabet );
 
 void
 parser_allocate( cbl_refer_t size_or_based, cbl_refer_t returning, bool initialized );
@@ -460,8 +460,8 @@ parser_file_sort(   cbl_file_t *file,
                     cbl_perform_tgt_t *out_proc );
 void
 parser_file_merge(  cbl_file_t *file,
-                    cbl_alphabet_t *alphabet,
-                    const std::vector<cbl_key_t>& keys,
+              const cbl_alphabet_t *alphabet,
+              const std::vector<cbl_key_t>& keys,
                     size_t ninput,
                     cbl_file_t **inputs,
                     size_t noutput,

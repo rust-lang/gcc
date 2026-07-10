@@ -501,7 +501,6 @@ intrinsic_invalid_parameter( int token,
     case FldClass:
     case FldConditional:
     case FldForward:
-    case FldIndex:
       yyerror("%s: field '%s' (%s) invalid for %s parameter",
                descr.name,
                arg.field->name, cbl_field_type_str(arg.field->type),

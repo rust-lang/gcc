@@ -39,6 +39,7 @@
 
 #include <search.h>
 #include <iconv.h>
+#include "tm.h"
 #include "../../libgcobol/ec.h"
 #include "../../libgcobol/common-defs.h"
 #include "util.h"
@@ -47,6 +48,7 @@
 #include "inspect.h"
 #include "../../libgcobol/io.h"
 #include "genapi.h"
+#include "../../libgcobol/cobol-endian.h"
 #include "../../libgcobol/charmaps.h"
 
 #pragma GCC diagnostic ignored "-Wunused-result"
@@ -1716,7 +1718,7 @@ symbols_alphabet_set( size_t program, const char name[]) {
   struct alpha {
     void operator()( symbol_elem_t& elem ) const {
       if( elem.type == SymAlphabet ) {
-        parser_alphabet( *cbl_alphabet_of(&elem) );
+        parser_alphabet( cbl_alphabet_of(&elem) );
       }
     }
   };
@@ -1730,7 +1732,7 @@ symbols_alphabet_set( size_t program, const char name[]) {
     if( !e ) {
       return false;
     }
-    parser_alphabet_use(*cbl_alphabet_of(e));
+    parser_alphabet_use(cbl_alphabet_of(e));
   }
   return true;
 // End older version
@@ -3456,7 +3458,7 @@ cbl_alphabet_t::reencode( const cbl_loc_t& loc )  {
   const char *fromcode = __gg__encoding_iconv_name(CP1252_e);
   const char *tocode =
               __gg__encoding_iconv_name(current_encoding(display_encoding_e));
-  iconv_t cd = iconv_open(tocode, fromcode);
+  iconv_t cd = helpful_iconv_open(tocode, fromcode);
   if( cd == iconv_t(-1) ) {
     error_msg(loc, "cannot convert from %qs to %qs: %s",
               fromcode, tocode, xstrerror(errno));
@@ -3508,17 +3510,38 @@ cbl_alphabet_t::reencode( const cbl_loc_t& loc )  {
       continue;
     }
 
+    /* We have a problem.  We originally did collation sequences for
+       single-byte-coded (SBC) character sets, like ASCII and EBCDIC.  But we
+       have the capability of multi-byte sets like UTF-16LE/BE and
+       UTF-32/LE/BE.  What collation means in those environments is unknown to
+       me at this time.  So, for now I am simply assuming that whatever we are
+       doing here fits into a single byte.
+       
+       So, for SBC or little-endian character sets, we just pick up the value
+       at pos[0].  For big-endian character sets, we find the low-order byte.
+       */
+
+    unsigned char ch_pos;
+    if( charmap_disp->is_big_endian() )
+      {
+      ch_pos = pos[stride-1];
+      }
+    else
+      {
+      ch_pos = pos[0];
+      }
+
     if( ch == low_index ) {
-      low_index = pos[0];
+      low_index = ch_pos;
     }
     if( ch == last_index ) {
-      last_index = pos[0];
+      last_index = ch_pos;
     }
     if( ch == high_index ) {
-     high_index = pos[0];
+     high_index = ch_pos;
     }
 
-    tgt.at(pos[0]) = *p;
+    tgt.at(ch_pos) = *p;
   }
 
   std::copy(tgt.begin(), tgt.end(), collation_sequence);
@@ -4176,7 +4199,7 @@ iconv_cd( cbl_encoding_t tgt ) {
     const char *tocode   = __gg__encoding_iconv_name(tgt);    
     gcc_assert(fromcode && tocode);
     
-    if( (cd = iconv_open(tocode, fromcode)) == iconv_t(-1) ) {
+    if( (cd = helpful_iconv_open(tocode, fromcode)) == iconv_t(-1) ) {
       return cd;
     }
     cds[key] = cd;
@@ -4496,7 +4519,7 @@ symbol_label_add( size_t program, cbl_label_t *input )
     free(psz);
   }
 
-  symbol_elem_t elem { program, *input }, *e = &elem;
+  symbol_elem_t elem { program, *input }, *e;
 
   e = symbol_append(elem);
   assert(e);

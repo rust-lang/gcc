@@ -93,11 +93,9 @@ cobol1_OBJS =    \
 # on all of the libgcobol/*.h files, which might lead to the occasional
 # unnecessary compilation.  The impact of that is negligible.
 #
-# Various #includes in the files copied from gcc/libgcobol need to be modified
-# so that the .h files can be found.
 
 cobol/charmaps.cc cobol/valconv.cc: cobol/%.cc: $(LIB_SOURCE)/%.cc
-	sed -e '/^#include/s,"\([^"]*[^g"].h\)","../../libgcobol/\1",' $^ > $@
+	cp $^ $@
 
 LIB_SOURCE_H=$(wildcard $(LIB_SOURCE)/*.h)
 

@@ -78,7 +78,7 @@ cbl_division_t cbl_syntax_only = not_syntax_only;
 void
 mode_syntax_only( cbl_division_t division ) {
   cbl_syntax_only = division;
-  dbgmsg("%s: parsing %s, %zu errors", __func__, 
+  dbgmsg("%s: parsing %s, %zu errors", __func__,
          cbl_syntax_only == not_syntax_only? "resumes" : "syntax only",
          nparse_error);
 }
@@ -93,7 +93,7 @@ mode_syntax_only( const char func[], bool yn ) {
             __func__, cbl_syntax_only, nparse_error );
   }
   if( was_syntax_only != cbl_syntax_only ) {
-    dbgmsg("%s: parsing %s, %zu errors", func, 
+    dbgmsg("%s: parsing %s, %zu errors", func,
            cbl_syntax_only == not_syntax_only? "resumes" : "syntax only",
            nparse_error);
   }
@@ -169,11 +169,11 @@ extern int yydebug;
 // These programs in libgcobol/compat are allowed to use ANY LENGTH even though
 // they look like top-level programs.
 static const std::set<std::string> compat_programs {
-  "CBL_ALLOC_MEM", 
-  "CBL_CHECK_FILE_EXIST", 
+  "CBL_ALLOC_MEM",
+  "CBL_CHECK_FILE_EXIST",
   "CBL_CLOSE_FILE",
-  "CBL_DELETE_FILE", 
-  "CBL_FREE_MEM", 
+  "CBL_DELETE_FILE",
+  "CBL_FREE_MEM",
   "CBL_GET_PROGRAM_INFO",
   "CBL_OPEN_FILE",
   "CBL_READ_FILE",
@@ -2170,7 +2170,7 @@ static class current_t {
     assert(!programs.empty());
 
     match_proc::statements_verify();
-    
+
     const procref_t *ref = ambiguous_reference(program_index());
     std::set<std::string> externals = programs.top().external_targets();
 
@@ -2436,7 +2436,7 @@ struct prototype_type_t : public cbl_label_t {
 
 /*
  * For any name, there may be one prototype and one definition.  A Function-ID
- * cannot share a name with a Program-ID.  
+ * cannot share a name with a Program-ID.
  *
  * std::set::insert returns an iterator to the element and boolean indicating
  * whether the insertion succeeded.  If false, the iterator points to the
@@ -2453,12 +2453,12 @@ static bool is_allowed_name( size_t isym, const cbl_label_t *L ) {
   if( ! p.second ) {
     const cbl_label_t& extant(*p.first);
 
-    // cannot have program and function by same name. 
+    // cannot have program and function by same name.
     if( extant.type != L->type ) return false;
-    
-    // ok if both are prototypes of type, not if neither is. 
+
+    // ok if both are prototypes of type, not if neither is.
     if( extant.prototype == L->prototype ) {
-      return extant.prototype; 
+      return extant.prototype;
     }
   }
   return p.second; // otherwise known as true
@@ -2492,7 +2492,7 @@ prototype_args( const cbl_label_t *L, size_t esym ) {
     size_t iprog = symbol_elem_of(L)->program;
     assert(iprog == 0); // no containing program
     iprog = symbol_index(symbol_elem_of(L));
-    
+
     if( iprog < esym ) {
       auto p = function_prototypes.find(iprog);
       if( p != function_prototypes.end() ) {
@@ -2509,12 +2509,12 @@ prototype_args( const char *name, size_t esym ) {
   auto L = symbol_program(0, name, true);         // seek program prototype
   if( !L ) L = symbol_program(0, name);           // else use definition
   if( !L ) L = symbol_function_any(0, name);      // else prototype or definition
-  
+
   return prototype_args(L, esym);
 }
 
 static void
-verify_args( const cbl_loc_t& loc, 
+verify_args( const cbl_loc_t& loc,
              const char name[], size_t narg,
              const cbl_ffi_arg_t args[] );
 
@@ -2597,7 +2597,7 @@ size_t program_level() { return current.program_level(); }
 static size_t constant_index( int token );
 
 static bool
-valid_pointer_relop( const cbl_loc_t& lloc, const cbl_loc_t& oloc, const cbl_loc_t& rloc, 
+valid_pointer_relop( const cbl_loc_t& lloc, const cbl_loc_t& oloc, const cbl_loc_t& rloc,
                      cbl_refer_t *lhs, relop_t op, cbl_refer_t *rhs );
 
 static relop_t relop_of(int);
@@ -3205,41 +3205,35 @@ field_capacity_error( const cbl_loc_t& loc, const cbl_field_t *field ) {
 #define ERROR_IF_CAPACITY(L, F)                                 \
   do { if( field_capacity_error(L, F) ) YYERROR; } while(0)
 
-template <typename T>
-static void
-blankit( T* beg, size_t n, T ch ) {
-  std::fill(beg, beg + n, ch);
-}
-
 /*
  * Normally blank_initial takes just a length argument and initializes
  * data.initial to all blanks according to the field's encoding.  Optionally it
- * applies a figurative constant and uses that instead. 
+ * applies a figurative constant and uses that instead. We are going to take
+ * that one character, convert it to the target encoding, and then duplicate
+ * as necessary.
  */
 void
 cbl_field_t::blank_initial( size_t nchar, cbl_figconst_t figconst ) {
-  charmap_t *charmap = __gg__get_charmap(codeset.encoding);
-  cbl_char_t space_char = figconst == normal_value_e?
-    charmap->mapped_character(ascii_space)
-  : charmap->figconst_character(figconst);
-  
+  // Set our "from" buffer to a single space
+  char space[] = " ";
+  if( figconst ) {
+    *space = char_from_figconst(figconst);
+  }
+
+  // Convert that character to the encoded version:
+  size_t nbytes;
+  const char *converted =  __gg__iconverter(DEFAULT_SOURCE_ENCODING,
+                                            codeset.encoding,
+                                            space,
+                                            1,
+                                            &nbytes);
+  // Duplicate that encoded character throughout the target range:
   size_t nbyte = nchar * codeset.stride();
   char *init = static_cast<char *>(xmalloc(nbyte+4));
-  char *enit = init + nbyte;
-  std::fill(enit, enit + 4, '\0'); // append for NULs
-  
-  switch(codeset.stride()) {
-  case 1: 
-    blankit( reinterpret_cast<uint8_t*>(init), nchar, uint8_t(space_char%0x100) );
-    break;
-  case 2:
-    blankit( reinterpret_cast<uint16_t*>(init), nchar, uint16_t(space_char%0x10000) );
-    break;
-  case 4:
-    blankit( reinterpret_cast<uint32_t*>(init), nchar, uint32_t(space_char) );
-    break;
-  default:
-    gcc_unreachable();
+  char *d = init;
+  for(size_t i=0; i<nchar; i++) {
+    memcpy(d, converted, codeset.stride());
+    d += codeset.stride();
   }
   data.initial = init;
 }
@@ -3252,13 +3246,13 @@ cbl_field_t::blank_initial( size_t nchar, cbl_figconst_t figconst ) {
  */
 void
 cbl_field_t::set_initial( size_t nchar, const cbl_loc_t& loc ) {
-  auto srclen = data.capacity(); 
+  auto srclen = data.capacity();
   set_capacity(nchar);
   blank_initial( char_capacity() );
   if( data.original() ) {
     attr |= cbl_figconst_of(data.original());
     if( has_attr(hex_encoded_e) ) {
-      // If initial value is too long, the caller should report it. 
+      // If initial value is too long, the caller should report it.
       auto len = std::min(srclen, data.capacity());
       std::copy(data.original(), data.original() + len,
                 const_cast<char*>(data.initial));
@@ -3596,7 +3590,7 @@ data_division_ready() {
   // Tell codegen about symbols.
   static size_t nsymbol = 0;
   size_t again(nsymbol);
-  
+
   if( (nsymbol = symbols_update(nsymbol, nparse_error == 0)) > 0 ) {
     if( ! mode_syntax_only() ) {
       if( ! literally_one ) {
@@ -3875,7 +3869,7 @@ void internal_ebcdic_unlock();
 static cbl_field_type_t
 field_binary_usage( cbl_loc_t loc, cbl_field_t *field,
                     cbl_field_type_t type, uint32_t capacity,
-                    bool signable ); 
+                    bool signable );
 
 void
 ast_end_program(const char name[]  ) {
@@ -3903,7 +3897,7 @@ ast_end_program(const char name[]  ) {
   }
   parser_end_program(name);
   internal_ebcdic_unlock();
-  resume_parsing(); 
+  resume_parsing();
 }
 
 static bool
