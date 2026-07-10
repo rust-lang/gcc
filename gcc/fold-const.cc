@@ -7020,6 +7020,92 @@ fold_real_zero_addition_p (const_tree type, const_tree arg,
   return negate || (arg && !tree_expr_maybe_real_minus_zero_p (arg));
 }
 
+/* Subroutine of match.pd that determines if it is safe to optimize
+   a floating point comparison of an integer value, known to be between
+   LO and HI, using comparison operator CMP, against the real constant
+   R in floating point type FMT, as the same integer comparison against
+   the integer constant I, with sign ISIGN.
+
+   For example, with IEEE-754, (float)x == 2.0f may replaced with x == 2
+   because the floating point representations of the neighboring integers
+   (float)1 and (float)3 are distinct from 2.0f, having values 1.0f and
+   3.0f respectively.  On the other hand (float)x == 16777220.0f can't
+   be replaced by x == 16777220 as (float)16777221 is also 1677220.0f
+   due to truncation/rounding.
+*/
+bool
+fold_cmp_float_cst_p (wide_int lo, wide_int hi, enum tree_code cmp,
+		      const REAL_VALUE_TYPE *r, format_helper fmt,
+		      wide_int i, signop isign)
+{
+  REAL_VALUE_TYPE raw;
+  REAL_VALUE_TYPE rnd;
+  bool check_im1 = true;
+  bool check_ip1 = true;
+
+  switch (cmp)
+    {
+    case EQ_EXPR:
+    case NE_EXPR:
+      /* Check both i-1 and i+1.  */
+      break;
+
+    case LT_EXPR:
+    case GE_EXPR:
+      /* Only check i-1.  */
+      check_ip1 = false;
+      break;
+
+    case LE_EXPR:
+    case GT_EXPR:
+      /* Only check i+1.  */
+      check_im1 = false;
+      break;
+
+    default:
+      return false;
+    }
+
+    if (flag_rounding_math && i != 0)
+      {
+	real_from_integer (&raw, VOIDmode, i, isign);
+	if (!real_identical (r, &raw))
+	  return false;
+      }
+
+    if (check_im1 && wi::gt_p (i, lo, isign))
+      {
+	if (flag_rounding_math)
+	  {
+	    real_from_integer (&raw, VOIDmode, i - 1, isign);
+	    real_convert (&rnd, fmt, &raw);
+	    if (!real_identical (&raw, &rnd))
+	      return false;
+	  }
+	else
+	  real_from_integer (&rnd, fmt, i - 1, isign);
+	if (real_identical (r, &rnd))
+	  return false;
+      }
+
+    if (check_ip1 && wi::lt_p (i, hi, isign))
+      {
+	if (flag_rounding_math)
+	  {
+	    real_from_integer (&raw, VOIDmode, i + 1, isign);
+	    real_convert (&rnd, fmt, &raw);
+	    if (!real_identical (&raw, &rnd))
+	      return false;
+	  }
+	else
+	  real_from_integer (&rnd, fmt, i + 1, isign);
+	if (real_identical (r, &rnd))
+	  return false;
+      }
+
+  return true;
+}
+
 /* Subroutine of match.pd that optimizes comparisons of a division by
    a nonzero integer constant against an integer constant, i.e.
    X/C1 op C2.

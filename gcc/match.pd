@@ -7800,6 +7800,7 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
     (with
      {
        tree itype = TREE_TYPE (@0);
+       signop isign = TYPE_SIGN (itype);
        format_helper fmt (REAL_MODE_FORMAT (TYPE_MODE (TREE_TYPE (@1))));
        bool itype_ok = fmt.can_represent_integral_type_p (itype);
        bool value_ok = itype_ok;
@@ -7817,10 +7818,12 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
 	   && gimple_match_range_of_expr (vr, @0, @2))
 	 value_ok = fmt.can_represent_range_value_p (&vr);
 #endif
+       /* Conversion may raise FPE_INEXACT with -ftrapping-math.  */
+       if (flag_trapping_math && !value_ok)
+	 exception_p = true;
      }
-     /* TODO: allow non-fitting itype and SNaNs when
-	-fno-trapping-math.  */
-     (if (value_ok && ! exception_p)
+
+     (if (! exception_p)
       (with
        {
 	 signop isign = TYPE_SIGN (itype);
@@ -7845,7 +7848,7 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
 	 else
 	   real_trunc (&icst, fmt, cst);
 
-	 bool cst_int_p = !real_isnan (cst) && real_identical (&icst, cst);
+	 bool cst_int_p = real_isfinite (cst) && real_identical (&icst, cst);
 
 	 bool overflow_p = false;
 	 wide_int icst_val
@@ -7859,21 +7862,23 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
 	(if (real_compare (GT_EXPR, cst, &imax))
 	 { constant_boolean_node (cmp == LT_EXPR || cmp == LE_EXPR || cmp == NE_EXPR,
 				  type); })
-	/* Remove cast if CST is an integer representable by ITYPE.  */
-	(if (cst_int_p)
-	 (cmp @0 { gcc_assert (!overflow_p);
-		   wide_int_to_tree (itype, icst_val); })
-	)
-	/* When CST is fractional, optimize
+	/* When CST is fractional, infinity or NaN, then optimize
 	    (FTYPE) N == CST -> 0
 	    (FTYPE) N != CST -> 1.  */
-	(if (cmp == EQ_EXPR || cmp == NE_EXPR)
+	(if (!cst_int_p
+	     && (cmp == EQ_EXPR || cmp == NE_EXPR))
 	 { constant_boolean_node (cmp == NE_EXPR, type); })
+	/* Remove cast if CST is an integer representable by ITYPE,
+	   and it is safe to do so.  */
+	(if (cst_int_p
+	     && fold_cmp_float_cst_p (imin_val, imax_val, cmp, &icst, fmt,
+				      icst_val, isign))
+	 (cmp @0 { wide_int_to_tree (itype, icst_val); })
+	)
 	/* Otherwise replace with sensible integer constant.  */
-	(with
-	 {
-	   gcc_checking_assert (!overflow_p);
-	 }
+	(if (!cst_int_p
+	     && fold_cmp_float_cst_p (imin_val, imax_val, icmp, &icst, fmt,
+				      icst_val, isign))
 	 (icmp @0 { wide_int_to_tree (itype, icst_val); })))))))))
 
 /* Fold A /[ex] B CMP C to A CMP B * C.  */

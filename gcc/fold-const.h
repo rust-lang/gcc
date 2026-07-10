@@ -173,6 +173,12 @@ extern bool integer_valued_real_p (tree, int = 0);
 
 extern bool fold_real_zero_addition_p (const_tree, const_tree, const_tree,
 				       int);
+extern bool fold_cmp_float_cst_p (wide_int lo, wide_int hi,
+				  enum tree_code cmp,
+				  const REAL_VALUE_TYPE *r,
+				  format_helper fmt,
+				  wide_int i, signop isign);
+
 extern tree combine_comparisons (location_t, enum tree_code, enum tree_code,
 				 enum tree_code, tree, tree, tree);
 extern tree_code combine_comparisons (enum tree_code, enum tree_code,
