@@ -53,9 +53,6 @@ vec<sel_region_bb_info_def> sel_region_bb_info;
 /* A pool for allocating all lists.  */
 object_allocator<_list_node> sched_lists_pool ("sel-sched-lists");
 
-/* This contains information about successors for compute_av_set.  */
-struct succs_info current_succs;
-
 /* Data structure to describe interaction with the generic scheduler utils.  */
 static struct common_sched_info_def sel_common_sched_info;
 
