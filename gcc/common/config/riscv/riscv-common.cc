@@ -1927,12 +1927,6 @@ riscv_multi_lib_info_t::parse (
 	  multi_lib_info->arch_str = itr->c_str () + strlen ("march=");
 	else if (prefixed_with (*itr, "mabi="))
 	  multi_lib_info->abi_str = itr->c_str () + strlen ("mabi=");
-
-	/* Skip this multi-lib if this configuration is exactly same as
-	   default multi-lib settings.  */
-      if (multi_lib_info->arch_str == default_arch_str
-	  && multi_lib_info->abi_str == default_abi_str)
-	return false;
     }
 
   multi_lib_info->subset_list =
