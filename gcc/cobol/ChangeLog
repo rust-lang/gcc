@@ -1,3 +1,72 @@
+2026-07-10  Robert Dubner  <rdubner@symas.com>
+
+	* Make-lang.in: Copy charmaps.cc and valconv.cc without using SED to
+	alter their contents.
+	* cbldiag.h (struct cbl_loc_t): Mollify cppcheck.
+	* compare.cc (alpha_compare_figconst): Endianness.
+	(alpha_compare): Endianness.
+	* genapi.cc (get_class_condition_string): Endianness.
+	(parser_statement_end): Fix initialization.
+	(initialize_variable_internal): Likewise.
+	(leave_section_internal): Likewise.
+	(parser_init_list): Likewise.
+	(parser_alphabet): Pass "cbl_alphabet_t *" instead of
+	"cbl_alphabet_t &"
+	(parser_alphabet_use): Likewise.
+	(program_end_stuff): Endianness.
+	(establish_using): Endianness; use out-of-band metadata to handle
+	passing intermediate_e variables BY VALUE.
+	(parser_trim): Endianness.
+	(parser_sort): Change call to parser_alphabet_use().
+	(parser_file_sort): Likewise.
+	(parser_file_merge): Likewise.
+	(create_and_call): Change handling of BY VALUE; handle RETURN-CODE
+	properly for dialects IBM, MF, and GNU.
+	(actually_create_the_static_field): Endianness.
+	(parser_symbol_add): Endianness.
+	* genapi.h (parser_alphabet): Change declaration.
+	(parser_alphabet_use): Likewise.
+	(parser_file_merge): Make a couple of formal parameters "const".
+	* genmath.cc: Incorporate cobol-endian.h.
+	* genutil.cc (binary_from_numdisp): Endianness.
+	(get_binary_value): Endianness.
+	(safe_cast): Prevent aliasing.
+	(safe_assign): New routine that extracts the binary value from a
+	numeric source, and assigns it to the target, converting as
+	necessary based on the target's TREE_TYPE.
+	* genutil.h (safe_assign): New declaration.
+	* messages.cc: Incorporate cobol-endian.h.
+	* move.cc (mh_source_is_literalN): Use streamlined, endian-safe
+	routines.
+	* parse.y: Incorporate cobol-endian.h; set big_endian_e for
+	FldNumericBin5 when the target machine is big-endian.
+	* parse_ante.h (mode_syntax_only): Formatting.
+	(struct prototype_type_t): Likewise.
+	(is_allowed_name): Likewise.
+	(prototype_args): Likewise.
+	(verify_args): Likewise.
+	(valid_pointer_relop): Likewise.
+	(blankit): Eliminate.
+	(cbl_field_t::blank_initial): Handle multi-byte characters.
+	(cbl_field_t::set_initial): Formatting.
+	(data_division_ready): Likewise.
+	(field_binary_usage): Likewise.
+	(ast_end_program): Likewise.
+	* parse_util.h (intrinsic_invalid_parameter): Eliminate FldIndex as
+	an invalid parameter type.
+	* symbols.cc (symbols_alphabet_set): Remove FldIndex from list of
+	invalid types.
+	(cbl_alphabet_t::reencode): Handle big-endian multi-byte charsets.
+	(iconv_cd): Use helpful_iconv_open().
+	(symbol_label_add): Eliminate overwritten assignment.
+	* util.cc (cbl_field_t::encode_numeric): Handle big-endian
+	numeric-display values.
+
+2026-07-10  James K. Lowden  <jklowden@cobolworx.com>
+
+	* lexio.h (parse_error_inc): Declare function.
+	(struct filespan_t::next_line): Detect and remove NUL,
+
 2026-07-09  James K. Lowden  <jklowden@cobolworx.com>
 
 	PR cobol/126105

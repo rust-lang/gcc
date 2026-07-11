@@ -1,3 +1,8 @@
+2026-07-10  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* exp_disp.adb (Expand_Dispatching_Call): Reenable the suppression
+	of access checks during analysis of expanded dispatching calls.
+
 2026-07-06  Eric Botcazou  <ebotcazou@adacore.com>
 
 	* gnatlink.adb: Remove clause for System.CRTL.

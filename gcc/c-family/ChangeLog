@@ -1,3 +1,9 @@
+2026-07-10  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/107187
+	* c-lex.cc (c_common_has_attribute): Don't advertise
+	__has_cpp_attribute (gnu::trivial_abi) in C++.
+
 2026-07-08  Martin Uecker  <uecker@tugraz.at>
 
 	* c-attribs.cc (handle_counted_by_attribute): Adapt.

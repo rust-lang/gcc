@@ -1,3 +1,159 @@
+2026-07-11  Andrew Pinski  <andrew.pinski@oss.qualcomm.com>
+
+	PR testsuite/36190
+	* gcc.dg/vect/vect-111.c: New test.
+	* gcc.dg/vect/vect-ifcvt-11a.c: New test.
+	* gcc.dg/vect/vect-ifcvt-12.c: New test.
+	* gcc.dg/vect/vect-ifcvt-13.c: New test.
+	* gcc.dg/vect/vect-ifcvt-14.c: New test.
+	* gcc.dg/vect/vect-ifcvt-15.c: New test.
+
+2026-07-10  Roger Sayle  <roger@nextmovesoftware.com>
+
+	PR tree-optimization/57371
+	* c-c++-common/pr57371-6.c: New test case.
+	* c-c++-common/pr57371-7.c: Likewise.
+	* c-c++-common/pr57371-8.c: Likewise.
+	* c-c++-common/pr57371-9.c: Likewise.
+	* c-c++-common/pr57371-10.c: Likewise.
+
+2026-07-10  Roger Sayle  <roger@nextmovesoftware.com>
+
+	PR target/48609
+	* gcc.target/i386/pr48609-2.c: New test case.
+
+2026-07-10  Roger Sayle  <roger@nextmovesoftware.com>
+	    Richard Biener  <rguenther@suse.de>
+
+	PR target/99668
+	* gcc.target/i386/pr99668.c: New test case.
+
+2026-07-10  Robert Dubner  <rdubner@symas.com>
+
+	* cobol.dg/group2/Assorted_SPECIAL-NAMES_CLASS.cob: Modified for
+	endian neutrality.
+	* cobol.dg/group2/Non-numeric_data_in_numeric_items__2_.out: Likewise.
+	* cobol.dg/group2/FUNCTION_TRIM_with_NATIONAL_characters.cob: Likewise.
+	* cobol.dg/group2/Hexadecimal_literal.cob: Likewise.
+	* cobol.dg/group2/PACKED-DECIMAL_basic_comp-3_comp-6__2_.cob: Likewise.
+	* cobol.dg/group2/PACKED-DECIMAL_basic_comp-3_comp-6__2_.out: Likewise.
+	* cobol.dg/group2/compare_national_to_display.cob: Likewise.
+	* cobol.dg/group2/Complex_HEX__VALUE_and_MOVE_-_UTF-16.cob: Removed.
+	* cobol.dg/group2/Complex_HEX__VALUE_and_MOVE_-_UTF-16.out: Removed.
+	* cobol.dg/group2/DISPLAY__Sign_ASCII.out: Removed.
+	* cobol.dg/group2/Non-numeric_data_in_numeric_items__2_.cob: Removed.
+	* cobol.dg/group2/DISPLAY__Sign_ASCII.cob: Removed.
+	* cobol.dg/group2/BINARY_and_COMP-5__little-endian_.cob: New test.
+	* cobol.dg/group2/BINARY_and_COMP-5__little-endian_.out: New test.
+	* cobol.dg/group2/Checking_IS_NUMERIC.cob: New test.
+	* cobol.dg/group2/Checking_IS_NUMERIC.out: New test.
+	* cobol.dg/group2/Non-numeric_data_in_numeric-display__1_.cob: New test.
+	* cobol.dg/group2/Non-numeric_data_in_packed_decimal.cob: New test.
+	* cobol.dg/group2/Non-numeric_data_in_packed_decimal.out: New test.
+	* cobol.dg/group2/Numeric-display_sign_encoding__2_.cob: New test.
+	* cobol.dg/group2/Numeric-display_sign_encoding__2_.out: New test.
+	* cobol.dg/group2/Numeric-display_sign_encoding_sanity_check.cob: New test.
+	* cobol.dg/group2/Numeric-display_sign_encoding_sanity_check.out: New test.
+	* cobol.dg/group2/Non-numeric_data_in_numeric-display__1_.out: New file.
+	* cobol.dg/group2/PR59_RT3586_-_Code_format_heuristic_fails.cob: New file.
+	* cobol.dg/group2/RT3609_Unexpected_PROCESS.cob: New file.
+
+2026-07-10  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/126170
+	* gfortran.dg/lto/pr126170_0.f90: New test.
+	* gfortran.dg/lto/pr126170_1.f90: New test.
+
+2026-07-10  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* gcc.target/x86_64/abi/ms-sysv/ms-sysv.c (long_optarg): Cast
+	isspace arg to unsigned char.
+	* gcc.target/x86_64/abi/ms-sysv/ms-sysv.exp (runtest_ms_sysv): Add
+	--omit-rbp-clobbers on NetBSD.
+
+2026-07-10  Pengfei Li  <Pengfei.Li2@arm.com>
+
+	* gcc.dg/fold-vecperm-insert-1.c: New test.
+
+2026-07-10  Kael Andrew Franco  <kaelfandrew@gmail.com>
+
+	PR tree-optimization/125738
+	PR tree-optimization/64130
+	* gcc.dg/pr125738.c: New test.
+	* gcc.dg/tree-ssa/pr64130.c: Remove scan-tree-dump [2, 8589934591].
+	(funsigned): Remove.
+	(funsigned2): Rename to funsigned.
+
+2026-07-10  Daniel Barboza  <daniel.barboza@oss.qualcomm.com>
+
+	PR tree-optimization/124808
+	* gcc.dg/tree-ssa/pr124808-2.c: New test.
+	* gcc.dg/tree-ssa/pr124808.c: New test.
+
+2026-07-10  Konstantinos Eleftheriou  <konstantinos.eleftheriou@vrull.eu>
+
+	* g++.target/aarch64/fold-mem-offsets.C: New test.
+	* gcc.target/aarch64/fold-mem-offsets.c: New test.
+
+2026-07-10  Jakub Jelinek  <jakub@redhat.com>
+
+	PR c++/107187
+	* g++.dg/cpp0x/attr-trivial_abi8.C: New test.
+
+2026-07-10  Pan Li  <pan2.li@intel.com>
+
+	* gcc.target/riscv/rvv/base/pr112431-16.c: Remove xfail.
+	* gcc.target/riscv/rvv/base/pr112431-17.c: Ditto.
+
+2026-07-10  Pan Li  <pan2.li@intel.com>
+
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i16-m1.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i16-m2.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i16-m4.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i16-mf2.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i16-mf4.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i32-m1.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i32-m2.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i32-mf2.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i8-m1.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i8-m2.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i8-mf2.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i8-mf4.c:
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf2-i8-mf8.c:
+
+2026-07-10  Pan Li  <pan2.li@intel.com>
+
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u16-m1.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u16-m2.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u16-mf2.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u16-mf4.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u8-m1.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u8-m2.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u8-mf2.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u8-mf4.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vzext_vf4-u8-mf8.c: New test.
+
+2026-07-10  Pan Li  <pan2.li@intel.com>
+
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i16-m1.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i16-m2.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i16-mf2.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i16-mf4.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i8-m1.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i8-m2.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i8-mf2.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i8-mf4.c: New test.
+	* gcc.target/riscv/rvv/autovec/group_overlap/vsext_vf4-i8-mf8.c: New test.
+
+2026-07-10  Andrew Pinski  <andrew.pinski@oss.qualcomm.com>
+
+	PR tree-optimization/116860
+	PR tree-optimization/114326
+	* gcc.dg/tree-ssa/fold-xor-and-or-1.c: New test.
+	* gcc.dg/tree-ssa/fold-xor-or-1.c: New test.
+	* gcc.dg/tree-ssa/pr102793-1.c: Update for the optimization
+	happening in pre.
+
 2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
 	    Thomas Schwinge  <tschwinge@baylibre.com>
 

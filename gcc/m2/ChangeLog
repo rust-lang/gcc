@@ -1,3 +1,8 @@
+2026-07-10  Léo Hardt  <leom.hardt@inf.ufrgs.br>
+
+	* plugin/m2rte.cc: Removed unused extern bool
+	ggc_force_collect.
+
 2026-06-03  Gaius Mulley  <gaiusmod2@gmail.com>
 
 	PR modula2/125512

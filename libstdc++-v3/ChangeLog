@@ -1,3 +1,54 @@
+2026-07-10  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* testsuite/std/memory/start_lifetime_as/neg.cc: Fix
+	typos in comment and remove trailing whitespaces.
+
+2026-07-10  Jonathan Wakely  <jwakely@redhat.com>
+
+	PR libstdc++/119143
+	* include/tr1/bessel_function.tcc (__cyl_bessel_jn_asymp):
+	Return zero for infinite x.
+	* testsuite/special_functions/08_cyl_bessel_j/check_inf.cc: New
+	test.
+	* testsuite/special_functions/10_cyl_neumann/check_inf.cc: New
+	test.
+	* testsuite/tr1/5_numerical_facilities/special_functions/11_cyl_neumann/check_inf.cc:
+	New test.
+	* testsuite/tr1/5_numerical_facilities/special_functions/09_cyl_bessel_j/check_inf.cc:
+	New test.
+
+2026-07-10  Jonathan Wakely  <jwakely@redhat.com>
+
+	* src/c++17/fs_ops.cc (windows_read_symlink_handle): Use
+	__detail::__is_handle_symlink and report an error for
+	non-symlinks.
+	(filesystem::read_symlink): Remove error handling for
+	non-symlinks.
+	* src/filesystem/ops-common.h (__detail::__open_for_stat): Use
+	std::error_code parameter to report errors instead of setting
+	errno.
+	(__detail::__check_handle_type): Likewise.
+	(__detail::__is_handle_symlink): Likewise.
+	(__detail::__stat_windows): Pass std::error_code to helper
+	functions and set errno to report errors.
+
+2026-07-10  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* testsuite/20_util/has_unique_object_representations/neg.cc:
+	New test.
+
+2026-07-10  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/bits/stl_construct.h (std::start_lifetime_as_array):
+	static_assert that _Tp is complete type.
+	* testsuite/std/memory/start_lifetime_as/neg.cc: New test.
+
+2026-07-10  Tomasz Kamiński  <tkaminsk@redhat.com>
+
+	* include/std/ranges (repeat_view::repeat_view): Assert that
+	__bound >= 0 consistently. Replace !same_as<unreachable_sentinel>
+	with __is_signed_integer_like check.
+
 2026-07-09  Stefan Schulze Frielinghaus  <stefansf@gcc.gnu.org>
 
 	* configure.host: Remove s390 host part; keep s390x.

@@ -1,3 +1,14 @@
+2026-07-10  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* module.cc (EOPNOTSUPP): Provide fallback.
+	(elf_out::create_mapping) [HAVE_POSIX_FALLOCATE]: Allow for
+	EOPNOTSUPP result.
+
+2026-07-10  Arsen Arsenović  <aarsenovic@baylibre.com>
+
+	* cp-tree.h (temp_override): In provided-value constructor,
+	don't deduce based on provided value.
+
 2026-07-07  Egas Ribeiro  <egas.g.ribeiro@gmail.com>
 
 	* except.cc (can_convert_eh): Handle a nullptr_t exception

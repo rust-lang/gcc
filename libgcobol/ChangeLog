@@ -1,3 +1,225 @@
+2026-07-10  Robert Dubner  <rdubner@symas.com>
+
+	* charmaps.cc (defined): Use conditional compilation to locate .h
+	files; incorporate cobol-endian.h.
+	(__gg__iconverter): Conditional use of malloc/xmalloc.
+	(fixcode): Convert utf16 and utf32 to utf-16le/be and utf-32le/based
+	on target endianness.  Convert utf16le/be and utf32le/be to
+	utf-16le/be and utf-32le/be to accommodate FreeBSD, which has only
+	the hyphenated versions.
+	(helpful_iconv_open): Use fixcode();
+	(char_from_figconst): New routine.
+	* charmaps.h (CHARMAPS_H): Format comment.
+	(ascii_cr): New definition.
+	(ascii_lbrace): Likewise.
+	(ascii_rbrace): Likewise.
+	(ascii_newline): Likewise.
+	(ebcdic_return): Likewise.
+	(ebcdic_newline): Likewise.
+	(helpful_iconv_open): New declaration.
+	(DEFAULT_32_ENCODING): Change to...
+	(HOST_32_ENCODING): New constant, based on host endianness.
+	(error_msg_direct): Eliminate debugging comment.
+	(charmap_as_unsigned_chars): New utility.
+	(charmap_load_unaligned): Likewise.
+	(charmap_store_unaligned): Likewise.
+	(store_uint16): Likewise.
+	(store_uint32): Likewise.
+	(class cbl_iconv_t): Use helpful_iconv_open().
+	(class charmap_t): Endianness.
+	(char_from_figconst): New declaration.
+	* gfileio.cc (relative_file_delete): Endianness.
+	(relative_file_start): Endianness.
+	(relative_file_rewrite): Endianness.
+	(relative_file_write): Endianness.
+	(write_a_char): Endianness.
+	(sequential_file_write): Endianness.
+	(relative_file_read): Endianness.
+	* gmath.cc (__gg__pow): Formatting.
+	(uint128_lo64): Endianness.
+	(uint128_hi64): Endianness.
+	(uint128_from_limbs): Endianness.
+	(int256_get_u128): Endianness.
+	(int256_set_u128): Endianness.
+	(int256_is_negative): Endianness.
+	(int128_abs_as_uint128): Endianness.
+	(add_int256_to_int256): Endianness.
+	(negate_int256): Endianness.
+	(divide_int256_by_int64): Endianness.
+	(squeeze_int256): Endianness.
+	(get_int256_from_qualified_field): Endianness.
+	(__gg__add_fixed_phase1): Endianness.
+	(__gg__addf1_fixed_phase2): Endianness.
+	(__gg__fixed_phase2_assign_to_c): Endianness.
+	(__gg__add_float_phase1): Endianness.
+	(__gg__addf1_float_phase2): Endianness.
+	(__gg__addf3): Endianness.
+	(__gg__subtractf1_fixed_phase2): Endianness.
+	(__gg__subtractf2_fixed_phase1): Endianness.
+	(__gg__subtractf1_float_phase2): Endianness.
+	(__gg__subtractf2_float_phase1): Endianness.
+	(__gg__subtractf3): Endianness.
+	(__gg__multiplyf1_phase1): Endianness.
+	(multiply_int128_by_int128): Endianness.
+	(__gg__multiplyf1_phase2): Endianness.
+	(__gg__multiplyf2): Endianness.
+	(shift_in_place128): Endianness.
+	(int256_as_decimal): Endianness.
+	(clz_uint64): Endianness.
+	(defined): Endianness.
+	(shift_left_int256): Endianness.
+	(divide_int128_by_int128): Endianness.
+	(__gg__dividef1_phase2): Endianness.
+	(__gg__dividef23): Endianness.
+	(__gg__dividef45): Endianness.
+	* inspect.cc (as_chars): Endianness.
+	(funky_find): Endianness.
+	(funky_find_wide): Endianness.
+	(funky_find_wide_backward): Endianness.
+	(append_normalized_character): Endianness.
+	(normalize_id): Endianness.
+	(normalize_id_sbc): Endianness.
+	(the_alpha_and_omega): Endianness.
+	(the_alpha_and_omega_sbc): Endianness.
+	(the_alpha_and_omega_backward): Endianness.
+	(inspect_backward_format_1): Endianness.
+	(__gg__inspect_format_1): Endianness.
+	(inspect_backward_format_2): Endianness.
+	(__gg__inspect_format_2): Endianness.
+	(normalize_for_inspect_format_4): Endianness.
+	(__gg__inspect_format_4): Endianness.
+	* intrinsic.cc (as_chars): Endianness.
+	(xrealloc): Compile for both cobol1 and libgcobol.so.
+	(mconvert_to_c_string): Endianness.
+	(ensure_char_capacity):  Endianness.
+	(struct input_state): Allocate buffers using the proper sizes.
+	(get_all_time): Endianness.
+	(__gg__char): Endianness.
+	(__gg__formatted_current_date): Endianness.
+	(__gg__formatted_date): Endianness.
+	(__gg__formatted_datetime): Endianness.
+	(__gg__formatted_time): Endianness.
+	(change_case): Endianness.
+	(__gg__median): Endianness.
+	(numval): Endianness.
+	(numval_c): Endianness.
+	(__gg__ord): Endianness.
+	(__gg__trim_a): Endianness.
+	(__gg__numval_f): Endianness.
+	(__gg__test_numval_f): Endianness.
+	(ismatch): Endianness.
+	(iscasematch): Endianness.
+	(strstr): Endianness.
+	(strcasestr): Endianness.
+	(strlaststr): Endianness.
+	(strcaselaststr): Endianness.
+	(__gg__substitute): Endianness.
+	(__gg__locale_date): Endianness.
+	(__gg__locale_time): Endianness.
+	* io.cc (__compat_file_status_word): Endianness.
+	* libgcobol.cc (as_chars): Endianness.
+	(as_unsigned_chars): Endianness.
+	(load_unaligned): Endianness.
+	(store_unaligned): Endianness.
+	(signed_int128_max): Endianness.
+	(checked_realloc): Endianness.
+	(collated): Endianness.
+	(edited_to_binary): Endianness.
+	(native_to_binary_signed): Endianness.
+	(native_to_binary_unsigned): Endianness.
+	(digit_rt): Endianness.
+	(num_disp_dive_rt): Endianness.
+	(numeric_display_to_binary): Endianness.
+	(get_binary_value_local): Endianness.
+	(__gg__power_of_ten): Endianness.
+	(value_is_too_big): Endianness.
+	(binary_to_big_endian): Endianness.
+	(binary_to_native_binary): Endianness.
+	(int128_to_field): Endianness.
+	(__gg__field_from_string): Endianness.
+	(field_from_ascii): Endianness.
+	(uber_compare): Endianness.
+	(__gg__dirty_to_binary): Endianness.
+	(get_scaled_rdigits): Endianness.
+	(format_for_display_internal): Endianness.
+	(compare_88): Endianness.
+	(get_float128): Endianness.
+	(__gg__compare_field_class): Endianness.
+	(compare_strings): Endianness.
+	(__gg__compare_2): Endianness.
+	(__gg__double_to_target): Endianness.
+	(__gg__sort_table): Endianness.
+	(init_var_both): Endianness.
+	(alpha_to_alpha_move_from_location): Endianness.
+	(alpha_to_alpha_move): Endianness.
+	(__gg__move): Endianness.
+	(__gg__move_literala): Endianness.
+	(__gg__sort_workfile): Endianness.
+	(__gg__merge_files): Endianness.
+	(move_string): Endianness.
+	(normalize_for_inspect_format_4): Endianness.
+	(__gg__string): Endianness.
+	(display_both): Endianness.
+	(__gg__float128_from_qualified_field): Endianness.
+	(float128_to_int128): Endianness.
+	(float128_to_location): Endianness.
+	(__gg__onetime_initialization): Endianness.
+	(is_numeric_display_numeric): Endianness.
+	(classify_alphabetic_type): Endianness.
+	(accept_envar): Endianness.
+	(__gg__set_envar): Endianness.
+	(command_line_plan_b): Endianness.
+	(__gg__get_command_line): Endianness.
+	(__gg__set_pointer): Endianness.
+	(__gg__alphabet_use): Formatting.
+	(__gg__fetch_call_by_value_value): Eliminate.
+	(__gg__unstring): Endianness.
+	(match_declarative): Formatting.
+	(default_exception_handler): Formatting.
+	(__gg__check_fatal_exception): Endianness.
+	(__gg__float128_from_location): Endianness.
+	(__gg__adjust_encoding): Endianness.
+	(__gg__func_exception_file): Endianness.
+	(__gg__is_float_infinite): Formatting.
+	(__gg__float32_from_128): Endianness.
+	(__gg__float32_from_64): Endianness.
+	(__gg__float64_from_128): Endianness.
+	(__gg__just_mangle_name): Endianness.
+	(__gg__function_handle_from_name): Proper initialization.
+	(__gg__variables_to_init): Likewise.
+	(__gg__mirror_range): Formatting.
+	(__gg__allocate): Formatting.
+	(__gg__module_name): Formatting.
+	(__gg__set_exception_environment): Formatting.
+	(__gg__set_env_name): Endianness.
+	(__gg__set_env_value): Endianness.
+	(__gg__refer_from_string): Endianness.
+	(__gg__refer_from_psz): Endianness.
+	(__gg__compare_string_all): Endianness.
+	(__gg__compare_string_1): Endianness.
+	(__gg__compare_string_1a): Endianness.
+	(__gg__compare_string_2): Endianness.
+	(__gg__compare_string_2a): Endianness.
+	(__gg__compare_string_4): Endianness.
+	(__gg__compare_string_4a): Endianness.
+	(__gg_compare_string_different): Endianness.
+	(__gg__compare_numeric_all): Endianness.
+	(__gg__compare_binary_to_string): Endianness.
+	* libgcobol.h (defined): Endianness.
+	(COBOL_BIG_ENDIAN): Endianness.
+	(COBOL_LITTLE_ENDIAN): Endianness.
+	* stringbin.cc (__gg__binary_to_string_encoded): Endianness.
+	(digit_rt): Support for num_disp_dive_rt().
+	(num_disp_dive_rt): Recurse conversion of numeric-display to binary.
+	(__gg__numeric_display_to_binary): Use num_disp_dive_rt().
+	* stringbin.h (__gg__numeric_display_to_binary): Remove declaration.
+	* valconv.cc (defined): Use IN_GCC_FRONTEND to find .h files;
+	incorporate cobol-endian.h.
+	(TOUPPER): Simple toupper() routine.
+	(__gg__string_to_numeric_edited): Use TOUPPER.
+	* cobol-endian.h: New file.  Provides access to big-e versus
+	little-e variables and preprocessor definitions.
+
 2026-06-30  Robert Dubner  <rdubner@symas.com>
 
 	* charmaps.h (class charmap_t): Return uint8_t instead of uint32_t

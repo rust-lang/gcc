@@ -1,3 +1,128 @@
+2026-07-10  Roger Sayle  <roger@nextmovesoftware.com>
+
+	PR tree-optimization/57371
+	* fold-const.cc (fold_cmp_float_cst_p): New helper function.
+	* fold-const.h (fold_cmp_float_cst_p): Prototype here.
+	* match.pd ((FTYPE) N CMP CST): Use the new helper
+	fold_cmp_float_cst_p to check that transformation to an integer
+	comparison is safe.
+
+2026-07-10  Roger Sayle  <roger@nextmovesoftware.com>
+
+	PR target/48609
+	* expr.cc (emit_group_load_1): When passing a complex value in an
+	integer mode of the same size, explicitly construct (hi<<N)+lo to
+	avoid spilling to memory before reload.
+
+2026-07-10  Roger Sayle  <roger@nextmovesoftware.com>
+	    Richard Biener  <rguenther@suse.de>
+
+	PR target/99668
+	* expr.cc (try_expand_complex_as_vector): Try to use vec_init_optab
+	to convert a complex number to a two-component vector with the same
+	inner type.
+	(expand_expr_real_1) <case VIEW_CONVERT_EXPR>: Check whether the
+	above function can be used to implement this VIEW_CONVERT_EXPR.
+
+2026-07-10  Jim Lin  <jim@andestech.com>
+
+	* common/config/riscv/riscv-common.cc
+	(riscv_multi_lib_info_t::parse): Remove early-out for multilibs
+	matching only the default march/mabi.
+
+2026-07-10  Pengfei Li  <Pengfei.Li2@arm.com>
+
+	* match.pd: Simplify vector permute and insert patterns.
+
+2026-07-10  Kael Andrew Franco  <kaelfandrew@gmail.com>
+
+	PR tree-optimization/125738
+	PR tree-optimization/64130
+	* match.pd: Use tree_expr_nonnegative_p for (X / Y) (==,!=) 0 -> X (<,>=) Y.
+
+2026-07-10  Léo Hardt  <leom.hardt@inf.ufrgs.br>
+
+	* sel-sched-ir.cc (struct succs_info): Removed
+	unused variable current_succs.
+
+2026-07-10  Daniel Barboza  <daniel.barboza@oss.qualcomm.com>
+
+	PR tree-optimization/124808
+	* match.pd(`(A >> CST1) CMP CST2`): New pattern.
+
+2026-07-10  Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* system.h [INCLUDE_ITERATOR]: '#include <iterator>'.
+
+2026-07-10  Mark Wielaard  <mark@klomp.org>
+
+	* config/i386/i386.opt.urls: Regenerate.
+
+2026-07-10  Konstantinos Eleftheriou  <konstantinos.eleftheriou@vrull.eu>
+
+	PR rtl-optimization/117922
+	* fold-mem-offsets.cc (INCLUDE_ALGORITHM):  Added definition.
+	(INCLUDE_FUNCTIONAL): Likewise.
+	(class pass_fold_mem_offsets): Moved to bottom of file.
+	(class change_info): New.
+	(def_shadowed_by_cond_exec_p): New.
+	(get_single_def_in_bb): Converted to RTL-SSA.
+	(get_fold_mem_offset_root): Converted to RTL-SSA.
+	(get_uses): Removed.
+	(fold_offsets): Converted to RTL-SSA.
+	(fold_offsets_value): New.
+	(fold_offsets_1): Converted to RTL-SSA.
+	(has_foldable_uses_p): Converted to RTL-SSA.
+	(get_fold_mem_root): Removed.
+	(insn_uses_not_in_bitmap): New.
+	(drop_unsafe_candidates): New.
+	(do_commit_offset): Converted to RTL-SSA.
+	(do_analysis): Removed.
+	(do_commit_insn): Converted to RTL-SSA.
+	(do_fold_info_calculation): Removed.
+	(sort_changes): New.
+	(struct regno_changes): New.
+	(sort_pairs): New.
+	(do_check_validity): Removed.
+	(get_last_def): New.
+	(move_uses_to_prev_def): New.
+	(compute_validity_closure): Removed.
+	(change_in_vec_p): New.
+	(cancel_changes_for_group): New.
+	(find_keys_to_remove): New.
+	(free_changes_info): New.
+	(update_insns): New.
+	(fold_mem_offsets_1): New.
+	(pass_fold_mem_offsets::execute): Moved to bottom of file.
+	(fold_mem_offsets): New.
+
+2026-07-10  Thomas Schwinge  <tschwinge@baylibre.com>
+
+	* config/nvptx/nvptx.cc (flexible_array_member_type_p): Rename to
+	'nvptx_flexible_array_member_type_p'.
+
+2026-07-10  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* config/m68k/m68k.h (ASM_PREFERRED_EH_DATA_FORMAT): Adjust parens
+	so they wrap the macro parameter.
+
+2026-07-10  Pan Li  <pan2.li@intel.com>
+
+	* config/riscv/riscv-protos.h (is_frac_vlmul_p): Add new func
+	decl to predicate frac vlmul for a mode.
+	* config/riscv/riscv-v.cc (is_frac_vlmul_p): Add new func impl
+	for above.
+	(riscv_v_widen_constraint_ok): Add Source and Dest lmul less
+	and equal 1 handling.
+	* config/riscv/vector.md: Leverage widen constraint Wvr.
+
+2026-07-10  Andrew Pinski  <andrew.pinski@oss.qualcomm.com>
+
+	PR tree-optimization/116860
+	PR tree-optimization/114326
+	* match.pd (`((a ^ b) & c) cmp d || a != b`): Expand
+	to support bit_and and fix up the :c.
+
 2026-07-09  Paul-Antoine Arras  <parras@baylibre.com>
 	    Thomas Schwinge  <tschwinge@baylibre.com>
 
