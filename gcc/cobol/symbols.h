@@ -2369,8 +2369,11 @@ void build_symbol_map();
 bool update_symbol_map( symbol_elem_t *e );
 
 void update_symbol_map2( const symbol_elem_t *elem );
+void update_symbol_map2( const cbl_file_t& file );
 void finalize_symbol_map2();
 void dump_symbol_map2();
+
+bool was_fd_name( const cbl_field_t * field ); // uses symbol_map2, sort of
 
 symbol_elem_t * symbol_register( const char name[] );
 

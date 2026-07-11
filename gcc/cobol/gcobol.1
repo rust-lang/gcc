@@ -44,6 +44,7 @@
 .Op Fl Wno-bad-line-directive
 .Op Fl Wno-bad-numeric
 .Op Fl Wno-binary-long-long
+.Op Fl Wno-call-fd
 .Op Fl Wno-call-giving
 .Op Fl Wno-call-literal
 .Op Fl Wno-cdf-dollar
@@ -603,6 +604,9 @@ Warn if malformed
 directive is encountered.
 .It Fl Wno-binary-long-long
 Warn if BINARY-LONG-LONG is used.
+.It Fl Wno-call_fd
+Warn if CALL with FD parameter is used.
+This feature is currently unimplemented. 
 .It Fl Wno-call_giving
 Warn if CALL ... GIVING is used.
 .It Fl Wno-call_literal

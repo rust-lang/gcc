@@ -2059,7 +2059,10 @@ symbols_update( size_t first, bool parsed_ok ) {
         ninvalid++;
         continue;
       }
-    if( parsed_ok ) parser_file_add(&file);
+      if( parsed_ok ) {
+        parser_file_add(&file);
+        update_symbol_map2(file); // Add FD name as a name for the default record. 
+      }
     } else {
       if( p->type == SymField ) {
         auto f = cbl_field_of(p);

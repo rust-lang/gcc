@@ -172,6 +172,7 @@ enum cbl_diag_id_t : uint64_t {
   LexReplaceE,
   LexSeparatorE,
 
+  IbmCallFd,
   IbmCdf,
   IbmEjectE,
   IbmEqualAssignE,

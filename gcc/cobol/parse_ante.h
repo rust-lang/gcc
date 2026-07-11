@@ -2896,6 +2896,13 @@ field_find( cbl_loc_t loc, const std::list<const char *>& names ) {
     }
   }
   symbol_elem_t *e = symbol_find(names);
+  if( e && SymField == e->type && was_fd_name(cbl_field_of(e)) ) {
+    if( dialect_ok(loc, IbmCallFd, "CALL USING FD unimplemented") ) {
+      // No other COBOL compiler interprets the FD as a buffer.  This feature
+      // requires further development.
+      warn_msg(loc, "CALL USING FD passes file buffer, not handle");
+    }
+  }
   return e? cbl_field_of(e) : NULL;
 }
 
@@ -3425,6 +3432,11 @@ parser_move_carefully( const char */*F*/, int /*L*/,
 {
   for( const auto& num_result : tgt_list->targets ) {
     const cbl_refer_t& tgt = num_result.refer;
+
+    if( was_fd_name(tgt.field) ) { 
+      error_msg(src.loc, "cannot compare anything to FD %qs", tgt.field->name);
+      return false;
+    }
 
     if( is_index ) {
       if( tgt.field->type != FldIndex && src.field->type != FldIndex) {

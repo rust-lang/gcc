@@ -581,6 +581,10 @@ cobol_langhook_handle_option (size_t scode,
           cobol_warning(MfBinaryLongLong, binary_long_long, warning_as_error);
           return true;
 
+        case OPT_Wcall_fd:
+          cobol_warning(IbmCallFd, cobol_call_fd, warning_as_error);
+          return true;
+
         case OPT_Wcall_giving:
           cobol_warning(MfCallGiving, call_giving, warning_as_error);
           return true;

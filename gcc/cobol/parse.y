@@ -1642,7 +1642,7 @@ cobol_words1:	COBOL_WORDS EQUATE NAME[keyword] WITH NAME[name] {
 		  if( ! cdf_tokens.reserve(@name, $name) ) { YYERROR; }
 		}
         |       PROCESS {
-                  cbl_message(@1, IbmCdf, "%qs", $1);
+                  cbl_message(@1, IbmCdf, "CDF directive ignored: %qs", $1);
                 }
 		;
 
@@ -13678,6 +13678,12 @@ ast_op( const cbl_loc_t& loc, cbl_refer_t *lhs, char op, cbl_refer_t *rhs ) {
 static void
 ast_relop( const cbl_loc_t& loc, cbl_field_t *tgt,
            cbl_refer_t lhs, relop_t op, cbl_refer_t rhs ) {
+  if( was_fd_name(lhs.field) || was_fd_name(rhs.field) ) {
+    const char *name = was_fd_name(lhs.field) ? lhs.field->name : rhs.field->name;
+    error_msg(loc, "cannot compare anything to FD %qs", name);
+    return;
+  }
+
   if( ! (valid_move(lhs.field, rhs.field) && valid_move(rhs.field, lhs.field)) ) {
     if( is_numeric(lhs.field) != is_numeric(rhs.field) ) {
       if( (lhs.field->type == FldFloat) || (rhs.field->type == FldFloat) ) {

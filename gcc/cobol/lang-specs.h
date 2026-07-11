@@ -54,6 +54,7 @@
 	"%{Wno-bad-line-directive} "
 	"%{Wno-bad-numeric} "
 	"%{Wno-binary-long-long} "
+	"%{Wno-call-fd} "
 	"%{Wno-call-giving} "
 	"%{Wno-call-literal} "
 	"%{Wno-cdf-dollar} "
