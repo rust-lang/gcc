@@ -1863,8 +1863,8 @@ helpful_iconv_open(const char *tocode, const char *fromcode)
   char ach_to[32];
   char ach_from[32];
 
-  strncpy(ach_to, tocode, sizeof(ach_to));
-  strncpy(ach_from, fromcode, sizeof(ach_from));
+  strncpy(ach_to, tocode, sizeof(ach_to)-1);
+  strncpy(ach_from, fromcode, sizeof(ach_from)-1);
 
   fixcode(ach_to, sizeof(ach_to));
   fixcode(ach_from, sizeof(ach_from));
@@ -1877,7 +1877,7 @@ helpful_iconv_open(const char *tocode, const char *fromcode)
 char
 char_from_figconst(cbl_figconst_t figconst)
   {
-  char retval;
+  char retval = 0;
   switch(figconst)
     {
     case normal_value_e :
