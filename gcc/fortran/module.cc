@@ -6053,15 +6053,16 @@ read_module (void)
 				module_name, 0))
 	    continue;
 
-	  /* Skip re-importing a symbol already visible via host association
-	     from the same module.  */
+	  /* Skip re-importing a derived type already visible via host
+	     association from the same module.  */
 	  if (!only_flag && !info->u.rsym.renamed
 		&& strcmp (name, module_name) != 0
 		&& gfc_current_ns->parent)
 	    {
 	      gfc_symbol *host_sym;
 	      gfc_find_symbol (name, gfc_current_ns, 1, &host_sym);
-	      if (host_sym && host_sym->module
+	      if (host_sym && host_sym->attr.flavor == FL_DERIVED
+		  && host_sym->module
 		  && strcmp (host_sym->module, module_name) == 0)
 		continue;
 	    }
