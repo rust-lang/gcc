@@ -1594,10 +1594,10 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
    (a - 1) ^ -a -> -1.  */
 (for bit_op (bit_ior bit_xor bit_and)
  (simplify
-  (bit_op:c (plus @0 integer_minus_onep) (negate @0))
+  (bit_op:c (plus @0 integer_minus_onep@1) (negate @0))
   (if (bit_op == BIT_AND_EXPR)
     { build_zero_cst (type); }
-    { build_minus_one_cst (type); }))
+    @1))
  (simplify
   (bit_op:c (minus @0 integer_onep) (negate @0))
   (if (bit_op == BIT_AND_EXPR)
