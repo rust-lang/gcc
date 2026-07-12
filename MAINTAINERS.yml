@@ -1455,6 +1455,15 @@ users:
   roles:
   - WriteAfter
   account: mpf
+- sn: Franco
+  cn: Kael Andrew Franco
+  email:
+  - kael@gcc.gnu.org
+  - kaelfandrew@gmail.com
+  roles:
+  - WriteAfter
+  - DCO: kaelfandrew@gmail.com
+  account: kael
 - sn: Franke
   cn: Daniel Franke
   email:
