@@ -4294,6 +4294,69 @@ expand_sdiv_pow2 (scalar_int_mode mode, rtx op0, HOST_WIDE_INT d)
    (x mod 12) == (((x & 1023) + ((x >> 8) & ~3)) * 0x15555558 >> 2 * 3) >> 28
    */
 
+/* Helper for expand_divmod's unsigned constant division.  For OP0 in
+   INT_MODE divided by a constant needing a (SIZE+1)-bit multiplier ML
+   with right shift POST_SHIFT (the mh != 0 case), try to obtain
+   the quotient from the high part of a single multiply in a mode twice
+   as wide as INT_MODE.  Return the quotient in INT_MODE, having emitted
+   the insns, or NULL_RTX when the transformation is unavailable or not
+   cheaper than the classic sub/shift/add sequence.  EXTRA_COST is the
+   cost of that sequence's follow-up ops, MAX_COST bounds the multiply
+   and SPEED selects the cost model.
+
+   The magic constant occupies at most 2*SIZE bits and so must fit in a
+   HOST_WIDE_INT (always 64 bits today; checked below).  A wider INT_MODE
+   such as DImode -- which would need a 128-bit magic and a single-word
+   high-part multiply in a 2x-wide mode that common targets lack -- is
+   therefore excluded.  */
+
+static rtx
+expand_wide_mulh_udiv (scalar_int_mode int_mode, rtx op0,
+		       unsigned HOST_WIDE_INT ml, int size, int post_shift,
+		       int extra_cost, int max_cost, bool speed)
+{
+  scalar_int_mode wide_mode;
+
+  /* We need POST_SHIFT >= 1, a wider integer mode that still fits in a
+     word, and the pre-shifted magic constant to fit in a HOST_WIDE_INT.  */
+  if (post_shift < 1
+      || !GET_MODE_2XWIDER_MODE (int_mode).exists (&wide_mode)
+      || GET_MODE_BITSIZE (wide_mode) > BITS_PER_WORD
+      || GET_MODE_BITSIZE (wide_mode) > HOST_BITS_PER_WIDE_INT)
+    return NULL_RTX;
+
+  /* The caller obtained ML and POST_SHIFT from choose_multiplier, which
+     guarantees POST_SHIFT <= ceil (log2 (d)) <= SIZE for a SIZE-bit
+     divisor d, so the shift count below is non-negative.  */
+  gcc_checking_assert (post_shift <= size);
+
+  /* Pre-shift the (SIZE+1)-bit magic constant (2^SIZE + ML) by
+     (SIZE - POST_SHIFT) so that the quotient ends up in the high part
+     of the widened product.  Since ML < 2^SIZE and POST_SHIFT >= 1, the
+     result is below 2^(2*SIZE) and thus fits in both WIDE_MODE and an
+     unsigned HOST_WIDE_INT (2*SIZE <= HOST_BITS_PER_WIDE_INT was
+     checked above).  */
+  unsigned HOST_WIDE_INT magic
+    = ((HOST_WIDE_INT_1U << size) + ml) << (size - post_shift);
+
+  start_sequence ();
+  rtx x_wide = convert_to_mode (wide_mode, op0, 1);
+  rtx hi = expmed_mult_highpart (wide_mode, x_wide,
+				 gen_int_mode (magic, wide_mode),
+				 NULL_RTX, 1, max_cost);
+  rtx quotient = hi ? convert_to_mode (int_mode, hi, 1) : NULL_RTX;
+  rtx_insn *insns = end_sequence ();
+
+  /* Use the widened multiply only when it is no more expensive than
+     the classic sub/shift/add sequence.  */
+  unsigned classic_cost = mul_highpart_cost (speed, int_mode) + extra_cost;
+  if (quotient == NULL_RTX || seq_cost (insns, speed) > classic_cost)
+    return NULL_RTX;
+
+  emit_insn (insns);
+  return quotient;
+}
+
 rtx
 expand_divmod (int rem_flag, enum tree_code code, machine_mode mode,
 	       rtx op0, rtx op1, rtx target, int unsignedp,
@@ -4568,22 +4631,32 @@ expand_divmod (int rem_flag, enum tree_code code, machine_mode mode,
 			      = (shift_cost (speed, int_mode, post_shift - 1)
 				 + shift_cost (speed, int_mode, 1)
 				 + 2 * add_cost (speed, int_mode));
-			    t1 = expmed_mult_highpart
-			      (int_mode, op0, gen_int_mode (ml, int_mode),
-			       NULL_RTX, 1, max_cost - extra_cost);
-			    if (t1 == 0)
-			      goto fail1;
-			    t2 = force_operand (gen_rtx_MINUS (int_mode,
-							       op0, t1),
-						NULL_RTX);
-			    t3 = expand_shift (RSHIFT_EXPR, int_mode,
-					       t2, 1, NULL_RTX, 1);
-			    t4 = force_operand (gen_rtx_PLUS (int_mode,
-							      t1, t3),
-						NULL_RTX);
-			    quotient = expand_shift
-			      (RSHIFT_EXPR, int_mode, t4,
-			       post_shift - 1, tquotient, 1);
+
+			    /* Try a single widened multiply first; use it when
+			       it is no more expensive.  */
+			    quotient
+			      = expand_wide_mulh_udiv (int_mode, op0, ml, size,
+						       post_shift, extra_cost,
+						       max_cost, speed);
+			    if (quotient == NULL_RTX)
+			      {
+				t1 = expmed_mult_highpart
+				  (int_mode, op0, gen_int_mode (ml, int_mode),
+				   NULL_RTX, 1, max_cost - extra_cost);
+				if (t1 == 0)
+				  goto fail1;
+				t2 = force_operand (gen_rtx_MINUS (int_mode,
+								   op0, t1),
+						    NULL_RTX);
+				t3 = expand_shift (RSHIFT_EXPR, int_mode,
+						   t2, 1, NULL_RTX, 1);
+				t4 = force_operand (gen_rtx_PLUS (int_mode,
+								  t1, t3),
+						    NULL_RTX);
+				quotient = expand_shift
+				  (RSHIFT_EXPR, int_mode, t4,
+				   post_shift - 1, tquotient, 1);
+			      }
 			  }
 			else
 			  {
