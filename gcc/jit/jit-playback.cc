@@ -215,6 +215,9 @@ get_tree_node_for_type (enum gcc_jit_types type_)
     case GCC_JIT_TYPE_VOID:
       return void_type_node;
 
+    case GCC_JIT_TYPE_VA_LIST:
+      return va_list_type_node;
+
     case GCC_JIT_TYPE_VOID_PTR:
       return ptr_type_node;
 
@@ -1770,6 +1773,22 @@ new_bitcast (location *loc,
   if (loc)
     set_tree_location (t_bitcast, loc);
   return new rvalue (this, t_bitcast);
+}
+
+/* Construct a playback::rvalue instance (wrapping a tree) for a
+   va_arg expression. */
+
+playback::rvalue *
+playback::context::
+new_va_arg (location *loc,
+	    rvalue *ap,
+	    type *type_)
+{
+  tree t_va_arg = build1 (VA_ARG_EXPR, type_->as_tree (), ap->as_tree ());
+
+  if (loc)
+    set_tree_location (t_va_arg, loc);
+  return new rvalue (this, t_va_arg);
 }
 
 /* Construct a playback::lvalue instance (wrapping a tree) for an

@@ -1403,6 +1403,22 @@ recording::context::new_bitcast (location *loc,
   return result;
 }
 
+/* Create a recording::va_arg_expr instance and add it to this context's list
+   of mementos.
+
+   Implements the post-error-checking part of
+   gcc_jit_context_new_va_arg.  */
+
+recording::rvalue *
+recording::context::new_va_arg (location *loc,
+			       rvalue *ap,
+			       type *type_)
+{
+  recording::rvalue *result = new va_arg_expr (this, loc, ap, type_);
+  record (result);
+  return result;
+}
+
 /* Create a recording::call instance and add it to this context's list
    of mementos.
 
@@ -2794,6 +2810,9 @@ recording::memento_of_get_type::dereference ()
     {
     default: gcc_unreachable ();
 
+    case GCC_JIT_TYPE_VA_LIST:
+      return NULL;
+
     case GCC_JIT_TYPE_VOID:
       return NULL;
 
@@ -2858,6 +2877,9 @@ recording::memento_of_get_type::is_int () const
   switch (m_kind)
     {
     default: gcc_unreachable ();
+
+    case GCC_JIT_TYPE_VA_LIST:
+      return false;
 
     case GCC_JIT_TYPE_VOID:
       return false;
@@ -2927,6 +2949,9 @@ recording::memento_of_get_type::is_signed () const
     {
     default: gcc_unreachable ();
 
+    case GCC_JIT_TYPE_VA_LIST:
+      return false;
+
     case GCC_JIT_TYPE_SIGNED_CHAR:
     case GCC_JIT_TYPE_CHAR:
     case GCC_JIT_TYPE_SHORT:
@@ -2985,6 +3010,9 @@ recording::memento_of_get_type::is_float () const
   switch (m_kind)
     {
     default: gcc_unreachable ();
+
+    case GCC_JIT_TYPE_VA_LIST:
+      return false;
 
     case GCC_JIT_TYPE_VOID:
       return false;
@@ -3053,6 +3081,9 @@ recording::memento_of_get_type::is_bool () const
   switch (m_kind)
     {
     default: gcc_unreachable ();
+
+    case GCC_JIT_TYPE_VA_LIST:
+      return false;
 
     case GCC_JIT_TYPE_VOID:
       return false;
@@ -3176,6 +3207,7 @@ static const char * const get_type_strings[] = {
   "_Float32",     /* GCC_JIT_TYPE_FLOAT32 */
   "_Float64",     /* GCC_JIT_TYPE_FLOAT64 */
   "__float128",   /* GCC_JIT_TYPE_FLOAT128 */
+  "__builtin_va_list", /* GCC_JIT_TYPE_VA_LIST */
 };
 
 /* Implementation of recording::memento::make_debug_string for
@@ -3226,6 +3258,7 @@ static const char * const get_type_enum_strings[] = {
   "GCC_JIT_TYPE_FLOAT32",
   "GCC_JIT_TYPE_FLOAT64",
   "GCC_JIT_TYPE_FLOAT128",
+  "GCC_JIT_TYPE_VA_LIST",
 };
 
 void
@@ -6852,6 +6885,57 @@ recording::bitcast::write_reproducer (reproducer &r)
 	   r.get_identifier (m_loc),
 	   r.get_identifier_as_rvalue (m_rvalue),
 	   r.get_identifier_as_type (get_type ()));
+}
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::va_arg_expr.  */
+
+void
+recording::va_arg_expr::replay_into (replayer *r)
+{
+  set_playback_obj (r->new_va_arg (playback_location (r, m_loc),
+				  m_ap->playback_rvalue (),
+				  get_type ()->playback_type ()));
+}
+
+/* Implementation of pure virtual hook recording::rvalue::visit_children
+   for recording::va_arg_expr.  */
+void
+recording::va_arg_expr::visit_children (rvalue_visitor *v)
+{
+  v->visit (m_ap);
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   va_arg expressions.  */
+
+recording::string *
+recording::va_arg_expr::make_debug_string ()
+{
+  enum precedence prec = get_precedence ();
+  return string::from_printf (m_ctxt,
+			     "va_arg (%s, %s)",
+			     m_ap->get_debug_string_parens (prec),
+			     get_type ()->get_debug_string ());
+}
+
+/* Implementation of recording::memento::write_reproducer for va_arg
+   expressions.  */
+
+void
+recording::va_arg_expr::write_reproducer (reproducer &r)
+{
+  const char *id = r.make_identifier (this, "rvalue");
+  r.write ("  gcc_jit_rvalue *%s =\n"
+	  "    gcc_jit_context_new_va_arg (%s,\n"
+	  "                                %s, /* gcc_jit_location *loc */\n"
+	  "                                %s, /* gcc_jit_rvalue *ap */\n"
+	  "                                %s); /* gcc_jit_type *type */\n",
+	  id,
+	  r.get_identifier (get_context ()),
+	  r.get_identifier (m_loc),
+	  r.get_identifier_as_rvalue (m_ap),
+	  r.get_identifier_as_type (get_type ()));
 }
 
 /* The implementation of class gcc::jit::recording::base_call.  */

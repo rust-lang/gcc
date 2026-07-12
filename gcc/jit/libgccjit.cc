@@ -2609,6 +2609,31 @@ gcc_jit_context_new_bitcast (gcc_jit_context *ctxt,
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::context::new_va_arg method in jit-recording.cc.  */
+
+gcc_jit_rvalue *
+gcc_jit_context_new_va_arg (gcc_jit_context *ctxt,
+			    gcc_jit_location *loc,
+			    gcc_jit_rvalue *ap,
+			    gcc_jit_type *type)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, loc, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  /* LOC can be NULL.  */
+  RETURN_NULL_IF_FAIL (ap, ctxt, loc, "NULL ap");
+  RETURN_NULL_IF_FAIL (type, ctxt, loc, "NULL type");
+  RETURN_NULL_IF_FAIL_PRINTF1 (
+    ap->get_type ()->is_pointer (),
+    ctxt, loc,
+    "ap is not a pointer: %s",
+    ap->get_debug_string ());
+
+  return static_cast <gcc_jit_rvalue *> (ctxt->new_va_arg (loc, ap, type));
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::context::new_array_access method in
    jit-recording.cc.  */
 
