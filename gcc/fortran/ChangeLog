@@ -1,3 +1,10 @@
+2026-07-11  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/126210
+	* module.cc (read_module): Only skip re-importing a symbol
+	already visible via host association from the same module
+	when that symbol is a derived type.
+
 2026-07-10  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 
 	PR fortran/126170

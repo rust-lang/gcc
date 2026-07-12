@@ -1,3 +1,15 @@
+2026-07-11  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
+
+	PR fortran/126210
+	* gfortran.dg/pr126210.f90: New test.
+
+2026-07-11  Robert Dubner  <rdubner@symas.com>
+
+	* cobol.dg/group2/BINARY_and_COMP-5.cob: Removed.
+	* cobol.dg/group2/BINARY_and_COMP-5.out: Removed.
+	* cobol.dg/group2/Non-numeric_data_in_numeric_items__1_.cob: Removed.
+	* cobol.dg/group2/Non-numeric_data_in_numeric_items__1_.out: Removed.
+
 2026-07-11  Andrew Pinski  <andrew.pinski@oss.qualcomm.com>
 
 	PR testsuite/36190

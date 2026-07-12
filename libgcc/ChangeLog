@@ -1,3 +1,9 @@
+2026-07-11  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* config.host <i[34567]86-*-netbsdelf*> (tmake_file): Add
+	i386/t-msabi.
+	<x86_64-*-netbsd*>: Likewise.
+
 2026-07-09  Stefan Schulze Frielinghaus  <stefansf@gcc.gnu.org>
 
 	* config.host: Remove target s390-*.  Remove -m31 part.
