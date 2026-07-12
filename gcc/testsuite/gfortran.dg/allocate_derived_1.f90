@@ -34,16 +34,16 @@
  allocate(t3 :: x(4))
  allocate(tx :: x(5))  ! { dg-error "Error in type-spec at" }
  allocate(u0 :: x(6))  ! { dg-error "may not be ABSTRACT" }
- allocate(v1 :: x(7))  ! { dg-error "is type incompatible with typespec" }
+ allocate(v1 :: x(7))  ! { dg-error "is type incompatible with type-spec" }
 
  allocate(      y(1))
- allocate(t1 :: y(2))  ! { dg-error "is type incompatible with typespec" }
+ allocate(t1 :: y(2))  ! { dg-error "is type incompatible with type-spec" }
  allocate(t2 :: y(3))
- allocate(t3 :: y(3))  ! { dg-error "is type incompatible with typespec" }
+ allocate(t3 :: y(3))  ! { dg-error "is type incompatible with type-spec" }
 
  allocate(      z(1))
- allocate(t1 :: z(2))  ! { dg-error "is type incompatible with typespec" }
- allocate(t2 :: z(3))  ! { dg-error "is type incompatible with typespec" }
+ allocate(t1 :: z(2))  ! { dg-error "is type incompatible with type-spec" }
+ allocate(t2 :: z(3))  ! { dg-error "is type incompatible with type-spec" }
  allocate(t3 :: z(4))
 
 end

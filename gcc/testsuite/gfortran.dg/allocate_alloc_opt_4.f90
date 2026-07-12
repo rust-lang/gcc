@@ -15,7 +15,7 @@ program a
 
   allocate(i(4), source=42, source=n) ! { dg-error "Redundant SOURCE tag found" }
 
-  allocate(integer(4) :: i(4), source=n) ! { dg-error "conflicts with the typespec" }
+  allocate(integer(4) :: i(4), source=n) ! { dg-error "conflicts with the type-spec" }
 
   allocate(i(4), j(n), source=n) ! { dg-error "Fortran 2008: SOURCE tag at .1. with more than a single allocate object" }
 
