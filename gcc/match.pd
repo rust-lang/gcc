@@ -632,7 +632,7 @@ DEFINE_INT_AND_FLOAT_ROUND_FN (RINT)
       && !integer_zerop (@1)
       && (!flag_non_call_exceptions || tree_expr_nonzero_p (@1)))
   (if (TYPE_UNSIGNED (type))
-   (convert (eq:boolean_type_node @1 { build_one_cst (type); }))
+   (convert (eq:boolean_type_node @1 @0))
    (if (fold_before_rtl_expansion_p ())
     (with { tree utype = unsigned_type_for (type); }
      (cond (le (plus (convert:utype @1) { build_one_cst (utype); })
