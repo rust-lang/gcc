@@ -16482,6 +16482,11 @@ rm conftest.c
 
 
 
+if test -n "$AR_FOR_TARGET"; then
+  ac_cv_path_AR_FOR_TARGET=$AR_FOR_TARGET
+elif test -n "$ac_cv_path_AR_FOR_TARGET"; then
+  AR_FOR_TARGET=$ac_cv_path_AR_FOR_TARGET
+fi
 if test -z "$ac_cv_path_AR_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ar in $with_build_time_tools" >&5
@@ -16712,6 +16717,11 @@ fi
 
 
 
+if test -n "$AS_FOR_TARGET"; then
+  ac_cv_path_AS_FOR_TARGET=$AS_FOR_TARGET
+elif test -n "$ac_cv_path_AS_FOR_TARGET"; then
+  AS_FOR_TARGET=$ac_cv_path_AS_FOR_TARGET
+fi
 if test -z "$ac_cv_path_AS_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for as in $with_build_time_tools" >&5
@@ -16942,6 +16952,11 @@ fi
 
 
 
+if test -n "$DLLTOOL_FOR_TARGET"; then
+  ac_cv_path_DLLTOOL_FOR_TARGET=$DLLTOOL_FOR_TARGET
+elif test -n "$ac_cv_path_DLLTOOL_FOR_TARGET"; then
+  DLLTOOL_FOR_TARGET=$ac_cv_path_DLLTOOL_FOR_TARGET
+fi
 if test -z "$ac_cv_path_DLLTOOL_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlltool in $with_build_time_tools" >&5
@@ -17172,6 +17187,11 @@ fi
 
 
 
+if test -n "$DSYMUTIL_FOR_TARGET"; then
+  ac_cv_path_DSYMUTIL_FOR_TARGET=$DSYMUTIL_FOR_TARGET
+elif test -n "$ac_cv_path_DSYMUTIL_FOR_TARGET"; then
+  DSYMUTIL_FOR_TARGET=$ac_cv_path_DSYMUTIL_FOR_TARGET
+fi
 if test -z "$ac_cv_path_DSYMUTIL_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dsymutil in $with_build_time_tools" >&5
@@ -17402,6 +17422,11 @@ fi
 
 
 
+if test -n "$LD_FOR_TARGET"; then
+  ac_cv_path_LD_FOR_TARGET=$LD_FOR_TARGET
+elif test -n "$ac_cv_path_LD_FOR_TARGET"; then
+  LD_FOR_TARGET=$ac_cv_path_LD_FOR_TARGET
+fi
 if test -z "$ac_cv_path_LD_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld in $with_build_time_tools" >&5
@@ -17632,6 +17657,11 @@ fi
 
 
 
+if test -n "$LIPO_FOR_TARGET"; then
+  ac_cv_path_LIPO_FOR_TARGET=$LIPO_FOR_TARGET
+elif test -n "$ac_cv_path_LIPO_FOR_TARGET"; then
+  LIPO_FOR_TARGET=$ac_cv_path_LIPO_FOR_TARGET
+fi
 if test -z "$ac_cv_path_LIPO_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lipo in $with_build_time_tools" >&5
@@ -17862,6 +17892,11 @@ fi
 
 
 
+if test -n "$NM_FOR_TARGET"; then
+  ac_cv_path_NM_FOR_TARGET=$NM_FOR_TARGET
+elif test -n "$ac_cv_path_NM_FOR_TARGET"; then
+  NM_FOR_TARGET=$ac_cv_path_NM_FOR_TARGET
+fi
 if test -z "$ac_cv_path_NM_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nm in $with_build_time_tools" >&5
@@ -18092,6 +18127,11 @@ fi
 
 
 
+if test -n "$OBJCOPY_FOR_TARGET"; then
+  ac_cv_path_OBJCOPY_FOR_TARGET=$OBJCOPY_FOR_TARGET
+elif test -n "$ac_cv_path_OBJCOPY_FOR_TARGET"; then
+  OBJCOPY_FOR_TARGET=$ac_cv_path_OBJCOPY_FOR_TARGET
+fi
 if test -z "$ac_cv_path_OBJCOPY_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for objcopy in $with_build_time_tools" >&5
@@ -18322,6 +18362,11 @@ fi
 
 
 
+if test -n "$OBJDUMP_FOR_TARGET"; then
+  ac_cv_path_OBJDUMP_FOR_TARGET=$OBJDUMP_FOR_TARGET
+elif test -n "$ac_cv_path_OBJDUMP_FOR_TARGET"; then
+  OBJDUMP_FOR_TARGET=$ac_cv_path_OBJDUMP_FOR_TARGET
+fi
 if test -z "$ac_cv_path_OBJDUMP_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for objdump in $with_build_time_tools" >&5
@@ -18552,6 +18597,11 @@ fi
 
 
 
+if test -n "$OTOOL_FOR_TARGET"; then
+  ac_cv_path_OTOOL_FOR_TARGET=$OTOOL_FOR_TARGET
+elif test -n "$ac_cv_path_OTOOL_FOR_TARGET"; then
+  OTOOL_FOR_TARGET=$ac_cv_path_OTOOL_FOR_TARGET
+fi
 if test -z "$ac_cv_path_OTOOL_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for otool in $with_build_time_tools" >&5
@@ -18782,6 +18832,11 @@ fi
 
 
 
+if test -n "$RANLIB_FOR_TARGET"; then
+  ac_cv_path_RANLIB_FOR_TARGET=$RANLIB_FOR_TARGET
+elif test -n "$ac_cv_path_RANLIB_FOR_TARGET"; then
+  RANLIB_FOR_TARGET=$ac_cv_path_RANLIB_FOR_TARGET
+fi
 if test -z "$ac_cv_path_RANLIB_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ranlib in $with_build_time_tools" >&5
@@ -19012,6 +19067,11 @@ fi
 
 
 
+if test -n "$READELF_FOR_TARGET"; then
+  ac_cv_path_READELF_FOR_TARGET=$READELF_FOR_TARGET
+elif test -n "$ac_cv_path_READELF_FOR_TARGET"; then
+  READELF_FOR_TARGET=$ac_cv_path_READELF_FOR_TARGET
+fi
 if test -z "$ac_cv_path_READELF_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for readelf in $with_build_time_tools" >&5
@@ -19242,6 +19302,11 @@ fi
 
 
 
+if test -n "$STRIP_FOR_TARGET"; then
+  ac_cv_path_STRIP_FOR_TARGET=$STRIP_FOR_TARGET
+elif test -n "$ac_cv_path_STRIP_FOR_TARGET"; then
+  STRIP_FOR_TARGET=$ac_cv_path_STRIP_FOR_TARGET
+fi
 if test -z "$ac_cv_path_STRIP_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strip in $with_build_time_tools" >&5
@@ -19472,6 +19537,11 @@ fi
 
 
 
+if test -n "$WINDRES_FOR_TARGET"; then
+  ac_cv_path_WINDRES_FOR_TARGET=$WINDRES_FOR_TARGET
+elif test -n "$ac_cv_path_WINDRES_FOR_TARGET"; then
+  WINDRES_FOR_TARGET=$ac_cv_path_WINDRES_FOR_TARGET
+fi
 if test -z "$ac_cv_path_WINDRES_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for windres in $with_build_time_tools" >&5
@@ -19702,6 +19772,11 @@ fi
 
 
 
+if test -n "$WINDMC_FOR_TARGET"; then
+  ac_cv_path_WINDMC_FOR_TARGET=$WINDMC_FOR_TARGET
+elif test -n "$ac_cv_path_WINDMC_FOR_TARGET"; then
+  WINDMC_FOR_TARGET=$ac_cv_path_WINDMC_FOR_TARGET
+fi
 if test -z "$ac_cv_path_WINDMC_FOR_TARGET" ; then
   if test -n "$with_build_time_tools"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for windmc in $with_build_time_tools" >&5

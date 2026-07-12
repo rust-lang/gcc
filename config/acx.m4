@@ -340,6 +340,11 @@ rm conftest.c
 AC_DEFUN([ACX_CHECK_INSTALLED_TARGET_TOOL], [
 AC_REQUIRE([ACX_TOOL_DIRS])
 AC_REQUIRE([ACX_HAVE_GCC_FOR_TARGET])
+if test -n "[$]$1"; then
+  ac_cv_path_$1=[$]$1
+elif test -n "$ac_cv_path_$1"; then
+  $1=$ac_cv_path_$1
+fi
 if test -z "$ac_cv_path_$1" ; then
   if test -n "$with_build_time_tools"; then
     AC_MSG_CHECKING([for $2 in $with_build_time_tools])
