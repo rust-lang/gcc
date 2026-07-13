@@ -51,4 +51,4 @@ install: install-clearcap-map
 
 # Ignore failures: file only exists if linker supports it.
 install-clearcap-map: $(srcdir)/config/sol2-clearcap.map
-	-$(INSTALL_DATA) $< $(DESTDIR)$(libdir)
+	-$(INSTALL_DATA) $< $(DESTDIR)$(libdir)/clearcap.map
