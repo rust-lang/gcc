@@ -205,6 +205,7 @@ in the following sections.
 @gccoptlist{-ansi  -std=@var{standard}  -aux-info @var{filename}
 -fno-asm
 -fno-builtin  -fno-builtin-@var{function}  -fcond-mismatch
+-fdeps-file=@var{file}  -fdeps-format=@var{format}  -fdeps-target=@var{file}
 -ffreestanding  -fgimple  -fgnu-tm  -fgnu89-inline  -fhosted
 -flax-vector-conversions  -fms-extensions
 -fpermitted-flt-eval-methods=@var{standard}
@@ -2746,6 +2747,41 @@ Allow conditional expressions with mismatched types in the second and
 third arguments.  The value of such an expression is void.  This option
 is not supported for C++.
 
+@opindex fdeps-
+@opindex fdeps-file
+@opindex fdeps-format
+@opindex fdeps-target
+@item -fdeps-file=@var{file}
+@itemx -fdeps-format=@var{format}
+@itemx -fdeps-target=@var{file}
+
+The @samp{-fdeps-*} options are used to extract structured dependency
+information for a source file.  This involves determining what
+resources provided by other source files are required to compile
+the source as well as what resources are provided by the source.  This
+information can be used to add required dependencies between
+compilation rules of dependent sources based on their contents rather
+than requiring such information be reflected within the build tools as
+well.
+
+@option{-fdeps-file=@var{file}} specifies where to write structured
+dependency information.
+
+@option{-fdeps-format=@var{format}} specifies the format to use for
+structured dependency information.
+@uref{https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p1689r5.html,
+@samp{p1689r5}} is the only supported format right now.
+Note that when this argument is specified, the
+output of @samp{-MF} is stripped of some information (namely C++ modules) so
+that it does not use extended makefile syntax not understood by most tools.
+
+@option{-fdeps-target=@var{file}} is analogous to @option{-MT},
+but for structured dependency information.  This
+indicates the target of the build rule for the source file
+that is currently being processed for dynamic dependencies, and is used to
+associate the dependency information with that target in the output.
+Normally this is the name of the @samp{.o} file generated during compilation.
+
 @opindex ffreestanding
 @opindex fno-freestanding
 @cindex hosted environment
@@ -2869,33 +2905,6 @@ The default when in a standards compliant mode (@option{-std=c11} or similar)
 is @option{-fpermitted-flt-eval-methods=c11}.  The default when in a GNU
 dialect (@option{-std=gnu11} or similar) is
 @option{-fpermitted-flt-eval-methods=ts-18661-3}.
-
-@opindex fdeps-
-The @samp{-fdeps-*} options are used to extract structured dependency
-information for a source.  This involves determining what resources provided by
-other source files will be required to compile the source as well as what
-resources are provided by the source.  This information can be used to add
-required dependencies between compilation rules of dependent sources based on
-their contents rather than requiring such information be reflected within the
-build tools as well.
-
-@opindex fdeps-file
-@item -fdeps-file=@var{file}
-Where to write structured dependency information.
-
-@opindex fdeps-format
-@item -fdeps-format=@var{format}
-The format to use for structured dependency information. @samp{p1689r5} is the
-only supported format right now.  Note that when this argument is specified, the
-output of @samp{-MF} is stripped of some information (namely C++ modules) so
-that it does not use extended makefile syntax not understood by most tools.
-
-@opindex fdeps-target
-@item -fdeps-target=@var{file}
-Analogous to @option{-MT} but for structured dependency information.  This
-indicates the target which will ultimately need any required resources and
-provide any resources extracted from the source that may be required by other
-sources.
 
 @opindex fplan9-extensions
 @opindex fno-plan9-extensions
