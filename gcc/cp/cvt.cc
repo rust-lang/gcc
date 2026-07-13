@@ -838,10 +838,28 @@ ocp_convert (tree type, tree expr, int convtype, int flags,
 	  /* [expr.static.cast]
 
 	     8. A value of integral or enumeration type can be explicitly
-	     converted to an enumeration type. The value is unchanged if
-	     the original value is within the range of the enumeration
-	     values. Otherwise, the resulting enumeration value is
-	     unspecified.  */
+	     converted to a complete enumeration type.  If the enumeration
+	     type has a fixed underlying type, the value is first converted
+	     to that type by integral promotion or integral conversion, if
+	     necessary, and then to the enumeration type.  If the
+	     enumeration type does not have a fixed underlying type, the
+	     value is unchanged if the original value is within the range
+	     of the enumeration values, and otherwise, the behavior is
+	     undefined.  A value of floating-point type can also be
+	     explicitly converted to an enumeration type.  The resulting
+	     value is the same as converting the original value to the
+	     underlying type of the enumeration, and subsequently to the
+	     enumeration type.  */
+	  if ((ENUM_FIXED_UNDERLYING_TYPE_P (type)
+	       && INTEGRAL_OR_ENUMERATION_TYPE_P (intype))
+	      || SCALAR_FLOAT_TYPE_P (intype))
+	    {
+	      e = ocp_convert (ENUM_UNDERLYING_TYPE (type), e, convtype,
+			       flags, complain);
+	      if (e == error_mark_node)
+		return error_mark_node;
+	    }
+
 	  tree val = fold_for_warn (e);
 	  if ((complain & tf_warning)
 	      && TREE_CODE (val) == INTEGER_CST
