@@ -202,16 +202,15 @@ in the following sections.
 
 @item C Language Options
 @xref{C Dialect Options,,Options Controlling C Dialect}.
-@gccoptlist{-ansi  -std=@var{standard}  -aux-info @var{filename}
--fno-asm
--fno-builtin  -fno-builtin-@var{function}  -fcond-mismatch
+@gccoptlist{-ansi  --ansi  -std=@var{standard}  -aux-info @var{filename}
+-fno-asm  -fno-builtin  -fno-builtin-@var{function}  -fcond-mismatch
 -fdeps-file=@var{file}  -fdeps-format=@var{format}  -fdeps-target=@var{file}
 -ffreestanding  -fgimple  -fgnu-tm  -fgnu89-inline  -fhosted
 -flax-vector-conversions  -fms-extensions
 -fpermitted-flt-eval-methods=@var{standard}
 -fplan9-extensions  -fsigned-bitfields  -funsigned-bitfields
--fsigned-char  -funsigned-char  -fstrict-flex-arrays[=@var{n}]
--fsso-struct=@var{endianness}  --ansi}
+-fsigned-char  -funsigned-char  -fsso-struct=@var{endianness}
+-fstrict-flex-arrays[=@var{n}]}
 
 @item C++ Language Options
 @xref{C++ Dialect Options,,Options Controlling C++ Dialect}.
@@ -2965,6 +2964,16 @@ The type @code{char} is always a distinct type from each of
 @code{signed char} or @code{unsigned char}, even though its behavior
 is always just like one of those two.
 
+@opindex fsso-struct
+@item -fsso-struct=@var{endianness}
+Set the default scalar storage order of structures and unions to the
+specified endianness.  The accepted values are @samp{big-endian},
+@samp{little-endian} and @samp{native} for the native endianness of
+the target (the default).  This option is not supported for C++.
+
+@strong{Warning:} the @option{-fsso-struct} switch causes GCC to generate
+code that is not binary compatible with code generated without it if the
+specified endianness is not the native endianness of the target.
 @opindex fstrict-flex-arrays
 @opindex fno-strict-flex-arrays
 @opindex fstrict-flex-arrays=@var{level}
@@ -3000,16 +3009,6 @@ The @option{-fstrict_flex_arrays} option interacts with the
 @option{-Wstrict-flex-arrays} option.  @xref{Warning Options}, for more
 information.
 
-@opindex fsso-struct
-@item -fsso-struct=@var{endianness}
-Set the default scalar storage order of structures and unions to the
-specified endianness.  The accepted values are @samp{big-endian},
-@samp{little-endian} and @samp{native} for the native endianness of
-the target (the default).  This option is not supported for C++.
-
-@strong{Warning:} the @option{-fsso-struct} switch causes GCC to generate
-code that is not binary compatible with code generated without it if the
-specified endianness is not the native endianness of the target.
 @end table
 
 @node C++ Dialect Options
