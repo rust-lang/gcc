@@ -4347,7 +4347,7 @@ attribute, used to specify function pointers to effectless and idempotent
 functions according to the C23 definition.
 
 Unlike the standard C23 attribute it can be also specified in attributes
-which appertain to function declarations and applies to the their function
+which appertain to function declarations and applies to their function
 type even in that case.
 
 Reproducible functions without pointer or reference arguments or which do
@@ -5203,7 +5203,7 @@ attribute, used to specify function pointers to effectless, idempotent,
 stateless and independent functions according to the C23 definition.
 
 Unlike the standard C23 attribute it can be also specified in attributes
-which appertain to function declarations and applies to the their function
+which appertain to function declarations and applies to their function
 type even in that case.
 
 Unsequenced functions without pointer or reference arguments are similar

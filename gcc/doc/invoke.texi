@@ -34848,7 +34848,7 @@ and subtraction.
 Use this option when linking programs that perform file I/O and are
 destined to run on an MCM target.  It causes the libraries
 @file{libc.a} and @file{libdebug.a} to be linked.  You should run program
-on the the target under the control of the GDB remote debugging stub.
+on the target under the control of the GDB remote debugging stub.
 
 @opindex msim
 @item -msim
