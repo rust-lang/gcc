@@ -1,3 +1,47 @@
+2026-07-12  Jin Ma  <jinma@linux.alibaba.com>
+
+	* config/riscv/riscv.md (*<any_extract:optab><GPR:mode>3):
+	Remove (clobber (match_scratch)) and use operand 0 as the
+	intermediate destination for the shift-left half of the split.
+
+2026-07-12  Kael Andrew Alonzo Franco  <kaelfandrew@gmail.com>
+
+	PR tree-optimization/104280
+	* match.pd: Remove redundant build_one_cst (type) [PR104280]
+
+2026-07-12  Kael Andrew Alonzo Franco  <kaelfandrew@gmail.com>
+
+	PR tree-optimization/114009
+	* match.pd: Remove redundant build_zero_cst (type) [PR114009]
+
+2026-07-12  Kael Andrew Alonzo Franco  <kaelfandrew@gmail.com>
+
+	* match.pd: Remove one build_minus_one_cst (type) in r15-6257.
+
+2026-07-12  Surya Kumari Jangala  <jskumari@linux.ibm.com>
+
+	* config/rs6000/rs6000-cpus.def (FUTURE_MASKS_SERVER): Add OPTION_MASK_DMF.
+	(POWERPC_MASKS): Likewise.
+	* config/rs6000/rs6000.cc (rs6000_option_override_internal): Enable
+	OPTION_MASK_DMF by default when TARGET_FUTURE is set and the
+	flag was not explicitly given; emit an error and clear the flag
+	when -mdense-math is requested on a non-future target.
+	(rs6000_opt_masks): Add "dense-math" entry for OPTION_MASK_DMF.
+	* config/rs6000/rs6000.opt (mdense-math): New option backed by Mask(DMF).
+	* config/rs6000/rs6000.opt.urls: Regenerated.
+	* doc/invoke.texi: Add -mdense-math.
+
+2026-07-12  MITSUNARI Shigeo  <herumi@nifty.com>
+
+	* config/i386/i386.md (*bmi2_umul<mode>3_highpart): New pattern.
+
+2026-07-12  Jeff Law  <jeffrey.law@oss.qualcomm.com>
+
+	* expmed.cc (expand_wide_mulh_udiv): New function.
+	(expand_divmod): Use it for unsigned constant division needing a
+	wide multiplier on 64-bit targets, when no more expensive than the
+	sub/shift/add sequence.
+
 2026-07-11  Surya Kumari Jangala  <jskumari@linux.ibm.com>
 
 	Revert:

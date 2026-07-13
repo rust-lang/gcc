@@ -1,3 +1,25 @@
+2026-07-12  James K. Lowden  <jklowden@cobolworx.com>
+
+	* cbldiag.h (enum cbl_diag_id_t): Add IbmCallFd.
+	* cobol1.cc (cobol_langhook_handle_option): Handle Wcall-fd.
+	* gcobol.1: Document Wcall-fd.
+	* lang-specs.h: Add Wcall-fd.
+	* lang.opt: Same
+	* messages.cc: Add Wcall-fd as IBM dialect option.
+	* parse.y: Use was_fd_name() to prevent misuse.
+	* parse_ante.h (field_find): Add incompatible semantics warning.
+	(parser_move_carefully): Same.
+	* symbols.cc (symbols_update): Add FD name to symbol map.
+	* symbols.h (update_symbol_map2): Declare overload for file.
+	(was_fd_name): Declare function.
+	* symfind.cc (struct funcname): Define to minimize __PRETTY_FUNCTION__.
+	(__funcsig__): Define function-name macro.
+	(class sym_name_t): Redefine public members as const.
+	(class symbol_file_names_t) Define maps for FD names.
+	(update_symbol_map2): Define overload for file.
+	(was_fd_name): Define.
+	(symbol_find): Use new symbol_file_names class.
+
 2026-07-11  Robert Dubner  <rdubner@symas.com>
 
 	* copybook.h (class copybook_t): Mollify cppcheck.

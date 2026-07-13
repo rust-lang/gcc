@@ -1,3 +1,12 @@
+2026-07-12  Steve Kargl  <kargl@gcc.gnu.org>
+
+	PR fortran/101951
+	PR fortran/101967
+	* match.cc (gfc_match_allocate): It is an error if the type-spec
+	derived type or the source expr has a coarray ultimate component.
+	Substitute 'typespec' with 'type-spec' in error messages for
+	consistency with standards.
+
 2026-07-11  Jerry DeLisle  <jvdelisle@gcc.gnu.org>
 
 	PR fortran/126210

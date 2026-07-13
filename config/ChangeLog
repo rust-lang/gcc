@@ -1,3 +1,8 @@
+2026-07-12  Manuel Jacob  <me@manueljacob.de>
+
+	* acx.m4 (ACX_CHECK_INSTALLED_TARGET_TOOL): Fix handling of
+	environment variables.
+
 2026-07-01  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
 
 	* ax_pthread.m4 (ax_pthread_check_macro) <solaris*>: Only require
