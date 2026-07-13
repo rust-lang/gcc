@@ -483,6 +483,35 @@ struct branch_path
   basic_block bb;
 };
 
+/* This data describes a pair of vec_duplicates in the same BB, which duplicate
+   the same pseudo to different vector lengths.  The same structure is also
+   used while prescanning a basic block as a temporary cache entry.  */
+
+struct cse_vec_duplicate_match
+{
+  basic_block bb;
+  machine_mode widest_mode;
+  rtx scalar;
+  rtx_insn *first_insn;
+  rtx_insn *widest_insn;
+  auto_vec<rtx_insn *> related_dups;
+
+  cse_vec_duplicate_match (basic_block bb_, machine_mode widest_mode_,
+			   rtx scalar_, rtx_insn *first_insn_,
+			   rtx_insn *widest_insn_)
+    : bb (bb_), widest_mode (widest_mode_), scalar (scalar_),
+      first_insn (first_insn_), widest_insn (widest_insn_)
+  {}
+
+  cse_vec_duplicate_match (const cse_vec_duplicate_match &other)
+    : bb (other.bb), widest_mode (other.widest_mode), scalar (other.scalar),
+      first_insn (other.first_insn), widest_insn (other.widest_insn)
+  {
+    related_dups.reserve(other.related_dups.length ());
+    related_dups.splice(other.related_dups);
+  }
+};
+
 /* This data describes a block that will be processed by
    cse_extended_basic_block.  */
 
@@ -494,6 +523,10 @@ struct cse_basic_block_data
   int path_size;
   /* Current path, indicating which basic_blocks will be processed.  */
   struct branch_path *path;
+  /* vec_duplicate sources seen in the current BB while prescanning.  */
+  auto_vec<cse_vec_duplicate_match, 8> vec_duplicate_cache;
+  /* Syntactic vec_duplicate matches found in the same BB while prescanning.  */
+  auto_vec<cse_vec_duplicate_match, 8> vec_duplicate_matches;
 };
 
 
@@ -545,6 +578,8 @@ static rtx equiv_constant (rtx);
 static void record_jump_equiv (rtx_insn *, bool);
 static void record_jump_cond (enum rtx_code, machine_mode, rtx, rtx);
 static void cse_insn (rtx_insn *);
+static void cse_prescan_cache_vec_dup (struct cse_basic_block_data *,
+				       basic_block, rtx_insn *, rtx);
 static void cse_prescan_path (struct cse_basic_block_data *);
 static void invalidate_from_clobbers (rtx_insn *);
 static void invalidate_from_sets_and_clobbers (rtx_insn *);
@@ -6527,9 +6562,68 @@ have_eh_succ_edges (basic_block bb)
   return false;
 }
 
+/* Record vec_duplicate match for SET in the same basic block, if any.  */
+static void
+cse_prescan_cache_vec_dup (struct cse_basic_block_data *data, basic_block bb,
+			   rtx_insn *insn, rtx set)
+{
+  rtx src = SET_SRC (set);
+  rtx dest = SET_DEST (set);
+  machine_mode mode = GET_MODE (src);
+  rtx scalar;
+
+  /* Limit matching to duplicates of the same pseudo register, or an exact
+     SUBREG of such a pseudo.  */
+  if (!vec_duplicate_p (src, &scalar))
+    return;
+  if (REG_P (scalar))
+    {
+      if (HARD_REGISTER_P (scalar))
+	return;
+    }
+  else if (SUBREG_P (scalar))
+    {
+      if (!REG_P (SUBREG_REG (scalar))
+	  || HARD_REGISTER_P (SUBREG_REG (scalar)))
+	return;
+    }
+  else
+    return;
+
+  /* Check for matching cached vec_duplicates and save the match if found.  */
+  for (auto &entry : data->vec_duplicate_cache)
+    {
+      /* Create a match with existing cache entry if both scalar register
+	 pseudos are matching and the new vec_duplicate mode is wider.  */
+      if (REG_P (dest) && rtx_equal_p (entry.scalar, scalar)
+	  && known_gt (GET_MODE_SIZE (mode), GET_MODE_SIZE (entry.widest_mode))
+	  && GET_MODE_INNER (mode) == GET_MODE_INNER (entry.widest_mode))
+	{
+	  entry.widest_mode = mode;
+	  entry.widest_insn = insn;
+	  entry.related_dups.safe_push (insn);
+	  return;
+	}
+      else if (GET_MODE_INNER (mode) == GET_MODE_INNER (entry.widest_mode)
+	       && rtx_equal_p (entry.scalar, scalar)
+	       && known_le (GET_MODE_SIZE (mode),
+			    GET_MODE_SIZE (entry.widest_mode)))
+	{
+	  entry.related_dups.safe_push (insn);
+	  return;
+	}
+    }
+
+  /* Cache vec_duplicate as a new entry if no match was found.  */
+  cse_vec_duplicate_match new_entry (bb, mode, scalar, insn, NULL);
+  new_entry.related_dups.safe_push (insn);
+  data->vec_duplicate_cache.safe_push (new_entry);
+}
+
 
 /* Scan to the end of the path described by DATA.  Return an estimate of
-   the total number of SETs of all insns in the path.  */
+   the total number of SETs of all insns in the path.  Also record any
+   matching vec_duplicate SETs of the same scalar value for different modes.  */
 
 static void
 cse_prescan_path (struct cse_basic_block_data *data)
@@ -6538,6 +6632,8 @@ cse_prescan_path (struct cse_basic_block_data *data)
   int path_size = data->path_size;
   int path_entry;
 
+  data->vec_duplicate_matches.truncate (0);
+
   /* Scan to end of each basic block in the path.  */
   for (path_entry = 0; path_entry < path_size; path_entry++)
     {
@@ -6545,18 +6641,45 @@ cse_prescan_path (struct cse_basic_block_data *data)
       rtx_insn *insn;
 
       bb = data->path[path_entry].bb;
+      data->vec_duplicate_cache.truncate (0);
 
       FOR_BB_INSNS (bb, insn)
 	{
 	  if (!INSN_P (insn))
 	    continue;
 
+	  rtx pattern = PATTERN (insn);
+
 	  /* A PARALLEL can have lots of SETs in it,
 	     especially if it is really an ASM_OPERANDS.  */
-	  if (GET_CODE (PATTERN (insn)) == PARALLEL)
-	    nsets += XVECLEN (PATTERN (insn), 0);
+	  if (GET_CODE (pattern) == PARALLEL)
+	    {
+	      int len = XVECLEN (pattern, 0);
+
+	      nsets += len;
+	      for (int i = 0; i < len; i++)
+		{
+		  rtx elt = XVECEXP (pattern, 0, i);
+		  if (GET_CODE (elt) == SET)
+		    cse_prescan_cache_vec_dup (data, bb, insn, elt);
+		}
+	    }
 	  else
-	    nsets += 1;
+	    {
+	      if (GET_CODE (pattern) == SET)
+		cse_prescan_cache_vec_dup (data, bb, insn, pattern);
+	      nsets += 1;
+	    }
+	}
+
+      /* Record any vec_duplicate matches from this basic block.  */
+      for (auto &entry : data->vec_duplicate_cache)
+	{
+	  /* If we recorded no wider vec_duplicate match then skip.  */
+	  if (entry.widest_insn == NULL_RTX)
+	    continue;
+
+	  data->vec_duplicate_matches.safe_push (entry);
 	}
     }
 
@@ -6802,6 +6925,113 @@ cse_main (rtx_insn *f ATTRIBUTE_UNUSED, int nregs)
 	  /* If this basic block has no sets, skip it.  */
 	  if (ebb_data.nsets == 0)
 	    continue;
+
+	/* If prescan discovers any vec_duplicate pairs where a wider duplicate
+	   appears after a narrow duplicate of the same scalar, move the
+	   widest duplicate before the first vec_duplicate of this scalar and
+	   rewrite all related duplicates to reuse it.  */
+	for (auto &match : ebb_data.vec_duplicate_matches)
+	  {
+	    rtx wide_set = single_set (match.widest_insn);
+	    if (!wide_set)
+	      continue;
+	    rtx wide_reg = SET_DEST (wide_set);
+	    rtx_insn *insert_after = PREV_INSN (match.first_insn);
+	    if (!REG_P (wide_reg) || !insert_after)
+	      continue;
+
+	    /* Safety check that WIDE_REG is not otherwise used or redefined
+	       before its original defining insn.  */
+	    if (reg_used_between_p (wide_reg, match.first_insn,
+				    match.widest_insn)
+		|| reg_set_between_p (wide_reg, match.first_insn,
+				      match.widest_insn))
+	      continue;
+
+	    /* Rewrite all related duplicates as a group so we either keep the
+	       whole transformation or none of it.  */
+	    int prev_changes = num_changes_pending ();
+	    bool abort_changes = false;
+
+	    for (auto &dup_insn : match.related_dups)
+	      {
+		rtx dup_set;
+		rtx dup_src;
+		machine_mode dup_mode;
+
+		if (dup_insn == match.widest_insn)
+		  continue;
+
+		/* The earlier safety check already covered the range from
+		   FIRST_INSN up to WIDEST_INSN.  Only check the remaining
+		   suffix for duplicates that come later in the block.  This
+		   also covers call-clobbered hard registers via
+		   reg_set_between_p.  */
+		bool reg_set = false;
+		bool reg_set_with_widest_after = false;
+		for (rtx_insn *scan = NEXT_INSN (match.widest_insn);
+		     scan != NEXT_INSN (BB_END (match.bb)) && scan != NULL_RTX;
+		     scan = NEXT_INSN (scan))
+		  {
+		    if (scan == dup_insn)
+		      {
+			reg_set_with_widest_after = reg_set;
+			break;
+		      }
+		    if (!reg_set && INSN_P (scan) && reg_set_p (wide_reg, scan))
+		      reg_set = true;
+		  }
+
+		if (reg_set_with_widest_after)
+		  continue;
+
+		dup_set = single_set (dup_insn);
+		if (!dup_set)
+		  {
+		    abort_changes = true;
+		    break;
+		  }
+
+		dup_mode = GET_MODE (SET_DEST (dup_set));
+		if (dup_mode == GET_MODE (wide_reg))
+		  dup_src = wide_reg;
+		else
+		  {
+		    dup_src = gen_lowpart (dup_mode, wide_reg);
+		    if (!dup_src)
+		      {
+			abort_changes = true;
+			break;
+		      }
+		  }
+
+		if (rtx_equal_p (dup_src, SET_DEST (dup_set)))
+		  continue;
+
+		if (!validate_change (dup_insn, &SET_SRC (dup_set), dup_src, 1))
+		  {
+		    abort_changes = true;
+		    break;
+		  }
+	      }
+
+	    if (abort_changes)
+	      {
+		cancel_changes (prev_changes);
+		continue;
+	      }
+
+	    if (num_changes_pending () == prev_changes)
+	      continue;
+
+	    if (!apply_change_group ())
+	      continue;
+
+	    reorder_insns (match.widest_insn, match.widest_insn, insert_after);
+
+	    if (match.related_dups.contains (match.widest_insn))
+	      df_insn_rescan (match.widest_insn);
+	}
 
 	  /* Get a reasonable estimate for the maximum number of qty's
 	     needed for this path.  For this, we take the number of sets
