@@ -1720,6 +1720,15 @@ users:
   account: carrot
   inactive: true
 - sn: Gupta
+  cn: Eikansh Gupta
+  email:
+  - eikansh.gupta@oss.qualcomm.com
+  - eikansh@gcc.gnu.org
+  roles:
+  - WriteAfter
+  - DCO: eikansh.gupta@oss.qualcomm.com
+  account: eikansh
+- sn: Gupta
   cn: Vineet Gupta
   email:
   - vineet.gupta@linux.dev
