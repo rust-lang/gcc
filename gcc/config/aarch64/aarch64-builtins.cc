@@ -4904,9 +4904,11 @@ aarch64_fold_lo_call_to_hi (unsigned int fcode, gcall *stmt,
 
   /* Prefer to use the highpart builtin when at least one vector
      argument is a reference to the high half of a 128b vector, and
-     all others are VECTOR_CSTs that we can extend to 128b.  */
+     all others are VECTOR_CSTs or uniform vectors that we can extend
+     to 128b.  */
   auto_vec<unsigned int, 2> vec_constants;
   auto_vec<unsigned int, 2> vec_highparts;
+  auto_vec<unsigned int, 2> vec_uniforms;
   /* The arguments and signature of the new call.  */
   auto_vec<tree, 4> call_args;
   auto_vec<tree, 4> call_types;
@@ -4935,6 +4937,8 @@ aarch64_fold_lo_call_to_hi (unsigned int fcode, gcall *stmt,
 	    }
 	  else if (TREE_CODE (arg) == VECTOR_CST)
 	    vec_constants.safe_push (argno);
+	  else if (ssa_uniform_vector_p (arg))
+	    vec_uniforms.safe_push (argno);
 	  else
 	    return nullptr;
 	}
@@ -4964,6 +4968,16 @@ aarch64_fold_lo_call_to_hi (unsigned int fcode, gcall *stmt,
 			   GSI_SAME_STMT);
 	call_args[i] = vce_ssa;
       }
+
+  location_t loc = gimple_location (stmt);
+  for (auto i : vec_uniforms)
+    {
+      tree elt = ssa_uniform_vector_p (call_args[i]);
+      tree vec_dup = gimple_build_vector_from_val (gsi, true,
+						   GSI_SAME_STMT, loc,
+						   call_types[i], elt);
+      call_args[i] = vec_dup;
+    }
 
   gcall *new_call = gimple_build_call_vec (builtin_hi, call_args);
   gimple_call_set_lhs (new_call, gimple_call_lhs (stmt));
