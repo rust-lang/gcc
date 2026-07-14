@@ -616,6 +616,22 @@ public:
   void
   build_stmt_list ();
 
+  struct deferred_cleanup
+  {
+    tree m_try_finally;
+    tree m_eh_else;
+    recording::region *m_try_region;
+    recording::region *m_cleanup_region;
+  };
+
+  void
+  register_deferred_cleanup (tree try_finally, tree eh_else,
+			     recording::region *try_region,
+			     recording::region *cleanup_region);
+
+  void
+  assemble_deferred_cleanups ();
+
   void
   postprocess ();
 
@@ -637,6 +653,7 @@ private:
   tree m_stmt_list;
   tree_stmt_iterator m_stmt_iter;
   vec<block *> m_blocks;
+  auto_vec<deferred_cleanup> m_deferred_cleanups;
 };
 
 struct case_
@@ -688,6 +705,14 @@ public:
 		 block *try_block,
 		 block *catch_block,
 		 bool is_finally);
+
+  void
+  add_cleanup (location *loc,
+	       recording::region *try_region,
+	       recording::region *cleanup_region);
+
+  static tree
+  assemble_region_body (const auto_vec<block *> *blocks);
 
   void
   add_assignment (location *loc,
@@ -756,6 +781,7 @@ private:
 public: // for now
   tree m_label_expr;
   bool m_is_try_or_catch = false;
+  bool m_ends_with_fallthrough = false;
 
   friend class function;
 };

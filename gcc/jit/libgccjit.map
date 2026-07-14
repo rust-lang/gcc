@@ -430,3 +430,7 @@ LIBGCCJIT_ABI_52 {
 LIBGCCJIT_ABI_53 {
     gcc_jit_blocks_clone;
 } LIBGCCJIT_ABI_52;
+
+LIBGCCJIT_ABI_54 {
+    gcc_jit_block_add_cleanup;
+} LIBGCCJIT_ABI_53;

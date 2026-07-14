@@ -5519,6 +5519,22 @@ recording::block::end_with_fallthrough (recording::location *loc)
   return result;
 }
 
+/* Create a recording::cleanup instance and add it to the block's
+   context's list of mementos, and to the block's list of statements.
+
+   Implements the heart of gcc_jit_block_add_cleanup.  */
+
+recording::statement *
+recording::block::add_cleanup (recording::location *loc,
+			       recording::region *try_region,
+			       recording::region *cleanup_region)
+{
+  statement *result = new cleanup (this, loc, try_region, cleanup_region);
+  m_ctxt->record (result);
+  m_statements.safe_push (result);
+  return result;
+}
+
 /* Create a recording::switch_ instance and add it to
    the block's context's list of mementos, and to the block's
    list of statements.
@@ -8042,6 +8058,25 @@ recording::try_catch::get_inlined_blocks (auto_vec<block *> &out) const
 }
 
 void
+recording::cleanup::get_inlined_blocks (auto_vec<block *> &out) const
+{
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (m_try_region->get_blocks (), i, b)
+    out.safe_push (b);
+  FOR_EACH_VEC_ELT (m_cleanup_region->get_blocks (), i, b)
+    out.safe_push (b);
+}
+
+void
+recording::cleanup::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->add_cleanup (get_loc (),
+                     cloner.clone_region (m_try_region),
+                     cloner.clone_region (m_cleanup_region));
+}
+
+void
 recording::extended_asm::clone_contents_into (block_cloner &cloner,
 					      extended_asm *dest) const
 {
@@ -8196,6 +8231,46 @@ recording::try_catch::write_reproducer (reproducer &r)
        r.get_identifier (get_loc ()),
        r.get_identifier (m_try_block),
        r.get_identifier (m_catch_block));
+}
+
+/* The implementation of class gcc::jit::recording::cleanup.  */
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::cleanup.  */
+
+void
+recording::cleanup::replay_into (replayer *r)
+{
+  playback_block (get_block ())
+    ->add_cleanup (playback_location (r), m_try_region, m_cleanup_region);
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   a cleanup statement.  */
+
+recording::string *
+recording::cleanup::make_debug_string ()
+{
+  return string::from_printf (m_ctxt,
+			      "try { %s } cleanup { %s };",
+			      m_try_region->get_debug_string (),
+			      m_cleanup_region->get_debug_string ());
+}
+
+/* Implementation of recording::memento::write_reproducer for
+   cleanup statements.  */
+
+void
+recording::cleanup::write_reproducer (reproducer &r)
+{
+  r.write ("  gcc_jit_block_add_cleanup (%s, /* gcc_jit_block *block */\n"
+	   "                             %s, /* gcc_jit_location *loc */\n"
+	   "                             %s, /* gcc_jit_region *try_region */\n"
+	   "                             %s); /* gcc_jit_region *cleanup_region */\n",
+	   r.get_identifier (get_block ()),
+	   r.get_identifier (get_loc ()),
+	   r.get_identifier (m_try_region),
+	   r.get_identifier (m_cleanup_region));
 }
 
 /* The implementation of class gcc::jit::recording::assignment.  */
