@@ -5166,12 +5166,14 @@ recording::block::add_try_catch (location *loc,
                    bool is_finally)
 {
   statement *result = new try_catch (this, loc, try_block, catch_block, is_finally);
-  // TODO: explain why we set the blocks reachable state.
+  /* The try and catch/finally blocks are reached structurally by the
+     try/catch construct rather than as successors of another block, so
+     mark them reachable to keep the reachability check happy.  */
   try_block->m_is_reachable = true;
   catch_block->m_is_reachable = true;
-  /* The finally block can fallthrough, so we don't require the user to terminate it.  */
-  if (is_finally)
-    catch_block->m_has_been_terminated = true;
+  /* Both blocks must be terminated by the user like any other block.  A
+     finally body that should fall through to the enclosing region's
+     resume is terminated with gcc_jit_block_end_with_fallthrough.  */
   m_ctxt->record (result);
   m_statements.safe_push (result);
   return result;
@@ -5297,6 +5299,22 @@ recording::block::end_with_return (recording::location *loc,
      gcc_jit_function_add_void_return; rvalue will be non-NULL for
      the former and NULL for the latter.  */
   statement *result = new return_ (this, loc, rvalue);
+  m_ctxt->record (result);
+  m_statements.safe_push (result);
+  m_has_been_terminated = true;
+  return result;
+}
+
+/* Create a recording::fallthrough instance and add it to
+   the block's context's list of mementos, and to the block's
+   list of statements.
+
+   Implements the heart of gcc_jit_block_end_with_fallthrough.  */
+
+recording::statement *
+recording::block::end_with_fallthrough (recording::location *loc)
+{
+  statement *result = new fallthrough (this, loc);
   m_ctxt->record (result);
   m_statements.safe_push (result);
   m_has_been_terminated = true;
@@ -8153,6 +8171,57 @@ recording::return_::write_reproducer (reproducer &r)
 	     "                                      %s); /* gcc_jit_location *loc */\n",
 	     r.get_identifier (get_block ()),
 	     r.get_identifier (get_loc ()));
+}
+
+/* The implementation of class gcc::jit::recording::fallthrough.  */
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::fallthrough.
+
+   A fall-through terminator emits no tree of its own: falling off the
+   end of the (structured) block is exactly the absence of a trailing
+   terminator in the playback statement list, which is what lets the
+   middle-end synthesize the context-sensitive resume.  */
+
+void
+recording::fallthrough::replay_into (replayer *r)
+{
+  playback_block (get_block ())
+    ->end_with_fallthrough (playback_location (r));
+}
+
+/* Override the poisoned default implementation of
+   gcc::jit::recording::statement::get_successor_blocks
+
+   A fall-through terminator has no successor block.  */
+
+vec <recording::block *>
+recording::fallthrough::get_successor_blocks () const
+{
+  vec <block *> result;
+  result.create (0);
+  return result;
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   a fall-through statement.  */
+
+recording::string *
+recording::fallthrough::make_debug_string ()
+{
+  return string::from_printf (m_ctxt, "fallthrough;");
+}
+
+/* Implementation of recording::memento::write_reproducer for
+   fall-through statements.  */
+
+void
+recording::fallthrough::write_reproducer (reproducer &r)
+{
+  r.write ("  gcc_jit_block_end_with_fallthrough (%s, /*gcc_jit_block *block */\n"
+	   "                                      %s); /* gcc_jit_location *loc */\n",
+	   r.get_identifier (get_block ()),
+	   r.get_identifier (get_loc ()));
 }
 
 /* The implementation of class gcc::jit::recording::case_.  */

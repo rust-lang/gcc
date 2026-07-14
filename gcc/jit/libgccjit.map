@@ -414,3 +414,8 @@ LIBGCCJIT_ABI_50 {
   global:
     gcc_jit_context_new_va_arg;
 } LIBGCCJIT_ABI_49;
+
+LIBGCCJIT_ABI_51 {
+  global:
+    gcc_jit_block_end_with_fallthrough;
+} LIBGCCJIT_ABI_50;

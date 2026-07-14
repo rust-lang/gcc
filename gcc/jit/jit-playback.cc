@@ -2733,6 +2733,23 @@ add_return (location *loc,
   add_stmt (return_stmt);
 }
 
+/* Terminate a block by falling through.  Deliberately emits no tree:
+   in GENERIC, falling off the end of a (structured) block is simply the
+   absence of a trailing terminator statement.  For the cleanup body of
+   a TRY_FINALLY this is what makes the middle-end synthesize a
+   context-sensitive RESX (resume) rather than an unconditional
+   _Unwind_Resume.  It exists as an explicit recording-level terminator
+   so that the block validates as terminated and reports no successors,
+   without requiring allow_unreachable_blocks.  */
+
+void
+playback::block::
+end_with_fallthrough (location *loc)
+{
+  /* Nothing to emit; the fall-through is the lack of a terminator.  */
+  (void) loc;
+}
+
 /* Helper function for playback::block::add_switch.
    Construct a case label for the given range, followed by a goto stmt
    to the given block, appending them to stmt list *ptr_t_switch_body.  */

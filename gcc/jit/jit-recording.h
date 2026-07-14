@@ -1749,6 +1749,9 @@ public:
 		   rvalue *rvalue);
 
   statement *
+  end_with_fallthrough (location *loc);
+
+  statement *
   end_with_switch (location *loc,
 		   rvalue *expr,
 		   block *default_block,
@@ -2839,6 +2842,28 @@ private:
 
 private:
   rvalue *m_rvalue;
+};
+
+/* A terminator statement that ends a block by falling through to the
+   end of its enclosing structured construct (e.g. the cleanup body of a
+   try/finally), letting the middle-end synthesize the context-sensitive
+   resume.  It has no successor blocks and plays back to nothing (the
+   fall-through is the absence of a trailing terminator in the emitted
+   statement list).  */
+class fallthrough : public statement
+{
+public:
+  fallthrough (block *b,
+	       location *loc)
+  : statement (b, loc) {}
+
+  void replay_into (replayer *r) final override;
+
+  vec <block *> get_successor_blocks () const final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
 };
 
 class case_ : public memento
