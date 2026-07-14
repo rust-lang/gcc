@@ -1579,7 +1579,7 @@ gcc_jit_block_add_try_finally (gcc_jit_block *block,
 			       gcc_jit_block *finally_block);
 
 /* Create a new region within func, for use as the body of an
-   exception-handling construct.
+   exception-handling construct (see gcc_jit_block_add_cleanup).
 
    This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
    presence using
@@ -1624,6 +1624,20 @@ gcc_jit_blocks_clone (int num_blocks,
 		      gcc_jit_block **blocks,
 		      gcc_jit_block **out_clones);
 
+/* Add a cleanup: the cleanup_region runs only on the unwind path out of
+   try_region.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_54; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_block_add_cleanup
+*/
+extern void
+gcc_jit_block_add_cleanup (gcc_jit_block *block,
+			   gcc_jit_location *loc,
+			   gcc_jit_region *try_region,
+			   gcc_jit_region *cleanup_region);
+
+#define LIBGCCJIT_HAVE_gcc_jit_block_add_cleanup
 
 /* Add evaluation of an rvalue, assigning the result to the given
    lvalue.
