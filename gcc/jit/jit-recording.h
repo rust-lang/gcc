@@ -1768,6 +1768,11 @@ public:
   end_with_fallthrough (location *loc);
 
   statement *
+  add_cleanup (location *loc,
+	       region *try_region,
+	       region *cleanup_region);
+
+  statement *
   end_with_switch (location *loc,
 		   rvalue *expr,
 		   block *default_block,
@@ -3021,6 +3026,31 @@ private:
   block *m_try_block;
   block *m_catch_block;
   bool m_is_finally;
+};
+
+class cleanup : public statement
+{
+public:
+  cleanup (block *b,
+	   location *loc,
+	   region *try_region,
+	   region *cleanup_region)
+  : statement (b, loc),
+    m_try_region (try_region),
+    m_cleanup_region (cleanup_region) {}
+
+  void replay_into (replayer *r) final override;
+
+  void clone_into (block_cloner &cloner, block *dest) const final override;
+  void get_inlined_blocks (auto_vec<block *> &out) const final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+
+private:
+  region *m_try_region;
+  region *m_cleanup_region;
 };
 
 class assignment : public statement

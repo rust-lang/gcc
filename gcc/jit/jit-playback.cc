@@ -2392,6 +2392,60 @@ set_personality_function (function *personality_function)
   DECL_FUNCTION_PERSONALITY (m_inner_fndecl) = personality_function->as_fndecl ();
 }
 
+/* Record a deferred try/finally, to be assembled by
+   assemble_deferred_cleanups once every block has been replayed.  */
+
+void
+playback::function::
+register_deferred_cleanup (tree try_finally, tree eh_else,
+			   recording::region *try_region,
+			   recording::region *cleanup_region)
+{
+  deferred_cleanup cleanup;
+  cleanup.m_try_finally = try_finally;
+  cleanup.m_eh_else = eh_else;
+  cleanup.m_try_region = try_region;
+  cleanup.m_cleanup_region = cleanup_region;
+  m_deferred_cleanups.safe_push (cleanup);
+}
+
+/* Assemble the bodies of the deferred try/finally constructs.  */
+
+void
+playback::function::
+assemble_deferred_cleanups ()
+{
+  unsigned i;
+  deferred_cleanup *cleanup;
+  FOR_EACH_VEC_ELT (m_deferred_cleanups, i, cleanup)
+    {
+      auto_vec<block *> try_blocks;
+      auto_vec<block *> cleanup_blocks;
+      unsigned j;
+      recording::block *try_block;
+      FOR_EACH_VEC_ELT (cleanup->m_try_region->get_blocks (), j, try_block)
+	{
+	  block *b = try_block->playback_block ();
+	  gcc_assert (b);
+	  try_blocks.safe_push (b);
+	}
+      FOR_EACH_VEC_ELT (cleanup->m_cleanup_region->get_blocks (), j, try_block)
+	{
+	  block *b = try_block->playback_block ();
+	  gcc_assert (b);
+	  cleanup_blocks.safe_push (b);
+	}
+
+      tree try_body
+	= block::assemble_region_body (&try_blocks);
+      tree cleanup_body
+	= block::assemble_region_body (&cleanup_blocks);
+
+      TREE_OPERAND (cleanup->m_try_finally, 0) = try_body;
+      TREE_OPERAND (cleanup->m_eh_else, 1) = cleanup_body;
+    }
+}
+
 /* Build a statement list for the function as a whole out of the
    lists of statements for the individual blocks, building labels
    for each block.  */
@@ -2747,8 +2801,72 @@ void
 playback::block::
 end_with_fallthrough (location *loc)
 {
-  /* Nothing to emit; the fall-through is the lack of a terminator.  */
   (void) loc;
+  m_ends_with_fallthrough = true;
+}
+
+/* Create a statement list from a region's blocks.  */
+
+tree
+playback::block::
+assemble_region_body (const auto_vec<block *> *blocks)
+{
+  tree body = alloc_stmt_list ();
+  tree end_label = NULL_TREE;
+  tree fndecl = NULL_TREE;
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (*blocks, i, b)
+    {
+      fndecl = b->get_function ()->as_fndecl ();
+      b->m_is_try_or_catch = true;
+      append_to_statement_list (build1 (LABEL_EXPR, void_type_node,
+					b->as_label_decl ()),
+				&body);
+
+      unsigned j;
+      tree stmt;
+      FOR_EACH_VEC_ELT (b->m_stmts, j, stmt)
+	append_to_statement_list (stmt, &body);
+
+      if (b->m_ends_with_fallthrough)
+	{
+	  if (end_label == NULL_TREE)
+	    {
+	      end_label = create_artificial_label (UNKNOWN_LOCATION);
+	      DECL_CONTEXT (end_label) = fndecl;
+	    }
+	  TREE_USED (end_label) = 1;
+	  append_to_statement_list (build1 (GOTO_EXPR, void_type_node,
+					    end_label),
+				    &body);
+	}
+    }
+
+  if (end_label != NULL_TREE)
+    append_to_statement_list (build1 (LABEL_EXPR, void_type_node, end_label),
+			      &body);
+
+  return body;
+}
+
+/* Add a cleanup construct to this block.  */
+
+void
+playback::block::
+add_cleanup (location *loc,
+	     recording::region *try_region,
+	     recording::region *cleanup_region)
+{
+  tree eh_else = build2 (EH_ELSE_EXPR, void_type_node,
+			 alloc_stmt_list (), alloc_stmt_list ());
+  tree try_finally = build2 (TRY_FINALLY_EXPR, void_type_node,
+			     alloc_stmt_list (), eh_else);
+  if (loc)
+    set_tree_location (try_finally, loc);
+  add_stmt (try_finally);
+  m_func->register_deferred_cleanup (try_finally, eh_else,
+				     try_region, cleanup_region);
 }
 
 /* Helper function for playback::block::add_switch.
@@ -3861,6 +3979,14 @@ replay ()
   bm->ensure_optimization_builtins_exist ();
 
   m_recording_ctxt->replay_into (this);
+
+  if (!errors_occurred ())
+    {
+      int i;
+      function *func;
+      FOR_EACH_VEC_ELT (m_functions, i, func)
+	func->assemble_deferred_cleanups ();
+    }
 
   /* Clean away the temporary references from recording objects
      to playback objects.  We have to do this now since the
