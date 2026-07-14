@@ -1600,6 +1600,8 @@ private:
   string *m_name;
 };
 
+class region;
+
 class function : public memento
 {
 public:
@@ -1635,6 +1637,9 @@ public:
 
   block*
   new_block (const char *name);
+
+  region *
+  new_region (location *loc);
 
   location *get_loc () const { return m_loc; }
   void set_loc (location * loc) { m_loc = loc; }
@@ -1681,6 +1686,8 @@ private:
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> m_int_array_attributes;
   bool m_is_target_builtin;
+
+  friend class region;
 };
 
 class block : public memento
@@ -1783,6 +1790,8 @@ public:
 
   vec <block *> get_successor_blocks () const;
 
+  region *get_region () const { return m_region; }
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -1799,8 +1808,39 @@ private:
   auto_vec<statement *> m_statements;
   bool m_has_been_terminated;
   bool m_is_reachable;
+  region *m_region = NULL;
 
   friend class function;
+  friend class region;
+};
+
+class region : public memento
+{
+public:
+  region (function *func, location *loc)
+  : memento (func->m_ctxt),
+    m_func (func),
+    m_loc (loc)
+  {}
+
+  function *get_function () const { return m_func; }
+
+  block *new_block (const char *name);
+
+  void add_block (block *b);
+
+  const auto_vec<block *> &get_blocks () const { return m_blocks; }
+
+  void replay_into (replayer *) final override {}
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+
+private:
+  function *m_func;
+  location *m_loc;
+  auto_vec<block *> m_blocks;
 };
 
 class global : public lvalue

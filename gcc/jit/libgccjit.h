@@ -162,6 +162,10 @@ typedef struct gcc_jit_case gcc_jit_case;
    outputs.  */
 typedef struct gcc_jit_extended_asm gcc_jit_extended_asm;
 
+/* A gcc_jit_region represents the body of a try or the cleanup body of a
+   try/finally  */
+typedef struct gcc_jit_region gcc_jit_region;
+
 /* Acquire a JIT-compilation context.  */
 extern gcc_jit_context *
 gcc_jit_context_acquire (void);
@@ -1573,6 +1577,40 @@ gcc_jit_block_add_try_finally (gcc_jit_block *block,
 			       gcc_jit_location *loc,
 			       gcc_jit_block *try_block,
 			       gcc_jit_block *finally_block);
+
+/* Create a new region within func, for use as the body of an
+   exception-handling construct.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_REGION
+*/
+extern gcc_jit_region *
+gcc_jit_function_new_region (gcc_jit_function *func,
+			     gcc_jit_location *loc);
+
+/* Create a new block belonging to region.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_REGION
+*/
+extern gcc_jit_block *
+gcc_jit_region_new_block (gcc_jit_region *region,
+			  const char *name);
+
+/* Adopt an existing block (created via gcc_jit_function_new_block) into
+   region.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_REGION
+*/
+extern void
+gcc_jit_region_add_block (gcc_jit_region *region,
+			  gcc_jit_block *block);
+
+#define LIBGCCJIT_HAVE_REGION
 
 /* Add evaluation of an rvalue, assigning the result to the given
    lvalue.

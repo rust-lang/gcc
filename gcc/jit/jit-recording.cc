@@ -4729,6 +4729,79 @@ recording::function::new_block (const char *name)
   return result;
 }
 
+/* Create a recording::region within this function and add it to the
+   context's list of mementos.
+
+   Implements the post-error-checking part of
+   gcc_jit_function_new_region.  */
+
+recording::region *
+recording::function::new_region (recording::location *loc)
+{
+  gcc_assert (m_kind != GCC_JIT_FUNCTION_IMPORTED);
+
+  recording::region *result = new recording::region (this, loc);
+  m_ctxt->record (result);
+  return result;
+}
+
+/* The implementation of class gcc::jit::recording::region.  */
+
+/* Create a recording::block instance and add it to
+   the functions's context's list of mementos, to the function's
+   list of blocks, and to the region's list of blocks.
+
+   Implements the post-error-checking part of
+   gcc_jit_region_new_block.  */
+
+recording::block *
+recording::region::new_block (const char *name)
+{
+  recording::function *func = m_func;
+  gcc_assert (func->get_kind () != GCC_JIT_FUNCTION_IMPORTED);
+
+  recording::block *result =
+    new recording::block (func, func->m_blocks.length (), new_string (name));
+  result->m_region = this;
+  result->m_is_reachable = true;
+  m_ctxt->record (result);
+  func->m_blocks.safe_push (result);
+  m_blocks.safe_push (result);
+  return result;
+}
+
+/* Adopt an existing block into this region.  */
+
+void
+recording::region::add_block (recording::block *b)
+{
+  b->m_region = this;
+  b->m_is_reachable = true;
+  m_blocks.safe_push (b);
+}
+
+/* Implementation of recording::memento::make_debug_string for regions.  */
+
+recording::string *
+recording::region::make_debug_string ()
+{
+  return string::from_printf (m_ctxt, "<region %p>", (void *) this);
+}
+
+/* Implementation of recording::memento::write_reproducer for regions.  */
+
+void
+recording::region::write_reproducer (reproducer &r)
+{
+  const char *id = r.make_identifier (this, "region");
+  r.write ("  gcc_jit_region *%s =\n"
+	   "    gcc_jit_function_new_region (%s, /* gcc_jit_function *func */\n"
+	   "                                 %s); /* gcc_jit_location *loc */\n",
+	   id,
+	   r.get_identifier (m_func),
+	   r.get_identifier (m_loc));
+}
+
 /* Override the default implementation of
    recording::memento::write_to_dump by dumping a C-like
    representation of the function; either like a prototype
