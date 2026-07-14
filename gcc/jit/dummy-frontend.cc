@@ -1486,8 +1486,28 @@ jit_langhook_eh_personality (void)
   return personality_decl;
 }
 
+static tree
+jit_langhook_type_promotes_to (tree type)
+{
+  /* The "default argument promotions" */
+
+  /* float is promoted to double. */
+  if (TYPE_MAIN_VARIANT (type) == float_type_node)
+    return double_type_node;
+
+  /* integers smaller than int are promoted to int. */
+  if (INTEGRAL_TYPE_P (type)
+      && TYPE_PRECISION (type) < TYPE_PRECISION (integer_type_node))
+    return integer_type_node;
+
+  return type;
+}
+
 #undef LANG_HOOKS_EH_PERSONALITY
 #define LANG_HOOKS_EH_PERSONALITY jit_langhook_eh_personality
+
+#undef LANG_HOOKS_TYPE_PROMOTES_TO
+#define LANG_HOOKS_TYPE_PROMOTES_TO jit_langhook_type_promotes_to
 
 #undef LANG_HOOKS_NAME
 #define LANG_HOOKS_NAME		"libgccjit"
