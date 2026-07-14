@@ -5304,6 +5304,23 @@ recording::block::end_with_return (recording::location *loc,
   return result;
 }
 
+/* Create a recording::fallthrough instance and add it to
+   the block's context's list of mementos, and to the block's
+   list of statements.
+
+   Implements the post-error-checking parts of
+   gcc_jit_block_end_with_fallthrough.  */
+
+recording::statement *
+recording::block::end_with_fallthrough (recording::location *loc)
+{
+  statement *result = new fallthrough (this, loc);
+  m_ctxt->record (result);
+  m_statements.safe_push (result);
+  m_has_been_terminated = true;
+  return result;
+}
+
 /* Create a recording::switch_ instance and add it to
    the block's context's list of mementos, and to the block's
    list of statements.
@@ -8158,6 +8175,52 @@ recording::return_::write_reproducer (reproducer &r)
 	     "                                      %s); /* gcc_jit_location *loc */\n",
 	     r.get_identifier (get_block ()),
 	     r.get_identifier (get_loc ()));
+}
+
+/* The implementation of class gcc::jit::recording::fallthrough.  */
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::fallthrough.  */
+
+void
+recording::fallthrough::replay_into (replayer *r)
+{
+  playback_block (get_block ())
+    ->end_with_fallthrough (playback_location (r));
+}
+
+/* Override the poisoned default implementation of
+   gcc::jit::recording::statement::get_successor_blocks
+
+   A fall-through terminator has no successor block.  */
+
+vec <recording::block *>
+recording::fallthrough::get_successor_blocks () const
+{
+  vec <block *> result;
+  result.create (0);
+  return result;
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   a fall-through statement.  */
+
+recording::string *
+recording::fallthrough::make_debug_string ()
+{
+  return string::from_printf (m_ctxt, "fallthrough;");
+}
+
+/* Implementation of recording::memento::write_reproducer for
+   fall-through statements.  */
+
+void
+recording::fallthrough::write_reproducer (reproducer &r)
+{
+  r.write ("  gcc_jit_block_end_with_fallthrough (%s, /*gcc_jit_block *block */\n"
+	   "                                      %s); /* gcc_jit_location *loc */\n",
+	   r.get_identifier (get_block ()),
+	   r.get_identifier (get_loc ()));
 }
 
 /* The implementation of class gcc::jit::recording::case_.  */
