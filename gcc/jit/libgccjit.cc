@@ -3423,6 +3423,24 @@ gcc_jit_block_end_with_void_return (gcc_jit_block *block,
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::block::end_with_fallthrough method in
+   jit-recording.cc.  */
+
+void
+gcc_jit_block_end_with_fallthrough (gcc_jit_block *block,
+				    gcc_jit_location *loc)
+{
+  RETURN_IF_NOT_VALID_BLOCK (block, loc);
+  gcc::jit::recording::context *ctxt = block->get_context ();
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  /* LOC can be NULL.  */
+
+  block->end_with_fallthrough (loc);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::context::new_case method in
    jit-recording.cc.  */
 

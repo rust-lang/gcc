@@ -1667,6 +1667,19 @@ extern void
 gcc_jit_block_end_with_void_return (gcc_jit_block *block,
 				    gcc_jit_location *loc);
 
+/* Terminate a block by falling through to the end of its enclosing
+   structured construct, rather than by an explicit jump or return.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_51; you can test for
+   its presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_block_end_with_fallthrough
+*/
+extern void
+gcc_jit_block_end_with_fallthrough (gcc_jit_block *block,
+				    gcc_jit_location *loc);
+
+#define LIBGCCJIT_HAVE_gcc_jit_block_end_with_fallthrough
+
 /* Create a new gcc_jit_case instance for use in a switch statement.
    min_value and max_value must be constants of integer type.
 
