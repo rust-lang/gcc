@@ -623,6 +623,9 @@ enum gcc_jit_types
   GCC_JIT_TYPE_FLOAT32,
   GCC_JIT_TYPE_FLOAT64,
   GCC_JIT_TYPE_FLOAT128,
+
+  /* C's "va_list" */
+  GCC_JIT_TYPE_VA_LIST,
 };
 
 extern gcc_jit_type *
@@ -1353,6 +1356,21 @@ gcc_jit_context_new_bitcast (gcc_jit_context *ctxt,
 			     gcc_jit_location *loc,
 			     gcc_jit_rvalue *rvalue,
 			     gcc_jit_type *type);
+
+#define LIBGCCJIT_HAVE_gcc_jit_context_new_va_arg
+
+/* Read the next argument of a variadic function.
+
+   This is equivalent to the C `va_arg (*ap, type)`.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_50; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_va_arg  */
+extern gcc_jit_rvalue *
+gcc_jit_context_new_va_arg (gcc_jit_context *ctxt,
+			   gcc_jit_location *loc,
+			   gcc_jit_rvalue *ap,
+			   gcc_jit_type *type);
 
 #define LIBGCCJIT_HAVE_ALIGNMENT
 
