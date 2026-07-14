@@ -419,3 +419,10 @@ LIBGCCJIT_ABI_51 {
   global:
     gcc_jit_block_end_with_fallthrough;
 } LIBGCCJIT_ABI_50;
+
+LIBGCCJIT_ABI_52 {
+  global:
+    gcc_jit_function_new_region;
+    gcc_jit_region_new_block;
+    gcc_jit_block_add_cleanup;
+} LIBGCCJIT_ABI_51;

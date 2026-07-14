@@ -162,6 +162,12 @@ typedef struct gcc_jit_case gcc_jit_case;
    outputs.  */
 typedef struct gcc_jit_extended_asm gcc_jit_extended_asm;
 
+/* A gcc_jit_region groups a subgraph of blocks that form the body of an
+   exception-handling construct (the protected body of a try, or the
+   cleanup body of a try/finally).  Blocks are created within a region via
+   gcc_jit_region_new_block; the first one created is the region's entry.  */
+typedef struct gcc_jit_region gcc_jit_region;
+
 /* Acquire a JIT-compilation context.  */
 extern gcc_jit_context *
 gcc_jit_context_acquire (void);
@@ -1573,6 +1579,52 @@ gcc_jit_block_add_try_finally (gcc_jit_block *block,
 			       gcc_jit_location *loc,
 			       gcc_jit_block *try_block,
 			       gcc_jit_block *finally_block);
+
+/* Create a new region within FUNC, for use as the body of an
+   exception-handling construct (see gcc_jit_block_add_cleanup).
+
+   This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_region
+*/
+extern gcc_jit_region *
+gcc_jit_function_new_region (gcc_jit_function *func,
+			     gcc_jit_location *loc);
+
+/* Create a new block belonging to REGION (rather than being a plain
+   top-level block of the function).  The first block created in a region
+   is its entry.  A region's blocks are laid out into the body of the EH
+   construct the region is used with, so they must not be reached by a jump
+   from outside the region.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_region
+*/
+extern gcc_jit_block *
+gcc_jit_region_new_block (gcc_jit_region *region,
+			  const char *name);
+
+/* Add a cleanup: the CLEANUP_REGION runs only on the unwind path out of
+   TRY_REGION, and then unwinding resumes (the middle-end synthesizes the
+   appropriate context-sensitive resume).  Both regions may span several
+   blocks.  A block in a region that should resume unwinding (the cleanup's
+   exit) is terminated with gcc_jit_block_end_with_fallthrough.
+
+   This is roughly equivalent to a landing pad that runs destructors and
+   re-raises, as emitted for C++ destructors or Rust drops.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_region
+*/
+extern void
+gcc_jit_block_add_cleanup (gcc_jit_block *block,
+			   gcc_jit_location *loc,
+			   gcc_jit_region *try_region,
+			   gcc_jit_region *cleanup_region);
+
+#define LIBGCCJIT_HAVE_gcc_jit_region
 
 /* Add evaluation of an rvalue, assigning the result to the given
    lvalue.

@@ -690,6 +690,14 @@ public:
 		 bool is_finally);
 
   void
+  add_cleanup (location *loc,
+	       const auto_vec<block *> *try_blocks,
+	       const auto_vec<block *> *cleanup_blocks);
+
+  static tree
+  assemble_region_body (const auto_vec<block *> *blocks);
+
+  void
   add_assignment (location *loc,
 		  lvalue *lvalue,
 		  rvalue *rvalue);
@@ -756,6 +764,9 @@ private:
 public: // for now
   tree m_label_expr;
   bool m_is_try_or_catch = false;
+  /* True if this block was terminated by gcc_jit_block_end_with_fallthrough,
+     i.e. it falls off the end of its enclosing region's body.  */
+  bool m_ends_with_fallthrough = false;
 
   friend class function;
 };

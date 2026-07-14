@@ -1600,6 +1600,8 @@ private:
   string *m_name;
 };
 
+class region;
+
 class function : public memento
 {
 public:
@@ -1635,6 +1637,9 @@ public:
 
   block*
   new_block (const char *name);
+
+  region *
+  new_region (location *loc);
 
   location *get_loc () const { return m_loc; }
   void set_loc (location * loc) { m_loc = loc; }
@@ -1681,6 +1686,8 @@ private:
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> m_int_array_attributes;
   bool m_is_target_builtin;
+
+  friend class region;
 };
 
 class block : public memento
@@ -1752,6 +1759,11 @@ public:
   end_with_fallthrough (location *loc);
 
   statement *
+  add_cleanup (location *loc,
+	       region *try_region,
+	       region *cleanup_region);
+
+  statement *
   end_with_switch (location *loc,
 		   rvalue *expr,
 		   block *default_block,
@@ -1783,6 +1795,12 @@ public:
 
   vec <block *> get_successor_blocks () const;
 
+  /* The EH region this block was created within, or NULL for an ordinary
+     block created via gcc_jit_function_new_block.  A region block is laid
+     out into the body of a try/finally or cleanup rather than emitted as a
+     normal top-level block.  */
+  region *get_region () const { return m_region; }
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -1799,8 +1817,43 @@ private:
   auto_vec<statement *> m_statements;
   bool m_has_been_terminated;
   bool m_is_reachable;
+  region *m_region = NULL;
 
   friend class function;
+  friend class region;
+};
+
+/* A region groups a subgraph of blocks that form the body of an EH
+   construct (the protected body of a try, or the cleanup body of a
+   try/finally).  Blocks created via gcc_jit_region_new_block belong to
+   the region and are laid out into that body rather than emitted as
+   ordinary top-level blocks.  The first block created is the region's
+   entry.  */
+class region : public memento
+{
+public:
+  region (function *func, location *loc)
+  : memento (func->m_ctxt),
+    m_func (func),
+    m_loc (loc)
+  {}
+
+  function *get_function () const { return m_func; }
+
+  block *new_block (const char *name);
+
+  const auto_vec<block *> &get_blocks () const { return m_blocks; }
+
+  void replay_into (replayer *) final override {}
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+
+private:
+  function *m_func;
+  location *m_loc;
+  auto_vec<block *> m_blocks;
 };
 
 class global : public lvalue
@@ -2707,6 +2760,32 @@ private:
   block *m_try_block;
   block *m_catch_block;
   bool m_is_finally;
+};
+
+/* A cleanup construct: the cleanup_region runs only on the unwind path
+   out of the try_region, then resumes (the middle-end synthesizes the
+   RESX).  Both regions may span several blocks.  Built as
+   TRY_FINALLY_EXPR (try-body, EH_ELSE_EXPR (empty, cleanup-body)).  */
+class cleanup : public statement
+{
+public:
+  cleanup (block *b,
+	   location *loc,
+	   region *try_region,
+	   region *cleanup_region)
+  : statement (b, loc),
+    m_try_region (try_region),
+    m_cleanup_region (cleanup_region) {}
+
+  void replay_into (replayer *r) final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+
+private:
+  region *m_try_region;
+  region *m_cleanup_region;
 };
 
 class assignment : public statement

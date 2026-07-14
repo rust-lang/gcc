@@ -90,6 +90,10 @@ struct gcc_jit_block : public gcc::jit::recording::block
 {
 };
 
+struct gcc_jit_region : public gcc::jit::recording::region
+{
+};
+
 struct gcc_jit_rvalue : public gcc::jit::recording::rvalue
 {
 };
@@ -3133,6 +3137,75 @@ gcc_jit_block_add_try_finally (gcc_jit_block *block,
      as close as possible to the point of failure.  */
   /*try_block->verify_valid_within_stmt (__func__, stmt);
   catch_block->verify_valid_within_stmt (__func__, stmt);*/
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::function::new_region method in jit-recording.cc.  */
+
+gcc_jit_region *
+gcc_jit_function_new_region (gcc_jit_function *func,
+			     gcc_jit_location *loc)
+{
+  RETURN_NULL_IF_FAIL (func, NULL, loc, "NULL function");
+  gcc::jit::recording::context *ctxt = func->m_ctxt;
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  /* LOC can be NULL.  */
+  RETURN_NULL_IF_FAIL_PRINTF1 (
+    func->get_kind () != GCC_JIT_FUNCTION_IMPORTED,
+    ctxt, loc,
+    "cannot add region to imported function %s",
+    func->get_debug_string ());
+
+  return (gcc_jit_region *)func->new_region (loc);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::region::new_block method in jit-recording.cc.  */
+
+gcc_jit_block *
+gcc_jit_region_new_block (gcc_jit_region *region, const char *name)
+{
+  RETURN_NULL_IF_FAIL (region, NULL, NULL, "NULL region");
+  gcc::jit::recording::context *ctxt = region->m_ctxt;
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  /* name can be NULL.  */
+
+  return (gcc_jit_block *)region->new_block (name);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::block::add_cleanup method in jit-recording.cc.  */
+
+void
+gcc_jit_block_add_cleanup (gcc_jit_block *block,
+			   gcc_jit_location *loc,
+			   gcc_jit_region *try_region,
+			   gcc_jit_region *cleanup_region)
+{
+  RETURN_IF_NOT_VALID_BLOCK (block, loc);
+  gcc::jit::recording::context *ctxt = block->get_context ();
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  /* LOC can be NULL.  */
+  RETURN_IF_FAIL (try_region, ctxt, loc, "NULL try_region");
+  RETURN_IF_FAIL (cleanup_region, ctxt, loc, "NULL cleanup_region");
+  RETURN_IF_FAIL_PRINTF1 (
+    try_region->get_function () == block->get_function (),
+    ctxt, loc,
+    "try_region is not in the same function as block %s",
+    block->get_debug_string ());
+  RETURN_IF_FAIL_PRINTF1 (
+    cleanup_region->get_function () == block->get_function (),
+    ctxt, loc,
+    "cleanup_region is not in the same function as block %s",
+    block->get_debug_string ());
+
+  block->add_cleanup (loc, try_region, cleanup_region);
 }
 
 /* Public entrypoint.  See description in libgccjit.h.

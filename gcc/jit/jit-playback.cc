@@ -2746,8 +2746,99 @@ void
 playback::block::
 end_with_fallthrough (location *loc)
 {
-  /* Nothing to emit; the fall-through is the lack of a terminator.  */
+  /* Nothing to emit; the fall-through is the lack of a terminator.  We
+     record the fact so that, when this block is laid out as part of an EH
+     region body, its fall-through is routed to the body's exit.  */
   (void) loc;
+  m_ends_with_fallthrough = true;
+}
+
+/* Lay out the blocks of an EH region (the protected body of a try, or the
+   cleanup body of a try/finally) into a fresh GENERIC statement list,
+   emitting each block as "label: <its statements>".  The first block is
+   the region's entry.  Gotos between region blocks resolve to labels
+   within the list; a goto to a block outside the region (e.g. the normal
+   continuation) resolves to that block's own label.
+
+   A block terminated by fall-through has no terminator of its own; such
+   blocks are routed to a single trailing label at the end of the body, so
+   that (a) the layout order of fall-through blocks does not matter and
+   (b) the body "may fall through" there, which is what makes the
+   middle-end synthesize the context-sensitive resume (RESX) for a cleanup
+   body, or the normal exit for a try body.  */
+
+tree
+playback::block::
+assemble_region_body (const auto_vec<block *> *blocks)
+{
+  tree body = alloc_stmt_list ();
+  tree end_label = NULL_TREE;
+
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (*blocks, i, b)
+    {
+      b->m_label_expr = build1 (LABEL_EXPR, void_type_node,
+				b->as_label_decl ());
+      append_to_statement_list (b->m_label_expr, &body);
+
+      unsigned j;
+      tree stmt;
+      FOR_EACH_VEC_ELT (b->m_stmts, j, stmt)
+	append_to_statement_list (stmt, &body);
+
+      if (b->m_ends_with_fallthrough)
+	{
+	  if (end_label == NULL_TREE)
+	    {
+	      end_label = create_artificial_label (UNKNOWN_LOCATION);
+	      DECL_CONTEXT (end_label) = b->get_function ()->as_fndecl ();
+	    }
+	  TREE_USED (end_label) = 1;
+	  append_to_statement_list (build1 (GOTO_EXPR, void_type_node,
+					    end_label),
+				    &body);
+	}
+
+      /* This block is emitted here, not as a normal top-level block.  */
+      b->m_is_try_or_catch = true;
+    }
+
+  /* Place the shared exit label last, with nothing after it, so the body
+     may fall through at that point.  */
+  if (end_label != NULL_TREE)
+    append_to_statement_list (build1 (LABEL_EXPR, void_type_node, end_label),
+			      &body);
+
+  return body;
+}
+
+/* Add a cleanup construct to this block: the CLEANUP_BLOCKS region runs
+   only on the unwind path out of the TRY_BLOCKS region, then resumes.
+   Both regions may span several blocks.  Emitted as
+   TRY_FINALLY_EXPR (try-body, EH_ELSE_EXPR (empty-normal, cleanup-body)):
+   the EH_ELSE's exceptional body (the cleanup) falls through at its exit,
+   so the middle-end synthesizes the RESX.  */
+
+void
+playback::block::
+add_cleanup (location *loc,
+	     const auto_vec<block *> *try_blocks,
+	     const auto_vec<block *> *cleanup_blocks)
+{
+  tree try_body = assemble_region_body (try_blocks);
+  tree cleanup_body = assemble_region_body (cleanup_blocks);
+
+  /* The normal-completion branch of the EH_ELSE is empty: the cleanup
+     runs on the unwind path only.  */
+  tree normal_body = alloc_stmt_list ();
+  tree eh_else = build2 (EH_ELSE_EXPR, void_type_node,
+			 normal_body, cleanup_body);
+  tree try_finally = build2 (TRY_FINALLY_EXPR, void_type_node,
+			     try_body, eh_else);
+  if (loc)
+    set_tree_location (try_finally, loc);
+  add_stmt (try_finally);
 }
 
 /* Helper function for playback::block::add_switch.
