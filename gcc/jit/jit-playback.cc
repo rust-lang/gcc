@@ -2743,6 +2743,14 @@ add_return (location *loc,
   add_stmt (return_stmt);
 }
 
+void
+playback::block::
+end_with_fallthrough (location *loc)
+{
+  /* Nothing to emit; the fall-through is the lack of a terminator.  */
+  (void) loc;
+}
+
 /* Helper function for playback::block::add_switch.
    Construct a case label for the given range, followed by a goto stmt
    to the given block, appending them to stmt list *ptr_t_switch_body.  */

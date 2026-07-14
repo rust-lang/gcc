@@ -1749,6 +1749,9 @@ public:
 		   rvalue *rvalue);
 
   statement *
+  end_with_fallthrough (location *loc);
+
+  statement *
   end_with_switch (location *loc,
 		   rvalue *expr,
 		   block *default_block,
@@ -2839,6 +2842,22 @@ private:
 
 private:
   rvalue *m_rvalue;
+};
+
+class fallthrough : public statement
+{
+public:
+  fallthrough (block *b,
+	       location *loc)
+  : statement (b, loc) {}
+
+  void replay_into (replayer *r) final override;
+
+  vec <block *> get_successor_blocks () const final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
 };
 
 class case_ : public memento
