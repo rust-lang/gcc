@@ -2234,6 +2234,11 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_X86_SYSV_ABI,
   GCC_JIT_FN_ATTRIBUTE_X86_THIS_CALL,
 
+  /* Appended at the end so that the numeric values of the pre-existing
+     attributes stay stable (fn_attribute_reproducer_strings in
+     jit-recording.cc is indexed by value).  */
+  GCC_JIT_FN_ATTRIBUTE_NOIPA,
+
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_FN_ATTRIBUTE_MAX,
 };

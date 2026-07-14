@@ -574,6 +574,8 @@ const char* fn_attribute_to_string (gcc_jit_fn_attribute attr)
       return NULL;
     case GCC_JIT_FN_ATTRIBUTE_NOINLINE:
       return "noinline";
+    case GCC_JIT_FN_ATTRIBUTE_NOIPA:
+      return "noipa";
     case GCC_JIT_FN_ATTRIBUTE_TARGET:
       return "target";
     case GCC_JIT_FN_ATTRIBUTE_USED:

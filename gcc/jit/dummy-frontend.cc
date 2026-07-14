@@ -53,6 +53,9 @@ static tree handle_format_attribute (tree *, tree, tree, int, bool *);
 static tree handle_leaf_attribute (tree *, tree, tree, int, bool *);
 static tree handle_malloc_attribute (tree *, tree, tree, int, bool *);
 static tree handle_noinline_attribute (tree *, tree, tree, int, bool *);
+static tree handle_noipa_attribute (tree *, tree, tree, int, bool *);
+static tree handle_noclone_attribute (tree *, tree, tree, int, bool *);
+static tree handle_no_icf_attribute (tree *, tree, tree, int, bool *);
 static tree handle_nonnull_attribute (tree *, tree, tree, int, bool *);
 static tree handle_noreturn_attribute (tree *, tree, tree, int, bool *);
 static tree handle_nothrow_attribute (tree *, tree, tree, int, bool *);
@@ -183,6 +186,12 @@ static const attribute_spec jit_gnu_attributes[] =
   { "noinline",		      0, 0, true,  false, false, false,
 			      handle_noinline_attribute,
 			      attr_noinline_exclusions },
+  { "noipa",		      0, 0, true,  false, false, false,
+			      handle_noipa_attribute, NULL },
+  { "noclone",		      0, 0, true,  false, false, false,
+			      handle_noclone_attribute, NULL },
+  { "no_icf",		      0, 0, true,  false, false, false,
+			      handle_no_icf_attribute, NULL },
   { "nonnull",		      0, -1, false, true, true, false,
 			      handle_nonnull_attribute, NULL },
   { "nothrow",		      0, 0, true,  false, false, false,
@@ -754,6 +763,36 @@ handle_noinline_attribute (tree *node, tree name,
       *no_add_attrs = true;
     }
 
+  return NULL_TREE;
+}
+
+/* Handle a "noipa" attribute; arguments as in
+   struct attribute_spec.handler.  This is a marker attribute; its effects
+   (implying noinline, noclone and no_icf, and disabling interprocedural
+   analysis of the function) are applied by the middle-end based on its
+   presence in DECL_ATTRIBUTES.  */
+
+static tree
+handle_noipa_attribute (tree *, tree, tree, int, bool *)
+{
+  return NULL_TREE;
+}
+
+/* Handle a "noclone" attribute; arguments as in
+   struct attribute_spec.handler.  Marker attribute implied by "noipa".  */
+
+static tree
+handle_noclone_attribute (tree *, tree, tree, int, bool *)
+{
+  return NULL_TREE;
+}
+
+/* Handle a "no_icf" attribute; arguments as in
+   struct attribute_spec.handler.  Marker attribute implied by "noipa".  */
+
+static tree
+handle_no_icf_attribute (tree *, tree, tree, int, bool *)
+{
   return NULL_TREE;
 }
 

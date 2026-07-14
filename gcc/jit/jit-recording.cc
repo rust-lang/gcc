@@ -5051,6 +5051,7 @@ static const char * const fn_attribute_reproducer_strings[] =
   "GCC_JIT_FN_ATTRIBUTE_X86_STDCALL",
   "GCC_JIT_FN_ATTRIBUTE_X86_SYSV_ABI",
   "GCC_JIT_FN_ATTRIBUTE_X86_THIS_CALL",
+  "GCC_JIT_FN_ATTRIBUTE_NOIPA",
 };
 
 std::string
