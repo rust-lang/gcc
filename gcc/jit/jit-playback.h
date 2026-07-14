@@ -716,6 +716,9 @@ public:
 	      rvalue *rvalue);
 
   void
+  end_with_fallthrough (location *loc);
+
+  void
   add_switch (location *loc,
 	      rvalue *expr,
 	      block *default_block,
