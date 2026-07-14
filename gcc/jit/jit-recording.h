@@ -242,6 +242,11 @@ public:
 	       rvalue *expr,
 	       type *type_);
 
+  rvalue *
+  new_va_arg (location *loc,
+	     rvalue *ap,
+	     type *type_);
+
   lvalue *
   new_array_access (location *loc,
 		    rvalue *ptr,
@@ -2212,6 +2217,33 @@ private:
 
 private:
   rvalue *m_rvalue;
+};
+
+class va_arg_expr : public rvalue
+{
+public:
+  va_arg_expr (context *ctxt,
+	       location *loc,
+	       rvalue *ap,
+	       type *type_)
+  : rvalue (ctxt, loc, type_),
+    m_ap (ap)
+  {}
+
+  void replay_into (replayer *r) final override;
+
+  void visit_children (rvalue_visitor *v) final override;
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+  enum precedence get_precedence () const final override
+  {
+    return PRECEDENCE_POSTFIX;
+  }
+
+private:
+  rvalue *m_ap;
 };
 
 class base_call : public rvalue

@@ -539,7 +539,8 @@ builtins_manager::make_primitive_type (enum jit_builtin_type type_id)
     // case BT_DFLOAT32:
     // case BT_DFLOAT64:
     // case BT_DFLOAT128:
-    // case BT_VALIST_REF:
+    case BT_VALIST_REF:
+      return m_ctxt->get_type (GCC_JIT_TYPE_VA_LIST)->get_pointer ();
     // case BT_VALIST_ARG:
     case BT_I1: return m_ctxt->get_int_type (1, true);
     case BT_I2: return m_ctxt->get_int_type (2, true);
