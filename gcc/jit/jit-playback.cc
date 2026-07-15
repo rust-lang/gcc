@@ -31,6 +31,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "dumpfile.h"
 #include "toplev.h"
 #include "tree-cfg.h"
+#include "tree-inline.h"
 #include "convert.h"
 #include "gimple-expr.h"
 #include "stor-layout.h"
@@ -2409,11 +2410,6 @@ void
 playback::function::
 assemble_deferred_cleanups ()
 {
-  /* A cleanup region reached from several invokes is assembled once per
-     invoke; the first assembly uses the blocks' own labels, later ones are
-     duplicated with fresh labels (see assemble_region_body).  */
-  hash_set<recording::region *> assembled_cleanups;
-
   unsigned i;
   deferred_cleanup *dc;
   FOR_EACH_VEC_ELT (m_deferred_cleanups, i, dc)
@@ -2423,15 +2419,22 @@ assemble_deferred_cleanups ()
       unsigned j;
       recording::block *rb;
       FOR_EACH_VEC_ELT (dc->m_try_region->get_blocks (), j, rb)
-	try_blocks.safe_push (rb->playback_block ());
+	{
+	  block *pb = rb->playback_block ();
+	  if (pb)
+	    try_blocks.safe_push (pb);
+	}
       FOR_EACH_VEC_ELT (dc->m_cleanup_region->get_blocks (), j, rb)
-	cleanup_blocks.safe_push (rb->playback_block ());
+	{
+	  block *pb = rb->playback_block ();
+	  if (pb)
+	    cleanup_blocks.safe_push (pb);
+	}
 
-      /* A try region belongs to a single invoke, so it is never shared.  */
-      tree try_body = block::assemble_region_body (&try_blocks, false);
-      bool shared = assembled_cleanups.add (dc->m_cleanup_region);
+      tree try_body
+	= block::assemble_region_body (&try_blocks, /*for_cleanup=*/false);
       tree cleanup_body
-	= block::assemble_region_body (&cleanup_blocks, shared);
+	= block::assemble_region_body (&cleanup_blocks, /*for_cleanup=*/true);
 
       /* TRY_FINALLY_EXPR operand 0 is the protected body; the EH_ELSE_EXPR
 	 operand 1 is the exceptional (cleanup) body.  */
@@ -2811,6 +2814,42 @@ end_with_fallthrough (location *loc)
   m_ends_with_fallthrough = true;
 }
 
+/* walk_tree callback: for every label *defined* (LABEL_EXPR) inside a block's
+   statements -- e.g. the artificial labels a switch introduces -- record a
+   fresh replacement in the label map, so a duplicated cleanup body gets its
+   own copy of them.  copy_tree_r shares label decls (they are declarations),
+   so without this an internal label would end up defined in two finally
+   bodies, which record_in_finally_tree rejects.  */
+
+struct jit_label_collect
+{
+  hash_map<tree, tree> *label_map;
+  tree fndecl;
+};
+
+static tree
+jit_collect_labels_r (tree *tp, int *walk_subtrees, void *data)
+{
+  jit_label_collect *d = (jit_label_collect *) data;
+  tree t = *tp;
+  /* LABEL_EXPR defines an ordinary label; CASE_LABEL_EXPR defines a switch
+     case's label (see add_case).  Both must be duplicated per copy.  */
+  tree decl = NULL_TREE;
+  if (TREE_CODE (t) == LABEL_EXPR)
+    decl = LABEL_EXPR_LABEL (t);
+  else if (TREE_CODE (t) == CASE_LABEL_EXPR)
+    decl = CASE_LABEL (t);
+  if (decl && !d->label_map->get (decl))
+    {
+      tree fresh = create_artificial_label (UNKNOWN_LOCATION);
+      DECL_CONTEXT (fresh) = d->fndecl;
+      d->label_map->put (decl, fresh);
+    }
+  if (DECL_P (t) || TYPE_P (t))
+    *walk_subtrees = 0;
+  return NULL_TREE;
+}
+
 /* walk_tree callback: remap references to region-block labels to the fresh
    labels created for the current assembly (see assemble_region_body).  */
 
@@ -2836,22 +2875,24 @@ jit_remap_label_r (tree *tp, int *walk_subtrees, void *data)
 /* Lay out the blocks of an EH region (the protected body of a try, or the
    cleanup body of a try/finally) into a fresh GENERIC statement list,
    emitting each block as "label: <its statements>".  The first block is
-   the region's entry.  Gotos between region blocks resolve to labels
-   within the list; a goto to a block outside the region (e.g. the normal
-   continuation) resolves to that block's own label.
+   the region's entry.
 
-   Normally (FRESH_LABELS false) the blocks are laid out using their own
-   canonical labels and their statements are shared as-is.  This keeps
-   labels consistent across nested EH regions in the same function, so a
-   goto that crosses from one region body into another (e.g. a drop's
-   "terminate" guard) still resolves.
+   A try region belongs to a single invoke and is never shared, so its blocks
+   are laid out with their own labels and marked m_is_try_or_catch so
+   build_stmt_list does not also emit them.
 
-   When a cleanup is reached from several invokes it is assembled once per
-   invoke, and a single LABEL_DECL must not appear in more than one finally
-   body (the middle-end rejects that).  For those extra copies FRESH_LABELS
-   is true: the block statements are deep-copied and their intra-region
-   gotos are remapped onto freshly-created labels, duplicating the cleanup
-   body per user -- the same trade-off LLVM's WinEH lowering makes.
+   A cleanup region (FOR_CLEANUP) is different: many invokes unwind to the
+   same cleanup and cleanup chains share tails, so laying a cleanup block out
+   with its own label would put that LABEL_DECL in several finally bodies
+   (which the middle-end rejects), and a goto crossing from one finally body
+   into another miscompiles the EH.  So a cleanup body is always a fully
+   self-contained deep copy: every block (and every label defined inside it)
+   gets a fresh label, and all references are remapped to stay within the
+   copy.  The cleanup blocks are NOT marked, so build_stmt_list still emits
+   each one once, with its canonical label, as an ordinary top-level block.
+   Those top-level copies are unreachable and removed by the middle-end, but
+   they define the canonical labels, so any residual reference to them -- e.g.
+   a normal-path goto into shared drop code -- still resolves.
 
    A block terminated by fall-through has no terminator of its own; such
    blocks are routed to a single trailing label at the end of the body, so
@@ -2862,10 +2903,21 @@ jit_remap_label_r (tree *tp, int *walk_subtrees, void *data)
 
 tree
 playback::block::
-assemble_region_body (const auto_vec<block *> *blocks, bool fresh_labels)
+assemble_region_body (const auto_vec<block *> *blocks, bool for_cleanup)
 {
-  /* When duplicating, map each region block's canonical label to a fresh
-     label for this assembly.  */
+  /* A cleanup region is always emitted as a self-contained deep copy with
+     fresh labels: many invokes unwind to the same cleanup and cleanup chains
+     share tails, so a shared LABEL_DECL would end up in several finally
+     bodies (which the middle-end rejects), and a goto crossing from one
+     finally body into another miscompiles the EH at runtime.  Each cleanup
+     block's *canonical* label and statements are therefore left for
+     build_stmt_list to emit once as an ordinary (dead, DCE-removed) top-level
+     block, so that any residual reference to the canonical label -- e.g. a
+     normal-path goto into shared drop code -- still resolves.
+
+     A try region belongs to a single invoke and is never shared, so it is
+     laid out with its blocks' own labels and marked so build_stmt_list does
+     not also emit them.  */
   hash_map<tree, tree> label_map;
   tree fndecl = NULL_TREE;
   unsigned i;
@@ -2873,21 +2925,29 @@ assemble_region_body (const auto_vec<block *> *blocks, bool fresh_labels)
   FOR_EACH_VEC_ELT (*blocks, i, b)
     {
       fndecl = b->get_function ()->as_fndecl ();
-      if (fresh_labels)
+      if (for_cleanup)
 	{
 	  tree fresh = create_artificial_label (UNKNOWN_LOCATION);
 	  DECL_CONTEXT (fresh) = fndecl;
 	  label_map.put (b->as_label_decl (), fresh);
+	  /* Also give fresh copies to any labels defined inside the block's
+	     statements (e.g. switch-case labels).  */
+	  jit_label_collect collect = { &label_map, fndecl };
+	  unsigned j;
+	  tree stmt;
+	  FOR_EACH_VEC_ELT (b->m_stmts, j, stmt)
+	    walk_tree (&stmt, jit_collect_labels_r, &collect, NULL);
 	}
-      /* These blocks are emitted here, not as normal top-level blocks.  */
-      b->m_is_try_or_catch = true;
+      else
+	/* Try blocks are emitted here, not as ordinary top-level blocks.  */
+	b->m_is_try_or_catch = true;
     }
 
   tree body = alloc_stmt_list ();
   tree end_label = NULL_TREE;
   FOR_EACH_VEC_ELT (*blocks, i, b)
     {
-      tree label = fresh_labels
+      tree label = for_cleanup
 		   ? *label_map.get (b->as_label_decl ())
 		   : b->as_label_decl ();
       append_to_statement_list (build1 (LABEL_EXPR, void_type_node, label),
@@ -2897,9 +2957,19 @@ assemble_region_body (const auto_vec<block *> *blocks, bool fresh_labels)
       tree stmt;
       FOR_EACH_VEC_ELT (b->m_stmts, j, stmt)
 	{
-	  if (fresh_labels)
+	  if (for_cleanup)
 	    {
-	      tree copy = unshare_expr (stmt);
+	      /* Deep-copy the statement, then remap its labels.  We must use
+		 copy_tree_r rather than unshare_expr here: unshare_expr's
+		 mostly_copy_tree_r shares STATEMENT_LIST containers (it only
+		 copies their elements in place), so a nested TRY_CATCH/
+		 TRY_FINALLY body would be shared between the original and the
+		 duplicate.  copy_tree_r calls copy_statement_list, giving each
+		 duplicate its own independent statement lists; it stops at
+		 decls/types, so locals stay shared and label decls are left for
+		 jit_remap_label_r to redirect.  */
+	      tree copy = stmt;
+	      walk_tree (&copy, copy_tree_r, NULL, NULL);
 	      walk_tree (&copy, jit_remap_label_r, &label_map, NULL);
 	      append_to_statement_list (copy, &body);
 	    }
