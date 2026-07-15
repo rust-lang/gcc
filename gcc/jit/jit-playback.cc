@@ -2382,6 +2382,64 @@ set_personality_function (function *personality_function)
   DECL_FUNCTION_PERSONALITY (m_inner_fndecl) = personality_function->as_fndecl ();
 }
 
+/* Record a deferred try/finally, to be assembled by
+   assemble_deferred_cleanups once every block has been replayed.  */
+
+void
+playback::function::
+register_deferred_cleanup (tree try_finally, tree eh_else,
+			   recording::region *try_region,
+			   recording::region *cleanup_region)
+{
+  deferred_cleanup dc;
+  dc.m_try_finally = try_finally;
+  dc.m_eh_else = eh_else;
+  dc.m_try_region = try_region;
+  dc.m_cleanup_region = cleanup_region;
+  m_deferred_cleanups.safe_push (dc);
+}
+
+/* Assemble the bodies of the deferred try/finally constructs.  Called
+   after every block has been replayed (so each region block's statement
+   list is complete) but before build_stmt_list (which relies on the
+   region blocks having been marked so they are not also emitted as
+   ordinary top-level blocks).  */
+
+void
+playback::function::
+assemble_deferred_cleanups ()
+{
+  /* A cleanup region reached from several invokes is assembled once per
+     invoke; the first assembly uses the blocks' own labels, later ones are
+     duplicated with fresh labels (see assemble_region_body).  */
+  hash_set<recording::region *> assembled_cleanups;
+
+  unsigned i;
+  deferred_cleanup *dc;
+  FOR_EACH_VEC_ELT (m_deferred_cleanups, i, dc)
+    {
+      auto_vec<block *> try_blocks;
+      auto_vec<block *> cleanup_blocks;
+      unsigned j;
+      recording::block *rb;
+      FOR_EACH_VEC_ELT (dc->m_try_region->get_blocks (), j, rb)
+	try_blocks.safe_push (rb->playback_block ());
+      FOR_EACH_VEC_ELT (dc->m_cleanup_region->get_blocks (), j, rb)
+	cleanup_blocks.safe_push (rb->playback_block ());
+
+      /* A try region belongs to a single invoke, so it is never shared.  */
+      tree try_body = block::assemble_region_body (&try_blocks, false);
+      bool shared = assembled_cleanups.add (dc->m_cleanup_region);
+      tree cleanup_body
+	= block::assemble_region_body (&cleanup_blocks, shared);
+
+      /* TRY_FINALLY_EXPR operand 0 is the protected body; the EH_ELSE_EXPR
+	 operand 1 is the exceptional (cleanup) body.  */
+      TREE_OPERAND (dc->m_try_finally, 0) = try_body;
+      TREE_OPERAND (dc->m_eh_else, 1) = cleanup_body;
+    }
+}
+
 /* Build a statement list for the function as a whole out of the
    lists of statements for the individual blocks, building labels
    for each block.  */
@@ -2753,12 +2811,47 @@ end_with_fallthrough (location *loc)
   m_ends_with_fallthrough = true;
 }
 
+/* walk_tree callback: remap references to region-block labels to the fresh
+   labels created for the current assembly (see assemble_region_body).  */
+
+static tree
+jit_remap_label_r (tree *tp, int *walk_subtrees, void *data)
+{
+  hash_map<tree, tree> *label_map = (hash_map<tree, tree> *) data;
+  tree t = *tp;
+  if (TREE_CODE (t) == LABEL_DECL)
+    {
+      if (tree *fresh = label_map->get (t))
+	*tp = *fresh;
+      /* Do not descend into the label decl's own fields (DECL_CONTEXT
+	 points back at the whole function).  */
+      *walk_subtrees = 0;
+    }
+  else if (DECL_P (t) || TYPE_P (t))
+    /* Likewise, never walk into other decls/types.  */
+    *walk_subtrees = 0;
+  return NULL_TREE;
+}
+
 /* Lay out the blocks of an EH region (the protected body of a try, or the
    cleanup body of a try/finally) into a fresh GENERIC statement list,
    emitting each block as "label: <its statements>".  The first block is
    the region's entry.  Gotos between region blocks resolve to labels
    within the list; a goto to a block outside the region (e.g. the normal
    continuation) resolves to that block's own label.
+
+   Normally (FRESH_LABELS false) the blocks are laid out using their own
+   canonical labels and their statements are shared as-is.  This keeps
+   labels consistent across nested EH regions in the same function, so a
+   goto that crosses from one region body into another (e.g. a drop's
+   "terminate" guard) still resolves.
+
+   When a cleanup is reached from several invokes it is assembled once per
+   invoke, and a single LABEL_DECL must not appear in more than one finally
+   body (the middle-end rejects that).  For those extra copies FRESH_LABELS
+   is true: the block statements are deep-copied and their intra-region
+   gotos are remapped onto freshly-created labels, duplicating the cleanup
+   body per user -- the same trade-off LLVM's WinEH lowering makes.
 
    A block terminated by fall-through has no terminator of its own; such
    blocks are routed to a single trailing label at the end of the body, so
@@ -2769,39 +2862,63 @@ end_with_fallthrough (location *loc)
 
 tree
 playback::block::
-assemble_region_body (const auto_vec<block *> *blocks)
+assemble_region_body (const auto_vec<block *> *blocks, bool fresh_labels)
 {
-  tree body = alloc_stmt_list ();
-  tree end_label = NULL_TREE;
-
+  /* When duplicating, map each region block's canonical label to a fresh
+     label for this assembly.  */
+  hash_map<tree, tree> label_map;
+  tree fndecl = NULL_TREE;
   unsigned i;
   block *b;
   FOR_EACH_VEC_ELT (*blocks, i, b)
     {
-      b->m_label_expr = build1 (LABEL_EXPR, void_type_node,
-				b->as_label_decl ());
-      append_to_statement_list (b->m_label_expr, &body);
+      fndecl = b->get_function ()->as_fndecl ();
+      if (fresh_labels)
+	{
+	  tree fresh = create_artificial_label (UNKNOWN_LOCATION);
+	  DECL_CONTEXT (fresh) = fndecl;
+	  label_map.put (b->as_label_decl (), fresh);
+	}
+      /* These blocks are emitted here, not as normal top-level blocks.  */
+      b->m_is_try_or_catch = true;
+    }
+
+  tree body = alloc_stmt_list ();
+  tree end_label = NULL_TREE;
+  FOR_EACH_VEC_ELT (*blocks, i, b)
+    {
+      tree label = fresh_labels
+		   ? *label_map.get (b->as_label_decl ())
+		   : b->as_label_decl ();
+      append_to_statement_list (build1 (LABEL_EXPR, void_type_node, label),
+				&body);
 
       unsigned j;
       tree stmt;
       FOR_EACH_VEC_ELT (b->m_stmts, j, stmt)
-	append_to_statement_list (stmt, &body);
+	{
+	  if (fresh_labels)
+	    {
+	      tree copy = unshare_expr (stmt);
+	      walk_tree (&copy, jit_remap_label_r, &label_map, NULL);
+	      append_to_statement_list (copy, &body);
+	    }
+	  else
+	    append_to_statement_list (stmt, &body);
+	}
 
       if (b->m_ends_with_fallthrough)
 	{
 	  if (end_label == NULL_TREE)
 	    {
 	      end_label = create_artificial_label (UNKNOWN_LOCATION);
-	      DECL_CONTEXT (end_label) = b->get_function ()->as_fndecl ();
+	      DECL_CONTEXT (end_label) = fndecl;
 	    }
 	  TREE_USED (end_label) = 1;
 	  append_to_statement_list (build1 (GOTO_EXPR, void_type_node,
 					    end_label),
 				    &body);
 	}
-
-      /* This block is emitted here, not as a normal top-level block.  */
-      b->m_is_try_or_catch = true;
     }
 
   /* Place the shared exit label last, with nothing after it, so the body
@@ -2823,22 +2940,25 @@ assemble_region_body (const auto_vec<block *> *blocks)
 void
 playback::block::
 add_cleanup (location *loc,
-	     const auto_vec<block *> *try_blocks,
-	     const auto_vec<block *> *cleanup_blocks)
+	     recording::region *try_region,
+	     recording::region *cleanup_region)
 {
-  tree try_body = assemble_region_body (try_blocks);
-  tree cleanup_body = assemble_region_body (cleanup_blocks);
-
-  /* The normal-completion branch of the EH_ELSE is empty: the cleanup
-     runs on the unwind path only.  */
-  tree normal_body = alloc_stmt_list ();
+  /* Emit a placeholder TRY_FINALLY now so that it lands at the correct
+     position in this block (before the block's terminator).  Its bodies
+     are assembled later, once every block has been replayed, because the
+     cleanup subgraph may still be incomplete at this point (see
+     playback::function::assemble_deferred_cleanups).  The normal-completion
+     branch of the EH_ELSE stays empty: the cleanup runs on the unwind path
+     only, then resumes.  */
   tree eh_else = build2 (EH_ELSE_EXPR, void_type_node,
-			 normal_body, cleanup_body);
+			 alloc_stmt_list (), alloc_stmt_list ());
   tree try_finally = build2 (TRY_FINALLY_EXPR, void_type_node,
-			     try_body, eh_else);
+			     alloc_stmt_list (), eh_else);
   if (loc)
     set_tree_location (try_finally, loc);
   add_stmt (try_finally);
+  m_func->register_deferred_cleanup (try_finally, eh_else,
+				     try_region, cleanup_region);
 }
 
 /* Helper function for playback::block::add_switch.
@@ -3951,6 +4071,18 @@ replay ()
   bm->ensure_optimization_builtins_exist ();
 
   m_recording_ctxt->replay_into (this);
+
+  /* Assemble any deferred try/finally bodies now that every block has been
+     replayed (so cleanup subgraphs are complete).  This must happen before
+     disassociate_from_playback (below), since it resolves recording blocks
+     to their playback blocks.  */
+  if (!errors_occurred ())
+    {
+      int i;
+      function *func;
+      FOR_EACH_VEC_ELT (m_functions, i, func)
+	func->assemble_deferred_cleanups ();
+    }
 
   /* Clean away the temporary references from recording objects
      to playback objects.  We have to do this now since the

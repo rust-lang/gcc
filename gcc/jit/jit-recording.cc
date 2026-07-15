@@ -4764,10 +4764,23 @@ recording::region::new_block (const char *name)
   recording::block *result =
     new recording::block (func, func->m_blocks.length (), new_string (name));
   result->m_region = this;
+  /* Region blocks are reached structurally by the EH construct, not as
+     successors of other blocks, so keep the reachability check happy.  */
+  result->m_is_reachable = true;
   m_ctxt->record (result);
   func->m_blocks.safe_push (result);
   m_blocks.safe_push (result);
   return result;
+}
+
+/* Adopt an existing block into this region.  See the header comment.  */
+
+void
+recording::region::add_block (recording::block *b)
+{
+  b->m_region = this;
+  b->m_is_reachable = true;
+  m_blocks.safe_push (b);
 }
 
 /* Implementation of recording::memento::make_debug_string for regions.  */
@@ -5398,12 +5411,6 @@ recording::block::add_cleanup (recording::location *loc,
 			       recording::region *cleanup_region)
 {
   statement *result = new cleanup (this, loc, try_region, cleanup_region);
-  int i;
-  block *b;
-  FOR_EACH_VEC_ELT (try_region->get_blocks (), i, b)
-    b->m_is_reachable = true;
-  FOR_EACH_VEC_ELT (cleanup_region->get_blocks (), i, b)
-    b->m_is_reachable = true;
   m_ctxt->record (result);
   m_statements.safe_push (result);
   return result;
@@ -7955,16 +7962,14 @@ recording::try_catch::write_reproducer (reproducer &r)
 void
 recording::cleanup::replay_into (replayer *r)
 {
-  auto_vec<playback::block *> try_blocks;
-  auto_vec<playback::block *> cleanup_blocks;
-  int i;
-  block *b;
-  FOR_EACH_VEC_ELT (m_try_region->get_blocks (), i, b)
-    try_blocks.safe_push (b->playback_block ());
-  FOR_EACH_VEC_ELT (m_cleanup_region->get_blocks (), i, b)
-    cleanup_blocks.safe_push (b->playback_block ());
+  /* The cleanup subgraph may not be fully recorded yet (e.g. a cg_gcc
+     drop chain is emitted after the invoke that references it), so we
+     cannot assemble the region bodies now.  Emit a placeholder
+     TRY_FINALLY at the right position and defer assembly until after all
+     blocks have been replayed (see playback::function::
+     assemble_deferred_cleanups).  */
   playback_block (get_block ())
-    ->add_cleanup (playback_location (r), &try_blocks, &cleanup_blocks);
+    ->add_cleanup (playback_location (r), m_try_region, m_cleanup_region);
 }
 
 /* Implementation of recording::memento::make_debug_string for

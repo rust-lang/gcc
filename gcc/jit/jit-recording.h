@@ -1842,6 +1842,12 @@ public:
 
   block *new_block (const char *name);
 
+  /* Adopt an existing block (created via gcc_jit_function_new_block) into
+     this region.  Intended for frontends whose block creation is driven
+     externally and so cannot use new_block; the block must not also be
+     reached as an ordinary block.  */
+  void add_block (block *b);
+
   const auto_vec<block *> &get_blocks () const { return m_blocks; }
 
   void replay_into (replayer *) final override {}

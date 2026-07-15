@@ -1605,6 +1605,20 @@ extern gcc_jit_block *
 gcc_jit_region_new_block (gcc_jit_region *region,
 			  const char *name);
 
+/* Adopt an existing block (created via gcc_jit_function_new_block) into
+   REGION.  This is an escape hatch for frontends whose block creation is
+   driven externally and so cannot use gcc_jit_region_new_block; the block
+   must belong to the region's function and must not also be reached as an
+   ordinary block.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_region
+*/
+extern void
+gcc_jit_region_add_block (gcc_jit_region *region,
+			  gcc_jit_block *block);
+
 /* Add a cleanup: the CLEANUP_REGION runs only on the unwind path out of
    TRY_REGION, and then unwinding resumes (the middle-end synthesizes the
    appropriate context-sensitive resume).  Both regions may span several

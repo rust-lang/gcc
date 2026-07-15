@@ -3180,6 +3180,27 @@ gcc_jit_region_new_block (gcc_jit_region *region, const char *name)
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::region::add_block method in jit-recording.cc.  */
+
+void
+gcc_jit_region_add_block (gcc_jit_region *region, gcc_jit_block *block)
+{
+  RETURN_IF_FAIL (region, NULL, NULL, "NULL region");
+  gcc::jit::recording::context *ctxt = region->m_ctxt;
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_IF_FAIL (block, ctxt, NULL, "NULL block");
+  RETURN_IF_FAIL_PRINTF1 (
+    region->get_function () == block->get_function (),
+    ctxt, NULL,
+    "block %s is not in the same function as the region",
+    block->get_debug_string ());
+
+  region->add_block (block);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::block::add_cleanup method in jit-recording.cc.  */
 
 void

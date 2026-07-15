@@ -616,6 +616,24 @@ public:
   void
   build_stmt_list ();
 
+  /* A try/finally whose bodies are assembled after all blocks have been
+     replayed (see playback::block::add_cleanup).  */
+  struct deferred_cleanup
+  {
+    tree m_try_finally;
+    tree m_eh_else;
+    recording::region *m_try_region;
+    recording::region *m_cleanup_region;
+  };
+
+  void
+  register_deferred_cleanup (tree try_finally, tree eh_else,
+			     recording::region *try_region,
+			     recording::region *cleanup_region);
+
+  void
+  assemble_deferred_cleanups ();
+
   void
   postprocess ();
 
@@ -637,6 +655,7 @@ private:
   tree m_stmt_list;
   tree_stmt_iterator m_stmt_iter;
   vec<block *> m_blocks;
+  auto_vec<deferred_cleanup> m_deferred_cleanups;
 };
 
 struct case_
@@ -691,11 +710,11 @@ public:
 
   void
   add_cleanup (location *loc,
-	       const auto_vec<block *> *try_blocks,
-	       const auto_vec<block *> *cleanup_blocks);
+	       recording::region *try_region,
+	       recording::region *cleanup_region);
 
   static tree
-  assemble_region_body (const auto_vec<block *> *blocks);
+  assemble_region_body (const auto_vec<block *> *blocks, bool fresh_labels);
 
   void
   add_assignment (location *loc,
