@@ -1479,9 +1479,11 @@ public:
      functions and constants are shared; expression nodes are deep-copied
      (their sub-rvalues cloned via CLONER, which memoizes).  A cloned
      statement thus references fresh mementos and replays into fresh trees,
-     so a duplicated block shares no trees with its original.  The base
-     reports an error for kinds not expected in a cloned body.  */
-  virtual rvalue *clone_rvalue (block_cloner &cloner);
+     so a duplicated block shares no trees with its original.  Pure so every
+     concrete rvalue kind must provide a clone -- gcc_jit_blocks_clone stays
+     fully generic, and adding a new rvalue kind forces a clone at compile
+     time.  */
+  virtual rvalue *clone_rvalue (block_cloner &cloner) = 0;
 
 private:
   virtual enum precedence get_precedence () const = 0;
@@ -2161,6 +2163,21 @@ private:
     return PRECEDENCE_PRIMARY;
   }
 
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    auto_vec<rvalue *> elements (m_elements.length ());
+    unsigned i;
+    rvalue *e;
+    FOR_EACH_VEC_ELT (m_elements, i, e)
+      elements.quick_push (cloner.clone_rvalue (e));
+    rvalue *c = new memento_of_new_rvalue_from_vector (m_ctxt, m_loc,
+						       m_vector_type,
+						       elements.address ());
+    m_ctxt->record (c);
+    return c;
+  }
+
 private:
   vector_type *m_vector_type;
   auto_vec<rvalue *> m_elements;
@@ -2185,6 +2202,18 @@ private:
   enum precedence get_precedence () const final override
   {
     return PRECEDENCE_PRIMARY;
+  }
+
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new memento_of_new_rvalue_vector_perm (
+      m_ctxt, m_loc,
+      cloner.clone_rvalue (m_elements1),
+      cloner.clone_rvalue (m_elements2),
+      cloner.clone_rvalue (m_mask));
+    m_ctxt->record (c);
+    return c;
   }
 
 private:
@@ -2215,6 +2244,18 @@ private:
   }
 
 public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    ctor *c = new ctor (m_ctxt, m_loc, get_type ());
+    c->m_fields.safe_splice (m_fields);
+    unsigned i;
+    rvalue *v;
+    FOR_EACH_VEC_ELT (m_values, i, v)
+      c->m_values.safe_push (cloner.clone_rvalue (v));
+    m_ctxt->record (c);
+    return c;
+  }
+
   auto_vec<field *> m_fields;
   auto_vec<rvalue *> m_values;
 };
@@ -2443,6 +2484,15 @@ private:
     return PRECEDENCE_POSTFIX;
   }
 
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new va_arg_expr (m_ctxt, m_loc, cloner.clone_rvalue (m_ap),
+				 get_type ());
+    m_ctxt->record (c);
+    return c;
+  }
+
 private:
   rvalue *m_ap;
 };
@@ -2617,6 +2667,15 @@ private:
     return PRECEDENCE_POSTFIX;
   }
 
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new convert_vector (m_ctxt, m_loc,
+				    cloner.clone_rvalue (m_vector), m_type);
+    m_ctxt->record (c);
+    return c;
+  }
+
 private:
   rvalue *m_vector;
   type *m_type;
@@ -2649,6 +2708,16 @@ private:
   enum precedence get_precedence () const final override
   {
     return PRECEDENCE_POSTFIX;
+  }
+
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    lvalue *c = new vector_access (m_ctxt, m_loc,
+				   cloner.clone_rvalue (m_vector),
+				   cloner.clone_rvalue (m_index));
+    m_ctxt->record (c);
+    return c;
   }
 
 private:

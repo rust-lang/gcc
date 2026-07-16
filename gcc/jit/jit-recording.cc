@@ -4926,17 +4926,6 @@ recording::block_cloner::clone_lvalue (lvalue *l)
   return static_cast <lvalue *> (clone_rvalue (l));
 }
 
-/* Default implementation of recording::rvalue::clone_rvalue: reject rvalue
-   kinds not expected in a cloned (cleanup) body.  Decls, constants and the
-   expression kinds that appear override this.  */
-
-recording::rvalue *
-recording::rvalue::clone_rvalue (block_cloner &)
-{
-  m_ctxt->add_error (m_loc, "cloning this kind of rvalue is not supported");
-  return this;
-}
-
 /* Implementation of recording::memento::make_debug_string for regions.  */
 
 recording::string *
