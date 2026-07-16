@@ -151,6 +151,7 @@ namespace recording {
     class case_;
     class memento_of_get_aligned;
   class top_level_asm;
+  class block_cloner;
 
   /* End of recording types. */
 }
