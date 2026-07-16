@@ -1759,8 +1759,8 @@ gcc_jit_block_end_with_void_return (gcc_jit_block *block,
    structured construct, rather than by an explicit jump, return or
    resume.
 
-   This is intended for the exceptional (cleanup) body of a
-   try/finally created with gcc_jit_block_add_try_finally: leaving that
+   This is intended for the cleanup body of a region used with
+   gcc_jit_block_add_cleanup: leaving that
    body by fall-through lets the middle-end synthesize the appropriate
    context-sensitive "resume" (RESX) that continues unwinding into the
    enclosing exception region, or calls _Unwind_Resume at the function
