@@ -1612,6 +1612,19 @@ gcc_jit_region_add_block (gcc_jit_region *region,
 
 #define LIBGCCJIT_HAVE_REGION
 
+/* Clone blocks into out_clones.
+   References to the original blocks are ajusted to the cloned blocks.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_53; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_region
+*/
+extern void
+gcc_jit_blocks_clone (int num_blocks,
+		      gcc_jit_block **blocks,
+		      gcc_jit_block **out_clones);
+
+
 /* Add evaluation of an rvalue, assigning the result to the given
    lvalue.
 
