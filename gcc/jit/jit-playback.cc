@@ -2418,17 +2418,22 @@ assemble_deferred_cleanups ()
       auto_vec<block *> cleanup_blocks;
       unsigned j;
       recording::block *rb;
+      /* Every block adopted into a region is a real, replayed function block,
+	 so it must have a playback block here (assembly runs after replay_into
+	 and before disassociate_from_playback).  A NULL would mean a region
+	 references a block that was never replayed -- a bug, not something to
+	 paper over by dropping the block from the cleanup.  */
       FOR_EACH_VEC_ELT (dc->m_try_region->get_blocks (), j, rb)
 	{
 	  block *pb = rb->playback_block ();
-	  if (pb)
-	    try_blocks.safe_push (pb);
+	  gcc_assert (pb);
+	  try_blocks.safe_push (pb);
 	}
       FOR_EACH_VEC_ELT (dc->m_cleanup_region->get_blocks (), j, rb)
 	{
 	  block *pb = rb->playback_block ();
-	  if (pb)
-	    cleanup_blocks.safe_push (pb);
+	  gcc_assert (pb);
+	  cleanup_blocks.safe_push (pb);
 	}
 
       tree try_body
