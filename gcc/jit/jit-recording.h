@@ -1475,6 +1475,14 @@ public:
   virtual bool is_constant () const { return false; }
   virtual bool get_wide_int (wide_int *) const { return false; }
 
+  /* Clone this rvalue's expression sub-DAG through CLONER: decls, types,
+     functions and constants are shared; expression nodes are deep-copied
+     (their sub-rvalues cloned via CLONER, which memoizes).  A cloned
+     statement thus references fresh mementos and replays into fresh trees,
+     so a duplicated block shares no trees with its original.  The base
+     reports an error for kinds not expected in a cloned body.  */
+  virtual rvalue *clone_rvalue (block_cloner &cloner);
+
 private:
   virtual enum precedence get_precedence () const = 0;
 
@@ -1571,6 +1579,9 @@ public:
   void replay_into (replayer *r) final override;
 
   void visit_children (rvalue_visitor *) final override {}
+
+  /* A parameter is a decl; share it (the clone refers to the same param).  */
+  rvalue *clone_rvalue (block_cloner &) final override { return this; }
 
   playback::param *
   playback_param () const
@@ -1901,6 +1912,14 @@ public:
      to blocks outside the cloned set).  */
   block *remap (block *b);
 
+  /* Clone an rvalue/lvalue expression sub-DAG (memoized), so a cloned
+     statement references fresh mementos.  Decls, types, functions and
+     constants are shared; expression nodes are deep-copied.  clone_lvalue
+     is clone_rvalue specialized to the lvalue result type (the clone of an
+     lvalue is an lvalue).  */
+  rvalue *clone_rvalue (rvalue *r);
+  lvalue *clone_lvalue (lvalue *l);
+
   /* Build a fresh region holding the (remapped) clones of ORIG's blocks
      (which were cloned during discovery).  */
   region *clone_region (region *orig);
@@ -1920,6 +1939,7 @@ private:
   hash_map<block *, block *> m_map;   /* original -> clone */
   auto_vec<block *> m_worklist;       /* originals awaiting discovery */
   auto_vec<block *> m_all;            /* every original cloned, in order */
+  hash_map<rvalue *, rvalue *> m_expr_map;  /* original -> clone (memoized) */
 };
 
 class global : public lvalue
@@ -1945,6 +1965,9 @@ public:
   void replay_into (replayer *) final override;
 
   void visit_children (rvalue_visitor *) final override {}
+
+  /* A global is a decl; share it.  */
+  rvalue *clone_rvalue (block_cloner &) final override { return this; }
 
   void write_to_dump (dump &d) final override;
 
@@ -2019,6 +2042,9 @@ public:
 
   bool is_constant () const final override { return true; }
 
+  /* A constant is immutable; share it.  */
+  rvalue *clone_rvalue (block_cloner &) final override { return this; }
+
   bool get_wide_int (wide_int *out) const final override;
 
 private:
@@ -2056,6 +2082,10 @@ private:
     return PRECEDENCE_PRIMARY;
   }
 
+public:
+  /* Refers to a shared type via a size/align constant; share it.  */
+  rvalue *clone_rvalue (block_cloner &) final override { return this; }
+
 private:
   type *m_type;
   type_info_type m_info_type;
@@ -2081,6 +2111,10 @@ private:
   {
     return PRECEDENCE_PRIMARY;
   }
+
+public:
+  /* A string literal is immutable; share it.  */
+  rvalue *clone_rvalue (block_cloner &) final override { return this; }
 
 private:
   string *m_value;
@@ -2210,6 +2244,15 @@ private:
     return PRECEDENCE_UNARY;
   }
 
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new unary_op (m_ctxt, m_loc, m_op, get_type (),
+			      cloner.clone_rvalue (m_a));
+    m_ctxt->record (c);
+    return c;
+  }
+
 private:
   enum gcc_jit_unary_op m_op;
   rvalue *m_a;
@@ -2236,6 +2279,16 @@ private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
   enum precedence get_precedence () const final override;
+
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new binary_op (m_ctxt, m_loc, m_op, get_type (),
+			       cloner.clone_rvalue (m_a),
+			       cloner.clone_rvalue (m_b));
+    m_ctxt->record (c);
+    return c;
+  }
 
 private:
   enum gcc_jit_binary_op m_op;
@@ -2281,6 +2334,16 @@ private:
   void write_reproducer (reproducer &r) final override;
   enum precedence get_precedence () const final override;
 
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new comparison (m_ctxt, m_loc, m_op,
+			       cloner.clone_rvalue (m_a),
+			       cloner.clone_rvalue (m_b));
+    m_ctxt->record (c);
+    return c;
+  }
+
 private:
   enum gcc_jit_comparison m_op;
   rvalue *m_a;
@@ -2297,6 +2360,14 @@ public:
   : rvalue (ctxt, loc, type_),
     m_rvalue (a)
   {}
+
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new cast (m_ctxt, m_loc, cloner.clone_rvalue (m_rvalue),
+			  get_type ());
+    m_ctxt->record (c);
+    return c;
+  }
 
   void replay_into (replayer *r) final override;
 
@@ -2324,6 +2395,14 @@ public:
   : rvalue (ctxt, loc, type_),
     m_rvalue (a)
   {}
+
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new bitcast (m_ctxt, m_loc, cloner.clone_rvalue (m_rvalue),
+			     get_type ());
+    m_ctxt->record (c);
+    return c;
+  }
 
   void replay_into (replayer *r) final override;
 
@@ -2414,6 +2493,21 @@ private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
 
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    auto_vec<rvalue *> args (m_args.length ());
+    unsigned i;
+    rvalue *a;
+    FOR_EACH_VEC_ELT (m_args, i, a)
+      args.quick_push (cloner.clone_rvalue (a));
+    call *c = new call (m_ctxt, m_loc, m_func, args.length (),
+			args.address ());
+    c->set_require_tail_call (m_require_tail_call);
+    m_ctxt->record (c);
+    return c;
+  }
+
 private:
   function *m_func;
 };
@@ -2434,6 +2528,23 @@ public:
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
+
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    auto_vec<rvalue *> args (m_args.length ());
+    unsigned i;
+    rvalue *a;
+    FOR_EACH_VEC_ELT (m_args, i, a)
+      args.quick_push (cloner.clone_rvalue (a));
+    call_through_ptr *c
+      = new call_through_ptr (m_ctxt, m_loc,
+			      cloner.clone_rvalue (m_fn_ptr),
+			      args.length (), args.address ());
+    c->set_require_tail_call (m_require_tail_call);
+    m_ctxt->record (c);
+    return c;
+  }
 
 private:
   rvalue *m_fn_ptr;
@@ -2465,6 +2576,16 @@ private:
   enum precedence get_precedence () const final override
   {
     return PRECEDENCE_POSTFIX;
+  }
+
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    lvalue *c = new array_access (m_ctxt, m_loc,
+				  cloner.clone_rvalue (m_ptr),
+				  cloner.clone_rvalue (m_index));
+    m_ctxt->record (c);
+    return c;
   }
 
 private:
@@ -2564,6 +2685,16 @@ private:
     return PRECEDENCE_POSTFIX;
   }
 
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    lvalue *c = new access_field_of_lvalue (m_ctxt, m_loc,
+					    cloner.clone_lvalue (m_lvalue),
+					    m_field);
+    m_ctxt->record (c);
+    return c;
+  }
+
 private:
   lvalue *m_lvalue;
   field *m_field;
@@ -2580,6 +2711,15 @@ public:
     m_rvalue (val),
     m_field (field)
   {}
+
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new access_field_rvalue (m_ctxt, m_loc,
+					 cloner.clone_rvalue (m_rvalue),
+					 m_field);
+    m_ctxt->record (c);
+    return c;
+  }
 
   void replay_into (replayer *r) final override;
 
@@ -2609,6 +2749,15 @@ public:
     m_rvalue (val),
     m_field (field)
   {}
+
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    lvalue *c = new dereference_field_rvalue (m_ctxt, m_loc,
+					      cloner.clone_rvalue (m_rvalue),
+					      m_field);
+    m_ctxt->record (c);
+    return c;
+  }
 
   void replay_into (replayer *r) final override;
 
@@ -2641,6 +2790,14 @@ public:
   : lvalue (ctxt, loc, val->get_type ()->dereference ()),
     m_rvalue (val) {}
 
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    lvalue *c = new dereference_rvalue (m_ctxt, m_loc,
+					cloner.clone_rvalue (m_rvalue));
+    m_ctxt->record (c);
+    return c;
+  }
+
   void replay_into (replayer *r) final override;
 
   void visit_children (rvalue_visitor *v) final override;
@@ -2671,6 +2828,14 @@ public:
   : rvalue (ctxt, loc, val->get_type ()->get_pointer ()),
     m_lvalue (val)
   {}
+
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    rvalue *c = new get_address_of_lvalue (m_ctxt, m_loc,
+					   cloner.clone_lvalue (m_lvalue));
+    m_ctxt->record (c);
+    return c;
+  }
 
   void replay_into (replayer *r) final override;
 
@@ -2710,6 +2875,15 @@ private:
     return PRECEDENCE_UNARY;
   }
 
+public:
+  rvalue *clone_rvalue (block_cloner &cloner) final override
+  {
+    (void) cloner;
+    rvalue *c = new function_pointer (m_ctxt, m_loc, m_fn, get_type ());
+    m_ctxt->record (c);
+    return c;
+  }
+
 private:
   function *m_fn;
 };
@@ -2728,6 +2902,9 @@ public:
   void replay_into (replayer *r) final override;
 
   void visit_children (rvalue_visitor *) final override {}
+
+  /* A local is a decl; share it (the clone refers to the same variable).  */
+  rvalue *clone_rvalue (block_cloner &) final override { return this; }
 
   bool is_local () const final override { return true; }
 

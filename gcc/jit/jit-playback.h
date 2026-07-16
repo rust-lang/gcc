@@ -714,7 +714,7 @@ public:
 	       recording::region *cleanup_region);
 
   static tree
-  assemble_region_body (const auto_vec<block *> *blocks, bool for_cleanup);
+  assemble_region_body (const auto_vec<block *> *blocks);
 
   void
   add_assignment (location *loc,

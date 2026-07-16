@@ -4902,6 +4902,41 @@ recording::block_cloner::copy_statements ()
     }
 }
 
+/* Clone an rvalue expression sub-DAG (memoized), so a cloned statement
+   references fresh mementos and thus replays into fresh trees.  The per-kind
+   work is done by recording::rvalue::clone_rvalue; here we just memoize.  */
+
+recording::rvalue *
+recording::block_cloner::clone_rvalue (rvalue *r)
+{
+  if (!r)
+    return NULL;
+  if (rvalue **existing = m_expr_map.get (r))
+    return *existing;
+  rvalue *clone = r->clone_rvalue (*this);
+  m_expr_map.put (r, clone);
+  return clone;
+}
+
+/* As clone_rvalue, but for an lvalue: the clone of an lvalue is an lvalue.  */
+
+recording::lvalue *
+recording::block_cloner::clone_lvalue (lvalue *l)
+{
+  return static_cast <lvalue *> (clone_rvalue (l));
+}
+
+/* Default implementation of recording::rvalue::clone_rvalue: reject rvalue
+   kinds not expected in a cloned (cleanup) body.  Decls, constants and the
+   expression kinds that appear override this.  */
+
+recording::rvalue *
+recording::rvalue::clone_rvalue (block_cloner &)
+{
+  m_ctxt->add_error (m_loc, "cloning this kind of rvalue is not supported");
+  return this;
+}
+
 /* Implementation of recording::memento::make_debug_string for regions.  */
 
 recording::string *
@@ -7989,21 +8024,23 @@ recording::statement::clone_into (block_cloner &, block *) const
    become the clones; references outside it are preserved.  */
 
 void
-recording::eval::clone_into (block_cloner &, block *dest) const
+recording::eval::clone_into (block_cloner &cloner, block *dest) const
 {
-  dest->add_eval (get_loc (), m_rvalue);
+  dest->add_eval (get_loc (), cloner.clone_rvalue (m_rvalue));
 }
 
 void
-recording::assignment::clone_into (block_cloner &, block *dest) const
+recording::assignment::clone_into (block_cloner &cloner, block *dest) const
 {
-  dest->add_assignment (get_loc (), m_lvalue, m_rvalue);
+  dest->add_assignment (get_loc (), cloner.clone_lvalue (m_lvalue),
+			cloner.clone_rvalue (m_rvalue));
 }
 
 void
-recording::assignment_op::clone_into (block_cloner &, block *dest) const
+recording::assignment_op::clone_into (block_cloner &cloner, block *dest) const
 {
-  dest->add_assignment_op (get_loc (), m_lvalue, m_op, m_rvalue);
+  dest->add_assignment_op (get_loc (), cloner.clone_lvalue (m_lvalue), m_op,
+			   cloner.clone_rvalue (m_rvalue));
 }
 
 void
@@ -8015,7 +8052,7 @@ recording::comment::clone_into (block_cloner &, block *dest) const
 void
 recording::conditional::clone_into (block_cloner &cloner, block *dest) const
 {
-  dest->end_with_conditional (get_loc (), m_boolval,
+  dest->end_with_conditional (get_loc (), cloner.clone_rvalue (m_boolval),
 			      cloner.remap (m_on_true),
 			      cloner.remap (m_on_false));
 }
@@ -8027,9 +8064,9 @@ recording::jump::clone_into (block_cloner &cloner, block *dest) const
 }
 
 void
-recording::return_::clone_into (block_cloner &, block *dest) const
+recording::return_::clone_into (block_cloner &cloner, block *dest) const
 {
-  dest->end_with_return (get_loc (), m_rvalue);
+  dest->end_with_return (get_loc (), cloner.clone_rvalue (m_rvalue));
 }
 
 void
@@ -8045,10 +8082,10 @@ recording::switch_::clone_into (block_cloner &cloner, block *dest) const
   unsigned i;
   case_ *c;
   FOR_EACH_VEC_ELT (m_cases, i, c)
-    cases.safe_push (m_ctxt->new_case (c->get_min_value (),
-				       c->get_max_value (),
+    cases.safe_push (m_ctxt->new_case (cloner.clone_rvalue (c->get_min_value ()),
+				       cloner.clone_rvalue (c->get_max_value ()),
 				       cloner.remap (c->get_dest_block ())));
-  dest->end_with_switch (get_loc (), m_expr,
+  dest->end_with_switch (get_loc (), cloner.clone_rvalue (m_expr),
 			 cloner.remap (m_default_block),
 			 cases.length (), cases.address ());
 }

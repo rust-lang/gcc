@@ -31,7 +31,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "dumpfile.h"
 #include "toplev.h"
 #include "tree-cfg.h"
-#include "tree-inline.h"
 #include "convert.h"
 #include "gimple-expr.h"
 #include "stor-layout.h"
@@ -2437,9 +2436,9 @@ assemble_deferred_cleanups ()
 	}
 
       tree try_body
-	= block::assemble_region_body (&try_blocks, /*for_cleanup=*/false);
+	= block::assemble_region_body (&try_blocks);
       tree cleanup_body
-	= block::assemble_region_body (&cleanup_blocks, /*for_cleanup=*/true);
+	= block::assemble_region_body (&cleanup_blocks);
 
       /* TRY_FINALLY_EXPR operand 0 is the protected body; the EH_ELSE_EXPR
 	 operand 1 is the exceptional (cleanup) body.  */
@@ -2832,19 +2831,11 @@ end_with_fallthrough (location *loc)
    is why no label remapping is needed here: distinct blocks already carry
    distinct labels, including switch-case labels.
 
-   A cleanup body (FOR_CLEANUP) still needs its GENERIC *trees* unshared from
-   the original blocks: a cloned block's statements reference the same rvalue
-   mementos as the originals, so at playback they share the same expression
-   trees (e.g. the drop-call CALL_EXPRs, including those nested inside a
-   terminate guard's TRY_CATCH_EXPR).  The originals are still emitted as
-   ordinary (dead, DCE'd) top-level blocks -- so any residual reference to a
-   canonical label, e.g. a normal-path goto into shared drop code, resolves --
-   and if the same tree were left shared, the dead top-level copy would
-   consume it.  copy_tree_r (via copy_statement_list) gives the cleanup body
-   its own independent trees; it stops at decls, so locals and the region's
-   own labels stay shared within this one copy, which is consistent.  A try
-   region belongs to a single invoke and has no dead twin, so its trees are
-   used once and need no copy.
+   No tree unsharing is needed: the frontend clones the whole recording
+   subgraph -- statements AND their rvalue/lvalue mementos (see
+   recording::block_cloner) -- so a cloned block replays into entirely fresh
+   trees, sharing nothing with the original blocks (which may still be emitted
+   as ordinary top-level blocks).
 
    A block terminated by fall-through has no terminator of its own; such
    blocks are routed to a single trailing label at the end of the body, so
@@ -2855,7 +2846,7 @@ end_with_fallthrough (location *loc)
 
 tree
 playback::block::
-assemble_region_body (const auto_vec<block *> *blocks, bool for_cleanup)
+assemble_region_body (const auto_vec<block *> *blocks)
 {
   tree body = alloc_stmt_list ();
   tree end_label = NULL_TREE;
@@ -2876,23 +2867,7 @@ assemble_region_body (const auto_vec<block *> *blocks, bool for_cleanup)
       unsigned j;
       tree stmt;
       FOR_EACH_VEC_ELT (b->m_stmts, j, stmt)
-	{
-	  if (for_cleanup)
-	    {
-	      /* Unshare the trees from the dead top-level originals.  We must
-		 use copy_tree_r rather than unshare_expr: unshare_expr's
-		 mostly_copy_tree_r shares STATEMENT_LIST containers, so a
-		 nested TRY_CATCH body (a terminate guard) would stay shared.
-		 copy_tree_r calls copy_statement_list, giving each duplicate
-		 its own statement lists; it stops at decls, so locals and the
-		 clone's own labels stay shared within this copy.  */
-	      tree copy = stmt;
-	      walk_tree (&copy, copy_tree_r, NULL, NULL);
-	      append_to_statement_list (copy, &body);
-	    }
-	  else
-	    append_to_statement_list (stmt, &body);
-	}
+	append_to_statement_list (stmt, &body);
 
       if (b->m_ends_with_fallthrough)
 	{
