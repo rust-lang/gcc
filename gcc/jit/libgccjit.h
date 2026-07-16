@@ -1620,10 +1620,13 @@ gcc_jit_region_add_block (gcc_jit_region *region,
 			  gcc_jit_block *block);
 
 /* Clone the given BLOCKS (and, transitively, any blocks they structurally
-   inline, such as a try/catch's try and handler blocks) and adopt the clones
-   as REGION's body, in the given order (the first is the region's entry).
-   References among the cloned set are remapped to the clones; references to
-   blocks outside the set are preserved.  The originals are left untouched.
+   inline, such as a try/catch's try and handler blocks), writing the clone
+   of each BLOCKS[i] to OUT_CLONES[i].  References among the cloned set are
+   remapped to the clones; references to blocks outside the set are preserved.
+   The originals are left untouched.  The clones are loose blocks: they are
+   not placed in any region, so the caller decides where they go (e.g. adopts
+   them into a region with gcc_jit_region_add_block).  All blocks must belong
+   to the same function.  OUT_CLONES must have room for NUM_BLOCKS entries.
 
    This lets a frontend keep the policy of duplicating a shared cleanup body
    per unwind edge (as a landing-pad-based frontend must) without libgccjit
@@ -1634,9 +1637,9 @@ gcc_jit_region_add_block (gcc_jit_region *region,
      #ifdef LIBGCCJIT_HAVE_gcc_jit_region
 */
 extern void
-gcc_jit_region_add_cloned_blocks (gcc_jit_region *region,
-				  int num_blocks,
-				  gcc_jit_block **blocks);
+gcc_jit_blocks_clone (int num_blocks,
+		      gcc_jit_block **blocks,
+		      gcc_jit_block **out_clones);
 
 /* Add a cleanup: the CLEANUP_REGION runs only on the unwind path out of
    TRY_REGION, and then unwinding resumes (the middle-end synthesizes the

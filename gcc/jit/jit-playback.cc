@@ -2825,7 +2825,7 @@ end_with_fallthrough (location *loc)
    the region's entry.
 
    The frontend is responsible for giving each unwind edge its own copy of a
-   shared cleanup body (e.g. via gcc_jit_region_add_cloned_blocks), so a
+   shared cleanup body (e.g. via gcc_jit_blocks_clone), so a
    region's blocks are unique -- each is laid out with its own label (the
    clones replay into distinct label decls) and marked m_is_try_or_catch so
    build_stmt_list does not also emit it as an ordinary top-level block.  This

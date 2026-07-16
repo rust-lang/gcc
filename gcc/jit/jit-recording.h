@@ -1642,6 +1642,15 @@ public:
   region *
   new_region (location *loc);
 
+  /* Clone SRC[0..num_blocks-1] (and, transitively, the blocks they inline)
+     into this function, writing the clone of each SRC[i] to DST[i].
+     References among the cloned set are remapped to the clones; references
+     to blocks outside it are preserved.  The clones are loose blocks (not
+     placed in any region); the caller decides where they go.  See
+     block_cloner.  */
+  void
+  clone_blocks (int num_blocks, block **src, block **dst);
+
   location *get_loc () const { return m_loc; }
   void set_loc (location * loc) { m_loc = loc; }
   type *get_return_type () const { return m_return_type; }
@@ -1849,14 +1858,6 @@ public:
      externally and so cannot use new_block; the block must not also be
      reached as an ordinary block.  */
   void add_block (block *b);
-
-  /* Clone the given BLOCKS (and, transitively, any blocks they structurally
-     inline) and adopt the clones as this region's body, in the given order
-     (the first is the region's entry).  The originals are left untouched.
-     This lets a frontend keep the policy of duplicating a shared cleanup
-     body per unwind edge, without libgccjit having to duplicate GENERIC
-     trees at playback.  See block_cloner.  */
-  void add_cloned_blocks (int num_blocks, block **blocks);
 
   const auto_vec<block *> &get_blocks () const { return m_blocks; }
 

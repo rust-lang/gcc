@@ -4745,6 +4745,18 @@ recording::function::new_region (recording::location *loc)
   return result;
 }
 
+/* Clone SRC[0..num_blocks-1] into this function, writing each clone to
+   DST[i].  See the header comment and class block_cloner.  */
+
+void
+recording::function::clone_blocks (int num_blocks, block **src, block **dst)
+{
+  block_cloner cloner (this);
+  cloner.run (num_blocks, src);
+  for (int i = 0; i < num_blocks; i++)
+    dst[i] = cloner.remap (src[i]);
+}
+
 /* The implementation of class gcc::jit::recording::region.  */
 
 /* Create a recording::block that belongs to this region (rather than
@@ -4781,18 +4793,6 @@ recording::region::add_block (recording::block *b)
   b->m_region = this;
   b->m_is_reachable = true;
   m_blocks.safe_push (b);
-}
-
-/* Clone the given BLOCKS and adopt the clones as this region's body.  See
-   the header comment and class block_cloner.  */
-
-void
-recording::region::add_cloned_blocks (int num_blocks, block **blocks)
-{
-  block_cloner cloner (m_func);
-  cloner.run (num_blocks, blocks);
-  for (int i = 0; i < num_blocks; i++)
-    add_block (cloner.remap (blocks[i]));
 }
 
 /* The implementation of class gcc::jit::recording::block_cloner.  */
