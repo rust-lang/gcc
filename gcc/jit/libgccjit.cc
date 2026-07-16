@@ -3201,6 +3201,37 @@ gcc_jit_region_add_block (gcc_jit_region *region, gcc_jit_block *block)
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::region::add_cloned_blocks method in
+   jit-recording.cc.  */
+
+void
+gcc_jit_region_add_cloned_blocks (gcc_jit_region *region,
+				  int num_blocks,
+				  gcc_jit_block **blocks)
+{
+  RETURN_IF_FAIL (region, NULL, NULL, "NULL region");
+  gcc::jit::recording::context *ctxt = region->m_ctxt;
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_IF_FAIL (num_blocks > 0, ctxt, NULL, "num_blocks must be positive");
+  RETURN_IF_FAIL (blocks, ctxt, NULL, "NULL blocks");
+  for (int i = 0; i < num_blocks; i++)
+    {
+      RETURN_IF_FAIL_PRINTF1 (blocks[i], ctxt, NULL,
+			      "NULL block at index %i", i);
+      RETURN_IF_FAIL_PRINTF1 (
+	region->get_function () == blocks[i]->get_function (),
+	ctxt, NULL,
+	"block %s is not in the same function as the region",
+	blocks[i]->get_debug_string ());
+    }
+
+  region->add_cloned_blocks (
+    num_blocks, reinterpret_cast<gcc::jit::recording::block **> (blocks));
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::block::add_cleanup method in jit-recording.cc.  */
 
 void

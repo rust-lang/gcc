@@ -4783,6 +4783,125 @@ recording::region::add_block (recording::block *b)
   m_blocks.safe_push (b);
 }
 
+/* Clone the given BLOCKS and adopt the clones as this region's body.  See
+   the header comment and class block_cloner.  */
+
+void
+recording::region::add_cloned_blocks (int num_blocks, block **blocks)
+{
+  block_cloner cloner (m_func);
+  cloner.run (num_blocks, blocks);
+  for (int i = 0; i < num_blocks; i++)
+    add_block (cloner.remap (blocks[i]));
+}
+
+/* The implementation of class gcc::jit::recording::block_cloner.  */
+
+/* Ensure a clone block exists for ORIG (creating an empty one).  See the
+   header comment.  */
+
+recording::block *
+recording::block_cloner::get_clone (block *orig)
+{
+  if (block **existing = m_map.get (orig))
+    return *existing;
+  block *clone = m_func->new_block (NULL);
+  clone->m_is_reachable = orig->m_is_reachable;
+  m_map.put (orig, clone);
+  m_all.safe_push (orig);
+  m_worklist.safe_push (orig);
+  return clone;
+}
+
+/* Return the clone of B, or B itself if it is outside the cloned set.  */
+
+recording::block *
+recording::block_cloner::remap (block *b)
+{
+  if (block **existing = m_map.get (b))
+    return *existing;
+  return b;
+}
+
+/* Build a fresh region holding the clones of ORIG's blocks (all of which
+   were created during discovery).  */
+
+recording::region *
+recording::block_cloner::clone_region (region *orig)
+{
+  region *r = m_func->new_region (NULL);
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (orig->get_blocks (), i, b)
+    r->add_block (remap (b));
+  return r;
+}
+
+/* Create clones for ROOTS, discover and clone the transitively-inlined
+   blocks, then copy every cloned block's statements.  All blocks are created
+   (recorded) before any statement is copied, preserving the invariant that a
+   block memento is recorded before any statement memento that references
+   it.  */
+
+void
+recording::block_cloner::run (int num_roots, block **roots)
+{
+  for (int i = 0; i < num_roots; i++)
+    get_clone (roots[i]);
+  discover ();
+  copy_statements ();
+}
+
+/* Pre-create clones for every block that a cloned block structurally inlines
+   (transitively): a try/catch's try and handler blocks, a cleanup's region
+   bodies.  Their branches must land in the copy, so they must be cloned too.
+   Only creates blocks (no statements yet).  */
+
+void
+recording::block_cloner::discover ()
+{
+  while (!m_worklist.is_empty ())
+    {
+      block *orig = m_worklist.pop ();
+      unsigned i;
+      statement *stmt;
+      FOR_EACH_VEC_ELT (orig->m_statements, i, stmt)
+	{
+	  auto_vec<block *> inlined;
+	  stmt->get_inlined_blocks (inlined);
+	  unsigned j;
+	  block *ib;
+	  FOR_EACH_VEC_ELT (inlined, j, ib)
+	    get_clone (ib);
+	}
+    }
+}
+
+/* Copy each cloned block's statements into its clone, remapping block
+   references through the clone set.
+
+   Order matters: a try/catch statement inlines its try/handler blocks'
+   statements at playback (add_try_catch reads the block's already-replayed
+   statement list), so an inlined block's statements must be recorded -- and
+   thus replayed -- before the statement that inlines it.  Discovery visits
+   an includer before the blocks it inlines, so we copy in reverse discovery
+   order: the innermost inlined blocks first, their includers last.  */
+
+void
+recording::block_cloner::copy_statements ()
+{
+  unsigned i;
+  block *orig;
+  FOR_EACH_VEC_ELT_REVERSE (m_all, i, orig)
+    {
+      block *clone = *m_map.get (orig);
+      unsigned j;
+      statement *stmt;
+      FOR_EACH_VEC_ELT (orig->m_statements, j, stmt)
+	stmt->clone_into (*this, clone);
+    }
+}
+
 /* Implementation of recording::memento::make_debug_string for regions.  */
 
 recording::string *
@@ -7849,6 +7968,124 @@ recording::statement::write_to_dump (dump &d)
   memento::write_to_dump (d);
   if (d.update_locations ())
     m_loc = d.make_location ();
+}
+
+/* Default implementation of recording::statement::clone_into: reject
+   statement kinds that carry state which cannot be safely duplicated (e.g.
+   extended asm).  The kinds that appear in cleanup bodies override this.  */
+
+void
+recording::statement::clone_into (block_cloner &, block *) const
+{
+  m_ctxt->add_error (get_loc (),
+		     "cloning this kind of statement is not supported");
+}
+
+/* clone_into / get_inlined_blocks implementations for the concrete
+   statement kinds that a cleanup body may contain.  Each re-emits itself
+   into DEST via the normal recording API (so all bookkeeping -- context
+   recording, termination flags, reachability -- is reused), remapping block
+   references through CLONER.  References to blocks inside the cloned set
+   become the clones; references outside it are preserved.  */
+
+void
+recording::eval::clone_into (block_cloner &, block *dest) const
+{
+  dest->add_eval (get_loc (), m_rvalue);
+}
+
+void
+recording::assignment::clone_into (block_cloner &, block *dest) const
+{
+  dest->add_assignment (get_loc (), m_lvalue, m_rvalue);
+}
+
+void
+recording::assignment_op::clone_into (block_cloner &, block *dest) const
+{
+  dest->add_assignment_op (get_loc (), m_lvalue, m_op, m_rvalue);
+}
+
+void
+recording::comment::clone_into (block_cloner &, block *dest) const
+{
+  dest->add_comment (get_loc (), m_text->c_str ());
+}
+
+void
+recording::conditional::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->end_with_conditional (get_loc (), m_boolval,
+			      cloner.remap (m_on_true),
+			      cloner.remap (m_on_false));
+}
+
+void
+recording::jump::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->end_with_jump (get_loc (), cloner.remap (m_target));
+}
+
+void
+recording::return_::clone_into (block_cloner &, block *dest) const
+{
+  dest->end_with_return (get_loc (), m_rvalue);
+}
+
+void
+recording::fallthrough::clone_into (block_cloner &, block *dest) const
+{
+  dest->end_with_fallthrough (get_loc ());
+}
+
+void
+recording::switch_::clone_into (block_cloner &cloner, block *dest) const
+{
+  auto_vec<case_ *> cases;
+  unsigned i;
+  case_ *c;
+  FOR_EACH_VEC_ELT (m_cases, i, c)
+    cases.safe_push (m_ctxt->new_case (c->get_min_value (),
+				       c->get_max_value (),
+				       cloner.remap (c->get_dest_block ())));
+  dest->end_with_switch (get_loc (), m_expr,
+			 cloner.remap (m_default_block),
+			 cases.length (), cases.address ());
+}
+
+void
+recording::try_catch::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->add_try_catch (get_loc (),
+		       cloner.remap (m_try_block),
+		       cloner.remap (m_catch_block),
+		       m_is_finally);
+}
+
+void
+recording::try_catch::get_inlined_blocks (auto_vec<block *> &out) const
+{
+  out.safe_push (m_try_block);
+  out.safe_push (m_catch_block);
+}
+
+void
+recording::cleanup::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->add_cleanup (get_loc (),
+		     cloner.clone_region (m_try_region),
+		     cloner.clone_region (m_cleanup_region));
+}
+
+void
+recording::cleanup::get_inlined_blocks (auto_vec<block *> &out) const
+{
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (m_try_region->get_blocks (), i, b)
+    out.safe_push (b);
+  FOR_EACH_VEC_ELT (m_cleanup_region->get_blocks (), i, b)
+    out.safe_push (b);
 }
 
 /* The implementation of class gcc::jit::recording::memento_of_set_personality_function.  */

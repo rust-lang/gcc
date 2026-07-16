@@ -1619,6 +1619,25 @@ extern void
 gcc_jit_region_add_block (gcc_jit_region *region,
 			  gcc_jit_block *block);
 
+/* Clone the given BLOCKS (and, transitively, any blocks they structurally
+   inline, such as a try/catch's try and handler blocks) and adopt the clones
+   as REGION's body, in the given order (the first is the region's entry).
+   References among the cloned set are remapped to the clones; references to
+   blocks outside the set are preserved.  The originals are left untouched.
+
+   This lets a frontend keep the policy of duplicating a shared cleanup body
+   per unwind edge (as a landing-pad-based frontend must) without libgccjit
+   having to duplicate GENERIC trees at playback.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_52; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_region
+*/
+extern void
+gcc_jit_region_add_cloned_blocks (gcc_jit_region *region,
+				  int num_blocks,
+				  gcc_jit_block **blocks);
+
 /* Add a cleanup: the CLEANUP_REGION runs only on the unwind path out of
    TRY_REGION, and then unwinding resumes (the middle-end synthesizes the
    appropriate context-sensitive resume).  Both regions may span several

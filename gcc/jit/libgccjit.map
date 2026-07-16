@@ -425,5 +425,6 @@ LIBGCCJIT_ABI_52 {
     gcc_jit_function_new_region;
     gcc_jit_region_new_block;
     gcc_jit_region_add_block;
+    gcc_jit_region_add_cloned_blocks;
     gcc_jit_block_add_cleanup;
 } LIBGCCJIT_ABI_51;

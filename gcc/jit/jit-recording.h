@@ -1601,6 +1601,7 @@ private:
 };
 
 class region;
+class block_cloner;
 
 class function : public memento
 {
@@ -1821,6 +1822,7 @@ private:
 
   friend class function;
   friend class region;
+  friend class block_cloner;
 };
 
 /* A region groups a subgraph of blocks that form the body of an EH
@@ -1848,6 +1850,14 @@ public:
      reached as an ordinary block.  */
   void add_block (block *b);
 
+  /* Clone the given BLOCKS (and, transitively, any blocks they structurally
+     inline) and adopt the clones as this region's body, in the given order
+     (the first is the region's entry).  The originals are left untouched.
+     This lets a frontend keep the policy of duplicating a shared cleanup
+     body per unwind edge, without libgccjit having to duplicate GENERIC
+     trees at playback.  See block_cloner.  */
+  void add_cloned_blocks (int num_blocks, block **blocks);
+
   const auto_vec<block *> &get_blocks () const { return m_blocks; }
 
   void replay_into (replayer *) final override {}
@@ -1860,6 +1870,55 @@ private:
   function *m_func;
   location *m_loc;
   auto_vec<block *> m_blocks;
+};
+
+/* Helper for cloning a subgraph of recording blocks.  A frontend that wants
+   each unwind edge to get its own copy of a shared cleanup body clones the
+   body's blocks with this: the clones are fresh blocks in the same function,
+   and references among the cloned set are remapped to the clones (references
+   to blocks outside the set are preserved).  Blocks that a statement *inlines*
+   (a try/catch's try and handler blocks, a cleanup's region bodies) are cloned
+   transitively, so that a branch out of them lands in the copy -- e.g. a
+   drop's normal-completion edge continues the cloned cleanup chain rather than
+   escaping to the original.  Cloning the block/statement/label structure at
+   the recording level gives each clone its own labels naturally (so no label
+   remapping is needed when laying it out); the rvalue *trees* the clones and
+   originals still share are unshared once, per region, at playback (see
+   playback::block::assemble_region_body).  */
+class block_cloner
+{
+public:
+  block_cloner (function *func) : m_func (func) {}
+
+  /* Ensure a clone block exists for ORIG, creating an empty one and queueing
+     it for discovery.  All clone blocks are created (recorded) before any
+     statement is copied, so that every block a clone statement can reference
+     already exists at that point.  */
+  block *get_clone (block *orig);
+
+  /* Return the clone of B if one was created, else B itself (for references
+     to blocks outside the cloned set).  */
+  block *remap (block *b);
+
+  /* Build a fresh region holding the (remapped) clones of ORIG's blocks
+     (which were cloned during discovery).  */
+  region *clone_region (region *orig);
+
+  function *get_function () const { return m_func; }
+
+  /* Create clones for ROOTS, discover and clone the transitively-inlined
+     blocks, then copy every cloned block's statements.  After this the clones
+     are complete; the caller adopts the roots' clones as a region body.  */
+  void run (int num_roots, block **roots);
+
+private:
+  void discover ();
+  void copy_statements ();
+
+  function *m_func;
+  hash_map<block *, block *> m_map;   /* original -> clone */
+  auto_vec<block *> m_worklist;       /* originals awaiting discovery */
+  auto_vec<block *> m_all;            /* every original cloned, in order */
 };
 
 class global : public lvalue
@@ -2703,6 +2762,21 @@ public:
 
   void write_to_dump (dump &d) final override;
 
+  /* Re-emit this statement into DEST (a clone block), remapping any block
+     references through CLONER so a duplicated subgraph is self-contained.
+     The base implementation reports an error for statement kinds that carry
+     state which cannot be safely duplicated (e.g. extended asm); the kinds
+     that appear in cleanup bodies override it.  See block_cloner.  */
+  virtual void clone_into (block_cloner &cloner, block *dest) const;
+
+  /* Append to OUT the blocks whose statements this statement *inlines*
+     (rather than merely branching to): a try/catch's try and handler blocks,
+     a cleanup's region bodies.  Such blocks must be cloned too, so that a
+     branch out of them (e.g. a drop's normal-completion edge) is remapped
+     into the copy rather than escaping to the original.  The default is
+     none.  */
+  virtual void get_inlined_blocks (auto_vec<block *> &out) const { (void) out; }
+
   block *get_block () const { return m_block; }
   location *get_loc () const { return m_loc; }
   void set_loc (location * loc) { m_loc = loc; }
@@ -2735,6 +2809,8 @@ public:
 
   void replay_into (replayer *r) final override;
 
+  void clone_into (block_cloner &cloner, block *dest) const final override;
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -2757,6 +2833,9 @@ public:
     m_is_finally (is_finally) {}
 
   void replay_into (replayer *r) final override;
+
+  void clone_into (block_cloner &cloner, block *dest) const final override;
+  void get_inlined_blocks (auto_vec<block *> &out) const final override;
 
 private:
   string * make_debug_string () final override;
@@ -2785,6 +2864,9 @@ public:
 
   void replay_into (replayer *r) final override;
 
+  void clone_into (block_cloner &cloner, block *dest) const final override;
+  void get_inlined_blocks (auto_vec<block *> &out) const final override;
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -2806,6 +2888,8 @@ public:
     m_rvalue (rvalue) {}
 
   void replay_into (replayer *r) final override;
+
+  void clone_into (block_cloner &cloner, block *dest) const final override;
 
 private:
   string * make_debug_string () final override;
@@ -2831,6 +2915,8 @@ public:
 
   void replay_into (replayer *r) final override;
 
+  void clone_into (block_cloner &cloner, block *dest) const final override;
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -2851,6 +2937,8 @@ public:
     m_text (text) {}
 
   void replay_into (replayer *r) final override;
+
+  void clone_into (block_cloner &cloner, block *dest) const final override;
 
 private:
   string * make_debug_string () final override;
@@ -2877,6 +2965,8 @@ public:
 
   vec <block *> get_successor_blocks () const final override;
 
+  void clone_into (block_cloner &cloner, block *dest) const final override;
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -2900,6 +2990,8 @@ public:
 
   vec <block *> get_successor_blocks () const final override;
 
+  void clone_into (block_cloner &cloner, block *dest) const final override;
+
 private:
   string * make_debug_string () final override;
   void write_reproducer (reproducer &r) final override;
@@ -2920,6 +3012,8 @@ public:
   void replay_into (replayer *r) final override;
 
   vec <block *> get_successor_blocks () const final override;
+
+  void clone_into (block_cloner &cloner, block *dest) const final override;
 
 private:
   string * make_debug_string () final override;
@@ -2945,6 +3039,8 @@ public:
   void replay_into (replayer *r) final override;
 
   vec <block *> get_successor_blocks () const final override;
+
+  void clone_into (block_cloner &cloner, block *dest) const final override;
 
 private:
   string * make_debug_string () final override;
@@ -2994,6 +3090,8 @@ public:
   void replay_into (replayer *r) final override;
 
   vec <block *> get_successor_blocks () const final override;
+
+  void clone_into (block_cloner &cloner, block *dest) const final override;
 
 private:
   string * make_debug_string () final override;
