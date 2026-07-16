@@ -2639,41 +2639,19 @@ add_try_catch (location *loc,
     append_to_statement_list (stmt, &try_body);
   }
 
-  tree catch_body = alloc_stmt_list ();
+  tree handler_body = alloc_stmt_list ();
   unsigned int j;
-  tree catch_stmt;
-  FOR_EACH_VEC_ELT (catch_block->m_stmts, j, catch_stmt) {
-    append_to_statement_list (catch_stmt, &catch_body);
+  tree handler_stmt;
+  FOR_EACH_VEC_ELT (catch_block->m_stmts, j, handler_stmt) {
+    append_to_statement_list (handler_stmt, &handler_body);
   }
 
   if (is_finally)
-  {
-    tree success_body = alloc_stmt_list ();
-
-    // TODO: find a better way to keep the EH_ELSE_EXPR than creating an empty inline asm.
-  tree t_string = build_string ("");
-  tree asm_stmt
-    = build5 (ASM_EXPR, void_type_node, t_string, NULL_TREE, NULL_TREE, NULL_TREE, NULL_TREE);
-
-  // asm statements without outputs, including simple ones, are treated
-  //   as volatile.
-  ASM_VOLATILE_P (asm_stmt) = 1;
-  ASM_BASIC_P (asm_stmt) = 0;
-    append_to_statement_list (asm_stmt, &success_body);
-
-    // TODO: Don't automatically add the `EH_ELSE_EXPR`. Make an API to create such a node and let the user of libgccjit
-    // add it manually.
-    catch_body = build2 (EH_ELSE_EXPR, void_type_node, success_body, catch_body);
     add_stmt (build2 (TRY_FINALLY_EXPR, void_type_node,
-            try_body, catch_body));
-  }
+		      try_body, handler_body));
   else
-  {
-    catch_body = build2(CATCH_EXPR, void_type_node, NULL, catch_body);
-    tree try_catch = build2 (TRY_CATCH_EXPR, void_type_node,
-            try_body, catch_body);
-    add_stmt (try_catch);
-  }
+    add_stmt (build2 (TRY_CATCH_EXPR, void_type_node, try_body,
+		      build2 (CATCH_EXPR, void_type_node, NULL, handler_body)));
 }
 
 /* Add an assignment to the function's statement list.  */
