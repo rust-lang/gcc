@@ -4745,6 +4745,17 @@ recording::function::new_region (recording::location *loc)
   return result;
 }
 
+/* Clone the src blocks into this function and write the new blocks in dst  */
+
+void
+recording::function::clone_blocks (int num_blocks, block **src, block **dst)
+{
+  block_cloner cloner (this);
+  cloner.run (num_blocks, src);
+  for (int i = 0; i < num_blocks; i++)
+    dst[i] = cloner.remap (src[i]);
+}
+
 /* The implementation of class gcc::jit::recording::region.  */
 
 /* Create a recording::block instance and add it to
@@ -4778,6 +4789,120 @@ recording::region::add_block (recording::block *b)
   b->m_region = this;
   b->m_is_reachable = true;
   m_blocks.safe_push (b);
+}
+
+/* The implementation of class gcc::jit::recording::block_cloner.  */
+
+/* Return the clone of orig or create an empty block, making sure the clone
+   exists.  */
+
+recording::block *
+recording::block_cloner::get_clone (block *orig)
+{
+  if (block **existing = m_map.get (orig))
+    return *existing;
+  block *clone
+    = m_func->new_block (orig->m_name ? orig->m_name->c_str () : NULL);
+  clone->m_is_reachable = orig->m_is_reachable;
+  m_map.put (orig, clone);
+  m_all.safe_push (orig);
+  m_worklist.safe_push (orig);
+  return clone;
+}
+
+/* Return the clone of B, or B itself if it is outside the cloned set.  */
+
+recording::block *
+recording::block_cloner::remap (block *b)
+{
+  if (block **existing = m_map.get (b))
+    return *existing;
+  return b;
+}
+
+/* Do a deep copy of a region.  */
+
+recording::region *
+recording::block_cloner::clone_region (region *orig)
+{
+  region *r = m_func->new_region (NULL);
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (orig->get_blocks (), i, b)
+    r->add_block (remap (b));
+  return r;
+}
+
+/* Run the block cloning process.  */
+
+void
+recording::block_cloner::run (int num_roots, block **roots)
+{
+  for (int i = 0; i < num_roots; i++)
+    get_clone (roots[i]);
+  discover ();
+  copy_statements ();
+}
+
+/* Create the (empty) clone blocks transitively.  */
+
+void
+recording::block_cloner::discover ()
+{
+  while (!m_worklist.is_empty ())
+    {
+      block *orig = m_worklist.pop ();
+      unsigned i;
+      statement *stmt;
+      FOR_EACH_VEC_ELT (orig->m_statements, i, stmt)
+	{
+	  auto_vec<block *> inlined_blocks;
+	  stmt->get_inlined_blocks (inlined_blocks);
+	  unsigned j;
+	  block *current_block;
+	  FOR_EACH_VEC_ELT (inlined_blocks, j, current_block)
+	    get_clone (current_block);
+	}
+    }
+}
+
+/* Copy the block statements into their clone.  */
+
+void
+recording::block_cloner::copy_statements ()
+{
+  unsigned i;
+  block *orig;
+  FOR_EACH_VEC_ELT_REVERSE (m_all, i, orig)
+    {
+      block *clone = *m_map.get (orig);
+      unsigned j;
+      statement *stmt;
+      FOR_EACH_VEC_ELT (orig->m_statements, j, stmt)
+	stmt->clone_into (*this, clone);
+    }
+}
+
+/* Clone an rvalue expression.  */
+
+recording::rvalue *
+recording::block_cloner::clone_rvalue (rvalue *r)
+{
+  if (!r)
+    return NULL;
+  if (rvalue **existing = m_expr_map.get (r))
+    return *existing;
+  rvalue *clone = r->clone_rvalue (*this);
+  m_expr_map.put (r, clone);
+  return clone;
+}
+
+/* Clone an lvalue.  */
+
+recording::lvalue *
+recording::block_cloner::clone_lvalue (lvalue *l)
+{
+  return static_cast <lvalue *> (clone_rvalue (l));
 }
 
 /* Implementation of recording::memento::make_debug_string for regions.  */
@@ -7831,6 +7956,144 @@ recording::statement::write_to_dump (dump &d)
   memento::write_to_dump (d);
   if (d.update_locations ())
     m_loc = d.make_location ();
+}
+
+void
+recording::eval::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->add_eval (get_loc (), cloner.clone_rvalue (m_rvalue));
+}
+
+void
+recording::assignment::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->add_assignment (get_loc (), cloner.clone_lvalue (m_lvalue),
+			cloner.clone_rvalue (m_rvalue));
+}
+
+void
+recording::assignment_op::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->add_assignment_op (get_loc (), cloner.clone_lvalue (m_lvalue), m_op,
+			   cloner.clone_rvalue (m_rvalue));
+}
+
+void
+recording::comment::clone_into (block_cloner &, block *dest) const
+{
+  dest->add_comment (get_loc (), m_text->c_str ());
+}
+
+void
+recording::conditional::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->end_with_conditional (get_loc (), cloner.clone_rvalue (m_boolval),
+			      cloner.remap (m_on_true),
+			      cloner.remap (m_on_false));
+}
+
+void
+recording::jump::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->end_with_jump (get_loc (), cloner.remap (m_target));
+}
+
+void
+recording::return_::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->end_with_return (get_loc (), cloner.clone_rvalue (m_rvalue));
+}
+
+void
+recording::fallthrough::clone_into (block_cloner &, block *dest) const
+{
+  dest->end_with_fallthrough (get_loc ());
+}
+
+void
+recording::switch_::clone_into (block_cloner &cloner, block *dest) const
+{
+  auto_vec<case_ *> cases;
+  unsigned i;
+  case_ *c;
+  FOR_EACH_VEC_ELT (m_cases, i, c)
+    cases.safe_push (m_ctxt->new_case (cloner.clone_rvalue (c->get_min_value ()),
+				       cloner.clone_rvalue (c->get_max_value ()),
+				       cloner.remap (c->get_dest_block ())));
+  dest->end_with_switch (get_loc (), cloner.clone_rvalue (m_expr),
+			 cloner.remap (m_default_block),
+			 cases.length (), cases.address ());
+}
+
+void
+recording::try_catch::clone_into (block_cloner &cloner, block *dest) const
+{
+  dest->add_try_catch (get_loc (),
+		       cloner.remap (m_try_block),
+		       cloner.remap (m_catch_block),
+		       m_is_finally);
+}
+
+void
+recording::try_catch::get_inlined_blocks (auto_vec<block *> &out) const
+{
+  out.safe_push (m_try_block);
+  out.safe_push (m_catch_block);
+}
+
+void
+recording::extended_asm::clone_contents_into (block_cloner &cloner,
+					      extended_asm *dest) const
+{
+  dest->set_volatile_flag (m_is_volatile);
+  dest->set_inline_flag (m_is_inline);
+
+  unsigned i;
+  output_asm_operand *output_op;
+  FOR_EACH_VEC_ELT (m_output_ops, i, output_op)
+    dest->add_output_operand (output_op->get_symbolic_name (),
+			      output_op->get_constraint (),
+			      cloner.clone_lvalue (output_op->get_lvalue ()));
+
+  input_asm_operand *input_op;
+  FOR_EACH_VEC_ELT (m_input_ops, i, input_op)
+    dest->add_input_operand (input_op->get_symbolic_name (),
+			     input_op->get_constraint (),
+			     cloner.clone_rvalue (input_op->get_rvalue ()));
+
+  string *clobber;
+  FOR_EACH_VEC_ELT (m_clobbers, i, clobber)
+    dest->add_clobber (clobber->c_str ());
+}
+
+void
+recording::extended_asm_simple::clone_into (block_cloner &cloner,
+					    block *dest) const
+{
+  extended_asm *clone
+    = dest->add_extended_asm (get_loc (), m_asm_template->c_str ());
+  clone_contents_into (cloner, clone);
+}
+
+void
+recording::extended_asm_goto::clone_into (block_cloner &cloner,
+					  block *dest) const
+{
+  auto_vec<block *> goto_blocks (m_goto_blocks.length ());
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (m_goto_blocks, i, b)
+    goto_blocks.quick_push (cloner.remap (b));
+
+  extended_asm *clone
+    = dest->end_with_extended_asm_goto (get_loc (),
+					m_asm_template->c_str (),
+					goto_blocks.length (),
+					goto_blocks.address (),
+					(m_fallthrough_block
+					 ? cloner.remap (m_fallthrough_block)
+					 : NULL));
+  clone_contents_into (cloner, clone);
 }
 
 /* The implementation of class gcc::jit::recording::memento_of_set_personality_function.  */
