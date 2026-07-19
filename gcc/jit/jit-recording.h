@@ -638,7 +638,7 @@ public:
   type *get_vector (size_t num_units);
 
   void set_packed ();
-  void set_addressable();
+  virtual void set_addressable();
   /* Get the type obtained when dereferencing this type.
 
      This will return NULL if it's not valid to dereference this type.
@@ -821,6 +821,10 @@ public:
   bool accepts_writes_from (type *rtype) final override;
 
   void replay_into (replayer *r) final override;
+
+  /* For pointers to functions, forward the flag to the function type: it
+     means that the pointed-to function returns its value in memory.  */
+  void set_addressable () final override;
 
   bool is_int () const final override { return false; }
   bool is_float () const final override { return false; }
@@ -1649,6 +1653,18 @@ public:
 
   bool is_variadic () const { return m_is_variadic; }
 
+  /* Make this function return its value in memory, by setting
+     TREE_ADDRESSABLE on its FUNCTION_TYPE at playback (see
+     aggregate_value_p).  */
+  void set_indirect_return ()
+  {
+    m_indirect_return = true;
+    /* If the function pointer type was already created by get_address,
+       flag it as well (forwarded to its function type).  */
+    if (m_fn_ptr_type)
+      m_fn_ptr_type->set_addressable ();
+  }
+
   void write_to_dump (dump &d) final override;
 
   void validate ();
@@ -1681,6 +1697,7 @@ private:
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> m_int_array_attributes;
   bool m_is_target_builtin;
+  bool m_indirect_return;
 };
 
 class block : public memento

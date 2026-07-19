@@ -3315,6 +3315,24 @@ recording::memento_of_get_pointer::replay_into (replayer *)
   set_playback_obj (m_other_type->playback_type ()->get_pointer ());
 }
 
+/* Implementation of recording::type::set_addressable for
+   recording::memento_of_get_pointer.
+
+   For pointers to functions, the flag belongs on the function type: it
+   means that the pointed-to function returns its value in memory (see
+   aggregate_value_p), so that calls through this pointer use the same
+   calling convention as direct calls to a function with an indirect
+   return.  */
+
+void
+recording::memento_of_get_pointer::set_addressable ()
+{
+  if (m_other_type->dyn_cast_function_type ())
+    m_other_type->set_addressable ();
+  else
+    type::set_addressable ();
+}
+
 /* Implementation of recording::memento::make_debug_string for
    results of get_pointer, adding " *" to the underlying type,
    with special-casing to handle function pointer types.  */
@@ -3675,7 +3693,8 @@ recording::function_type::replay_into (replayer *r)
 
   set_playback_obj (r->new_function_type (m_return_type->playback_type (),
 					  &param_types,
-					  m_is_variadic));
+					  m_is_variadic,
+					  m_addressable));
 }
 
 /* Special-casing for make_debug_string for get_pointer results for
@@ -4579,7 +4598,8 @@ recording::function::function (context *ctxt,
   m_attributes (),
   m_string_attributes (),
   m_int_array_attributes (),
-  m_is_target_builtin (is_target_builtin)
+  m_is_target_builtin (is_target_builtin),
+  m_indirect_return (false)
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -4642,7 +4662,8 @@ recording::function::replay_into (replayer *r)
 				     m_attributes,
 				     m_string_attributes,
 				     m_int_array_attributes,
-				     m_is_target_builtin));
+				     m_is_target_builtin,
+				     m_indirect_return));
 }
 
 /* Implementation of recording::memento::make_debug_string for
@@ -4965,6 +4986,8 @@ recording::function::get_address (recording::location *loc)
 				     param_types.address (),
 				     m_is_variadic,
 				     m_is_target_builtin);
+      if (m_indirect_return)
+	fn_type->set_addressable ();
       m_fn_ptr_type = fn_type->get_pointer ();
     }
   gcc_assert (m_fn_ptr_type);

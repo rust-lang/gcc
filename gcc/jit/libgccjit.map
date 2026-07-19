@@ -414,3 +414,8 @@ LIBGCCJIT_ABI_50 {
   global:
     gcc_jit_context_new_va_arg;
 } LIBGCCJIT_ABI_49;
+
+LIBGCCJIT_ABI_51 {
+  global:
+    gcc_jit_function_set_indirect_return;
+} LIBGCCJIT_ABI_50;

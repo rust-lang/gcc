@@ -4499,6 +4499,15 @@ gcc_jit_type_set_addressable(gcc_jit_type *type)
   type->set_addressable();
 }
 
+/* Public entrypoint.  See description in libgccjit.h.  */
+
+void
+gcc_jit_function_set_indirect_return (gcc_jit_function *func)
+{
+  RETURN_IF_FAIL (func, NULL, NULL, "NULL function");
+  func->set_indirect_return ();
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the

@@ -111,7 +111,8 @@ public:
   type *
   new_function_type (type *return_type,
 		     const auto_vec<type *> *param_types,
-		     int is_variadic);
+		     int is_variadic,
+		     bool is_indirect_return);
 
   param *
   new_param (location *loc,
@@ -132,7 +133,8 @@ public:
 		const std::vector<std::pair<gcc_jit_fn_attribute,
 					    std::vector<int>>>
 					    &int_array_attributes,
-		bool is_target_builtin);
+		bool is_target_builtin,
+		bool is_indirect_return);
 
   lvalue *
   new_global (location *loc,
