@@ -1778,15 +1778,21 @@ new_bitcast (location *loc,
   tree type_size = TYPE_SIZE (type_->as_tree ());
   tree t_expr = expr->as_tree ();
   tree t_dst_type = type_->as_tree ();
-  if (expr_size != type_size)
+  if (!expr_size || !type_size || !tree_int_cst_equal (expr_size, type_size))
   {
     active_playback_ctxt->add_error (loc,
       "bitcast with types of different sizes");
-    fprintf (stderr, "input expression (size: " HOST_WIDE_INT_PRINT_DEC "):\n",
-	     tree_to_uhwi (expr_size));
+    if (expr_size && tree_fits_uhwi_p (expr_size))
+      fprintf (stderr, "input expression (size: " HOST_WIDE_INT_PRINT_DEC "):\n",
+	       tree_to_uhwi (expr_size));
+    else
+      fprintf (stderr, "input expression (size: unknown):\n");
     debug_tree (t_expr);
-    fprintf (stderr, "requested type (size: " HOST_WIDE_INT_PRINT_DEC "):\n",
-	     tree_to_uhwi (type_size));
+    if (type_size && tree_fits_uhwi_p (type_size))
+      fprintf (stderr, "requested type (size: " HOST_WIDE_INT_PRINT_DEC "):\n",
+	       tree_to_uhwi (type_size));
+    else
+      fprintf (stderr, "requested type (size: unknown):\n");
     debug_tree (t_dst_type);
   }
   tree t_bitcast = build1 (VIEW_CONVERT_EXPR, t_dst_type, t_expr);
