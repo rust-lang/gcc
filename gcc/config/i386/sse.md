@@ -7889,7 +7889,7 @@
 	  (match_dup 2)
 	  (const_int 3)))]
   "TARGET_AVX512FP16"
-  "v<complexopname>sh\t{<round_scalarcz_mask_op4>%2, %1, %0<mask_scalarcz_operand4>|%0<mask_scalarcz_operand4>, %1, %2<round_scalarcz_mask_op4>}"
+  "v<complexopname>sh\t{<round_scalarcz_mask_op4>%2, %1, %0<mask_scalarcz_operand4>|%0<mask_scalarcz_operand4>, %1, %k2<round_scalarcz_mask_op4>}"
   [(set_attr "type" "ssemuladd")
    (set_attr "prefix" "evex")
    (set_attr "mode" "V8HF")])
@@ -7909,7 +7909,7 @@
 	  (match_dup 2)
 	  (const_int 3)))]
   "TARGET_AVX512FP16"
-  "v<complexopname>sh\t{<round_op5>%2, %1, %0%{%4%}|%0%{%4%}, %1, %2<round_op5>}"
+  "v<complexopname>sh\t{<round_op5>%2, %1, %0%{%4%}|%0%{%4%}, %1, %k2<round_op5>}"
   [(set_attr "type" "ssemuladd")
    (set_attr "prefix" "evex")
    (set_attr "mode" "V8HF")])
@@ -7928,7 +7928,7 @@
   if (TARGET_DEST_FALSE_DEP_FOR_GLC
       && <mask_scalarc_dest_false_dep_for_glc_cond>)
     output_asm_insn ("vxorps\t%x0, %x0, %x0", operands);
-  return "v<complexopname>sh\t{<round_scalarc_mask_op3>%2, %1, %0<mask_scalarc_operand3>|%0<mask_scalarc_operand3>, %1, %2<round_scalarc_mask_op3>}";
+  return "v<complexopname>sh\t{<round_scalarc_mask_op3>%2, %1, %0<mask_scalarc_operand3>|%0<mask_scalarc_operand3>, %1, %k2<round_scalarc_mask_op3>}";
 }
   [(set_attr "type" "ssemul")
    (set_attr "prefix" "evex")
@@ -14011,7 +14011,7 @@
 	  (match_dup 1)
 	  (const_int 1)))]
   "TARGET_AVX512F"
-  "vscalef<ssescalarmodesuffix>\t{<round_scalar_mask_op3>%2, %1, %0<mask_scalar_operand3>|%0<mask_scalar_operand3>, %1, %2<round_scalar_mask_op3>}"
+  "vscalef<ssescalarmodesuffix>\t{<round_scalar_mask_op3>%2, %1, %0<mask_scalar_operand3>|%0<mask_scalar_operand3>, %1, %<iptr>2<round_scalar_mask_op3>}"
   [(set_attr "prefix" "evex")
    (set_attr "mode"  "<ssescalarmode>")])
 
@@ -33739,7 +33739,7 @@
       (match_dup 1)
       (const_int 1)))]
   "TARGET_AVX10_2"
-  "vminmax<ssescalarmodesuffix>\t{%3, <round_saeonly_scalar_mask_op4>%2, %1, %0<mask_scalar_operand4>|%0<mask_scalar_operand4>, %1, %2<round_saeonly_scalar_mask_op4>, %3}"
+  "vminmax<ssescalarmodesuffix>\t{%3, <round_saeonly_scalar_mask_op4>%2, %1, %0<mask_scalar_operand4>|%0<mask_scalar_operand4>, %1, %<iptr>2<round_saeonly_scalar_mask_op4>, %3}"
   [(set_attr "prefix" "evex")
    (set_attr "mode" "<ssescalarmode>")])
 
