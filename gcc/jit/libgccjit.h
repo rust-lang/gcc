@@ -2314,6 +2314,7 @@ enum gcc_jit_variable_attribute
 {
   GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY,
   GCC_JIT_VARIABLE_ATTRIBUTE_WEAK,
+  GCC_JIT_VARIABLE_ATTRIBUTE_ALIAS,
 
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_VARIABLE_ATTRIBUTE_MAX,
