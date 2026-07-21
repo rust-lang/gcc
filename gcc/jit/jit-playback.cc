@@ -636,6 +636,8 @@ const char* variable_attribute_to_string (gcc_jit_variable_attribute attr)
   {
     case GCC_JIT_VARIABLE_ATTRIBUTE_ALIAS:
       return "alias";
+    case GCC_JIT_VARIABLE_ATTRIBUTE_USED:
+      return "used";
     case GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY:
       return "visibility";
     case GCC_JIT_VARIABLE_ATTRIBUTE_WEAK:
