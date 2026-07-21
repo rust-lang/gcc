@@ -5721,6 +5721,7 @@ static const char * const gcc_jit_variable_attribute_enum_strings[] = {
   "GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY",
   "GCC_JIT_VARIABLE_ATTRIBUTE_WEAK",
   "GCC_JIT_VARIABLE_ATTRIBUTE_ALIAS",
+  "GCC_JIT_VARIABLE_ATTRIBUTE_USED",
 };
 
 void
