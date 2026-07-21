@@ -5712,6 +5712,7 @@ static const char * const tls_model_enum_strings[] = {
 static const char * const gcc_jit_variable_attribute_enum_strings[] = {
   "GCC_JIT_VARIABLE_ATTRIBUTE_VISIBILITY",
   "GCC_JIT_VARIABLE_ATTRIBUTE_WEAK",
+  "GCC_JIT_VARIABLE_ATTRIBUTE_ALIAS",
 };
 
 void
