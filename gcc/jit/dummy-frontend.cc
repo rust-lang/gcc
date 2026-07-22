@@ -34,6 +34,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "target.h"
 #include "diagnostics/text-sink.h"
 #include "print-tree.h"
+#include "common/common-target.h"
 
 #include <mpfr.h>
 #include <unordered_map>
@@ -61,6 +62,7 @@ static tree handle_patchable_function_entry_attribute (tree *, tree, tree,
 						       int, bool *);
 static tree handle_pure_attribute (tree *, tree, tree, int, bool *);
 static tree handle_returns_twice_attribute (tree *, tree, tree, int, bool *);
+static tree handle_section_attribute (tree *, tree, tree, int, bool *);
 static tree handle_sentinel_attribute (tree *, tree, tree, int, bool *);
 static tree handle_target_attribute (tree *, tree, tree, int, bool *);
 static tree handle_transaction_pure_attribute (tree *, tree, tree, int, bool *);
@@ -143,6 +145,16 @@ static const struct attribute_spec::exclusions attr_target_exclusions[] =
   ATTR_EXCL (NULL, false, false, false),
 };
 
+/* Exclusions that apply to attributes that put declarations in specific
+   sections.  */
+static const struct attribute_spec::exclusions attr_section_exclusions[] =
+{
+  ATTR_EXCL ("noinit", true, true, true),
+  ATTR_EXCL ("persistent", true, true, true),
+  ATTR_EXCL ("section", true, true, true),
+  ATTR_EXCL (NULL, false, false, false),
+};
+
 /* These variables act as a cache for the target builtins. This is needed in
    order to be able to type-check the calls since we can only get those types
    in the playback phase while we need them in the recording phase.  */
@@ -196,6 +208,8 @@ static const attribute_spec jit_gnu_attributes[] =
   { "returns_twice",	      0, 0, true,  false, false, false,
 			      handle_returns_twice_attribute,
 			      attr_returns_twice_exclusions },
+  { "section",                1, 1, true,  false, false, false,
+			      handle_section_attribute, attr_section_exclusions },
   { "sentinel",		      0, 1, false, true, true, false,
 			      handle_sentinel_attribute, NULL },
   { "target",		      1, -1, true, false, false, false,
@@ -943,6 +957,181 @@ handle_alias_attribute (tree *node, tree name, tree args,
 			int ARG_UNUSED (flags), bool *no_add_attrs)
 {
   return handle_alias_ifunc_attribute (true, node, name, args, no_add_attrs);
+}
+
+/* Return the first of DECL or TYPE attributes installed in NODE if it's
+   a DECL, or TYPE attributes if it's a TYPE, or null otherwise.  */
+
+static tree
+decl_or_type_attrs (tree node)
+{
+  if (DECL_P (node))
+    {
+      if (tree attrs = DECL_ATTRIBUTES (node))
+	return attrs;
+
+      tree type = TREE_TYPE (node);
+      if (type == error_mark_node)
+	return NULL_TREE;
+      return TYPE_ATTRIBUTES (type);
+    }
+
+  if (TYPE_P (node))
+    return TYPE_ATTRIBUTES (node);
+
+  return NULL_TREE;
+}
+
+/* Given a pair of NODEs for arbitrary DECLs or TYPEs, validate one or
+   two integral or string attribute arguments NEWARGS to be applied to
+   NODE[0] for the absence of conflicts with the same attribute arguments
+   already applied to NODE[1]. Issue a warning for conflicts and return
+   false.  Otherwise, when no conflicts are found, return true.  */
+
+static bool
+validate_attr_args (tree node[2], tree name, tree newargs[2])
+{
+  /* First validate the arguments against those already applied to
+     the same declaration (or type).  */
+  tree self[2] = { node[0], node[0] };
+  if (node[0] != node[1] && !validate_attr_args (self, name, newargs))
+    return false;
+
+  if (!node[1])
+    return true;
+
+  /* Extract the same attribute from the previous declaration or type.  */
+  tree prevattr = decl_or_type_attrs (node[1]);
+  const char* const namestr = IDENTIFIER_POINTER (name);
+  prevattr = lookup_attribute (namestr, prevattr);
+  if (!prevattr)
+    return true;
+
+  /* Extract one or both attribute arguments.  */
+  tree prevargs[2];
+  prevargs[0] = TREE_VALUE (TREE_VALUE (prevattr));
+  prevargs[1] = TREE_CHAIN (TREE_VALUE (prevattr));
+  if (prevargs[1])
+    prevargs[1] = TREE_VALUE (prevargs[1]);
+
+  /* Both arguments must be equal or, for the second pair, neither must
+     be provided to succeed.  */
+  bool arg1eq, arg2eq;
+  if (TREE_CODE (newargs[0]) == INTEGER_CST)
+    {
+      arg1eq = tree_int_cst_equal (newargs[0], prevargs[0]);
+      if (newargs[1] && prevargs[1])
+	arg2eq = tree_int_cst_equal (newargs[1], prevargs[1]);
+      else
+	arg2eq = newargs[1] == prevargs[1];
+    }
+  else if (TREE_CODE (newargs[0]) == STRING_CST)
+    {
+      const char *s0 = TREE_STRING_POINTER (newargs[0]);
+      const char *s1 = TREE_STRING_POINTER (prevargs[0]);
+      arg1eq = strcmp (s0, s1) == 0;
+      if (newargs[1] && prevargs[1])
+	{
+	  s0 = TREE_STRING_POINTER (newargs[1]);
+	  s1 = TREE_STRING_POINTER (prevargs[1]);
+	  arg2eq = strcmp (s0, s1) == 0;
+	}
+      else
+	arg2eq = newargs[1] == prevargs[1];
+    }
+  else
+    gcc_unreachable ();
+
+  /* We don't emit the warnings that `c-family/c-attribs.cc` does, instead we
+     return directly. */
+  return arg1eq && arg2eq;
+}
+
+/* Convenience wrapper for validate_attr_args to validate a single
+   attribute argument.  Used by handlers for attributes that take
+   just a single argument.  */
+
+static bool
+validate_attr_arg (tree node[2], tree name, tree newarg)
+{
+  tree argarray[2] = { newarg, NULL_TREE };
+  return validate_attr_args (node, name, argarray);
+}
+
+static tree
+handle_section_attribute (tree *node, tree name, tree args,
+			  int flags, bool *no_add_attrs)
+{
+  tree decl = *node;
+  tree res = NULL_TREE;
+  tree argval = TREE_VALUE (args);
+  const char* new_section_name;
+
+  if (!targetm_common.have_named_sections)
+    {
+      error_at (DECL_SOURCE_LOCATION (*node),
+		"section attributes are not supported for this target");
+      goto fail;
+    }
+
+  if (!VAR_OR_FUNCTION_DECL_P (decl))
+    {
+      error ("section attribute not allowed for %q+D", *node);
+      goto fail;
+    }
+
+  if (TREE_CODE (argval) != STRING_CST)
+    {
+      error ("section attribute argument not a string constant");
+      goto fail;
+    }
+
+  if (VAR_P (decl)
+      && current_function_decl != NULL_TREE
+      && !TREE_STATIC (decl))
+    {
+      error_at (DECL_SOURCE_LOCATION (decl),
+		"section attribute cannot be specified for local variables");
+      goto fail;
+    }
+
+  new_section_name = TREE_STRING_POINTER (argval);
+
+  /* The decl may have already been given a section attribute
+     from a previous declaration.  Ensure they match.  */
+  if (const char* const old_section_name = DECL_SECTION_NAME (decl))
+    if (strcmp (old_section_name, new_section_name) != 0)
+      {
+	error ("section of %q+D conflicts with previous declaration",
+	       *node);
+	goto fail;
+      }
+
+  if (VAR_P (decl)
+      && !targetm.have_tls && targetm.emutls.tmpl_section
+      && DECL_THREAD_LOCAL_P (decl))
+    {
+      error ("section of %q+D cannot be overridden", *node);
+      goto fail;
+    }
+
+  if (!validate_attr_arg (node, name, argval))
+    goto fail;
+
+  res = targetm.handle_generic_attribute (node, name, args, flags,
+					  no_add_attrs);
+
+  /* If the back end confirms the attribute can be added then continue onto
+     final processing.  */
+  if (!(*no_add_attrs))
+    {
+      set_decl_section_name (decl, new_section_name);
+      return res;
+    }
+
+fail:
+  *no_add_attrs = true;
+  return res;
 }
 
 /* (end of attribute-handling).  */
