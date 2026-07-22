@@ -623,6 +623,8 @@ const char* fn_attribute_to_string (gcc_jit_fn_attribute attr)
       return "sysv_abi";
     case GCC_JIT_FN_ATTRIBUTE_X86_THIS_CALL:
       return "thiscall";
+    case GCC_JIT_FN_ATTRIBUTE_SECTION:
+      return "section";
     case GCC_JIT_FN_ATTRIBUTE_MAX:
       return NULL;
   }
@@ -641,6 +643,8 @@ const char* variable_attribute_to_string (gcc_jit_variable_attribute attr)
       return "visibility";
     case GCC_JIT_VARIABLE_ATTRIBUTE_WEAK:
       return "weak";
+    case GCC_JIT_VARIABLE_ATTRIBUTE_SECTION:
+      return "section";
     case GCC_JIT_VARIABLE_ATTRIBUTE_MAX:
       return NULL;
   }

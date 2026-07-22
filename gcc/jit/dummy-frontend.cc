@@ -35,6 +35,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "target.h"
 #include "diagnostics/text-sink.h"
 #include "print-tree.h"
+#include "common/common-target.h"
 
 #include <mpfr.h>
 #include <unordered_map>
@@ -111,6 +112,8 @@ static const attribute_spec jit_gnu_attributes[] =
   { "returns_twice",	      0, 0, true,  false, false, false,
 			      handle_returns_twice_attribute,
 			      attr_returns_twice_exclusions },
+  { "section",                1, 1, true,  false, false, false,
+			      handle_section_attribute, attr_section_exclusions },
   { "sentinel",		      0, 1, false, true, true, false,
 			      handle_sentinel_attribute, NULL },
   { "target",		      1, -1, true, false, false, false,
