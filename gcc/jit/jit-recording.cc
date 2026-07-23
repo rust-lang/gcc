@@ -5052,6 +5052,7 @@ static const char * const fn_attribute_reproducer_strings[] =
   "GCC_JIT_FN_ATTRIBUTE_X86_SYSV_ABI",
   "GCC_JIT_FN_ATTRIBUTE_X86_THIS_CALL",
   "GCC_JIT_FN_ATTRIBUTE_SECTION",
+  "GCC_JIT_FN_ATTRIBUTE_RETAIN",
 };
 
 std::string
@@ -5724,6 +5725,7 @@ static const char * const gcc_jit_variable_attribute_enum_strings[] = {
   "GCC_JIT_VARIABLE_ATTRIBUTE_ALIAS",
   "GCC_JIT_VARIABLE_ATTRIBUTE_USED",
   "GCC_JIT_VARIABLE_ATTRIBUTE_SECTION"
+  "GCC_JIT_VARIABLE_ATTRIBUTE_RETAIN",
 };
 
 void
