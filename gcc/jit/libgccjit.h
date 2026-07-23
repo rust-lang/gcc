@@ -2235,6 +2235,7 @@ enum gcc_jit_fn_attribute
   GCC_JIT_FN_ATTRIBUTE_X86_THIS_CALL,
 
   GCC_JIT_FN_ATTRIBUTE_SECTION,
+  GCC_JIT_FN_ATTRIBUTE_RETAIN,
 
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_FN_ATTRIBUTE_MAX,
@@ -2319,6 +2320,7 @@ enum gcc_jit_variable_attribute
   GCC_JIT_VARIABLE_ATTRIBUTE_ALIAS,
   GCC_JIT_VARIABLE_ATTRIBUTE_USED,
   GCC_JIT_VARIABLE_ATTRIBUTE_SECTION,
+  GCC_JIT_VARIABLE_ATTRIBUTE_RETAIN,
 
   /* Maximum value of this enum, should always be last. */
   GCC_JIT_VARIABLE_ATTRIBUTE_MAX,
