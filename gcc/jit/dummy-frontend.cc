@@ -109,6 +109,8 @@ static const attribute_spec jit_gnu_attributes[] =
   { "pure",		      0, 0, true,  false, false, false,
 			      handle_pure_attribute,
 			      attr_const_pure_exclusions },
+  { "retain",                 0, 0, true,  false, false, false,
+			      handle_retain_attribute, NULL },
   { "returns_twice",	      0, 0, true,  false, false, false,
 			      handle_returns_twice_attribute,
 			      attr_returns_twice_exclusions },
