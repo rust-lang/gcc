@@ -42,7 +42,19 @@ along with GCC; see the file COPYING3.  If not see
 
 using namespace gcc::jit;
 
-/* Attribute handling.  */
+/* Attribute handling.  These are the libgccjit-specific attribute handlers;
+   the handlers shared with the C family live in gcc/attr-handlers.cc (declared
+   in attr-handlers.h, included above).  */
+
+static tree handle_cold_attribute (tree *, tree, tree, int, bool *);
+static tree handle_format_arg_attribute (tree *, tree, tree, int, bool *);
+static tree handle_format_attribute (tree *, tree, tree, int, bool *);
+static tree handle_malloc_attribute (tree *, tree, tree, int, bool *);
+static tree handle_nonnull_attribute (tree *, tree, tree, int, bool *);
+static tree handle_noreturn_attribute (tree *, tree, tree, int, bool *);
+static tree handle_patchable_function_entry_attribute (tree *, tree, tree,
+						       int, bool *);
+static tree handle_sentinel_attribute (tree *, tree, tree, int, bool *);
 
 /* These variables act as a cache for the target builtins. This is needed in
    order to be able to type-check the calls since we can only get those types
@@ -163,6 +175,244 @@ void
 jit_preserve_from_gc (tree t)
 {
   jit_gc_root = tree_cons (NULL_TREE, t, jit_gc_root);
+}
+
+/* Attribute handlers specific to libgccjit.  These are the language-neutral
+   variants of the handlers whose C-family versions carry Objective-C / C++ /
+   format-checker behaviour that libgccjit neither has nor links; the shared
+   handlers live in gcc/attr-handlers.cc.  */
+
+/* Handle a "noreturn" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+static tree
+handle_noreturn_attribute (tree *node, tree name, tree ARG_UNUSED (args),
+			   int ARG_UNUSED (flags), bool *no_add_attrs)
+{
+  tree type = TREE_TYPE (*node);
+
+  if (TREE_CODE (*node) == FUNCTION_DECL)
+    TREE_THIS_VOLATILE (*node) = 1;
+  else if (TREE_CODE (type) == POINTER_TYPE
+	   && TREE_CODE (TREE_TYPE (type)) == FUNCTION_TYPE)
+    TREE_TYPE (*node)
+      = (build_qualified_type
+	 (build_pointer_type
+	  (build_type_variant (TREE_TYPE (type),
+			       TYPE_READONLY (TREE_TYPE (type)), 1)),
+	  TYPE_QUALS (type)));
+  else
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored", name);
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle a "malloc" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+static tree
+handle_malloc_attribute (tree *node, tree name, tree ARG_UNUSED (args),
+			 int ARG_UNUSED (flags), bool *no_add_attrs)
+{
+  if (TREE_CODE (*node) != FUNCTION_DECL)
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored; valid only "
+	       "for functions", name);
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+
+  tree rettype = TREE_TYPE (TREE_TYPE (*node));
+  if (!POINTER_TYPE_P (rettype))
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored on functions "
+	       "returning %qT; valid only for pointer return types",
+	       name, rettype);
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+
+  DECL_IS_MALLOC (*node) = 1;
+  return NULL_TREE;
+}
+
+/* Helper for nonnull attribute handling; fetch the operand number
+   from the attribute argument list.  */
+
+static bool
+get_nonnull_operand (tree arg_num_expr, unsigned HOST_WIDE_INT *valp)
+{
+  /* Verify the arg number is a constant.  */
+  if (!tree_fits_uhwi_p (arg_num_expr))
+    return false;
+
+  *valp = TREE_INT_CST_LOW (arg_num_expr);
+  return true;
+}
+
+/* Handle the "nonnull" attribute.  */
+
+static tree
+handle_nonnull_attribute (tree *node, tree ARG_UNUSED (name),
+			  tree args, int ARG_UNUSED (flags),
+			  bool * ARG_UNUSED (no_add_attrs))
+{
+  tree type = *node;
+
+  /* If no arguments are specified, all pointer arguments should be
+     non-null.  Verify a full prototype is given so that the arguments
+     will have the correct types when we actually check them later.
+     Avoid diagnosing type-generic built-ins since those have no
+     prototype.  */
+  if (!args)
+    {
+      gcc_assert (prototype_p (type)
+		  || !TYPE_ATTRIBUTES (type)
+		  || lookup_attribute ("type generic", TYPE_ATTRIBUTES (type)));
+
+      return NULL_TREE;
+    }
+
+  /* Argument list specified.  Verify that each argument number references
+     a pointer argument.  */
+  for (; args; args = TREE_CHAIN (args))
+    {
+      tree argument;
+      unsigned HOST_WIDE_INT arg_num = 0, ck_num;
+
+      if (!get_nonnull_operand (TREE_VALUE (args), &arg_num))
+	gcc_unreachable ();
+
+      argument = TYPE_ARG_TYPES (type);
+      if (argument)
+	{
+	  for (ck_num = 1; ; ck_num++)
+	    {
+	      if (!argument || ck_num == arg_num)
+		break;
+	      argument = TREE_CHAIN (argument);
+	    }
+
+	  gcc_assert (argument
+		      && TREE_CODE (TREE_VALUE (argument)) == POINTER_TYPE);
+	}
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle a "sentinel" attribute.  */
+
+static tree
+handle_sentinel_attribute (tree *node, tree name, tree args,
+			   int ARG_UNUSED (flags), bool *no_add_attrs)
+{
+  if (!prototype_p (*node))
+    {
+      warning (OPT_Wattributes,
+	       "%qE attribute requires prototypes with named arguments", name);
+      *no_add_attrs = true;
+    }
+  else
+    {
+      if (!stdarg_p (*node))
+	{
+	  warning (OPT_Wattributes,
+		   "%qE attribute only applies to variadic functions", name);
+	  *no_add_attrs = true;
+	}
+    }
+
+  if (args)
+    {
+      tree position = TREE_VALUE (args);
+      if (TREE_CODE (position) != INTEGER_CST
+	  || !INTEGRAL_TYPE_P (TREE_TYPE (position)))
+	{
+	  warning (OPT_Wattributes,
+		   "requested position is not an integer constant");
+	  *no_add_attrs = true;
+	}
+      else
+	{
+	  if (tree_int_cst_lt (position, integer_zero_node))
+	    {
+	      warning (OPT_Wattributes,
+		       "requested position is less than zero");
+	      *no_add_attrs = true;
+	    }
+	}
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle a "patchable_function_entry" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+static tree
+handle_patchable_function_entry_attribute (tree *, tree, tree, int, bool *)
+{
+  /* Nothing to be done here.  */
+  return NULL_TREE;
+}
+
+/* Handle a "cold" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+static tree
+handle_cold_attribute (tree *node, tree name, tree ARG_UNUSED (args),
+		       int flags, bool *no_add_attrs)
+{
+  if (TREE_CODE (*node) == FUNCTION_DECL
+      || TREE_CODE (*node) == LABEL_DECL)
+    {
+      /* Attribute cold processing is done later with lookup_attribute.  */
+    }
+  else if (flags & ((int) ATTR_FLAG_FUNCTION_NEXT
+		    | (int) ATTR_FLAG_DECL_NEXT))
+    {
+	/* Avoid applying the attribute to a function return type when
+	   used as:  void __attribute ((cold)) foo (void).  It will be
+	   passed to the function.  */
+	*no_add_attrs = true;
+    }
+  else
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored", name);
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle a "format" attribute; arguments as in
+   struct attribute_spec.handler.  The real format-string checking lives in
+   c-family/c-format.cc, which libgccjit does not link, so the attribute is
+   merely accepted (and dropped) here.  */
+
+static tree
+handle_format_attribute (tree * ARG_UNUSED (node), tree ARG_UNUSED (name),
+			 tree ARG_UNUSED (args), int ARG_UNUSED (flags),
+			 bool *no_add_attrs)
+{
+  *no_add_attrs = true;
+  return NULL_TREE;
+}
+
+/* Handle a "format_arg" attribute; arguments as in
+   struct attribute_spec.handler.  See handle_format_attribute.  */
+
+static tree
+handle_format_arg_attribute (tree * ARG_UNUSED (node), tree ARG_UNUSED (name),
+			     tree ARG_UNUSED (args), int ARG_UNUSED (flags),
+			     bool *no_add_attrs)
+{
+  *no_add_attrs = true;
+  return NULL_TREE;
 }
 
 /* Language-dependent contents of a type.  */

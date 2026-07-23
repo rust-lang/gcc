@@ -19,19 +19,18 @@ along with GCC; see the file COPYING3.  If not see
 
 /* These handlers were historically duplicated verbatim in every front end
    that does not link the C-family attribute code (jit/dummy-frontend.cc,
-   d/d-attribs.cc, lto/lto-lang.cc, ...).  They implement the
-   machine-independent behaviour of the GNU attributes and match the canonical
-   c-family implementation in c-family/c-attribs.cc, minus the C/C++/Objective-C
-   dialect-specific branches (objc_method_decl, c_dialect_cxx, default_conversion,
-   positional_argument, ...) which do not apply outside a C-family front end.
-   A handful of handlers keep the lighter-weight behaviour that is specific to
-   these front ends because the canonical c-family version is either unavailable
-   here or pulls in machinery (the format checker, transactional-memory) that is
-   not linked: format/format_arg (the real checker lives in c-family/c-format.cc),
-   transaction_pure, patchable_function_entry and nonnull.
+   d/d-attribs.cc, lto/lto-lang.cc, ...) as well as in c-family/c-attribs.cc
+   itself.  They implement the machine-independent behaviour of the GNU
+   attributes; only the handlers whose behaviour is identical across those
+   front ends live here.  The dialect-specific variants (noreturn's
+   Objective-C branch, cold's C++ branch, malloc's deallocator form, nonnull,
+   sentinel, patchable_function_entry, and the format checkers) stay in the
+   front end that needs them: the C family keeps its versions in c-attribs.cc /
+   c-format.cc, and jit keeps its language-neutral versions in
+   dummy-frontend.cc.
 
-   This file is linked into each such front end the same way attribs.o is (see
-   the per-front-end Make-lang.in files).  */
+   This file is linked into each front end that uses it the same way attribs.o
+   is (see the per-front-end Make-lang.in files, and C_COMMON_OBJS).  */
 
 #include "config.h"
 #include "system.h"
@@ -130,20 +129,6 @@ const struct attribute_spec::exclusions attr_section_exclusions[] =
   ATTR_EXCL (NULL, false, false, false),
 };
 
-/* Helper for nonnull attribute handling; fetch the operand number
-   from the attribute argument list.  */
-
-static bool
-get_nonnull_operand (tree arg_num_expr, unsigned HOST_WIDE_INT *valp)
-{
-  /* Verify the arg number is a constant.  */
-  if (!tree_fits_uhwi_p (arg_num_expr))
-    return false;
-
-  *valp = TREE_INT_CST_LOW (arg_num_expr);
-  return true;
-}
-
 /* Return the first of DECL or TYPE attributes installed in NODE if it's
    a DECL, or TYPE attributes if it's a TYPE, or null otherwise.  */
 
@@ -173,7 +158,7 @@ decl_or_type_attrs (tree node)
    already applied to NODE[1]. Issue a warning for conflicts and return
    false.  Otherwise, when no conflicts are found, return true.  */
 
-static bool
+bool
 validate_attr_args (tree node[2], tree name, tree newargs[2])
 {
   /* First validate the arguments against those already applied to
@@ -268,7 +253,7 @@ validate_attr_args (tree node[2], tree name, tree newargs[2])
    attribute argument.  Used by handlers for attributes that take
    just a single argument.  */
 
-static bool
+bool
 validate_attr_arg (tree node[2], tree name, tree newarg)
 {
   tree argarray[2] = { newarg, NULL_TREE };
@@ -279,7 +264,7 @@ validate_attr_arg (tree node[2], tree name, tree newarg)
    struct attribute_spec.handler, except that IS_ALIAS tells us
    whether this is an alias as opposed to ifunc attribute.  */
 
-static tree
+tree
 handle_alias_ifunc_attribute (bool is_alias, tree *node, tree name, tree args,
 			      bool *no_add_attrs)
 {
@@ -377,34 +362,6 @@ ignore_attribute (tree * ARG_UNUSED (node), tree ARG_UNUSED (name),
   return NULL_TREE;
 }
 
-/* Handle a "noreturn" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-tree
-handle_noreturn_attribute (tree *node, tree name, tree ARG_UNUSED (args),
-			   int ARG_UNUSED (flags), bool *no_add_attrs)
-{
-  tree type = TREE_TYPE (*node);
-
-  if (TREE_CODE (*node) == FUNCTION_DECL)
-    TREE_THIS_VOLATILE (*node) = 1;
-  else if (TREE_CODE (type) == POINTER_TYPE
-	   && TREE_CODE (TREE_TYPE (type)) == FUNCTION_TYPE)
-    TREE_TYPE (*node)
-      = (build_qualified_type
-	 (build_pointer_type
-	  (build_type_variant (TREE_TYPE (type),
-			       TYPE_READONLY (TREE_TYPE (type)), 1)),
-	  TYPE_QUALS (type)));
-  else
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored", name);
-      *no_add_attrs = true;
-    }
-
-  return NULL_TREE;
-}
-
 /* Handle a "leaf" attribute; arguments as in
    struct attribute_spec.handler.  */
 
@@ -464,35 +421,6 @@ handle_const_attribute (tree *node, tree name, tree ARG_UNUSED (args),
   return NULL_TREE;
 }
 
-/* Handle a "malloc" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-tree
-handle_malloc_attribute (tree *node, tree name, tree ARG_UNUSED (args),
-			 int ARG_UNUSED (flags), bool *no_add_attrs)
-{
-  if (TREE_CODE (*node) != FUNCTION_DECL)
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored; valid only "
-	       "for functions", name);
-      *no_add_attrs = true;
-      return NULL_TREE;
-    }
-
-  tree rettype = TREE_TYPE (TREE_TYPE (*node));
-  if (!POINTER_TYPE_P (rettype))
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored on functions "
-	       "returning %qT; valid only for pointer return types",
-	       name, rettype);
-      *no_add_attrs = true;
-      return NULL_TREE;
-    }
-
-  DECL_IS_MALLOC (*node) = 1;
-  return NULL_TREE;
-}
-
 /* Handle a "pure" attribute; arguments as in
    struct attribute_spec.handler.  */
 
@@ -532,57 +460,6 @@ handle_novops_attribute (tree *node, tree ARG_UNUSED (name),
   return NULL_TREE;
 }
 
-/* Handle the "nonnull" attribute.  */
-
-tree
-handle_nonnull_attribute (tree *node, tree ARG_UNUSED (name),
-			  tree args, int ARG_UNUSED (flags),
-			  bool * ARG_UNUSED (no_add_attrs))
-{
-  tree type = *node;
-
-  /* If no arguments are specified, all pointer arguments should be
-     non-null.  Verify a full prototype is given so that the arguments
-     will have the correct types when we actually check them later.
-     Avoid diagnosing type-generic built-ins since those have no
-     prototype.  */
-  if (!args)
-    {
-      gcc_assert (prototype_p (type)
-		  || !TYPE_ATTRIBUTES (type)
-		  || lookup_attribute ("type generic", TYPE_ATTRIBUTES (type)));
-
-      return NULL_TREE;
-    }
-
-  /* Argument list specified.  Verify that each argument number references
-     a pointer argument.  */
-  for (; args; args = TREE_CHAIN (args))
-    {
-      tree argument;
-      unsigned HOST_WIDE_INT arg_num = 0, ck_num;
-
-      if (!get_nonnull_operand (TREE_VALUE (args), &arg_num))
-	gcc_unreachable ();
-
-      argument = TYPE_ARG_TYPES (type);
-      if (argument)
-	{
-	  for (ck_num = 1; ; ck_num++)
-	    {
-	      if (!argument || ck_num == arg_num)
-		break;
-	      argument = TREE_CHAIN (argument);
-	    }
-
-	  gcc_assert (argument
-		      && TREE_CODE (TREE_VALUE (argument)) == POINTER_TYPE);
-	}
-    }
-
-  return NULL_TREE;
-}
-
 /* Handle a "nothrow" attribute; arguments as in
    struct attribute_spec.handler.  */
 
@@ -597,52 +474,6 @@ handle_nothrow_attribute (tree *node, tree name, tree ARG_UNUSED (args),
     {
       warning (OPT_Wattributes, "%qE attribute ignored", name);
       *no_add_attrs = true;
-    }
-
-  return NULL_TREE;
-}
-
-/* Handle a "sentinel" attribute.  */
-
-tree
-handle_sentinel_attribute (tree *node, tree name, tree args,
-			   int ARG_UNUSED (flags), bool *no_add_attrs)
-{
-  if (!prototype_p (*node))
-    {
-      warning (OPT_Wattributes,
-	       "%qE attribute requires prototypes with named arguments", name);
-      *no_add_attrs = true;
-    }
-  else
-    {
-      if (!stdarg_p (*node))
-	{
-	  warning (OPT_Wattributes,
-		   "%qE attribute only applies to variadic functions", name);
-	  *no_add_attrs = true;
-	}
-    }
-
-  if (args)
-    {
-      tree position = TREE_VALUE (args);
-      if (TREE_CODE (position) != INTEGER_CST
-	  || !INTEGRAL_TYPE_P (TREE_TYPE (position)))
-	{
-	  warning (OPT_Wattributes,
-		   "requested position is not an integer constant");
-	  *no_add_attrs = true;
-	}
-      else
-	{
-	  if (tree_int_cst_lt (position, integer_zero_node))
-	    {
-	      warning (OPT_Wattributes,
-		       "requested position is less than zero");
-	      *no_add_attrs = true;
-	    }
-	}
     }
 
   return NULL_TREE;
@@ -692,42 +523,6 @@ handle_returns_twice_attribute (tree *node, tree name, tree ARG_UNUSED (args),
       *no_add_attrs = true;
     }
 
-  return NULL_TREE;
-}
-
-/* Handle a "patchable_function_entry" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-tree
-handle_patchable_function_entry_attribute (tree *, tree, tree, int, bool *)
-{
-  /* Nothing to be done here.  */
-  return NULL_TREE;
-}
-
-/* Handle a "format" attribute; arguments as in
-   struct attribute_spec.handler.  The real format-string checking lives in
-   c-family/c-format.cc, which the front ends using this file do not link, so
-   the attribute is merely accepted (and dropped) here.  */
-
-tree
-handle_format_attribute (tree * ARG_UNUSED (node), tree ARG_UNUSED (name),
-			 tree ARG_UNUSED (args), int ARG_UNUSED (flags),
-			 bool *no_add_attrs)
-{
-  *no_add_attrs = true;
-  return NULL_TREE;
-}
-
-/* Handle a "format_arg" attribute; arguments as in
-   struct attribute_spec.handler.  See handle_format_attribute.  */
-
-tree
-handle_format_arg_attribute (tree * ARG_UNUSED (node), tree ARG_UNUSED (name),
-			     tree ARG_UNUSED (args), int ARG_UNUSED (flags),
-			     bool *no_add_attrs)
-{
-  *no_add_attrs = true;
   return NULL_TREE;
 }
 
@@ -858,35 +653,6 @@ handle_always_inline_attribute (tree *node, tree name,
       /* Set the attribute and mark it for disregarding inline
 	 limits.  */
       DECL_DISREGARD_INLINE_LIMITS (*node) = 1;
-    }
-  else
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored", name);
-      *no_add_attrs = true;
-    }
-
-  return NULL_TREE;
-}
-
-/* Handle a "cold" and attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-tree
-handle_cold_attribute (tree *node, tree name, tree ARG_UNUSED (args),
-		       int flags, bool *no_add_attrs)
-{
-  if (TREE_CODE (*node) == FUNCTION_DECL
-      || TREE_CODE (*node) == LABEL_DECL)
-    {
-      /* Attribute cold processing is done later with lookup_attribute.  */
-    }
-  else if (flags & ((int) ATTR_FLAG_FUNCTION_NEXT
-		    | (int) ATTR_FLAG_DECL_NEXT))
-    {
-	/* Avoid applying the attribute to a function return type when
-	   used as:  void __attribute ((cold)) foo (void).  It will be
-	   passed to the function.  */
-	*no_add_attrs = true;
     }
   else
     {
