@@ -135,6 +135,7 @@ CFLAGS-jit/libgccjit.o += -DDEFAULT_TARGET_VERSION=\"$(version)\" \
 	-DSTANDARD_LIBEXEC_PREFIX=\"$(libexecdir)/gcc/\"
 
 JIT_OBJS = attribs.o \
+	attr-handlers.o \
 	jit/dummy-frontend.o \
 	jit/libgccjit.o \
 	jit/jit-logging.o \
