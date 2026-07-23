@@ -43,6 +43,8 @@ const int blabla __attribute__((retain)) = 12;
     gcc_jit_context_new_rvalue_from_int (ctxt, int_type, 1));
   /* __attribute__ ((retain)) */
   gcc_jit_function_add_attribute(not_removed_func, GCC_JIT_FN_ATTRIBUTE_RETAIN);
+  /* __attribute__ ((used)) */
+  gcc_jit_function_add_attribute(not_removed_func, GCC_JIT_FN_ATTRIBUTE_USED);
 
   /* Creating the `blabla` variable. */
   gcc_jit_type *const_int = gcc_jit_type_get_const (int_type);
@@ -51,11 +53,14 @@ const int blabla __attribute__((retain)) = 12;
 						     GCC_JIT_GLOBAL_INTERNAL,
 						     const_int,
 						     "blabla");
+  /* __attribute__ ((retain)) */
   gcc_jit_lvalue_add_attribute(glob, GCC_JIT_VARIABLE_ATTRIBUTE_RETAIN);
+  /* __attribute__ ((used)) */
+  gcc_jit_lvalue_add_attribute(glob, GCC_JIT_VARIABLE_ATTRIBUTE_USED);
 }
 
 /* { dg-final { jit-verify-output-file-was-created "" } } */
 
 /* We check that the retained attribute worked as expected and added the `R` in the section info. */
-/* { dg-final { jit-verify-assembler-output ".section\\s+.text.not_removed,\"axR\" } } */
-/* { dg-final { jit-verify-assembler-output ".section\\s+.rodata.blabla,\"aR\" } } */
+/* { dg-final { jit-verify-assembler-output ".section\\s+.text.not_removed,\"axR\"" } } */
+/* { dg-final { jit-verify-assembler-output ".section\\s+.rodata.blabla,\"aR\"" } } */
