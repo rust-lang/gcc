@@ -577,6 +577,8 @@ const char* fn_attribute_to_string (gcc_jit_fn_attribute attr)
       return "target";
     case GCC_JIT_FN_ATTRIBUTE_USED:
       return "used";
+    case GCC_JIT_FN_ATTRIBUTE_RETAIN:
+      return "retain";
     case GCC_JIT_FN_ATTRIBUTE_VISIBILITY:
       return "visibility";
     case GCC_JIT_FN_ATTRIBUTE_COLD:
@@ -645,6 +647,8 @@ const char* variable_attribute_to_string (gcc_jit_variable_attribute attr)
       return "weak";
     case GCC_JIT_VARIABLE_ATTRIBUTE_SECTION:
       return "section";
+    case GCC_JIT_VARIABLE_ATTRIBUTE_RETAIN:
+      return "retain";
     case GCC_JIT_VARIABLE_ATTRIBUTE_MAX:
       return NULL;
   }
