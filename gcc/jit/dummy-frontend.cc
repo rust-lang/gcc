@@ -61,6 +61,7 @@ static tree handle_novops_attribute (tree *, tree, tree, int, bool *);
 static tree handle_patchable_function_entry_attribute (tree *, tree, tree,
 						       int, bool *);
 static tree handle_pure_attribute (tree *, tree, tree, int, bool *);
+static tree handle_retain_attribute (tree *, tree, tree, int, bool *);
 static tree handle_returns_twice_attribute (tree *, tree, tree, int, bool *);
 static tree handle_section_attribute (tree *, tree, tree, int, bool *);
 static tree handle_sentinel_attribute (tree *, tree, tree, int, bool *);
@@ -205,6 +206,8 @@ static const attribute_spec jit_gnu_attributes[] =
   { "pure",		      0, 0, true,  false, false, false,
 			      handle_pure_attribute,
 			      attr_const_pure_exclusions },
+  { "retain",                 0, 0, true,  false, false, false,
+			      handle_retain_attribute, NULL },
   { "returns_twice",	      0, 0, true,  false, false, false,
 			      handle_returns_twice_attribute,
 			      attr_returns_twice_exclusions },
@@ -1132,6 +1135,28 @@ handle_section_attribute (tree *node, tree name, tree args,
 fail:
   *no_add_attrs = true;
   return res;
+}
+
+/* Handle a "retain" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+static tree
+handle_retain_attribute (tree *pnode, tree name, tree ARG_UNUSED (args),
+			 int ARG_UNUSED (flags), bool *no_add_attrs)
+{
+  tree node = *pnode;
+
+  if (SUPPORTS_SHF_GNU_RETAIN
+      && (TREE_CODE (node) == FUNCTION_DECL
+	  || (VAR_P (node) && TREE_STATIC (node))))
+    ;
+  else
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored", name);
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
 }
 
 /* (end of attribute-handling).  */
