@@ -50,6 +50,14 @@ extern bool validate_attr_args (tree node[2], tree name, tree newargs[2]);
 extern bool validate_attr_arg (tree node[2], tree name, tree newarg);
 extern tree handle_alias_ifunc_attribute (bool, tree *, tree, tree, bool *);
 
+/* Language-neutral cores of attributes whose C-family handlers add
+   dialect-specific behaviour (noreturn's Objective-C methods, cold's C++
+   class hot/cold conflict, malloc's deallocator-argument form).  The C family
+   calls these from a thin wrapper; the neutral front ends use them directly.  */
+extern tree handle_noreturn_common (tree *, tree, tree, int, bool *);
+extern tree handle_cold_common (tree *, tree, tree, int, bool *);
+extern tree handle_malloc_common (tree *, tree, tree, int, bool *);
+
 /* The machine-independent attribute handlers, referenced from the front-end
    attribute tables.  Each has the signature required by
    attribute_spec::handler.  */

@@ -880,3 +880,95 @@ handle_retain_attribute (tree *pnode, tree name, tree ARG_UNUSED (args),
 
   return NULL_TREE;
 }
+
+/* The following three functions are the language-neutral cores of attributes
+   whose C-family handlers additionally implement dialect-specific behaviour:
+   an Objective-C method branch for noreturn, a C++ class hot/cold-conflict
+   branch for cold, and the deallocator-argument form for malloc.  The C family
+   invokes these from a thin wrapper that adds that behaviour (see
+   c-family/c-attribs.cc); jit and the other neutral front ends reference them
+   directly from their attribute tables.  */
+
+/* Language-neutral core of the "noreturn" attribute.  */
+
+tree
+handle_noreturn_common (tree *node, tree name, tree ARG_UNUSED (args),
+			int ARG_UNUSED (flags), bool *no_add_attrs)
+{
+  tree type = TREE_TYPE (*node);
+
+  if (TREE_CODE (*node) == FUNCTION_DECL)
+    TREE_THIS_VOLATILE (*node) = 1;
+  else if (TREE_CODE (type) == POINTER_TYPE
+	   && TREE_CODE (TREE_TYPE (type)) == FUNCTION_TYPE)
+    TREE_TYPE (*node)
+      = (build_qualified_type
+	 (build_pointer_type
+	  (build_type_variant (TREE_TYPE (type),
+			       TYPE_READONLY (TREE_TYPE (type)), 1)),
+	  TYPE_QUALS (type)));
+  else
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored", name);
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
+}
+
+/* Language-neutral core of the "cold" attribute.  */
+
+tree
+handle_cold_common (tree *node, tree name, tree ARG_UNUSED (args),
+		    int flags, bool *no_add_attrs)
+{
+  if (TREE_CODE (*node) == FUNCTION_DECL
+      || TREE_CODE (*node) == LABEL_DECL)
+    {
+      /* Attribute cold processing is done later with lookup_attribute.  */
+    }
+  else if (flags & ((int) ATTR_FLAG_FUNCTION_NEXT
+		    | (int) ATTR_FLAG_DECL_NEXT))
+    {
+	/* Avoid applying the attribute to a function return type when
+	   used as:  void __attribute ((cold)) foo (void).  It will be
+	   passed to the function.  */
+	*no_add_attrs = true;
+    }
+  else
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored", name);
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
+}
+
+/* Language-neutral core of the "malloc" attribute: the argument-less form
+   that declares the function malloc-like.  */
+
+tree
+handle_malloc_common (tree *node, tree name, tree ARG_UNUSED (args),
+		      int ARG_UNUSED (flags), bool *no_add_attrs)
+{
+  if (TREE_CODE (*node) != FUNCTION_DECL)
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored; valid only "
+	       "for functions", name);
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+
+  tree rettype = TREE_TYPE (TREE_TYPE (*node));
+  if (!POINTER_TYPE_P (rettype))
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored on functions "
+	       "returning %qT; valid only for pointer return types",
+	       name, rettype);
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+
+  DECL_IS_MALLOC (*node) = 1;
+  return NULL_TREE;
+}

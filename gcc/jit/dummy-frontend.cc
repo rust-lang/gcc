@@ -46,12 +46,9 @@ using namespace gcc::jit;
    the handlers shared with the C family live in gcc/attr-handlers.cc (declared
    in attr-handlers.h, included above).  */
 
-static tree handle_cold_attribute (tree *, tree, tree, int, bool *);
 static tree handle_format_arg_attribute (tree *, tree, tree, int, bool *);
 static tree handle_format_attribute (tree *, tree, tree, int, bool *);
-static tree handle_malloc_attribute (tree *, tree, tree, int, bool *);
 static tree handle_nonnull_attribute (tree *, tree, tree, int, bool *);
-static tree handle_noreturn_attribute (tree *, tree, tree, int, bool *);
 static tree handle_patchable_function_entry_attribute (tree *, tree, tree,
 						       int, bool *);
 static tree handle_sentinel_attribute (tree *, tree, tree, int, bool *);
@@ -75,7 +72,7 @@ static const attribute_spec jit_gnu_attributes[] =
 			      handle_always_inline_attribute,
 			      attr_always_inline_exclusions },
   { "cold",		      0, 0, true,  false, false, false,
-			      handle_cold_attribute,
+			      handle_cold_common,
 			      attr_cold_hot_exclusions },
   /* The same comments as for noreturn attributes apply to const ones.  */
   { "const",		      0, 0, true,  false, false, false,
@@ -87,9 +84,9 @@ static const attribute_spec jit_gnu_attributes[] =
   { "leaf",		      0, 0, true,  false, false, false,
 			      handle_leaf_attribute, NULL },
   { "malloc",		      0, 0, true,  false, false, false,
-			      handle_malloc_attribute, attr_alloc_exclusions },
+			      handle_malloc_common, attr_alloc_exclusions },
   { "noreturn",		      0, 0, true,  false, false, false,
-			      handle_noreturn_attribute,
+			      handle_noreturn_common,
 			      attr_noreturn_exclusions },
   { "no vops",		      0, 0, true,  false, false, false,
 			      handle_novops_attribute, NULL },
@@ -181,63 +178,6 @@ jit_preserve_from_gc (tree t)
    variants of the handlers whose C-family versions carry Objective-C / C++ /
    format-checker behaviour that libgccjit neither has nor links; the shared
    handlers live in gcc/attr-handlers.cc.  */
-
-/* Handle a "noreturn" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-static tree
-handle_noreturn_attribute (tree *node, tree name, tree ARG_UNUSED (args),
-			   int ARG_UNUSED (flags), bool *no_add_attrs)
-{
-  tree type = TREE_TYPE (*node);
-
-  if (TREE_CODE (*node) == FUNCTION_DECL)
-    TREE_THIS_VOLATILE (*node) = 1;
-  else if (TREE_CODE (type) == POINTER_TYPE
-	   && TREE_CODE (TREE_TYPE (type)) == FUNCTION_TYPE)
-    TREE_TYPE (*node)
-      = (build_qualified_type
-	 (build_pointer_type
-	  (build_type_variant (TREE_TYPE (type),
-			       TYPE_READONLY (TREE_TYPE (type)), 1)),
-	  TYPE_QUALS (type)));
-  else
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored", name);
-      *no_add_attrs = true;
-    }
-
-  return NULL_TREE;
-}
-
-/* Handle a "malloc" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-static tree
-handle_malloc_attribute (tree *node, tree name, tree ARG_UNUSED (args),
-			 int ARG_UNUSED (flags), bool *no_add_attrs)
-{
-  if (TREE_CODE (*node) != FUNCTION_DECL)
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored; valid only "
-	       "for functions", name);
-      *no_add_attrs = true;
-      return NULL_TREE;
-    }
-
-  tree rettype = TREE_TYPE (TREE_TYPE (*node));
-  if (!POINTER_TYPE_P (rettype))
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored on functions "
-	       "returning %qT; valid only for pointer return types",
-	       name, rettype);
-      *no_add_attrs = true;
-      return NULL_TREE;
-    }
-
-  DECL_IS_MALLOC (*node) = 1;
-  return NULL_TREE;
-}
 
 /* Helper for nonnull attribute handling; fetch the operand number
    from the attribute argument list.  */
@@ -357,35 +297,6 @@ static tree
 handle_patchable_function_entry_attribute (tree *, tree, tree, int, bool *)
 {
   /* Nothing to be done here.  */
-  return NULL_TREE;
-}
-
-/* Handle a "cold" attribute; arguments as in
-   struct attribute_spec.handler.  */
-
-static tree
-handle_cold_attribute (tree *node, tree name, tree ARG_UNUSED (args),
-		       int flags, bool *no_add_attrs)
-{
-  if (TREE_CODE (*node) == FUNCTION_DECL
-      || TREE_CODE (*node) == LABEL_DECL)
-    {
-      /* Attribute cold processing is done later with lookup_attribute.  */
-    }
-  else if (flags & ((int) ATTR_FLAG_FUNCTION_NEXT
-		    | (int) ATTR_FLAG_DECL_NEXT))
-    {
-	/* Avoid applying the attribute to a function return type when
-	   used as:  void __attribute ((cold)) foo (void).  It will be
-	   passed to the function.  */
-	*no_add_attrs = true;
-    }
-  else
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored", name);
-      *no_add_attrs = true;
-    }
-
   return NULL_TREE;
 }
 

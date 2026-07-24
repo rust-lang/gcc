@@ -1115,30 +1115,18 @@ handle_musttail_attribute (tree ARG_UNUSED (*node), tree name, tree ARG_UNUSED (
    struct attribute_spec.handler.  */
 
 tree
-handle_noreturn_attribute (tree *node, tree name, tree ARG_UNUSED (args),
-			   int ARG_UNUSED (flags), bool *no_add_attrs)
+handle_noreturn_attribute (tree *node, tree name, tree args,
+			   int flags, bool *no_add_attrs)
 {
-  tree type = TREE_TYPE (*node);
-
-  /* See FIXME comment in c_common_attribute_table.  */
-  if (TREE_CODE (*node) == FUNCTION_DECL
-      || objc_method_decl (TREE_CODE (*node)))
-    TREE_THIS_VOLATILE (*node) = 1;
-  else if (TREE_CODE (type) == POINTER_TYPE
-	   && TREE_CODE (TREE_TYPE (type)) == FUNCTION_TYPE)
-    TREE_TYPE (*node)
-      = (build_qualified_type
-	 (build_pointer_type
-	  (build_type_variant (TREE_TYPE (type),
-			       TYPE_READONLY (TREE_TYPE (type)), 1)),
-	  TYPE_QUALS (type)));
-  else
+  /* An Objective-C method declaration is the only node kind the shared core
+     does not handle; deal with it here and delegate everything else.  */
+  if (objc_method_decl (TREE_CODE (*node)))
     {
-      warning (OPT_Wattributes, "%qE attribute ignored", name);
-      *no_add_attrs = true;
+      TREE_THIS_VOLATILE (*node) = 1;
+      return NULL_TREE;
     }
 
-  return NULL_TREE;
+  return handle_noreturn_common (node, name, args, flags, no_add_attrs);
 }
 
 /* Handle a "hot" and attribute; arguments as in
@@ -1189,18 +1177,15 @@ handle_hot_attribute (tree *node, tree name, tree ARG_UNUSED (args),
    struct attribute_spec.handler.  */
 
 static tree
-handle_cold_attribute (tree *node, tree name, tree ARG_UNUSED (args),
-		       int ARG_UNUSED (flags), bool *no_add_attrs)
+handle_cold_attribute (tree *node, tree name, tree args, int flags,
+		       bool *no_add_attrs)
 {
-  if (TREE_CODE (*node) == FUNCTION_DECL
-      || TREE_CODE (*node) == LABEL_DECL)
-    {
-      /* Attribute cold processing is done later with lookup_attribute.  */
-    }
-  else if ((TREE_CODE (*node) == RECORD_TYPE
-	    || TREE_CODE (*node) == UNION_TYPE)
-	   && c_dialect_cxx ()
-	   && (flags & (int) ATTR_FLAG_TYPE_IN_PLACE))
+  /* The early diagnosis of a hot/cold conflict on a C++ class is the only
+     piece specific to the C family; everything else is shared.  */
+  if ((TREE_CODE (*node) == RECORD_TYPE
+       || TREE_CODE (*node) == UNION_TYPE)
+      && c_dialect_cxx ()
+      && (flags & (int) ATTR_FLAG_TYPE_IN_PLACE))
     {
       /* Check conflict here as decl_attributes will otherwise only catch
 	 it late at the function when the attribute is used on a class.  */
@@ -1211,22 +1196,10 @@ handle_cold_attribute (tree *node, tree name, tree ARG_UNUSED (args),
 		   "conflicts with attribute %qs", name, "hot");
 	  *no_add_attrs = true;
 	}
-    }
-  else if (flags & ((int) ATTR_FLAG_FUNCTION_NEXT
-		    | (int) ATTR_FLAG_DECL_NEXT))
-    {
-	/* Avoid applying the attribute to a function return type when
-	   used as:  void __attribute ((cold)) foo (void).  It will be
-	   passed to the function.  */
-	*no_add_attrs = true;
-    }
-  else
-    {
-      warning (OPT_Wattributes, "%qE attribute ignored", name);
-      *no_add_attrs = true;
+      return NULL_TREE;
     }
 
-  return NULL_TREE;
+  return handle_cold_common (node, name, args, flags, no_add_attrs);
 }
 
 /* Add FLAGS for a function NODE to no_sanitize_flags in DECL_ATTRIBUTES.  */
@@ -3175,6 +3148,12 @@ handle_malloc_attribute (tree *node, tree name, tree args, int flags,
     /* Recursive call.  */
     return NULL_TREE;
 
+  /* The argument-less form (declaring the function malloc-like) is shared
+     with the neutral front ends; the deallocator-argument form below is
+     specific to the C family.  */
+  if (!args)
+    return handle_malloc_common (node, name, args, flags, no_add_attrs);
+
   tree fndecl = *node;
 
   if (TREE_CODE (*node) != FUNCTION_DECL)
@@ -3193,14 +3172,6 @@ handle_malloc_attribute (tree *node, tree name, tree args, int flags,
 	       "returning %qT; valid only for pointer return types",
 	       name, rettype);
       *no_add_attrs = true;
-      return NULL_TREE;
-    }
-
-  if (!args)
-    {
-      /* Only the form of the attribute with no arguments declares
-	 a function malloc-like.  */
-      DECL_IS_MALLOC (*node) = 1;
       return NULL_TREE;
     }
 
