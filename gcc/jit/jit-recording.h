@@ -638,7 +638,7 @@ public:
   type *get_vector (size_t num_units);
 
   void set_packed ();
-  virtual void set_addressable();
+  void set_addressable();
   /* Get the type obtained when dereferencing this type.
 
      This will return NULL if it's not valid to dereference this type.
@@ -821,10 +821,6 @@ public:
   bool accepts_writes_from (type *rtype) final override;
 
   void replay_into (replayer *r) final override;
-
-  /* For pointers to functions, forward the flag to the function type: it
-     means that the pointed-to function returns its value in memory.  */
-  void set_addressable () final override;
 
   bool is_int () const final override { return false; }
   bool is_float () const final override { return false; }
@@ -1660,9 +1656,9 @@ public:
   {
     m_indirect_return = true;
     /* If the function pointer type was already created by get_address,
-       flag it as well (forwarded to its function type).  */
+       flag its function type as well.  */
     if (m_fn_ptr_type)
-      m_fn_ptr_type->set_addressable ();
+      m_fn_ptr_type->is_pointer ()->set_addressable ();
   }
 
   void write_to_dump (dump &d) final override;

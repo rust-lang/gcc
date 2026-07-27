@@ -2361,11 +2361,7 @@ extern void
 gcc_jit_type_set_packed (gcc_jit_type *type);
 
 /* Sets TREE_ADDRESSABLE on a given type, forcing it to be
-   passed indirectly and not in registers.
-
-   When called on a function pointer type, the flag is set on the
-   function type instead, meaning that the pointed-to function returns
-   its value in memory (see gcc_jit_function_set_indirect_return).  */
+   passed indirectly and not in registers.  */
 extern void
 gcc_jit_type_set_addressable(gcc_jit_type *type);
 
@@ -2375,6 +2371,26 @@ gcc_jit_type_set_addressable(gcc_jit_type *type);
    function.  */
 extern void
 gcc_jit_function_set_indirect_return (gcc_jit_function *func);
+
+/* Make functions called through the given function pointer type return
+   their value in memory (through a hidden pointer), even if the target
+   ABI would normally return it in registers, so that calls through this
+   pointer use the same calling convention as direct calls to a function
+   on which gcc_jit_function_set_indirect_return was called.
+
+   It is an error to call this on a type that is not a pointer to a
+   function.  */
+extern void
+gcc_jit_type_set_indirect_return (gcc_jit_type *fn_ptr_type);
+
+/* Return non-zero if functions called through the given function pointer
+   type return their value in memory (see
+   gcc_jit_type_set_indirect_return).
+
+   It is an error to call this on a type that is not a pointer to a
+   function.  */
+extern int
+gcc_jit_type_is_indirect_return (gcc_jit_type *fn_ptr_type);
 
 extern void
 gcc_jit_field_set_location (gcc_jit_field *field,

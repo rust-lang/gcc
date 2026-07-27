@@ -4508,6 +4508,34 @@ gcc_jit_function_set_indirect_return (gcc_jit_function *func)
   func->set_indirect_return ();
 }
 
+/* Public entrypoint.  See description in libgccjit.h.  */
+
+void
+gcc_jit_type_set_indirect_return (gcc_jit_type *fn_ptr_type)
+{
+  RETURN_IF_FAIL (fn_ptr_type, NULL, NULL, "NULL type");
+  gcc::jit::recording::type *pointee = fn_ptr_type->is_pointer ();
+  RETURN_IF_FAIL_PRINTF1 (pointee && pointee->dyn_cast_function_type (),
+			  NULL, NULL,
+			  "type %s is not a pointer to a function",
+			  fn_ptr_type->get_debug_string ());
+  pointee->set_addressable ();
+}
+
+/* Public entrypoint.  See description in libgccjit.h.  */
+
+int
+gcc_jit_type_is_indirect_return (gcc_jit_type *fn_ptr_type)
+{
+  RETURN_VAL_IF_FAIL (fn_ptr_type, 0, NULL, NULL, "NULL type");
+  gcc::jit::recording::type *pointee = fn_ptr_type->is_pointer ();
+  RETURN_VAL_IF_FAIL_PRINTF1 (pointee && pointee->dyn_cast_function_type (),
+			      0, NULL, NULL,
+			      "type %s is not a pointer to a function",
+			      fn_ptr_type->get_debug_string ());
+  return pointee->m_addressable;
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the

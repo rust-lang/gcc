@@ -3315,24 +3315,6 @@ recording::memento_of_get_pointer::replay_into (replayer *)
   set_playback_obj (m_other_type->playback_type ()->get_pointer ());
 }
 
-/* Implementation of recording::type::set_addressable for
-   recording::memento_of_get_pointer.
-
-   For pointers to functions, the flag belongs on the function type: it
-   means that the pointed-to function returns its value in memory (see
-   aggregate_value_p), so that calls through this pointer use the same
-   calling convention as direct calls to a function with an indirect
-   return.  */
-
-void
-recording::memento_of_get_pointer::set_addressable ()
-{
-  if (m_other_type->dyn_cast_function_type ())
-    m_other_type->set_addressable ();
-  else
-    type::set_addressable ();
-}
-
 /* Implementation of recording::memento::make_debug_string for
    results of get_pointer, adding " *" to the underlying type,
    with special-casing to handle function pointer types.  */

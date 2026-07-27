@@ -418,4 +418,6 @@ LIBGCCJIT_ABI_50 {
 LIBGCCJIT_ABI_51 {
   global:
     gcc_jit_function_set_indirect_return;
+    gcc_jit_type_is_indirect_return;
+    gcc_jit_type_set_indirect_return;
 } LIBGCCJIT_ABI_50;
