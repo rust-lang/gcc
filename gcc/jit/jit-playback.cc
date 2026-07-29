@@ -455,6 +455,22 @@ new_bitfield (location *loc,
   return new field (decl);
 }
 
+const char* type_attribute_to_string (gcc_jit_type_attribute attr)
+{
+  switch (attr)
+  {
+    case GCC_JIT_TYPE_ATTRIBUTE_ALIGNED:
+      return "aligned";
+    case GCC_JIT_TYPE_ATTRIBUTE_MAY_ALIAS:
+      return "may_alias";
+    case GCC_JIT_TYPE_ATTRIBUTE_PACKED:
+      return "packed";
+    case GCC_JIT_TYPE_ATTRIBUTE_MAX:
+      return NULL;
+  }
+  return NULL;
+}
+
 /* Construct a playback::compound_type instance (wrapping a tree).  */
 
 playback::compound_type *
@@ -463,7 +479,10 @@ new_compound_type (location *loc,
 		   const char *name,
 		   bool is_struct, /* else is union */
 		   bool is_packed,
-		   bool is_addressable)
+		   bool is_addressable,
+		   std::vector<gcc_jit_type_attribute> attributes,
+		   std::vector<std::pair<gcc_jit_type_attribute,
+		                         int>> int_attributes)
 {
   gcc_assert (name);
 
@@ -478,6 +497,35 @@ new_compound_type (location *loc,
   if (is_addressable) TREE_ADDRESSABLE(t) = 1;
   if (loc)
     set_tree_location (t, loc);
+
+  tree type_attributes = NULL_TREE;
+  /* All attributes need to be declared in `dummy-frontend.cc` and more
+     specifically in `jit_attribute_table`. */
+  for (auto attr: attributes)
+  {
+    const char* attribute = type_attribute_to_string (attr);
+    if (attribute)
+    {
+      tree ident = get_identifier (attribute);
+      type_attributes = tree_cons (ident, NULL_TREE, type_attributes);
+    }
+  }
+
+  for (auto attr: int_attributes)
+  {
+    gcc_jit_type_attribute& name = std::get<0>(attr);
+    int& value = std::get<1>(attr);
+    const char* attribute = type_attribute_to_string (name);
+    tree ident = attribute ? get_identifier (attribute) : NULL;
+
+    if (ident)
+    {
+      tree int_value = build_int_cst (integer_type_node, value);
+      tree attr_args = build_tree_list (NULL_TREE, int_value);
+      type_attributes = tree_cons (ident, attr_args, type_attributes);
+    }
+  }
+  decl_attributes (&t, type_attributes, ATTR_FLAG_TYPE_IN_PLACE);
 
   return new compound_type (t);
 }

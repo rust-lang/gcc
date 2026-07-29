@@ -651,6 +651,19 @@ public:
      these types.  */
   virtual size_t get_size () { gcc_unreachable (); }
 
+  virtual void add_integer_attribute (gcc_jit_type_attribute attribute,
+				      int value)
+  {
+    (void)attribute;
+    (void)value;
+    m_ctxt->add_error (NULL, "attributes are only supported on compound types");
+  }
+  virtual void add_attribute (gcc_jit_type_attribute attribute)
+  {
+    (void)attribute;
+    m_ctxt->add_error (NULL, "attributes are only supported on compound types");
+  }
+
   virtual type* copy (context* ctxt) = 0;
 
   /* Dynamic casts.  */
@@ -1284,6 +1297,14 @@ public:
   type *is_array () final override { return NULL; }
   bool is_signed () const final override { return false; }
 
+  void write_attributes_reproducer (const char *id,
+				    reproducer &r,
+				    bool is_struct);
+
+  void add_integer_attribute (gcc_jit_type_attribute attribute,
+			      int value) final override;
+  void add_attribute (gcc_jit_type_attribute attribute) final override;
+
   compound_type *dyn_cast_compound_type () final override { return this; }
 
   bool has_known_size () const final override { return m_fields != NULL; }
@@ -1298,6 +1319,8 @@ public:
 protected:
   location *m_loc;
   string *m_name;
+  std::vector<gcc_jit_type_attribute> m_attributes;
+  std::vector<std::pair<gcc_jit_type_attribute, int>> m_int_attributes;
 
 private:
   fields *m_fields;

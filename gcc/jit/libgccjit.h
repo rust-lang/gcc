@@ -2263,6 +2263,28 @@ gcc_jit_vector_type_get_element_type (gcc_jit_vector_type *vector_type);
 extern gcc_jit_type *
 gcc_jit_type_unqualified (gcc_jit_type *type);
 
+/* Function attributes.  */
+enum gcc_jit_type_attribute
+{
+  GCC_JIT_TYPE_ATTRIBUTE_ALIGNED,
+  GCC_JIT_TYPE_ATTRIBUTE_MAY_ALIAS,
+  GCC_JIT_TYPE_ATTRIBUTE_PACKED,
+
+  /* Maximum value of this enum, should always be last. */
+  GCC_JIT_TYPE_ATTRIBUTE_MAX,
+};
+
+/* Add an attribute to a type.  */
+extern void
+gcc_jit_type_add_attribute (gcc_jit_type *type,
+			    enum gcc_jit_type_attribute attribute);
+
+/* Add an integer attribute to a type.  */
+extern void
+gcc_jit_type_add_integer_attribute (gcc_jit_type *type,
+				    enum gcc_jit_type_attribute attribute,
+				    int value);
+
 #define LIBGCCJIT_HAVE_ATTRIBUTES
 
 /* Function attributes.  */

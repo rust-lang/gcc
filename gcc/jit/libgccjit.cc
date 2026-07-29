@@ -726,6 +726,37 @@ gcc_jit_type_unqualified (gcc_jit_type *type)
   return (gcc_jit_type *)type->unqualified ();
 }
 
+/* Public entrypoint.  See description in libgccjit.h. */
+
+void
+gcc_jit_type_add_attribute (gcc_jit_type *type,
+			    gcc_jit_type_attribute attribute)
+{
+  RETURN_IF_FAIL (type, NULL, NULL, "NULL type");
+  RETURN_IF_FAIL ((attribute >= 0 && attribute < GCC_JIT_TYPE_ATTRIBUTE_MAX),
+		  NULL,
+		  NULL,
+		  "attribute should be a `gcc_jit_type_attribute` enum value");
+
+  type->add_attribute (attribute);
+}
+
+/* Public entrypoint.  See description in libgccjit.h. */
+
+void
+gcc_jit_type_add_integer_attribute (gcc_jit_type *type,
+				    gcc_jit_type_attribute attribute,
+				    int value)
+{
+  RETURN_IF_FAIL (type, NULL, NULL, "NULL type");
+  RETURN_IF_FAIL ((attribute >= 0 && attribute < GCC_JIT_TYPE_ATTRIBUTE_MAX),
+		  NULL,
+		  NULL,
+		  "attribute should be a `gcc_jit_type_attribute` enum value");
+
+  type->add_integer_attribute (attribute, value);
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
