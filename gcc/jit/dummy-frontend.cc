@@ -41,8 +41,19 @@ along with GCC; see the file COPYING3.  If not see
 
 using namespace gcc::jit;
 
+/* In a FIELD_DECL, nonzero if the decl was originally a bitfield.  */
+#define DECL_C_BIT_FIELD(NODE) \
+  (DECL_LANG_FLAG_4 (FIELD_DECL_CHECK (NODE)) == 1)
+
+/* This is needed as the function is used by the `size_int` macro.  */
+tree
+size_int_kind (poly_int64 number, enum size_type_kind kind);
+
 /* Attribute handling.  */
 
+static tree handle_packed_attribute (tree *, tree, tree, int, bool *);
+static tree handle_aligned_attribute (tree *node, tree name, tree args,
+				      int flags, bool *no_add_attrs);
 static tree handle_alias_attribute (tree *, tree, tree, int, bool *);
 static tree handle_always_inline_attribute (tree *, tree, tree, int,
 					    bool *);
@@ -78,6 +89,16 @@ static tree ignore_attribute (tree *, tree, tree, int, bool *);
 /* Helper to define attribute exclusions.  */
 #define ATTR_EXCL(name, function, type, variable)	\
   { name, function, type, variable }
+
+/* Define attributes that are mutually exclusive with one another.  */
+extern const struct attribute_spec::exclusions attr_aligned_exclusions[] =
+{
+  /* Attribute name     exclusion applies to:
+	                function, type, variable */
+  ATTR_EXCL ("aligned", true, false, false),
+  ATTR_EXCL ("packed", true, false, false),
+  ATTR_EXCL (NULL, false, false, false)
+};
 
 /* Define attributes that are mutually exclusive with one another.  */
 static const struct attribute_spec::exclusions attr_noreturn_exclusions[] =
@@ -171,6 +192,9 @@ static const attribute_spec jit_gnu_attributes[] =
        affects_type_identity, handler, exclude } */
   { "alias",		      1, 1, true,  false, false, false,
 			      handle_alias_attribute, NULL },
+  { "aligned",                0, 1, false, false, false, false,
+			      handle_aligned_attribute,
+			      attr_aligned_exclusions },
   { "always_inline",	      0, 0, true,  false, false, false,
 			      handle_always_inline_attribute,
 			      attr_always_inline_exclusions },
@@ -188,6 +212,7 @@ static const attribute_spec jit_gnu_attributes[] =
 			      handle_leaf_attribute, NULL },
   { "malloc",		      0, 0, true,  false, false, false,
 			      handle_malloc_attribute, attr_alloc_exclusions },
+  { "may_alias",	      0, 0, false, true, false, false, NULL, NULL },
   { "noreturn",		      0, 0, true,  false, false, false,
 			      handle_noreturn_attribute,
 			      attr_noreturn_exclusions },
@@ -200,6 +225,9 @@ static const attribute_spec jit_gnu_attributes[] =
 			      handle_nonnull_attribute, NULL },
   { "nothrow",		      0, 0, true,  false, false, false,
 			      handle_nothrow_attribute, NULL },
+  { "packed",                 0, 0, false, false, false, false,
+			      handle_packed_attribute,
+	                      attr_aligned_exclusions },
   { "patchable_function_entry", 1, 2, true, false, false, false,
 			      handle_patchable_function_entry_attribute,
 			      NULL },
@@ -221,15 +249,15 @@ static const attribute_spec jit_gnu_attributes[] =
 			      handle_type_generic_attribute, NULL },
   { "transaction_pure",	      0, 0, false, true, true, false,
 			      handle_transaction_pure_attribute, NULL },
-  { "used",         0, 0, true,  false, false, false,
-            handle_used_attribute, NULL },
-  { "visibility",       1, 1, false, false, false, false,
-            handle_visibility_attribute, NULL },
-  { "weak",         0, 0, true,  false, false, false,
-            handle_weak_attribute, NULL },
+  { "used",		      0, 0, true,  false, false, false,
+			      handle_used_attribute, NULL },
+  { "visibility",	      1, 1, false, false, false, false,
+			      handle_visibility_attribute, NULL },
+  { "weak",		      0, 0, true,  false, false, false,
+			      handle_weak_attribute, NULL },
   /* For internal use only.  The leading '*' both prevents its usage in
      source code and signals that it may be overridden by machine tables.  */
-  { "*tm regparm",            0, 0, false, true, true, false,
+  { "*tm regparm",	      0, 0, false, true, true, false,
 			      ignore_attribute, NULL },
 };
 
@@ -1157,6 +1185,290 @@ handle_retain_attribute (tree *pnode, tree name, tree ARG_UNUSED (args),
     }
 
   return NULL_TREE;
+}
+
+/* Handle a "packed" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+static tree
+handle_packed_attribute (tree *node, tree name, tree ARG_UNUSED (args),
+			 int flags, bool *no_add_attrs)
+{
+  if (TYPE_P (*node))
+    {
+      if (!(flags & (int) ATTR_FLAG_TYPE_IN_PLACE))
+	{
+	  warning (OPT_Wattributes,
+		   "%qE attribute ignored for type %qT", name, *node);
+	  *no_add_attrs = true;
+	}
+      else
+	TYPE_PACKED (*node) = 1;
+    }
+  else if (TREE_CODE (*node) == FIELD_DECL)
+    {
+      if (TYPE_ALIGN (TREE_TYPE (*node)) <= BITS_PER_UNIT
+	  /* Still pack bitfields.  */
+	  && ! DECL_C_BIT_FIELD (*node))
+	warning (OPT_Wattributes,
+		 "%qE attribute ignored for field of type %qT",
+		 name, TREE_TYPE (*node));
+      else
+	DECL_PACKED (*node) = 1;
+    }
+  /* We can't set DECL_PACKED for a VAR_DECL, because the bit is
+     used for DECL_REGISTER.  It wouldn't mean anything anyway.
+     We can't set DECL_PACKED on the type of a TYPE_DECL, because
+     that changes what the typedef is typing.  */
+  else
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored", name);
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
+}
+
+
+static int
+check_user_alignment (const_tree align, bool objfile, bool warn_zero)
+{
+  if (error_operand_p (align))
+    return -1;
+
+  if (TREE_CODE (align) != INTEGER_CST
+      || !INTEGRAL_TYPE_P (TREE_TYPE (align)))
+    {
+      error ("requested alignment is not an integer constant");
+      return -1;
+    }
+
+  if (integer_zerop (align))
+    {
+      if (warn_zero)
+	warning (OPT_Wattributes,
+		 "requested alignment %qE is not a positive power of 2",
+		 align);
+      return -1;
+    }
+
+  /* Log2 of the byte alignment ALIGN.  */
+  int log2align;
+  if (tree_int_cst_sgn (align) == -1
+      || (log2align = tree_log2 (align)) == -1)
+    {
+      error ("requested alignment %qE is not a positive power of 2",
+	     align);
+      return -1;
+    }
+
+  if (objfile)
+    {
+      unsigned maxalign = MAX_OFILE_ALIGNMENT / BITS_PER_UNIT;
+      if (!tree_fits_uhwi_p (align) || tree_to_uhwi (align) > maxalign)
+	{
+	  error ("requested alignment %qE exceeds object file maximum %u",
+		 align, maxalign);
+	  return -1;
+	}
+    }
+
+  if (log2align >= HOST_BITS_PER_INT - LOG2_BITS_PER_UNIT)
+    {
+      error ("requested alignment %qE exceeds maximum %u",
+	     align, 1U << (HOST_BITS_PER_INT - LOG2_BITS_PER_UNIT - 1));
+      return -1;
+    }
+
+  return log2align;
+}
+
+/* Common codes shared by handle_warn_if_not_aligned_attribute and
+   handle_aligned_attribute.  */
+
+static tree
+common_handle_aligned_attribute (tree *node, tree name, tree args, int flags,
+				 bool *no_add_attrs,
+				 bool warn_if_not_aligned_p)
+{
+  tree decl = NULL_TREE;
+  tree *type = NULL;
+  bool is_type = false;
+  tree align_expr;
+
+  /* The last (already pushed) declaration with all validated attributes
+     merged in or the current about-to-be-pushed one if one hasn't been
+     yet.  */
+  tree last_decl = node[1] ? node[1] : *node;
+
+  if (args)
+    {
+      align_expr = TREE_VALUE (args);
+      /* FIXME: Uncomment this code or find a way to use `default_conversion`.
+      if (align_expr && TREE_CODE (align_expr) != IDENTIFIER_NODE
+	  && TREE_CODE (align_expr) != FUNCTION_DECL)
+	align_expr = default_conversion (align_expr);*/
+    }
+  else
+    align_expr = size_int (ATTRIBUTE_ALIGNED_VALUE / BITS_PER_UNIT);
+
+  if (DECL_P (*node))
+    {
+      decl = *node;
+      type = &TREE_TYPE (decl);
+      is_type = TREE_CODE (*node) == TYPE_DECL;
+    }
+  else if (TYPE_P (*node))
+    type = node, is_type = true;
+
+  /* True to consider invalid alignments greater than MAX_OFILE_ALIGNMENT.  */
+  bool objfile = (TREE_CODE (*node) == FUNCTION_DECL
+		  || (VAR_P (*node) && TREE_STATIC (*node)));
+  /* Log2 of specified alignment.  */
+  int pow2align = check_user_alignment (align_expr, objfile,
+					/* warn_zero = */ true);
+  if (pow2align == -1)
+    {
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+
+  /* The alignment in bits corresponding to the specified alignment.  */
+  unsigned bitalign = (1U << pow2align) * BITS_PER_UNIT;
+
+  /* The alignment of the current declaration and that of the last
+     pushed declaration, determined on demand below.  */
+  unsigned curalign = 0;
+  unsigned lastalign = 0;
+
+  /* True when SET_DECL_ALIGN() should be called for the decl when
+     *NO_ADD_ATTRS is false.  */
+  bool set_align = true;
+  if (is_type)
+    {
+      if ((flags & (int) ATTR_FLAG_TYPE_IN_PLACE))
+	/* OK, modify the type in place.  */;
+      /* If we have a TYPE_DECL, then copy the type, so that we
+	 don't accidentally modify a builtin type.  See pushdecl.  */
+      else if (decl && TREE_TYPE (decl) != error_mark_node
+	       && DECL_ORIGINAL_TYPE (decl) == NULL_TREE)
+	{
+	  tree tt = TREE_TYPE (decl);
+	  *type = build_variant_type_copy (*type);
+	  DECL_ORIGINAL_TYPE (decl) = tt;
+	  TYPE_NAME (*type) = decl;
+	  TREE_USED (*type) = TREE_USED (decl);
+	  TREE_TYPE (decl) = *type;
+	}
+      else
+	*type = build_variant_type_copy (*type);
+
+      if (warn_if_not_aligned_p)
+	{
+	  SET_TYPE_WARN_IF_NOT_ALIGN (*type, bitalign);
+	  warn_if_not_aligned_p = false;
+	}
+      else
+	{
+	  SET_TYPE_ALIGN (*type, bitalign);
+	  TYPE_USER_ALIGN (*type) = 1;
+	}
+    }
+  else if (! VAR_OR_FUNCTION_DECL_P (decl)
+	   && TREE_CODE (decl) != FIELD_DECL)
+    {
+      error ("alignment may not be specified for %q+D", decl);
+      *no_add_attrs = true;
+    }
+  else if (TREE_CODE (decl) == FUNCTION_DECL
+	   && (((curalign = DECL_ALIGN (decl)) > bitalign)
+	       | ((lastalign = DECL_ALIGN (last_decl)) > bitalign)))
+    {
+      /* Either a prior attribute on the same declaration or one
+	 on a prior declaration of the same function specifies
+	 stricter alignment than this attribute.  */
+      bool note = (lastalign > curalign
+		   || (lastalign == curalign
+		       && (DECL_USER_ALIGN (last_decl)
+			   > DECL_USER_ALIGN (decl))));
+      if (note)
+	curalign = lastalign;
+
+      curalign /= BITS_PER_UNIT;
+      unsigned newalign = bitalign / BITS_PER_UNIT;
+
+      auto_diagnostic_group d;
+      if ((DECL_USER_ALIGN (decl)
+	   || DECL_USER_ALIGN (last_decl)))
+	{
+	  if (warning (OPT_Wattributes,
+		       "ignoring attribute %<%E (%u)%> because it conflicts "
+		       "with attribute %<%E (%u)%>",
+		       name, newalign, name, curalign)
+	      && note)
+	    inform (DECL_SOURCE_LOCATION (last_decl),
+		    "previous declaration here");
+	  /* Only reject attempts to relax/override an alignment
+	     explicitly specified previously and accept declarations
+	     that appear to relax the implicit function alignment for
+	     the target.  Both increasing and increasing the alignment
+	     set by -falign-functions setting is permitted.  */
+	  *no_add_attrs = true;
+	}
+      else if (!warn_if_not_aligned_p)
+	{
+	  /* Do not fail for attribute warn_if_not_aligned.  Otherwise,
+	     silently avoid applying the alignment to the declaration
+	     because it's implicitly satisfied by the target.  Apply
+	     the attribute nevertheless so it can be retrieved by
+	     __builtin_has_attribute.  */
+	  set_align = false;
+	}
+    }
+  else if (DECL_USER_ALIGN (decl)
+	   && DECL_ALIGN (decl) > bitalign)
+    /* C++-11 [dcl.align/4]:
+
+	   When multiple alignment-specifiers are specified for an
+	   entity, the alignment requirement shall be set to the
+	   strictest specified alignment.
+
+      This formally comes from the c++11 specification but we are
+      doing it for the GNU attribute syntax as well.  */
+    *no_add_attrs = true;
+  else if (warn_if_not_aligned_p
+	   && TREE_CODE (decl) == FIELD_DECL
+	   && !DECL_C_BIT_FIELD (decl))
+    {
+      SET_DECL_WARN_IF_NOT_ALIGN (decl, bitalign);
+      warn_if_not_aligned_p = false;
+      set_align = false;
+    }
+
+  if (warn_if_not_aligned_p)
+    {
+      error ("%<warn_if_not_aligned%> may not be specified for %q+D",
+	     decl);
+      *no_add_attrs = true;
+    }
+  else if (!is_type && !*no_add_attrs && set_align)
+    {
+      SET_DECL_ALIGN (decl, bitalign);
+      DECL_USER_ALIGN (decl) = 1;
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle a "aligned" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+tree
+handle_aligned_attribute (tree *node, tree name, tree args,
+			  int flags, bool *no_add_attrs)
+{
+  return common_handle_aligned_attribute (node, name, args, flags,
+					 no_add_attrs, false);
 }
 
 /* (end of attribute-handling).  */
