@@ -105,7 +105,6 @@ public:
   new_compound_type (location *loc,
 		     const char *name,
 		     bool is_struct, /* else is union */
-		     bool is_packed,
 		     std::vector<gcc_jit_type_attribute> attributes,
 		     std::vector<std::pair<gcc_jit_type_attribute,
 					   int>> int_attributes);
@@ -567,7 +566,7 @@ public:
     : type (inner)
   {}
 
-  void set_fields (const auto_vec<field *> *fields, bool is_packed);
+  void set_fields (const auto_vec<field *> *fields);
 };
 
 class field : public wrapper
