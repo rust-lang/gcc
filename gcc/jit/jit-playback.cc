@@ -478,7 +478,6 @@ playback::context::
 new_compound_type (location *loc,
 		   const char *name,
 		   bool is_struct, /* else is union */
-		   bool is_packed,
 		   std::vector<gcc_jit_type_attribute> attributes,
 		   std::vector<std::pair<gcc_jit_type_attribute,
 		                         int>> int_attributes)
@@ -490,9 +489,6 @@ new_compound_type (location *loc,
   tree t = make_node (is_struct ? RECORD_TYPE : UNION_TYPE);
   TYPE_NAME (t) = get_identifier (name);
   TYPE_SIZE (t) = 0;
-
-  if (is_packed)
-    TYPE_PACKED (t) = 1;
 
   if (loc)
     set_tree_location (t, loc);
@@ -530,7 +526,7 @@ new_compound_type (location *loc,
 }
 
 void
-playback::compound_type::set_fields (const auto_vec<playback::field *> *fields, bool is_packed)
+playback::compound_type::set_fields (const auto_vec<playback::field *> *fields)
 {
   /* Compare with c/c-decl.cc: finish_struct. */
   tree t = as_tree ();
@@ -548,9 +544,6 @@ playback::compound_type::set_fields (const auto_vec<playback::field *> *fields, 
 	  DECL_BIT_FIELD (x) = 1;
 	}
 
-      if (is_packed && (DECL_BIT_FIELD (x)
-	      || TYPE_ALIGN (TREE_TYPE (x)) > BITS_PER_UNIT))
-        DECL_PACKED (x) = 1;
       fieldlist = chainon (x, fieldlist);
     }
   fieldlist = nreverse (fieldlist);
