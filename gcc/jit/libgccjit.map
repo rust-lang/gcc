@@ -429,3 +429,9 @@ LIBGCCJIT_ABI_52 {
 LIBGCCJIT_ABI_53 {
     gcc_jit_block_add_cleanup;
 } LIBGCCJIT_ABI_52;
+
+LIBGCCJIT_ABI_54 {
+  global:
+    gcc_jit_type_add_attribute;
+    gcc_jit_type_add_integer_attribute;
+} LIBGCCJIT_ABI_53;
