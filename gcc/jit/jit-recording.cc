@@ -2644,12 +2644,6 @@ recording::type::get_aligned (size_t alignment_in_bytes)
 }
 
 void
-recording::type::set_packed ()
-{
-  m_packed = true;
-}
-
-void
 recording::type::set_addressable ()
 {
   m_addressable = true;
@@ -4020,7 +4014,6 @@ recording::struct_::replay_into (replayer *r)
     r->new_compound_type (playback_location (r, get_loc ()),
 			  get_name ()->c_str (),
 			  true, /* is_struct */
-			  m_packed,
 			  m_addressable,
 			  m_attributes,
 			  m_int_attributes));
@@ -4079,7 +4072,6 @@ recording::union_::replay_into (replayer *r)
     r->new_compound_type (playback_location (r, get_loc ()),
 			  get_name ()->c_str (),
 			  false, /* is_struct */
-			  m_packed,
 			  m_addressable,
 			  m_attributes,
 			  m_int_attributes));
@@ -4154,7 +4146,7 @@ recording::fields::replay_into (replayer *)
   playback_fields.create (m_fields.length ());
   for (unsigned i = 0; i < m_fields.length (); i++)
     playback_fields.safe_push (m_fields[i]->playback_field ());
-  m_struct_or_union->playback_compound_type ()->set_fields (&playback_fields, m_struct_or_union->m_packed);
+  m_struct_or_union->playback_compound_type ()->set_fields (&playback_fields);
 }
 
 /* Override the default implementation of

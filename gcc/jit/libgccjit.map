@@ -351,8 +351,10 @@ LIBGCCJIT_ABI_38 {
 } LIBGCCJIT_ABI_37;
 
 LIBGCCJIT_ABI_39 {
+/* Replaced by `gcc_jit_type_add_attribute(GCC_JIT_TYPE_ATTRIBUTE_PACKED)`
   global:
     gcc_jit_type_set_packed;
+*/
 } LIBGCCJIT_ABI_38;
 
 LIBGCCJIT_ABI_40 {

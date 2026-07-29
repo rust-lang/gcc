@@ -4663,14 +4663,6 @@ gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable,
 }
 
 void
-gcc_jit_type_set_packed (gcc_jit_type *type)
-{
-  RETURN_IF_FAIL (type, NULL, NULL, "NULL type");
-
-  type->set_packed ();
-}
-
-void
 gcc_jit_type_set_addressable(gcc_jit_type *type)
 {
   RETURN_IF_FAIL (type, NULL, NULL, "NULL type");
