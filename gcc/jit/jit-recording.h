@@ -3011,10 +3011,10 @@ public:
 
   /* Re-emit this statement into DEST (a clone block), remapping any block
      references through CLONER so a duplicated subgraph is self-contained.
-     The base implementation reports an error for statement kinds that carry
-     state which cannot be safely duplicated (e.g. extended asm); the kinds
-     that appear in cleanup bodies override it.  See block_cloner.  */
-  virtual void clone_into (block_cloner &cloner, block *dest) const;
+     Pure so every concrete statement kind must provide a clone --
+     gcc_jit_blocks_clone stays fully generic, and adding a new statement
+     kind forces a clone at compile time.  See block_cloner.  */
+  virtual void clone_into (block_cloner &cloner, block *dest) const = 0;
 
   /* Append to OUT the blocks whose statements this statement *inlines*
      (rather than merely branching to): a try/catch's try and handler blocks,
@@ -3465,6 +3465,11 @@ protected:
   void write_flags (reproducer &r);
   void write_clobbers (reproducer &r);
 
+  /* Copy the flags, operands and clobbers of this extended asm into DEST
+     (a freshly-created clone of it), cloning the operands' rvalues through
+     CLONER.  Used by the clone_into of both concrete subclasses.  */
+  void clone_contents_into (block_cloner &cloner, extended_asm *dest) const;
+
 private:
   string * make_debug_string () final override;
   virtual void maybe_populate_playback_blocks
@@ -3495,6 +3500,8 @@ public:
   bool is_goto () const final override { return false; }
   void maybe_print_gotos (pretty_printer *) const final override {}
 
+  void clone_into (block_cloner &cloner, block *dest) const final override;
+
 private:
   void maybe_populate_playback_blocks
     (auto_vec <playback::block *> *) final override
@@ -3521,6 +3528,8 @@ public:
 
   bool is_goto () const final override { return true; }
   void maybe_print_gotos (pretty_printer *) const final override;
+
+  void clone_into (block_cloner &cloner, block *dest) const final override;
 
 private:
   void maybe_populate_playback_blocks

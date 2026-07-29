@@ -4805,7 +4805,13 @@ recording::block_cloner::get_clone (block *orig)
 {
   if (block **existing = m_map.get (orig))
     return *existing;
-  block *clone = m_func->new_block (NULL);
+  /* Give the clone the original's name.  Block names need not be unique
+     (blocks are identified by pointer, and only dumps and error messages
+     use the name), and reusing it keeps the label's identifier, so an
+     "asm goto" template referring to a label symbolically ("%l[name]")
+     still resolves in the clone.  */
+  block *clone
+    = m_func->new_block (orig->m_name ? orig->m_name->c_str () : NULL);
   clone->m_is_reachable = orig->m_is_reachable;
   m_map.put (orig, clone);
   m_all.safe_push (orig);
@@ -7994,23 +8000,12 @@ recording::statement::write_to_dump (dump &d)
     m_loc = d.make_location ();
 }
 
-/* Default implementation of recording::statement::clone_into: reject
-   statement kinds that carry state which cannot be safely duplicated (e.g.
-   extended asm).  The kinds that appear in cleanup bodies override this.  */
-
-void
-recording::statement::clone_into (block_cloner &, block *) const
-{
-  m_ctxt->add_error (get_loc (),
-		     "cloning this kind of statement is not supported");
-}
-
 /* clone_into / get_inlined_blocks implementations for the concrete
-   statement kinds that a cleanup body may contain.  Each re-emits itself
-   into DEST via the normal recording API (so all bookkeeping -- context
-   recording, termination flags, reachability -- is reused), remapping block
-   references through CLONER.  References to blocks inside the cloned set
-   become the clones; references outside it are preserved.  */
+   statement kinds.  Each re-emits itself into DEST via the normal recording
+   API (so all bookkeeping -- context recording, termination flags,
+   reachability -- is reused), remapping block references through CLONER.
+   References to blocks inside the cloned set become the clones; references
+   outside it are preserved.  */
 
 void
 recording::eval::clone_into (block_cloner &cloner, block *dest) const
@@ -8112,6 +8107,66 @@ recording::cleanup::get_inlined_blocks (auto_vec<block *> &out) const
     out.safe_push (b);
   FOR_EACH_VEC_ELT (m_cleanup_region->get_blocks (), i, b)
     out.safe_push (b);
+}
+
+/* Copy the flags, operands and clobbers of this extended asm into DEST, a
+   freshly-created clone of it.  The asm template and the operands' symbolic
+   names and constraints are immutable strings, so they are simply re-added;
+   the operands' lvalues/rvalues are cloned through CLONER.  */
+
+void
+recording::extended_asm::clone_contents_into (block_cloner &cloner,
+					      extended_asm *dest) const
+{
+  dest->set_volatile_flag (m_is_volatile);
+  dest->set_inline_flag (m_is_inline);
+
+  unsigned i;
+  output_asm_operand *output_op;
+  FOR_EACH_VEC_ELT (m_output_ops, i, output_op)
+    dest->add_output_operand (output_op->get_symbolic_name (),
+			      output_op->get_constraint (),
+			      cloner.clone_lvalue (output_op->get_lvalue ()));
+
+  input_asm_operand *input_op;
+  FOR_EACH_VEC_ELT (m_input_ops, i, input_op)
+    dest->add_input_operand (input_op->get_symbolic_name (),
+			     input_op->get_constraint (),
+			     cloner.clone_rvalue (input_op->get_rvalue ()));
+
+  string *clobber;
+  FOR_EACH_VEC_ELT (m_clobbers, i, clobber)
+    dest->add_clobber (clobber->c_str ());
+}
+
+void
+recording::extended_asm_simple::clone_into (block_cloner &cloner,
+					    block *dest) const
+{
+  extended_asm *clone
+    = dest->add_extended_asm (get_loc (), m_asm_template->c_str ());
+  clone_contents_into (cloner, clone);
+}
+
+void
+recording::extended_asm_goto::clone_into (block_cloner &cloner,
+					  block *dest) const
+{
+  auto_vec<block *> goto_blocks (m_goto_blocks.length ());
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (m_goto_blocks, i, b)
+    goto_blocks.quick_push (cloner.remap (b));
+
+  extended_asm *clone
+    = dest->end_with_extended_asm_goto (get_loc (),
+					m_asm_template->c_str (),
+					goto_blocks.length (),
+					goto_blocks.address (),
+					(m_fallthrough_block
+					 ? cloner.remap (m_fallthrough_block)
+					 : NULL));
+  clone_contents_into (cloner, clone);
 }
 
 /* The implementation of class gcc::jit::recording::memento_of_set_personality_function.  */
