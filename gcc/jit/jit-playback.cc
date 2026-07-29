@@ -3023,7 +3023,13 @@ build_goto_operands (const auto_vec <playback::block *> *blocks)
   FOR_EACH_VEC_ELT (*blocks, i, b)
     {
       tree label = b->as_label_decl ();
-      tree name = build_string (IDENTIFIER_POINTER (DECL_NAME (label)));
+      /* A block can be unnamed (gcc_jit_function_new_block accepts a NULL
+	 name, and cloned blocks are unnamed); such a label simply has no
+	 symbolic name for "%l[name]" to refer to, which the middle-end
+	 represents as a NULL_TREE purpose.  */
+      tree name = (DECL_NAME (label)
+		   ? build_string (IDENTIFIER_POINTER (DECL_NAME (label)))
+		   : NULL_TREE);
       TREE_USED (label) = 1;
       list = tree_cons (name, label, list);
     }
