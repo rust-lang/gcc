@@ -468,6 +468,12 @@
 #undef create_code
 #undef verify_code
 
+/* test-type-aligned-attribute.c: This can't be in the testcases array as it
+   is target-specific and needs the `-O2` flag.  */
+
+/* test-type-packed-attribute.c: This can't be in the testcases array as it
+   is target-specific and needs the `-O2` flag.  */
+
 /* test-used-attribute.c: This can't be in the testcases array as it needs
    the `-O2` flag.  */
 
