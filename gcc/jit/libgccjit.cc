@@ -4662,14 +4662,6 @@ gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable,
   variable->add_attribute (attribute);
 }
 
-void
-gcc_jit_type_set_packed (gcc_jit_type *type)
-{
-  RETURN_IF_FAIL (type, NULL, NULL, "NULL type");
-
-  type->set_packed ();
-}
-
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
