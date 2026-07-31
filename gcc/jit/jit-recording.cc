@@ -5398,14 +5398,11 @@ recording::block::add_eval (recording::location *loc,
 
 recording::statement *
 recording::block::add_try_catch (location *loc,
-                   block *try_block,
-                   block *catch_block,
+                   recording::region *try_region,
+                   recording::region *catch_region,
                    bool is_finally)
 {
-  statement *result = new try_catch (this, loc, try_block, catch_block, is_finally);
-  // TODO: explain why we set the blocks reachable state.
-  try_block->m_is_reachable = true;
-  catch_block->m_is_reachable = true;
+  statement *result = new try_catch (this, loc, try_region, catch_region, is_finally);
   m_ctxt->record (result);
   m_statements.safe_push (result);
   return result;
@@ -8080,16 +8077,20 @@ void
 recording::try_catch::clone_into (block_cloner &cloner, block *dest) const
 {
   dest->add_try_catch (get_loc (),
-		       cloner.remap (m_try_block),
-		       cloner.remap (m_catch_block),
+		       cloner.clone_region (m_try_region),
+		       cloner.clone_region (m_catch_region),
 		       m_is_finally);
 }
 
 void
 recording::try_catch::get_inlined_blocks (auto_vec<block *> &out) const
 {
-  out.safe_push (m_try_block);
-  out.safe_push (m_catch_block);
+  unsigned i;
+  block *b;
+  FOR_EACH_VEC_ELT (m_try_region->get_blocks (), i, b)
+    out.safe_push (b);
+  FOR_EACH_VEC_ELT (m_catch_region->get_blocks (), i, b)
+    out.safe_push (b);
 }
 
 void
@@ -8225,8 +8226,8 @@ recording::try_catch::replay_into (replayer *r)
 {
   playback_block (get_block ())
     ->add_try_catch (playback_location (r),
-        m_try_block->playback_block (),
-        m_catch_block->playback_block (),
+        m_try_region,
+        m_catch_region,
         m_is_finally);
 }
 
@@ -8239,13 +8240,13 @@ recording::try_catch::make_debug_string ()
   if (m_is_finally)
     return string::from_printf (m_ctxt,
                   "try { %s } finally { %s };",
-                  m_try_block->get_debug_string (),
-                  m_catch_block->get_debug_string ());
+                  m_try_region->get_debug_string (),
+                  m_catch_region->get_debug_string ());
   else
     return string::from_printf (m_ctxt,
                   "try { %s } catch { %s };",
-                  m_try_block->get_debug_string (),
-                  m_catch_block->get_debug_string ());
+                  m_try_region->get_debug_string (),
+                  m_catch_region->get_debug_string ());
 }
 
 /* Implementation of recording::memento::write_reproducer for
@@ -8264,8 +8265,8 @@ recording::try_catch::write_reproducer (reproducer &r)
        func_name,
        r.get_identifier (get_block ()),
        r.get_identifier (get_loc ()),
-       r.get_identifier (m_try_block),
-       r.get_identifier (m_catch_block));
+       r.get_identifier (m_try_region),
+       r.get_identifier (m_catch_region));
 }
 
 /* The implementation of class gcc::jit::recording::cleanup.  */

@@ -704,8 +704,8 @@ public:
 
   void
   add_try_catch (location *loc,
-		 block *try_block,
-		 block *catch_block,
+		 recording::region *try_region,
+		 recording::region *catch_region,
 		 bool is_finally);
 
   void
