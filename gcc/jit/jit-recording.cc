@@ -2644,12 +2644,6 @@ recording::type::get_aligned (size_t alignment_in_bytes)
 }
 
 void
-recording::type::set_packed ()
-{
-  m_packed = true;
-}
-
-void
 recording::type::set_addressable ()
 {
   m_addressable = true;
@@ -3928,6 +3922,8 @@ recording::compound_type::compound_type (context *ctxt,
 : type (ctxt),
   m_loc (loc),
   m_name (name),
+  m_attributes (),
+  m_int_attributes (),
   m_fields (NULL)
 {
 }
@@ -3959,6 +3955,44 @@ recording::compound_type::dereference ()
   return NULL; /* not a pointer */
 }
 
+void recording::compound_type::add_integer_attribute (gcc_jit_type_attribute attribute,
+						      int value)
+{
+  m_int_attributes.push_back (std::make_pair (attribute, value));
+}
+
+void recording::compound_type::add_attribute (gcc_jit_type_attribute attribute)
+{
+  m_attributes.push_back (attribute);
+}
+
+static const char * const gcc_jit_type_attribute_enum_strings[] = {
+  "GCC_JIT_TYPE_ATTRIBUTE_ALIGNED",
+  "GCC_JIT_TYPE_ATTRIBUTE_MAY_ALIAS",
+  "GCC_JIT_TYPE_ATTRIBUTE_PACKED",
+};
+
+void
+recording::compound_type::write_attributes_reproducer (const char *id,
+						       reproducer &r,
+						       bool is_struct)
+{
+  if (!id)
+    return;
+  const char *cast = is_struct ? "gcc_jit_struct_as_type" : "";
+  for (auto attribute : m_attributes)
+    r.write("  gcc_jit_type_add_attribute (%s(%s), %s);\n",
+	    cast,
+	    id,
+	    gcc_jit_type_attribute_enum_strings[attribute]);
+  for (auto attribute : m_int_attributes)
+    r.write("  gcc_jit_type_add_integer_attribute (%s(%s), %s, %d);\n",
+	    cast,
+	    id,
+	    gcc_jit_type_attribute_enum_strings[std::get<0>(attribute)],
+	    std::get<1>(attribute));
+}
+
 /* The implementation of class gcc::jit::recording::struct_.  */
 
 /* The constructor for gcc::jit::recording::struct_.  */
@@ -3980,8 +4014,9 @@ recording::struct_::replay_into (replayer *r)
     r->new_compound_type (playback_location (r, get_loc ()),
 			  get_name ()->c_str (),
 			  true, /* is_struct */
-			  m_packed, 
-			  m_addressable));
+			  m_addressable,
+			  m_attributes,
+			  m_int_attributes));
 }
 
 const char *
@@ -4013,6 +4048,7 @@ recording::struct_::write_reproducer (reproducer &r)
 	   r.get_identifier (get_context ()),
 	   r.get_identifier (get_loc ()),
 	   get_name ()->get_debug_string ());
+  write_attributes_reproducer (id, r, true);
 }
 
 /* The implementation of class gcc::jit::recording::union_.  */
@@ -4036,8 +4072,9 @@ recording::union_::replay_into (replayer *r)
     r->new_compound_type (playback_location (r, get_loc ()),
 			  get_name ()->c_str (),
 			  false, /* is_struct */
-			  m_packed,
-			  m_addressable));
+			  m_addressable,
+			  m_attributes,
+			  m_int_attributes));
 }
 
 /* Implementation of recording::memento::make_debug_string for
@@ -4077,6 +4114,7 @@ recording::union_::write_reproducer (reproducer &r)
 	   get_name ()->get_debug_string (),
 	   get_fields ()->length (),
 	   fields_id);
+  write_attributes_reproducer (id, r, false);
 }
 
 /* The implementation of class gcc::jit::recording::fields.  */
@@ -4108,7 +4146,7 @@ recording::fields::replay_into (replayer *)
   playback_fields.create (m_fields.length ());
   for (unsigned i = 0; i < m_fields.length (); i++)
     playback_fields.safe_push (m_fields[i]->playback_field ());
-  m_struct_or_union->playback_compound_type ()->set_fields (&playback_fields, m_struct_or_union->m_packed);
+  m_struct_or_union->playback_compound_type ()->set_fields (&playback_fields);
 }
 
 /* Override the default implementation of

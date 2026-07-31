@@ -351,8 +351,10 @@ LIBGCCJIT_ABI_38 {
 } LIBGCCJIT_ABI_37;
 
 LIBGCCJIT_ABI_39 {
+/* Replaced by `gcc_jit_type_add_attribute(GCC_JIT_TYPE_ATTRIBUTE_PACKED)`
   global:
     gcc_jit_type_set_packed;
+*/
 } LIBGCCJIT_ABI_38;
 
 LIBGCCJIT_ABI_40 {
@@ -428,9 +430,13 @@ LIBGCCJIT_ABI_52 {
 } LIBGCCJIT_ABI_51;
 
 LIBGCCJIT_ABI_53 {
+  global:
     gcc_jit_blocks_clone;
 } LIBGCCJIT_ABI_52;
 
 LIBGCCJIT_ABI_54 {
+  global:
     gcc_jit_block_add_cleanup;
+    gcc_jit_type_add_attribute;
+    gcc_jit_type_add_integer_attribute;
 } LIBGCCJIT_ABI_53;
