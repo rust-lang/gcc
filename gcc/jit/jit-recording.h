@@ -1727,8 +1727,8 @@ public:
 
   statement *
   add_try_catch (location *loc,
-		 block *try_block,
-		 block *catch_block,
+		 region *try_region,
+		 region *catch_region,
 		 bool is_finally = false);
 
   statement *
@@ -3005,12 +3005,12 @@ class try_catch : public statement
 public:
   try_catch (block *b,
     location *loc,
-    block *try_block,
-    block *catch_block,
+    region *try_region,
+    region *catch_region,
     bool is_finally = false)
   : statement (b, loc),
-    m_try_block (try_block),
-    m_catch_block (catch_block),
+    m_try_region (try_region),
+    m_catch_region (catch_region),
     m_is_finally (is_finally) {}
 
   void replay_into (replayer *r) final override;
@@ -3023,8 +3023,8 @@ private:
   void write_reproducer (reproducer &r) final override;
 
 private:
-  block *m_try_block;
-  block *m_catch_block;
+  region *m_try_region;
+  region *m_catch_region;
   bool m_is_finally;
 };
 
