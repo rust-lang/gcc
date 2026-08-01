@@ -546,7 +546,10 @@ playback::compound_type::set_fields (const auto_vec<playback::field *> *fields)
 	  DECL_BIT_FIELD (x) = 1;
 	}
 
-      fieldlist = chainon (x, fieldlist);
+        if (TYPE_PACKED(t) && (DECL_BIT_FIELD (x)
+	  || TYPE_ALIGN (TREE_TYPE (x)) > BITS_PER_UNIT))
+	  DECL_PACKED (x) = 1;
+	fieldlist = chainon (x, fieldlist);
     }
   fieldlist = nreverse (fieldlist);
   TYPE_FIELDS (t) = fieldlist;
