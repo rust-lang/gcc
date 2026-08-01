@@ -1559,8 +1559,8 @@ gcc_jit_block_add_eval (gcc_jit_block *block,
 void
 gcc_jit_block_add_try_catch (gcc_jit_block *block,
 			     gcc_jit_location *loc,
-			     gcc_jit_region *try_region,
-			     gcc_jit_region *catch_region);
+			     gcc_jit_block *try_block,
+			     gcc_jit_block *catch_block);
 
 /* Add a try/finally statement.
    This is equivalent to this C++-like code:
@@ -1575,8 +1575,8 @@ gcc_jit_block_add_try_catch (gcc_jit_block *block,
 void
 gcc_jit_block_add_try_finally (gcc_jit_block *block,
 			       gcc_jit_location *loc,
-			       gcc_jit_region *try_region,
-			       gcc_jit_region *finally_region);
+			       gcc_jit_block *try_block,
+			       gcc_jit_block *finally_block);
 
 /* Create a new region within func, for use as the body of an
    exception-handling construct (see gcc_jit_block_add_cleanup).

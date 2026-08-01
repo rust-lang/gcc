@@ -2619,47 +2619,42 @@ add_eval (location *loc,
 void
 playback::block::
 add_try_catch (location *loc,
-         recording::region *try_region,
-         recording::region *catch_region,
+         block *try_block,
+         block *catch_block,
          bool is_finally)
 {
-  gcc_assert (try_region);
-  gcc_assert (catch_region);
+  gcc_assert (try_block);
+  gcc_assert (catch_block);
 
-  auto_vec<block *> try_blocks;
-  auto_vec<block *> handler_blocks;
-  unsigned i;
-  recording::block *try_block;
-  FOR_EACH_VEC_ELT (try_region->get_blocks (), i, try_block)
-  {
-    block *b = try_block->playback_block ();
-    gcc_assert (b);
-    try_blocks.safe_push (b);
-  }
-  FOR_EACH_VEC_ELT (catch_region->get_blocks (), i, try_block)
-  {
-    block *b = try_block->playback_block ();
-    gcc_assert (b);
-    handler_blocks.safe_push (b);
-  }
-
-      tree try_body
-	= block::assemble_region_body (&try_blocks);
-      tree handler_body
-	= block::assemble_region_body (&handler_blocks);
-
-  tree stmt;
-  if (is_finally)
-    stmt = build2 (TRY_FINALLY_EXPR, void_type_node,
-		      try_body, handler_body);
-  else
-    stmt = build2 (TRY_CATCH_EXPR, void_type_node, try_body,
-		      build2 (CATCH_EXPR, void_type_node, NULL, handler_body));
+  try_block->m_is_try_or_catch = true;
+  catch_block->m_is_try_or_catch = true;
 
   if (loc)
-    set_tree_location (stmt, loc);
+  {
+    set_tree_location (try_block->as_label_decl (), loc);
+    set_tree_location (catch_block->as_label_decl (), loc);
+  }
 
-  add_stmt (stmt);
+  tree try_body = alloc_stmt_list ();
+  unsigned int i;
+  tree stmt;
+  FOR_EACH_VEC_ELT (try_block->m_stmts, i, stmt) {
+    append_to_statement_list (stmt, &try_body);
+  }
+
+  tree handler_body = alloc_stmt_list ();
+  unsigned int j;
+  tree handler_stmt;
+  FOR_EACH_VEC_ELT (catch_block->m_stmts, j, handler_stmt) {
+    append_to_statement_list (handler_stmt, &handler_body);
+  }
+
+  if (is_finally)
+    add_stmt (build2 (TRY_FINALLY_EXPR, void_type_node,
+		      try_body, handler_body));
+  else
+    add_stmt (build2 (TRY_CATCH_EXPR, void_type_node, try_body,
+		      build2 (CATCH_EXPR, void_type_node, NULL, handler_body)));
 }
 
 /* Add an assignment to the function's statement list.  */

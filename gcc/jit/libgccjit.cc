@@ -3119,17 +3119,17 @@ gcc_jit_block_add_eval (gcc_jit_block *block,
 void
 gcc_jit_block_add_try_catch (gcc_jit_block *block,
 			     gcc_jit_location *loc,
-			     gcc_jit_region *try_region,
-			     gcc_jit_region *catch_region)
+			     gcc_jit_block *try_block,
+			     gcc_jit_block *catch_block)
 {
   RETURN_IF_NOT_VALID_BLOCK (block, loc);
   gcc::jit::recording::context *ctxt = block->get_context ();
   JIT_LOG_FUNC (ctxt->get_logger ());
   /* LOC can be NULL.  */
-  RETURN_IF_FAIL (try_region, ctxt, loc, "NULL try_region");
-  RETURN_IF_FAIL (catch_region, ctxt, loc, "NULL cleanup_region");
+  RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
+  RETURN_IF_FAIL (catch_block, ctxt, loc, "NULL rvalue");
 
-  /*gcc::jit::recording::statement *stmt =*/ block->add_try_catch (loc, try_region, catch_region);
+  /*gcc::jit::recording::statement *stmt =*/ block->add_try_catch (loc, try_block, catch_block);
 
   // TODO: remove this or use it.
   /* "stmt" should be good enough to be usable in error-messages,
@@ -3148,17 +3148,17 @@ gcc_jit_block_add_try_catch (gcc_jit_block *block,
 void
 gcc_jit_block_add_try_finally (gcc_jit_block *block,
 			     gcc_jit_location *loc,
-			     gcc_jit_region *try_region,
-			     gcc_jit_region *finally_region)
+			     gcc_jit_block *try_block,
+			     gcc_jit_block *finally_block)
 {
   RETURN_IF_NOT_VALID_BLOCK (block, loc);
   gcc::jit::recording::context *ctxt = block->get_context ();
   JIT_LOG_FUNC (ctxt->get_logger ());
   /* LOC can be NULL.  */
-  RETURN_IF_FAIL (try_region, ctxt, loc, "NULL try_region");
-  RETURN_IF_FAIL (finally_region, ctxt, loc, "NULL finally_region");
+  RETURN_IF_FAIL (try_block, ctxt, loc, "NULL rvalue");
+  RETURN_IF_FAIL (finally_block, ctxt, loc, "NULL rvalue");
 
-  /*gcc::jit::recording::statement *stmt =*/ block->add_try_catch (loc, try_region, finally_region, true);
+  /*gcc::jit::recording::statement *stmt =*/ block->add_try_catch (loc, try_block, finally_block, true);
 
   // TODO: remove this or use it.
   /* "stmt" should be good enough to be usable in error-messages,
