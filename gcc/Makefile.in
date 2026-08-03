@@ -1943,6 +1943,7 @@ ALL_FDAS = $(foreach v,$(CONFIG_LANGUAGES),$($(v)_FDAS))
 
 ALL_HOST_BACKEND_OBJS = $(GCC_OBJS) $(OBJS) $(OBJS-libcommon) \
   $(OBJS-libcommon-target) main.o target-registry.o \
+  target-backend-def.o \
   c-family/cppspec.o \
   $(COLLECT2_OBJS) $(EXTRA_GCC_OBJS) $(GCOV_OBJS) $(GCOV_DUMP_OBJS) \
   $(GCOV_TOOL_OBJS) $(GENGTYPE_OBJS) gcc-ar.o gcc-nm.o gcc-ranlib.o \
@@ -1974,7 +1975,8 @@ endif
 # yet they are supposed to be part of the plugin ABI.  See PR116143.
 EXTRA_BACKEND_OBJS = simple-diagnostic-path.o diagnostics/lazy-paths.o
 
-BACKEND = $(EXTRA_BACKEND_OBJS) target-registry.o libbackend.a main.o \
+BACKEND = $(EXTRA_BACKEND_OBJS) target-registry.o \
+	target-backend-def.o libbackend.a main.o \
 	libcommon-target.a \
 	libcommon.a $(CPPLIB) $(LIBDECNUMBER)
 
@@ -2680,7 +2682,7 @@ DRIVER_DEFINES = \
   -DTOOL_INCLUDE_DIR=\"$(gcc_tooldir)/include\" \
   -DNATIVE_SYSTEM_HEADER_DIR=\"$(NATIVE_SYSTEM_HEADER_DIR)\"
 
-CFLAGS-target-registry.o += -DTARGET_BACKEND_PRIMARY_TRIPLE="\"$(target)\""
+CFLAGS-target-backend-def.o += -DTARGET_BACKEND_PRIMARY_TRIPLE="\"$(target)\""
 CFLAGS-gcc.o += $(DRIVER_DEFINES) -DBASEVER=$(BASEVER_s)
 gcc.o: $(BASEVER)
 
@@ -3867,6 +3869,26 @@ mt_final_unit_objects = \
 	$(multi_target_tags:%=mt-%/insn-opinit.o) \
 	$(multi_target_tags:%=mt-%/insn-modes-data.o)
 
+# Each enabled target's backend descriptor: the shared source file
+# compiled inside the target's header context, where the generated
+# headers rename every entry point they declare, and MT_BACKEND_PREFIX
+# — the same prefix the generators were given — renames the fixed
+# surface whose macros live inside the generated translation units.
+$(multi_target_tags:%=mt-%/target-backend-def.o): \
+  mt-%/target-backend-def.o: $(srcdir)/target-backend-def.cc \
+  mt-config-%.sh $(CONFIG_H) tree-check.h all-tree.def gtype-desc.h \
+  genrtl.h $(mt_target_code_prerequisites)
+	. ./mt-config-$*.sh; \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -DMT_BACKEND_PREFIX=mt_$*_ \
+	  -DMT_BACKEND_SYMBOL=mt_backend_$* \
+	  -DMT_BACKEND_TRIPLE="\"$$mt_triple\"" \
+	  -DMT_BACKEND_MODE_TABLES=mt_mode_tables_$* \
+	  -o $@ $<
+
+mt_backend_descriptor_objects = \
+	$(multi_target_tags:%=mt-%/target-backend-def.o)
+
 # The collision audit: with the rename macros in effect, the targets'
 # generated objects must export pairwise disjoint strong symbols.
 # Weak and vague-linkage definitions — inline and template
@@ -3875,7 +3897,7 @@ mt_final_unit_objects = \
 .PHONY: mt-check-symbols
 mt-check-symbols: $(mt_insn_emit_objects) $(mt_insn_recog_objects) \
   $(mt_insn_unit_objects) $(mt_attr_unit_objects) \
-  $(mt_final_unit_objects)
+  $(mt_final_unit_objects) $(mt_backend_descriptor_objects)
 	@for mt_tag in $(multi_target_tags); do \
 	  $(NM) -g -P mt-$$mt_tag/*.o \
 	    | awk 'NF >= 3 && $$2 != "U" && $$2 !~ /^[WwVv]$$/ \
