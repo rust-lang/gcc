@@ -3944,8 +3944,9 @@ mt_final_unit_objects = \
 # surface whose macros live inside the generated translation units.
 $(multi_target_tags:%=mt-%/target-backend-def.o): \
   mt-%/target-backend-def.o: $(srcdir)/target-backend-def.cc \
-  mt-config-%.sh $(CONFIG_H) tree-check.h all-tree.def gtype-desc.h \
-  genrtl.h $(mt_target_code_prerequisites)
+  mt-config-%.sh mt-%/mt-gt-roots.h $(CONFIG_H) tree-check.h \
+  all-tree.def gtype-desc.h genrtl.h \
+  $(mt_target_code_prerequisites)
 	. ./mt-config-$*.sh; \
 	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
 	  -I mt-$* $(ALL_CPPFLAGS) \
@@ -4268,6 +4269,18 @@ $(multi_target_tags:%=mt-%/s-gt-headers): mt-%/s-gt-headers: \
 	    || exit 1; \
 	done
 	$(STAMP) $@
+
+# Every root table the tag's gengtype outputs define, as
+# MT_GT_ROOT_TAB lines for the descriptor's aggregation.
+mt_gt_root_sed = s/^.*ggc_root_tab \
+  \(gt_ggc_r_[a-z0-9_]*\).*/MT_GT_ROOT_TAB (\1)/p
+
+$(multi_target_tags:%=mt-%/mt-gt-roots.h): mt-%/mt-gt-roots.h: \
+  mt-%/s-gt-headers Makefile
+	sed -n '$(mt_gt_root_sed)' mt-$*/gt-*.h \
+	  > tmp-mt-$*-gt-roots.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-gt-roots.h \
+	  mt-$*/mt-gt-roots.h
 
 .PHONY: mt-check-gt-headers
 mt-check-gt-headers: $(multi_target_tags:%=mt-%/s-gt-headers)

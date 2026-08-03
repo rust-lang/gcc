@@ -44,6 +44,7 @@ struct cl_decoded_option;
 struct cl_option_handlers;
 struct cpp_options;
 namespace diagnostics { class context; }
+struct ggc_root_tab;
 
 /* The generated insn attribute and DFA scheduler entry points of one
    target (insn-attrtab.cc, insn-automata.cc).  Core consumers reach
@@ -207,9 +208,15 @@ struct target_backend
   const struct mode_tables *mode_tables;
 
   /* The target's runtime mode adjustments (insn-modes.cc, or the
-     per-target adjust unit of a multi-target build); activation
-     runs it after installing the value tables.  */
+     per-target adjust unit of a multi-target build); runs through
+     the descriptor at the established point of the
+     initialization sequence (do_compile).  */
   void (*init_adjust_machine_modes) (void);
+
+  /* The GTY root tables of the target's blob (the per-target
+     gengtype outputs), a null-terminated vector; null for the
+     primary, whose roots live in the host tables.  */
+  const struct ggc_root_tab *const *gt_ggc_roots;
 };
 
 /* The descriptor of the configured target.  */
@@ -348,6 +355,22 @@ target_backend_cl_target_option_stream_in (class data_in *data_in,
 							      bitpack, ptr);
 #else
   cl_target_option_stream_in (data_in, bitpack, ptr);
+#endif
+}
+
+/* Run the active target's runtime machine mode adjustments (a
+   generated per-target function; declared in machmode.h and repeated
+   here for include-order independence).  */
+
+extern void init_adjust_machine_modes (void);
+
+inline void
+target_backend_init_adjust_machine_modes (void)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->init_adjust_machine_modes ();
+#else
+  init_adjust_machine_modes ();
 #endif
 }
 

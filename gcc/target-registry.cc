@@ -25,6 +25,9 @@ along with GCC; see the file COPYING3.  If not see
 #define MT_OWN_OPTION_TABLES 1
 #include "opts.h"
 #include "common/common-target.h"
+#include "ggc.h"
+#include "mode-tables.h"
+#include "real.h"
 #include "target-registry.h"
 
 /* The descriptor of the configured target lives in
@@ -79,6 +82,46 @@ find_target_backend (const char *by_triple)
 
 
 #if ENABLE_MULTI_TARGET
+/* Copy TABLES, the activated target's machine mode value tables, over
+   the shared tables host code reads.  The target's own runtime
+   adjustments run through the descriptor at the established point of
+   the initialization sequence (do_compile).  */
+
+static void
+install_mode_tables (const struct mode_tables *tables)
+{
+  for (unsigned int index = 0; index < NUM_MACHINE_MODES; index++)
+    {
+      mode_precision[index] = tables->mode_precision[index];
+      mode_size[index] = tables->mode_size[index];
+      mode_nunits[index] = tables->mode_nunits[index];
+    }
+  memcpy (mode_next, tables->mode_next, sizeof (mode_next));
+  memcpy (mode_wider, tables->mode_wider, sizeof (mode_wider));
+  memcpy (mode_2xwider, tables->mode_2xwider, sizeof (mode_2xwider));
+  memcpy (mode_inner, tables->mode_inner, sizeof (mode_inner));
+  memcpy (mode_unit_size, tables->mode_unit_size,
+	  sizeof (mode_unit_size));
+  memcpy (mode_unit_precision, tables->mode_unit_precision,
+	  sizeof (mode_unit_precision));
+  memcpy (mode_complex, tables->mode_complex, sizeof (mode_complex));
+  memcpy (mode_mask_array, tables->mode_mask_array,
+	  sizeof (mode_mask_array));
+  memcpy (mode_ibit, tables->mode_ibit, sizeof (mode_ibit));
+  memcpy (mode_fbit, tables->mode_fbit, sizeof (mode_fbit));
+  memcpy (mode_base_align, tables->mode_base_align,
+	  sizeof (mode_base_align));
+  memcpy (mode_present, tables->mode_present, sizeof (mode_present));
+  memcpy (class_narrowest_mode, tables->class_narrowest_mode,
+	  sizeof (class_narrowest_mode));
+  memcpy (real_format_for_mode, tables->real_format_for_mode,
+	  sizeof (real_format_for_mode));
+}
+
+/* The backend whose GTY roots have been registered; roots register
+   once per process.  */
+static const struct target_backend *gt_roots_registered;
+
 /* Install BACKEND's option machinery: the decode and enumeration
    tables, the name-order permutation, the built-in defaults image
    and the generated handlers.  Runs before anything reads an option
@@ -105,6 +148,24 @@ install_target_backend (const struct target_backend *backend)
     = backend->x_cpp_handle_option_auto;
   mt_active_init_global_opts_from_cpp
     = backend->x_init_global_opts_from_cpp;
+
+  if (backend->mode_tables != NULL)
+    install_mode_tables (backend->mode_tables);
+
+  /* Register the target's GTY roots the way plugin roots register.
+     The primary carries no vector here; its roots live in the host
+     root tables.  Re-activation (libgccjit) must not register a
+     vector twice; switching back to a previously active backend is
+     a later phase's concern.  */
+  if (backend->gt_ggc_roots != NULL && gt_roots_registered != backend)
+    {
+      gcc_assert (gt_roots_registered == NULL);
+      gt_roots_registered = backend;
+      for (const struct ggc_root_tab *const *table
+	     = backend->gt_ggc_roots;
+	   *table != NULL; table++)
+	ggc_register_root_tab (*table);
+    }
 }
 #endif
 

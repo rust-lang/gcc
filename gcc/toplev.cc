@@ -2165,7 +2165,7 @@ do_compile ()
       /* This must be run always, because it is needed to compute the FP
 	 predefined macros, such as __LDBL_MAX__, for targets using non
 	 default FP formats.  */
-      init_adjust_machine_modes ();
+      target_backend_init_adjust_machine_modes ();
       init_derived_machine_modes ();
 
       /* This must happen after the backend has a chance to process

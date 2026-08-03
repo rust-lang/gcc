@@ -34,6 +34,7 @@ along with GCC; see the file COPYING3.  If not see
 #define MT_OWN_OPTION_TABLES 1
 #include "opts.h"
 #include "common/common-target.h"
+#include "ggc.h"
 
 /* A single-target build compiles this file once, as the descriptor of
    the configured target.  A multi-target build compiles it once per
@@ -147,6 +148,26 @@ extern const struct mode_tables MT_BACKEND_MODE_TABLES;
 # define MT_BACKEND_MODE_TABLES_REF (&MT_BACKEND_MODE_TABLES)
 #else
 # define MT_BACKEND_MODE_TABLES_REF NULL
+#endif
+
+/* The GTY root tables of a secondary target's blob, aggregated by
+   the generated mt-gt-roots.h; activation registers them.  The
+   primary's roots live in the host tables, exactly as in a
+   single-target build.  */
+#if defined (MT_BACKEND_PREFIX) && defined (MT_TARGETM_RENAMED)
+# define MT_GT_ROOT_TAB(name) extern const struct ggc_root_tab name[];
+# include "mt-gt-roots.h"
+# undef MT_GT_ROOT_TAB
+static const struct ggc_root_tab *const mt_backend_gt_roots[] =
+{
+# define MT_GT_ROOT_TAB(name) name,
+# include "mt-gt-roots.h"
+# undef MT_GT_ROOT_TAB
+  NULL
+};
+# define MT_BACKEND_GT_ROOTS_REF mt_backend_gt_roots
+#else
+# define MT_BACKEND_GT_ROOTS_REF NULL
 #endif
 
 /* The enabled and preferred_for_* attributes return an int on some
@@ -286,5 +307,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
   MT_RENAMED (init_global_opts_from_cpp),
 
   MT_BACKEND_MODE_TABLES_REF,
-  MT_RENAMED (init_adjust_machine_modes)
+  MT_RENAMED (init_adjust_machine_modes),
+  MT_BACKEND_GT_ROOTS_REF
 };
