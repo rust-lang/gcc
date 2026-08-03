@@ -364,7 +364,18 @@ hard_reg_set_iter_init (hard_reg_set_iterator *iter, const_hard_reg_set set,
     }
 }
 
+/* In a multi-target compiler this body bakes in the surrounding
+   surface's FIRST_PSEUDO_REGISTER, and an unoptimized build emits
+   it out of line as a mergeable symbol: each native surface keeps a
+   private copy, or the linker folds every context onto one
+   arbitrary choice.  */
+#if ENABLE_MULTI_TARGET \
+    && (defined (IN_TARGET_CODE) || defined (MT_NATIVE_TARGET_SURFACE) \
+	|| defined (MT_NATIVE_REGISTER_CONSTANTS))
+static inline bool
+#else
 inline bool
+#endif
 hard_reg_set_iter_set (hard_reg_set_iterator *iter, unsigned *regno)
 {
   while (1)
