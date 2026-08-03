@@ -1327,6 +1327,10 @@ RUST_TARGET_OBJS=@rust_target_objs@
 
 # Object files for gcc many-languages driver.
 GCC_OBJS = gcc.o gcc-main.o ggc-none.o gcc-urlifier.o options-urls.o
+ifneq ($(multi_target_tags),)
+# Each enabled target's captured driver specs link into every driver.
+GCC_OBJS += $(multi_target_tags:%=mt-%/driver-specs.o)
+endif
 
 SARIF_REPLAY_OBJS = sarif-replay.o libsarifreplay.o
 
@@ -2733,6 +2737,7 @@ ifneq ($(multi_target_tags),)
 # The driver validates --target= against the enabled targets.
 CFLAGS-gcc.o += \
   -DMT_SECONDARY_TARGET_TRIPLES="\"$(multi_target_triples)\""
+gcc.o: mt-backend-list.h
 endif
 gcc.o: $(BASEVER)
 
@@ -4036,6 +4041,20 @@ $(multi_target_tags:%=mt-%/c-backend-def.o): \
 	  -I mt-$* $(ALL_CPPFLAGS) \
 	  -DMT_C_BACKEND_SYMBOL=mt_c_backend_$* \
 	  -DMT_C_BACKEND_TRIPLE="\"$$mt_triple\"" \
+	  -o $@ $<
+
+# Each target's driver-facing specs: the shared source file compiled
+# inside the target's header context.
+$(multi_target_tags:%=mt-%/driver-specs.o): \
+  mt-%/driver-specs.o: $(srcdir)/driver-specs.cc \
+  $(srcdir)/mt-driver-specs.h $(srcdir)/driver-spec-macros.h \
+  mt-config-%.sh $(CONFIG_H) \
+  mt-%/insn-modes.dump $(mt_context_prerequisites)
+	. ./mt-config-$*.sh; \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) \
+	  -DMT_DRIVER_SPECS_SYMBOL=mt_driver_specs_$* \
+	  -DMT_BACKEND_TRIPLE="\"$$mt_triple\"" \
 	  -o $@ $<
 
 # The registry enumerates the enabled targets' descriptors through

@@ -1034,47 +1034,7 @@ proper position among the other output files.  */
 #endif
 #endif
 
-#ifdef ENABLE_DEFAULT_PIE
-#define PIE_SPEC		"!no-pie"
-#define NO_FPIE1_SPEC		"fno-pie"
-#define FPIE1_SPEC		NO_FPIE1_SPEC ":;"
-#define NO_FPIE2_SPEC		"fno-PIE"
-#define FPIE2_SPEC		NO_FPIE2_SPEC ":;"
-#define NO_FPIE_SPEC		NO_FPIE1_SPEC "|" NO_FPIE2_SPEC
-#define FPIE_SPEC		NO_FPIE_SPEC ":;"
-#define NO_FPIC1_SPEC		"fno-pic"
-#define FPIC1_SPEC		NO_FPIC1_SPEC ":;"
-#define NO_FPIC2_SPEC		"fno-PIC"
-#define FPIC2_SPEC		NO_FPIC2_SPEC ":;"
-#define NO_FPIC_SPEC		NO_FPIC1_SPEC "|" NO_FPIC2_SPEC
-#define FPIC_SPEC		NO_FPIC_SPEC ":;"
-#define NO_FPIE1_AND_FPIC1_SPEC	NO_FPIE1_SPEC "|" NO_FPIC1_SPEC
-#define FPIE1_OR_FPIC1_SPEC	NO_FPIE1_AND_FPIC1_SPEC ":;"
-#define NO_FPIE2_AND_FPIC2_SPEC	NO_FPIE2_SPEC "|" NO_FPIC2_SPEC
-#define FPIE2_OR_FPIC2_SPEC	NO_FPIE2_AND_FPIC2_SPEC ":;"
-#define NO_FPIE_AND_FPIC_SPEC	NO_FPIE_SPEC "|" NO_FPIC_SPEC
-#define FPIE_OR_FPIC_SPEC	NO_FPIE_AND_FPIC_SPEC ":;"
-#else
-#define PIE_SPEC		"pie"
-#define FPIE1_SPEC		"fpie"
-#define NO_FPIE1_SPEC		FPIE1_SPEC ":;"
-#define FPIE2_SPEC		"fPIE"
-#define NO_FPIE2_SPEC		FPIE2_SPEC ":;"
-#define FPIE_SPEC		FPIE1_SPEC "|" FPIE2_SPEC
-#define NO_FPIE_SPEC		FPIE_SPEC ":;"
-#define FPIC1_SPEC		"fpic"
-#define NO_FPIC1_SPEC		FPIC1_SPEC ":;"
-#define FPIC2_SPEC		"fPIC"
-#define NO_FPIC2_SPEC		FPIC2_SPEC ":;"
-#define FPIC_SPEC		FPIC1_SPEC "|" FPIC2_SPEC
-#define NO_FPIC_SPEC		FPIC_SPEC ":;"
-#define FPIE1_OR_FPIC1_SPEC	FPIE1_SPEC "|" FPIC1_SPEC
-#define NO_FPIE1_AND_FPIC1_SPEC	FPIE1_OR_FPIC1_SPEC ":;"
-#define FPIE2_OR_FPIC2_SPEC	FPIE2_SPEC "|" FPIC2_SPEC
-#define NO_FPIE2_AND_FPIC2_SPEC	FPIE1_OR_FPIC2_SPEC ":;"
-#define FPIE_OR_FPIC_SPEC	FPIE_SPEC "|" FPIC_SPEC
-#define NO_FPIE_AND_FPIC_SPEC	FPIE_OR_FPIC_SPEC ":;"
-#endif
+#include "driver-spec-macros.h"
 
 #ifndef LINK_PIE_SPEC
 #ifdef HAVE_LD_PIE
@@ -8396,6 +8356,26 @@ driver::~driver ()
 }
 
 #if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+#include "mt-driver-specs.h"
+
+/* The enabled targets' captured driver specs, one per tag, compiled
+   from driver-specs.cc inside each target's own header context.  */
+#define MT_BACKEND(tag) \
+  extern const struct mt_driver_specs mt_driver_specs_##tag;
+#include "mt-backend-list.h"
+#undef MT_BACKEND
+
+static const struct mt_driver_specs *const mt_driver_specs_registry[] =
+{
+#define MT_BACKEND(tag) &mt_driver_specs_##tag,
+#include "mt-backend-list.h"
+#undef MT_BACKEND
+};
+
+/* The selected secondary's capture, or null when the primary
+   runs.  */
+static const struct mt_driver_specs *mt_selected_capture;
+
 /* The target selected with --target=, or null for the primary.  */
 static const char *mt_selected_target;
 
@@ -8443,8 +8423,22 @@ mt_handle_target_option (struct cl_decoded_option *options,
     }
   *count = out;
 
-  if (mt_selected_target != NULL)
-    spec_machine = mt_selected_target;
+  if (mt_selected_target == NULL)
+    return;
+
+  spec_machine = mt_selected_target;
+
+  /* Resolve the selection's capture; an unknown triple leaves it
+     null, for the validation after set_up_specs to diagnose.  */
+  if (strcmp (mt_selected_target, DEFAULT_TARGET_MACHINE) != 0)
+    for (size_t index = 0;
+	 index < ARRAY_SIZE (mt_driver_specs_registry); index++)
+      if (strcmp (mt_driver_specs_registry[index]->triple,
+		  mt_selected_target) == 0)
+	{
+	  mt_selected_capture = mt_driver_specs_registry[index];
+	  break;
+	}
 }
 
 /* Diagnose an unknown --target= selection.  This runs right after
@@ -8490,6 +8484,28 @@ mt_route_target_to_cc1 (void)
     return;
   cc1_spec = concat ("-fmulti-target=", mt_selected_target, " ",
 		     cc1_spec, NULL);
+}
+
+/* When a secondary target is selected, install its captured specs
+   over the driver's built-in ones: the assembler spec, and the
+   named specs it references through %(name), which set_spec enters
+   into the list every later expansion resolves names against.
+   This runs inside set_up_specs, once every spec source has been
+   read and before switch validation, so switches that only the
+   selection's specs match validate.  The captured option defaults
+   are not run: they act on configure-time defaults, which only the
+   primary has.  */
+
+static void
+mt_install_driver_specs (void)
+{
+  if (mt_selected_capture == NULL)
+    return;
+  set_spec ("asm", mt_selected_capture->asm_spec, false);
+  for (size_t entry = 0;
+       entry < mt_selected_capture->num_extra_specs; entry++)
+    set_spec (mt_selected_capture->extra_specs[entry].name,
+	      mt_selected_capture->extra_specs[entry].spec, false);
 }
 #endif
 
@@ -8941,6 +8957,11 @@ driver::set_up_specs () const
   /* Now we have the specs.
      Set the `valid' bits for switches that match anything in any spec.  */
 
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+  /* A selected secondary's captured specs go in first: switches that
+     only its specs match must validate.  */
+  mt_install_driver_specs ();
+#endif
   validate_all_switches ();
 
   /* Now that we have the switches and the specs, set
