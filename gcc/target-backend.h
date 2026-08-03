@@ -242,6 +242,10 @@ struct target_backend
   /* ADJUST_REG_ALLOC_ORDER, the allocation-order rewrite a target
      may run at allocator setup; null when the target defines none.  */
   void (*x_adjust_reg_alloc_order) (void);
+
+  /* INITIAL_ELIMINATION_OFFSET, storing the offset between the pair
+     through the third argument.  */
+  void (*x_initial_elimination_offset) (int, int, poly_int64 *);
 };
 
 /* The descriptor of the configured target.  */

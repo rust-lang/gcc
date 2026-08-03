@@ -37,6 +37,16 @@ along with GCC; see the file COPYING3.  If not see
 #include "addresses.h"
 #include "rtl-iter.h"
 #include "hard-reg-set.h"
+#include "target-backend.h"
+#include "register-tables.h"
+
+#if ENABLE_MULTI_TARGET
+/* The offsets must come from the target actually active.  */
+#undef INITIAL_ELIMINATION_OFFSET
+#define INITIAL_ELIMINATION_OFFSET(FROM, TO, OFFSET) \
+  this_target_backend->x_initial_elimination_offset ((FROM), (TO), \
+						     &(OFFSET))
+#endif
 #include "function-abi.h"
 
 /* Forward declarations */
@@ -350,11 +360,21 @@ rtx_varies_p (const_rtx x, bool for_alias)
 static poly_int64
 get_initial_register_offset (int from, int to)
 {
+#if ENABLE_MULTI_TARGET
+  /* A static image of ELIMINABLE_REGS would capture whichever
+     target was active when this function first ran.  */
+  const struct mt_eliminable_pair *table
+    = this_target_backend->register_tables->x_eliminable_regs;
+  const unsigned int table_size
+    = this_target_backend->register_tables->x_eliminable_regs_count;
+#else
   static const struct elim_table_t
   {
     const int from;
     const int to;
   } table[] = ELIMINABLE_REGS;
+  const unsigned int table_size = ARRAY_SIZE (table);
+#endif
   poly_int64 offset1, offset2;
   unsigned int i, j;
 
@@ -378,7 +398,7 @@ get_initial_register_offset (int from, int to)
 	return 0;
      }
 
-  for (i = 0; i < ARRAY_SIZE (table); i++)
+  for (i = 0; i < table_size; i++)
       if (table[i].from == from)
 	{
 	  if (table[i].to == to)
@@ -387,7 +407,7 @@ get_initial_register_offset (int from, int to)
 					  offset1);
 	      return offset1;
 	    }
-	  for (j = 0; j < ARRAY_SIZE (table); j++)
+	  for (j = 0; j < table_size; j++)
 	    {
 	      if (table[j].to == to
 		  && table[j].from == table[i].to)
@@ -417,7 +437,7 @@ get_initial_register_offset (int from, int to)
 					  offset1);
 	      return - offset1;
 	    }
-	  for (j = 0; j < ARRAY_SIZE (table); j++)
+	  for (j = 0; j < table_size; j++)
 	    {
 	      if (table[j].to == to
 		  && table[j].from == table[i].from)

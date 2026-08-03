@@ -71,6 +71,14 @@ along with GCC; see the file COPYING3.	If not see
 #include "target-backend.h"
 #include "register-tables.h"
 
+#if ENABLE_MULTI_TARGET
+/* The offsets must come from the target actually active.  */
+#undef INITIAL_ELIMINATION_OFFSET
+#define INITIAL_ELIMINATION_OFFSET(FROM, TO, OFFSET) \
+  this_target_backend->x_initial_elimination_offset ((FROM), (TO), \
+						     &(OFFSET))
+#endif
+
 /* This structure is used to record information about hard register
    eliminations.  */
 class lra_elim_table

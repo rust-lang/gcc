@@ -272,6 +272,15 @@ backend_adjust_reg_alloc_order (void)
 }
 #endif
 
+/* INITIAL_ELIMINATION_OFFSET computes the target's elimination
+   offsets from its own frame layout.  */
+static void
+backend_initial_elimination_offset (int from, int to,
+				    poly_int64 *offset)
+{
+  INITIAL_ELIMINATION_OFFSET (from, to, *offset);
+}
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -404,4 +413,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #else
   NULL,
 #endif
+
+  backend_initial_elimination_offset,
 };
