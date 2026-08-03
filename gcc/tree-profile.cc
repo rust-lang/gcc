@@ -30,6 +30,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "memmodel.h"
 #include "backend.h"
 #include "target.h"
+#include "insn-codes.h"
+#include "optabs-query.h"
 #include "tree.h"
 #include "gimple.h"
 #include "cfghooks.h"
@@ -1844,20 +1846,6 @@ include_source_file_for_profile (const char *filename)
   return false;
 }
 
-#ifndef HAVE_sync_compare_and_swapsi
-#define HAVE_sync_compare_and_swapsi 0
-#endif
-#ifndef HAVE_atomic_compare_and_swapsi
-#define HAVE_atomic_compare_and_swapsi 0
-#endif
-
-#ifndef HAVE_sync_compare_and_swapdi
-#define HAVE_sync_compare_and_swapdi 0
-#endif
-#ifndef HAVE_atomic_compare_and_swapdi
-#define HAVE_atomic_compare_and_swapdi 0
-#endif
-
 /* Profile all functions in the callgraph.  */
 
 static unsigned int
@@ -1871,10 +1859,8 @@ tree_profiling (void)
   bool can_support_atomic = targetm.have_libatomic;
   unsigned HOST_WIDE_INT gcov_type_size
     = tree_to_uhwi (TYPE_SIZE_UNIT (get_gcov_type ()));
-  bool have_atomic_4
-    = HAVE_sync_compare_and_swapsi || HAVE_atomic_compare_and_swapsi;
-  bool have_atomic_8
-    = HAVE_sync_compare_and_swapdi || HAVE_atomic_compare_and_swapdi;
+  bool have_atomic_4 = can_compare_and_swap_p (SImode, false);
+  bool have_atomic_8 = can_compare_and_swap_p (DImode, false);
   bool needs_split = gcov_type_size == 8 && !have_atomic_8 && have_atomic_4;
   if (!can_support_atomic)
     {
