@@ -6442,7 +6442,7 @@ prepare_call_arguments (basic_block bb, rtx_insn *insn)
 	  {
 	    rtx reg;
 	    function_arg_info arg (TREE_VALUE (t), /*named=*/true);
-	    apply_pass_by_reference_rules (&args_so_far_v, arg);
+	    apply_pass_by_reference_rules (args_so_far, arg);
 	    reg = targetm.calls.function_arg (args_so_far, arg);
 	    if (TREE_CODE (arg.type) == REFERENCE_TYPE
 		&& INTEGRAL_TYPE_P (TREE_TYPE (arg.type))

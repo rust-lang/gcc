@@ -975,9 +975,10 @@ pass_va_arg_by_reference (tree type)
    ARG accordingly.  */
 
 bool
-apply_pass_by_reference_rules (CUMULATIVE_ARGS *ca, function_arg_info &arg)
+apply_pass_by_reference_rules (cumulative_args_t ca,
+			       function_arg_info &arg)
 {
-  if (pass_by_reference (ca, arg))
+  if (pass_by_reference (get_cumulative_args (ca), arg))
     {
       arg.type = build_pointer_type (arg.type);
       arg.mode = TYPE_MODE (arg.type);

@@ -989,7 +989,8 @@ COMMON_TARGET_DEF = common/common-target.def target-hooks-macros.h
 D_TARGET_DEF = d/d-target.def target-hooks-macros.h
 RUST_TARGET_DEF = rust/rust-target.def target-hooks-macros.h
 JIT_TARGET_DEF = jit/jit-target.def target-hooks-macros.h
-TARGET_H = $(TM_H) target.h $(TARGET_DEF) insn-modes.h insn-codes.h
+TARGET_H = $(TM_H) target.h cumulative-args.h $(TARGET_DEF) \
+	insn-modes.h insn-codes.h
 C_TARGET_H = c-family/c-target.h $(C_TARGET_DEF)
 COMMON_TARGET_H = common/common-target.h $(INPUT_H) $(COMMON_TARGET_DEF)
 D_TARGET_H = d/d-target.h $(D_TARGET_DEF)

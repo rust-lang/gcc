@@ -2656,7 +2656,8 @@ aarch64_takes_arguments_in_sve_regs_p (const_tree fntype)
 	return false;
 
       function_arg_info arg (arg_type, /*named=*/true);
-      apply_pass_by_reference_rules (&args_so_far_v, arg);
+      apply_pass_by_reference_rules
+	(pack_cumulative_args (&args_so_far_v), arg);
       pure_scalable_type_info pst_info;
       if (pst_info.analyze_registers (arg.type))
 	{

@@ -2074,7 +2074,7 @@ rs6000_parm_needs_stack (cumulative_args_t args_so_far, tree type)
 
   /* See if this arg was passed by invisible reference.  */
   function_arg_info arg (type, /*named=*/true);
-  apply_pass_by_reference_rules (get_cumulative_args (args_so_far), arg);
+  apply_pass_by_reference_rules (args_so_far, arg);
 
   /* Find mode as it is passed by the ABI.  */
   unsignedp = TYPE_UNSIGNED (type);

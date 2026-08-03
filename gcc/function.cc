@@ -2476,7 +2476,7 @@ assign_parm_find_data_types (struct assign_parm_data_all *all, tree parm,
     data->arg.type = TREE_TYPE (first_field (data->arg.type));
 
   /* See if this arg was passed by invisible reference.  */
-  if (apply_pass_by_reference_rules (&all->args_so_far_v, data->arg))
+  if (apply_pass_by_reference_rules (all->args_so_far, data->arg))
     {
       data->nominal_type = data->arg.type;
       data->passed_mode = data->nominal_mode = data->arg.mode;

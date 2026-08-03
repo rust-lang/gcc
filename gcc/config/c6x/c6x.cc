@@ -1109,7 +1109,8 @@ c6x_call_saved_register_used (tree call_expr)
 	return true;
 
       function_arg_info arg (TREE_TYPE (parameter), /*named=*/true);
-      apply_pass_by_reference_rules (&cum_v, arg);
+      apply_pass_by_reference_rules
+	(pack_cumulative_args (&cum_v), arg);
 
        parm_rtx = c6x_function_arg (cum, arg);
 

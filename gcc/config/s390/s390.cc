@@ -14378,7 +14378,8 @@ s390_call_saved_register_used (tree call_expr)
 	 named.  This only has an impact on vector argument register
 	 usage none of which is call-saved.  */
       function_arg_info arg (TREE_TYPE (parameter), /*named=*/true);
-      apply_pass_by_reference_rules (&cum_v, arg);
+      apply_pass_by_reference_rules
+	(pack_cumulative_args (&cum_v), arg);
 
       parm_rtx = s390_function_arg (cum, arg);
 

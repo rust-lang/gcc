@@ -20,6 +20,8 @@ along with GCC; see the file COPYING3.  If not see
 #ifndef GCC_CALLS_H
 #define GCC_CALLS_H
 
+#include "cumulative-args.h"
+
 /* Describes a function argument.
 
    Each argument conceptually has a gimple-level type.  Usually this type
@@ -126,7 +128,7 @@ extern void fixup_tail_calls (void);
 
 extern bool pass_by_reference (CUMULATIVE_ARGS *, function_arg_info);
 extern bool pass_va_arg_by_reference (tree);
-extern bool apply_pass_by_reference_rules (CUMULATIVE_ARGS *,
+extern bool apply_pass_by_reference_rules (cumulative_args_t,
 					   function_arg_info &);
 extern bool reference_callee_copied (CUMULATIVE_ARGS *,
 				     const function_arg_info &);
