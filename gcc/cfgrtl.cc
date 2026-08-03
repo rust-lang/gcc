@@ -858,7 +858,7 @@ emit_nop_for_unique_locus_between (basic_block a, basic_block b)
   if (!unique_locus_on_edge_between_p (a, b))
     return;
 
-  BB_END (a) = emit_insn_after_noloc (gen_nop (), BB_END (a), a);
+  BB_END (a) = emit_insn_after_noloc (targetm.gen_nop (), BB_END (a), a);
   INSN_LOCATION (BB_END (a)) = EDGE_SUCC (a, 0)->goto_locus;
 }
 
@@ -4204,8 +4204,8 @@ fixup_reorder_chain (void)
 		}
 	      nb = split_edge (e);
 	      if (!INSN_P (BB_END (nb)))
-		BB_END (nb) = emit_insn_after_noloc (gen_nop (), BB_END (nb),
-							 nb);
+		BB_END (nb) = emit_insn_after_noloc (targetm.gen_nop (),
+						     BB_END (nb), nb);
 	      INSN_LOCATION (BB_END (nb)) = e->goto_locus;
 
 	      /* If there are other incoming edges to the destination block

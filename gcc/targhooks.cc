@@ -2248,7 +2248,7 @@ default_print_patchable_function_entry (FILE *file,
 {
   const char *nop_templ = 0;
   int code_num;
-  rtx_insn *my_nop = make_insn_raw (gen_nop ());
+  rtx_insn *my_nop = targetm.gen_nop ();
 
   /* We use the template alone, relying on the (currently sane) assumption
      that the NOP template does not have variable operands.  */
