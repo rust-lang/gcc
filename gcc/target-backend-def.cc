@@ -782,6 +782,15 @@ backend_secondary_reload_class (int in_p ATTRIBUTE_UNUSED, int rclass,
 }
 #endif
 
+/* Without a tune attribute the generated insn_default_latency is
+   a plain function; a static pointer gives it the shape of the
+   tune-selected variant, so the scheduler's routed call has one
+   form.  */
+#if defined (INSN_SCHEDULING) && !defined (HAVE_INIT_SCHED_ATTRS)
+static int (*backend_insn_default_latency) (rtx_insn *)
+  = insn_default_latency;
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -836,10 +845,10 @@ const struct target_backend MT_BACKEND_SYMBOL =
     &insn_default_latency,
 # else
     /* Without a tune attribute, init_sched_attrs is a stub macro and
-       insn_default_latency a plain function; the activation phase
-       supplies the wrapper.  */
+       insn_default_latency a plain function; the static pointer
+       above gives it the tune-selected shape.  */
     NULL,
-    NULL,
+    &backend_insn_default_latency,
 # endif
     bypass_p,
     insn_latency,
