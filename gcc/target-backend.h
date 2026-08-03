@@ -25,8 +25,11 @@ along with GCC; see the file COPYING3.  If not see
    empty.  */
 #ifndef GENERATOR_FILE
 
+#include "insn-codes.h"
+
 struct gcc_target;
 struct insn_data_d;
+struct target_optabs;
 
 /* Everything the compiler needs in order to address one built-in
    target.  A single-target build has exactly one instance, describing
@@ -50,6 +53,13 @@ struct target_backend
   void (*insn_extract) (rtx_insn *);
   rtx_insn *(*split_insns) (rtx, rtx_insn *);
   rtx_insn *(*peephole2_insns) (rtx, rtx_insn *, int *);
+
+  /* Generated optab support (insn-opinit.cc); x_-prefixed like the
+     insn_attr_ops fields, because insn-opinit.h renames these names
+     in multi-target builds and reaches many consumers through
+     optabs.h.  */
+  void (*x_init_all_optabs) (struct target_optabs *);
+  enum insn_code (*x_raw_optab_handler) (unsigned);
 };
 
 /* The descriptor of the configured target.  */

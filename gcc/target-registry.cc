@@ -24,6 +24,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "rtl.h"
 #include "insn-config.h"
 #include "recog.h"
+#include "memmodel.h"
+#include "optabs.h"
 #include "target.h"
 #include "target-registry.h"
 
@@ -43,7 +45,9 @@ const struct target_backend default_target_backend =
   recog,
   insn_extract,
   split_insns,
-  peephole2_insns
+  peephole2_insns,
+  init_all_optabs,
+  raw_optab_handler
 };
 
 #if ENABLE_MULTI_TARGET

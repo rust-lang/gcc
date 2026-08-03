@@ -485,7 +485,7 @@ init_tree_optimization_optabs (tree optnode)
     tmp_optabs = ggc_cleared_alloc<target_optabs> ();
 
   /* Generate a new set of optabs into tmp_optabs.  */
-  init_all_optabs (tmp_optabs);
+  target_backend_init_all_optabs (tmp_optabs);
 
   /* If the optabs changed, record it.  */
   if (memcmp (tmp_optabs, this_target_optabs, sizeof (struct target_optabs)))

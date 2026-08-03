@@ -23,6 +23,32 @@ along with GCC; see the file COPYING3.  If not see
 #include "insn-opinit.h"
 #include "target.h"
 
+#include "target-backend.h"
+
+/* Call the active target's generated optab support through the
+   backend descriptor.  Single-target builds call the generated
+   functions directly, at zero cost.  */
+
+inline enum insn_code
+target_backend_raw_optab_handler (unsigned scode)
+{
+#if ENABLE_MULTI_TARGET
+  return this_target_backend->x_raw_optab_handler (scode);
+#else
+  return raw_optab_handler (scode);
+#endif
+}
+
+inline void
+target_backend_init_all_optabs (struct target_optabs *optabs)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->x_init_all_optabs (optabs);
+#else
+  init_all_optabs (optabs);
+#endif
+}
+
 /* Return true if OP is a conversion optab.  */
 
 inline bool
@@ -39,7 +65,7 @@ optab_handler (optab op, machine_mode mode)
 {
   unsigned scode = (op << 20) | mode;
   gcc_assert (op > LAST_CONV_OPTAB);
-  return raw_optab_handler (scode);
+  return target_backend_raw_optab_handler (scode);
 }
 
 /* Return the insn used to perform conversion OP from mode FROM_MODE
@@ -52,7 +78,7 @@ convert_optab_handler (convert_optab op, machine_mode to_mode,
 {
   unsigned scode = (op << 20) | (from_mode << 10) | to_mode;
   gcc_assert (convert_optab_p (op));
-  return raw_optab_handler (scode);
+  return target_backend_raw_optab_handler (scode);
 }
 
 enum insn_code convert_optab_handler (convert_optab, machine_mode,

@@ -868,7 +868,7 @@ init_optabs (void)
     libfunc_hash = hash_table<libfunc_hasher>::create_ggc (10);
 
   /* Fill in the optabs with the insns we support.  */
-  init_all_optabs (this_fn_optabs);
+  target_backend_init_all_optabs (this_fn_optabs);
 
   /* The ffs function operates on `int'.  Fall back on it if we do not
      have a libgcc2 function for that width.  */
