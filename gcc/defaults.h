@@ -416,7 +416,12 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
    FIRST_PSEUDO_REGISTER stay zero.  It only sizes types and tables —
    iteration bounds remain FIRST_PSEUDO_REGISTER.  */
 #ifndef MAX_HARD_REGISTERS
+#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE)
+#include "mt-maxima.h"
+#define MAX_HARD_REGISTERS MT_MAX_HARD_REGISTERS
+#else
 #define MAX_HARD_REGISTERS FIRST_PSEUDO_REGISTER
+#endif
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */

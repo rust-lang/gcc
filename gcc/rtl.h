@@ -4694,7 +4694,7 @@ extern void _fatal_insn (const char *, const_rtx, const char *, int, const char 
 	_fatal_insn_not_found (insn, __FILE__, __LINE__, __FUNCTION__)
 
 /* reginfo.cc */
-extern tree GTY(()) global_regs_decl[FIRST_PSEUDO_REGISTER];
+extern tree GTY(()) global_regs_decl[MAX_HARD_REGISTERS];
 
 /* Information about the function that is propagated by the RTL backend.
    Available only for functions that has been already assembled.  */

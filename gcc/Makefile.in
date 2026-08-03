@@ -3601,7 +3601,8 @@ mt_target_code_prerequisites = mt-%/tm.h mt-%/tm_p.h \
   mt-%/insn-flags.h mt-%/insn-config.h mt-%/insn-codes.h \
   mt-%/insn-attr.h mt-%/insn-attr-common.h mt-%/insn-opinit.h \
   mt-%/tm-constrs.h mt-%/mt-options-pad.h \
-  mt-%/insn-modes.h mt-%/insn-modes-inline.h
+  mt-%/insn-modes.h mt-%/insn-modes-inline.h mt-maxima.h \
+  $(TM_H)
 
 # The same list with every tag substituted in: object rules whose stem
 # spans tag and file cannot take per-tag pattern prerequisites, so
@@ -4664,7 +4665,7 @@ generated_files = config.h tm.h $(TM_P_H) $(TM_D_H) $(TM_JIT_H) $(TM_H) \
 ifneq ($(multi_target_tags),)
 # Host code includes the primary target's options.h, which in a
 # multi-target build reads the option-state padding header.
-generated_files += mt-options-pad.h
+generated_files += mt-options-pad.h mt-maxima.h
 endif
 
 #

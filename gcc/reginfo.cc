@@ -89,13 +89,13 @@ static const char initial_call_used_regs[] = CALL_USED_REGISTERS;
    that are being used for global register decls.
    These must be exempt from ordinary flow analysis
    and are also considered fixed.  */
-char global_regs[FIRST_PSEUDO_REGISTER];
+char global_regs[MAX_HARD_REGISTERS];
 
 /* The set of global registers.  */
 HARD_REG_SET global_reg_set;
 
 /* Declaration for the global register. */
-tree global_regs_decl[FIRST_PSEUDO_REGISTER];
+tree global_regs_decl[MAX_HARD_REGISTERS];
 
 /* Used to initialize reg_alloc_order.  */
 #ifdef REG_ALLOC_ORDER
@@ -184,20 +184,30 @@ init_reg_sets (void)
     }
 
   /* Sanity check: make sure the target macros FIXED_REGISTERS and
-     CALL_USED_REGISTERS had the right number of initializers.  */
-  gcc_assert (sizeof fixed_regs == sizeof initial_fixed_regs);
-  gcc_assert (sizeof call_used_regs == sizeof initial_call_used_regs);
+     CALL_USED_REGISTERS had the right number of initializers.  The
+     destinations hold MAX_HARD_REGISTERS entries, so only the
+     initializers' own entries copy; the rest stay zero.  */
+  gcc_assert (sizeof initial_fixed_regs
+	      == FIRST_PSEUDO_REGISTER * sizeof initial_fixed_regs[0]);
+  gcc_assert (sizeof initial_call_used_regs
+	      == FIRST_PSEUDO_REGISTER
+		 * sizeof initial_call_used_regs[0]);
 #ifdef REG_ALLOC_ORDER
-  gcc_assert (sizeof reg_alloc_order == sizeof initial_reg_alloc_order);
+  gcc_assert (sizeof initial_reg_alloc_order
+	      == FIRST_PSEUDO_REGISTER
+		 * sizeof initial_reg_alloc_order[0]);
 #endif
-  gcc_assert (sizeof reg_names == sizeof initial_reg_names);
+  gcc_assert (sizeof initial_reg_names
+	      == FIRST_PSEUDO_REGISTER * sizeof initial_reg_names[0]);
 
-  memcpy (fixed_regs, initial_fixed_regs, sizeof fixed_regs);
-  memcpy (call_used_regs, initial_call_used_regs, sizeof call_used_regs);
+  memcpy (fixed_regs, initial_fixed_regs, sizeof initial_fixed_regs);
+  memcpy (call_used_regs, initial_call_used_regs,
+	  sizeof initial_call_used_regs);
 #ifdef REG_ALLOC_ORDER
-  memcpy (reg_alloc_order, initial_reg_alloc_order, sizeof reg_alloc_order);
+  memcpy (reg_alloc_order, initial_reg_alloc_order,
+	  sizeof initial_reg_alloc_order);
 #endif
-  memcpy (reg_names, initial_reg_names, sizeof reg_names);
+  memcpy (reg_names, initial_reg_names, sizeof initial_reg_names);
 
   SET_HARD_REG_SET (accessible_reg_set);
   SET_HARD_REG_SET (operand_reg_set);
@@ -208,9 +218,9 @@ init_reg_sets (void)
 /* We need to save copies of some of the register information which
    can be munged by command-line switches so we can restore it during
    subsequent back-end reinitialization.  */
-static char saved_fixed_regs[FIRST_PSEUDO_REGISTER];
-static char saved_call_used_regs[FIRST_PSEUDO_REGISTER];
-static const char *saved_reg_names[FIRST_PSEUDO_REGISTER];
+static char saved_fixed_regs[MAX_HARD_REGISTERS];
+static char saved_call_used_regs[MAX_HARD_REGISTERS];
+static const char *saved_reg_names[MAX_HARD_REGISTERS];
 static HARD_REG_SET saved_accessible_reg_set;
 static HARD_REG_SET saved_operand_reg_set;
 
