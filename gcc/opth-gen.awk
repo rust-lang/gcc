@@ -43,6 +43,16 @@ if (n_extra_h_includes > 0) {
 	print ""
 }
 
+# A multi-target build pads the option structures out to the largest
+# enabled target's layout; mt-options-pad.h carries the pads.  The
+# genmt-optsize probe measures the structures without the padding.
+if (have_target_block) {
+	print "#ifndef MT_OPT_SIZE_PROBE"
+	print "#include \"mt-options-pad.h\""
+	print "#endif"
+	print ""
+}
+
 print "#if !defined(IN_LIBGCC2) && !defined(IN_TARGET_LIBS) && !defined(IN_RTS)"
 print "#ifndef GENERATOR_FILE"
 print "#if !defined(IN_LIBGCC2) && !defined(IN_TARGET_LIBS)"
@@ -131,12 +141,25 @@ for (block = 0; block < 2; block++) {
 		}
 	}
 }
+if (have_target_block) {
+	print "#if defined MT_GCC_OPTIONS_PAD && !defined GENERATOR_FILE"
+	print "  /* Pads this target's block out to the largest gcc_options"
+	print "     layout in this multi-target build.  */"
+	print "  char x_mt_target_opt_pad[MT_GCC_OPTIONS_PAD];"
+	print "#endif"
+}
 print "#ifndef GENERATOR_FILE"
 print "};"
 print "extern struct gcc_options global_options;"
 print "extern const struct gcc_options global_options_init;"
 print "extern struct gcc_options global_options_set;"
 print "#define target_flags_explicit global_options_set.x_target_flags"
+if (have_target_block) {
+	print "#ifdef MT_GCC_OPTIONS_TOTAL"
+	print "STATIC_ASSERT (sizeof (struct gcc_options)"
+	print "	       == MT_GCC_OPTIONS_TOTAL);"
+	print "#endif"
+}
 print "#endif"
 print "#endif"
 print ""
@@ -217,7 +240,20 @@ for (i = 0; i < n_opt_char; i++) {
 print "  /* " n_opt_explicit " members */";
 print "  unsigned HOST_WIDE_INT explicit_mask[" int ((n_opt_explicit + 63) / 64) "];";
 
+if (have_target_block) {
+	print "#ifdef MT_CL_OPTIMIZATION_PAD";
+	print "  /* Pads this target's members out to the largest";
+	print "     cl_optimization layout in this multi-target build.  */";
+	print "  char x_mt_target_opt_pad[MT_CL_OPTIMIZATION_PAD];";
+	print "#endif";
+}
 print "};";
+if (have_target_block) {
+	print "#ifdef MT_CL_OPTIMIZATION_TOTAL";
+	print "STATIC_ASSERT (sizeof (struct cl_optimization)";
+	print "	       == MT_CL_OPTIMIZATION_TOTAL);";
+	print "#endif";
+}
 print "";
 
 # Target and optimization save/restore/print functions.
@@ -322,7 +358,20 @@ for (i = 0; i < n_target_explicit_mask; i++) {
 	print "  " var_target_explicit_mask[i] ";";
 }
 
+if (have_target_block) {
+	print "#ifdef MT_CL_TARGET_OPTION_PAD";
+	print "  /* Pads this target's members out to the largest";
+	print "     cl_target_option layout in this multi-target build.  */";
+	print "  char x_mt_target_opt_pad[MT_CL_TARGET_OPTION_PAD];";
+	print "#endif";
+}
 print "};";
+if (have_target_block) {
+	print "#ifdef MT_CL_TARGET_OPTION_TOTAL";
+	print "STATIC_ASSERT (sizeof (struct cl_target_option)";
+	print "	       == MT_CL_TARGET_OPTION_TOTAL);";
+	print "#endif";
+}
 print "";
 print "";
 print "/* Save optimization variables into a structure.  */"

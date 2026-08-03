@@ -299,6 +299,11 @@ for (block = 0; block < 2; block++) {
 			print "  false, /* frontend_set_" var_name(flags[i]) " */"
 	}
 }
+if (have_target_block) {
+	print "#if defined MT_GCC_OPTIONS_PAD && !defined GENERATOR_FILE"
+	print "  {}, /* x_mt_target_opt_pad */"
+	print "#endif"
+}
 print "};"
 print ""
 print "struct gcc_options global_options;"

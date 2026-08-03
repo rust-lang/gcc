@@ -903,6 +903,11 @@ SPECS = specs
 # Extra include files that are defined by HeaderInclude directives in
 # the .opt files
 OPTIONS_H_EXTRA =
+ifneq ($(multi_target_tags),)
+# A multi-target options.h reads the option-state padding header;
+# every options.h consumer must wait for it.
+OPTIONS_H_EXTRA += mt-options-pad.h
+endif
 
 # Extra include files that are defined by SourceInclude directives in
 # the .opt files
@@ -3192,6 +3197,7 @@ $(multi_target_tags:%=mt-%/stamp-build-headers): \
 # headers a generator compile reaches — hash-table.h pulls in
 # gtype-desc.h, and rtl.h pulls in genrtl.h in generator files.
 mt_context_prerequisites = mt-%/tm.h mt-%/options.h \
+  mt-%/mt-options-pad.h \
   mt-%/insn-constants.h mt-%/insn-modes.h mt-%/insn-modes-inline.h \
   mt-%/stamp-build-headers $(HASH_TABLE_H) genrtl.h
 
@@ -3569,7 +3575,7 @@ $(multi_target_tags:%=build/mt-%/genemit$(build_exeext)): \
 mt_target_code_prerequisites = mt-%/tm.h mt-%/tm_p.h \
   mt-%/insn-flags.h mt-%/insn-config.h mt-%/insn-codes.h \
   mt-%/insn-attr.h mt-%/insn-attr-common.h mt-%/insn-opinit.h \
-  mt-%/tm-constrs.h
+  mt-%/tm-constrs.h mt-%/mt-options-pad.h
 
 # The same list with every tag substituted in: object rules whose stem
 # spans tag and file cannot take per-tag pattern prerequisites, so
@@ -4016,6 +4022,113 @@ mt-check-maxima:
 
 endif
 
+# The option-state padding: common code allocates the gcc_options,
+# cl_optimization and cl_target_option objects that each target's
+# own units read and write, so in a multi-target build every
+# target's structures must occupy the same number of bytes.  The
+# genmt-optsize probe measures the unpadded structures once per
+# enabled target — MT_OPT_SIZE_PROBE keeps the pad members out of
+# the measurement — and each target then pads its structures out to
+# the largest layout through its own mt-options-pad.h.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=build/mt-%/genmt-optsize.o): \
+  build/mt-%/genmt-optsize.o: $(srcdir)/genmt-optsize.cc \
+  $(BCONFIG_H) $(SYSTEM_H) $(CORETYPES_H) mt-%/options.h
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  -DMT_OPT_SIZE_PROBE -I mt-$* $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genmt-optsize$(build_exeext)): \
+  build/mt-%/genmt-optsize$(build_exeext): build/mt-%/genmt-optsize.o \
+  $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=mt-%/mt-options.vals): mt-%/mt-options.vals: \
+  build/mt-%/genmt-optsize$(build_exeext)
+	$(RUN_GEN) build/mt-$*/genmt-optsize$(build_exeext) \
+	  > tmp-mt-$*-options.vals
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-options.vals $@
+
+# Each target's padding header carries the pad only when this target
+# is not itself the largest, so a degenerate single-target list pads
+# nothing; the totals let the structures assert their padded sizes.
+# The merge refuses totals that are not multiples of this target's
+# alignment, because the pad member could then never land the
+# structure exactly on the shared size.
+$(multi_target_tags:%=mt-%/mt-options-pad.h): mt-%/mt-options-pad.h: \
+  $(multi_target_tags:%=mt-%/mt-options.vals)
+	awk -v mt_own_file=mt-$*/mt-options.vals \
+	  '$$1 ~ /_size$$/ { mt_name = substr ($$1, 1, length ($$1) - 5); \
+	       if ($$2 + 0 > mt_max[mt_name]) mt_max[mt_name] = $$2 + 0; \
+	       if (FILENAME == mt_own_file) mt_own[mt_name] = $$2 + 0 } \
+	   $$1 ~ /_align$$/ && FILENAME == mt_own_file { \
+	       mt_align[substr ($$1, 1, length ($$1) - 6)] = $$2 + 0 } \
+	   END { \
+	     mt_structs[1] = "gcc_options"; \
+	     mt_macros[1] = "MT_GCC_OPTIONS"; \
+	     mt_structs[2] = "cl_optimization"; \
+	     mt_macros[2] = "MT_CL_OPTIMIZATION"; \
+	     mt_structs[3] = "cl_target_option"; \
+	     mt_macros[3] = "MT_CL_TARGET_OPTION"; \
+	     for (mt_i = 1; mt_i <= 3; mt_i++) { \
+	       mt_name = mt_structs[mt_i]; \
+	       if (mt_own[mt_name] == 0 || mt_align[mt_name] == 0 \
+		   || mt_max[mt_name] % mt_align[mt_name] != 0) { \
+		 printf "bad option-state sizes for %s\n", mt_name; \
+		 exit 1; \
+	       } \
+	       if (mt_max[mt_name] > mt_own[mt_name]) \
+		 printf "#define %s_PAD %d\n", mt_macros[mt_i], \
+		   mt_max[mt_name] - mt_own[mt_name]; \
+	       printf "#define %s_TOTAL %d\n", mt_macros[mt_i], \
+		 mt_max[mt_name]; \
+	     } \
+	   }' $(multi_target_tags:%=mt-%/mt-options.vals) \
+	  > tmp-mt-$*-options-pad.awk-out
+	{ echo "/* The option-state padding of this target;" \
+	    "generated, do not edit.  */"; \
+	  echo "#ifndef GCC_MT_OPTIONS_PAD_H"; \
+	  echo "#define GCC_MT_OPTIONS_PAD_H"; \
+	  for mt_tag in $(multi_target_tags); do \
+	    sed "s/^/\/* $$mt_tag: /;s/$$/.  *\//" \
+	      mt-$$mt_tag/mt-options.vals; \
+	  done; \
+	  cat tmp-mt-$*-options-pad.awk-out; \
+	  echo "#endif /* GCC_MT_OPTIONS_PAD_H */"; } \
+	  > tmp-mt-$*-options-pad.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-options-pad.h $@
+
+# Host code includes the primary target's options.h, which reads the
+# primary's padding header under the plain name.
+mt-options-pad.h: mt-$(firstword $(multi_target_tags))/mt-options-pad.h
+	cp mt-$(firstword $(multi_target_tags))/mt-options-pad.h \
+	  tmp-mt-options-pad.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-options-pad.h $@
+
+# The one generator program compiled against the primary target's
+# tm.h, and so against the padded options.h.  Order-only: a plain
+# prerequisite read here would land first in the list and become the
+# $< of the build/%.o pattern rule, and the padding never changes
+# the program's behavior, only the declarations it compiles against.
+build/gencondmd.o: | mt-options-pad.h
+
+.PHONY: mt-check-optsize
+mt-check-optsize: $(multi_target_tags:%=mt-%/mt-options-pad.h) \
+  mt-options-pad.h
+	@for mt_tag in $(multi_target_tags); do \
+	  echo "== mt-$$mt_tag/mt-options-pad.h"; \
+	  cat mt-$$mt_tag/mt-options-pad.h; \
+	done
+
+else
+
+.PHONY: mt-check-optsize
+mt-check-optsize:
+	@echo "mt-check-optsize: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true
@@ -4322,6 +4435,12 @@ generated_files = config.h tm.h $(TM_P_H) $(TM_D_H) $(TM_JIT_H) $(TM_H) \
        case-cfn-macros.h \
        jit/jit-target-hooks-def.h case-cfn-macros.h \
        cfn-operators.pd omp-device-properties.h
+
+ifneq ($(multi_target_tags),)
+# Host code includes the primary target's options.h, which in a
+# multi-target build reads the option-state padding header.
+generated_files += mt-options-pad.h
+endif
 
 #
 # How to compile object files to run on the build machine.
