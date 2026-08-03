@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License
 along with GCC; see the file COPYING3.  If not see
 <http://www.gnu.org/licenses/>.  */
 
+/* The descriptor captures the native target surface; the routing
+   headers must not send it back through the descriptor.  The macro
+   must precede every include: defaults.h reads it, and tm.h pulls
+   defaults.h in through backend.h.  */
+#define MT_NATIVE_TARGET_SURFACE 1
+
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
@@ -39,6 +45,7 @@ along with GCC; see the file COPYING3.  If not see
 /* For the declaration of the target's OVERRIDE_ABI_FORMAT function;
    tm.h itself arrives through backend.h.  */
 #include "tm_p.h"
+#include "tm-preds-ops.h"
 
 /* A single-target build compiles this file once, as the descriptor of
    the configured target.  A multi-target build compiles it once per
@@ -281,6 +288,131 @@ backend_initial_elimination_offset (int from, int to,
   INITIAL_ELIMINATION_OFFSET (from, to, *offset);
 }
 
+/* The constraint entry points, captured with the enumerations
+   carried as plain integers; see tm-preds-ops.h.  */
+
+static int
+backend_lookup_constraint (const char *p)
+{
+  return (int) lookup_constraint (p);
+}
+
+static bool
+backend_constraint_satisfied_p (rtx x, int c)
+{
+  return constraint_satisfied_p (x, (enum constraint_num) c);
+}
+
+static bool
+backend_insn_extra_memory_constraint (int c)
+{
+  return insn_extra_memory_constraint ((enum constraint_num) c);
+}
+
+static bool
+backend_insn_extra_special_memory_constraint (int c)
+{
+  return insn_extra_special_memory_constraint ((enum constraint_num) c);
+}
+
+static bool
+backend_insn_extra_relaxed_memory_constraint (int c)
+{
+  return insn_extra_relaxed_memory_constraint ((enum constraint_num) c);
+}
+
+static bool
+backend_insn_extra_address_constraint (int c)
+{
+  return insn_extra_address_constraint ((enum constraint_num) c);
+}
+
+static void
+backend_insn_extra_constraint_allows_reg_mem (int c, bool *allows_reg,
+					      bool *allows_mem)
+{
+  insn_extra_constraint_allows_reg_mem ((enum constraint_num) c,
+					allows_reg, allows_mem);
+}
+
+static size_t
+backend_insn_constraint_len (char fc, const char *str)
+{
+  return insn_constraint_len (fc, str);
+}
+
+static int
+backend_reg_class_for_constraint (int c)
+{
+  return (int) reg_class_for_constraint ((enum constraint_num) c);
+}
+
+static bool
+backend_insn_const_int_ok_for_constraint (HOST_WIDE_INT value, int c)
+{
+  return insn_const_int_ok_for_constraint (value,
+					   (enum constraint_num) c);
+}
+
+static int
+backend_get_constraint_type (int c)
+{
+  return (int) get_constraint_type ((enum constraint_num) c);
+}
+
+static const void *
+backend_get_register_filter (int c)
+{
+  return get_register_filter ((enum constraint_num) c);
+}
+
+static int
+backend_get_register_filter_id (int c)
+{
+  return get_register_filter_id ((enum constraint_num) c);
+}
+
+static int
+backend_get_dependent_filter_id (int c)
+{
+  return get_dependent_filter_id ((enum constraint_num) c);
+}
+
+static int
+backend_get_dependent_filter_ref (int id)
+{
+  return get_dependent_filter_ref (id);
+}
+
+static bool
+backend_eval_dependent_filter (int id, unsigned int regno,
+			       machine_mode mode,
+			       unsigned int ref_regno,
+			       machine_mode ref_mode)
+{
+  return eval_dependent_filter (id, regno, mode, ref_regno, ref_mode);
+}
+
+static const struct mt_constraint_ops backend_constraint_ops =
+{
+  backend_lookup_constraint,
+  backend_constraint_satisfied_p,
+  backend_insn_extra_memory_constraint,
+  backend_insn_extra_special_memory_constraint,
+  backend_insn_extra_relaxed_memory_constraint,
+  backend_insn_extra_address_constraint,
+  backend_insn_extra_constraint_allows_reg_mem,
+  backend_insn_constraint_len,
+  backend_reg_class_for_constraint,
+  backend_insn_const_int_ok_for_constraint,
+  backend_get_constraint_type,
+  backend_get_register_filter,
+  backend_get_register_filter_id,
+  backend_get_dependent_filter_id,
+  backend_get_dependent_filter_ref,
+  backend_eval_dependent_filter,
+};
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -415,4 +547,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #endif
 
   backend_initial_elimination_offset,
+
+  &backend_constraint_ops,
 };

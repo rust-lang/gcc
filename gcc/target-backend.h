@@ -246,6 +246,9 @@ struct target_backend
   /* INITIAL_ELIMINATION_OFFSET, storing the offset between the pair
      through the third argument.  */
   void (*x_initial_elimination_offset) (int, int, poly_int64 *);
+
+  /* The generated constraint entry points (tm-preds-ops.h).  */
+  const struct mt_constraint_ops *constraint_ops;
 };
 
 /* The descriptor of the configured target.  */

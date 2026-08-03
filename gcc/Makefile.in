@@ -2212,7 +2212,8 @@ cs-tm.h: Makefile
 
 cs-tm_p.h: Makefile
 	TARGET_CPU_DEFAULT="" \
-	HEADERS="$(tm_p_include_list)" DEFINES="" \
+	HEADERS="$(tm_p_include_list)$(if $(multi_target_tags), tm-preds-ops.h)" \
+	DEFINES="" \
 	$(SHELL) $(srcdir)/mkconfig.sh tm_p.h
 
 cs-tm_d.h: Makefile
