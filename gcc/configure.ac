@@ -7622,6 +7622,7 @@ if test x"$multi_target_tags" != x; then
     if test x"$mt_tag" = x"$mt_primary_tag"; then
       { echo "# Finished at the end of configure."
 	echo "mt_tm_include_list='$tm_include_list'"
+	echo "mt_tm_p_include_list='$tm_p_include_list'"
 	echo "mt_tm_defines_final='$tm_defines'"
 	echo "mt_target_cpu_default_final='$target_cpu_default'"
       } >> mt-config-$mt_tag.sh
@@ -7641,8 +7642,20 @@ if test x"$multi_target_tags" != x; then
 	      ;;
 	  esac
 	done
+	mt_p_include_list=
+	for f in $mt_tm_p_file tm-preds.h; do
+	  case $f in
+	    tm-preds.h )
+	      mt_p_include_list="$mt_p_include_list $f"
+	      ;;
+	    * )
+	      mt_p_include_list="$mt_p_include_list config/$f"
+	      ;;
+	  esac
+	done
 	{ echo "# Finished at the end of configure."
 	  echo "mt_tm_include_list='$mt_include_list'"
+	  echo "mt_tm_p_include_list='$mt_p_include_list'"
 	  echo "mt_tm_defines_final='$mt_tm_defines'"
 	  echo "mt_target_cpu_default_final='$mt_target_cpu_default'"
 	} >> mt-config-$mt_tag.sh )

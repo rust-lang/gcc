@@ -3088,6 +3088,184 @@ mt-check-options:
 
 endif
 
+# Multi-target builds generate each enabled target's md-context
+# headers: the headers a generator program compiled in the target's
+# context includes.  The per-target insn-modes.h and
+# insn-modes-inline.h here are the target's native headers, mirroring
+# its own cross build; they are distinct from the union headers,
+# which serve core compilation.
+ifneq ($(multi_target_tags),)
+
+mt_md_context_headers = \
+	$(multi_target_tags:%=mt-%/insn-modes.h) \
+	$(multi_target_tags:%=mt-%/insn-modes-inline.h) \
+	$(multi_target_tags:%=mt-%/insn-constants.h) \
+	$(multi_target_tags:%=mt-%/tm-preds.h) \
+	$(multi_target_tags:%=mt-%/tm-constrs.h) \
+	$(multi_target_tags:%=mt-%/tm_p.h)
+
+$(multi_target_tags:%=mt-%/insn-modes.h): mt-%/insn-modes.h: \
+  build/mt-%/genmodes$(build_exeext)
+	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -h \
+	  > tmp-mt-$*-modes.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-modes.h $@
+
+$(multi_target_tags:%=mt-%/insn-modes-inline.h): \
+  mt-%/insn-modes-inline.h: build/mt-%/genmodes$(build_exeext)
+	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -i \
+	  > tmp-mt-$*-modes-inline.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-modes-inline.h $@
+
+$(multi_target_tags:%=mt-%/min-insn-modes.cc): mt-%/min-insn-modes.cc: \
+  build/mt-%/genmodes$(build_exeext)
+	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -m \
+	  > tmp-mt-$*-min-modes.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-min-modes.cc $@
+
+# A tm_file entry with a ./ prefix names a header the target's own
+# makefile fragments generate in the build directory (m68k's
+# sysroot-suffix.h); the fragments run as an isolated sub-make inside
+# mt-<tag>/, against the same variables the main makefile would give
+# them.
+$(multi_target_tags:%=mt-%/fragments.mk): mt-%/fragments.mk: \
+  mt-config-%.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	{ echo "srcdir = `cd $(srcdir); ${PWD_COMMAND}`"; \
+	  echo "SHELL = $(SHELL)"; \
+	  echo "AWK = $(AWK)"; \
+	  echo "SYSTEM_HEADER_DIR = $(SYSTEM_HEADER_DIR)"; \
+	  echo "target = $$mt_triple"; \
+	  echo "target_cpu_default = $$mt_target_cpu_default"; \
+	  for f in $$mt_tmake_file; do \
+	    if test -f $(srcdir)/config/$$f; then \
+	      echo "include `cd $(srcdir); ${PWD_COMMAND}`/config/$$f"; \
+	    fi; \
+	  done; } > tmp-mt-$*-fragments.mk
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-fragments.mk $@
+
+$(multi_target_tags:%=mt-%/stamp-build-headers): \
+  mt-%/stamp-build-headers: mt-%/fragments.mk
+	. ./mt-config-$*.sh; \
+	mt_build_headers=; \
+	for f in $$mt_tm_file; do \
+	  case $$f in \
+	    ./*) \
+	      mt_build_headers="$$mt_build_headers `echo $$f \
+		| sed 's|^\./||'`" ;; \
+	  esac; \
+	done; \
+	if test -n "$$mt_build_headers"; then \
+	  cd mt-$* && $(MAKE) -f fragments.mk $$mt_build_headers; \
+	else :; fi
+	$(STAMP) $@
+
+# An md file's mode names resolve against the mode table linked into
+# the reading generator, and rtl reader behavior sized by
+# NUM_MACHINE_MODES is compiled in, so genpreds is built once per
+# target, in the target's own context, exactly as the target's cross
+# build builds it.  The objects compiled per target are those that
+# include tm.h or the mode tables; the mode-free reader
+# infrastructure stays shared, as does genconstants, which reads only
+# the md constants.  The shared prerequisites cover the build-dir
+# headers a generator compile reaches — hash-table.h pulls in
+# gtype-desc.h, and rtl.h pulls in genrtl.h in generator files.
+mt_context_prerequisites = mt-%/tm.h mt-%/options.h \
+  mt-%/insn-constants.h mt-%/insn-modes.h mt-%/insn-modes-inline.h \
+  mt-%/stamp-build-headers $(HASH_TABLE_H) genrtl.h
+
+$(multi_target_tags:%=build/mt-%/min-insn-modes.o): \
+  build/mt-%/min-insn-modes.o: mt-%/min-insn-modes.cc \
+  $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/rtl.o): build/mt-%/rtl.o: \
+  $(srcdir)/rtl.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/read-rtl.o): build/mt-%/read-rtl.o: \
+  $(srcdir)/read-rtl.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/gensupport.o): \
+  build/mt-%/gensupport.o: $(srcdir)/gensupport.cc \
+  $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/print-rtl.o): build/mt-%/print-rtl.o: \
+  $(srcdir)/print-rtl.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genpreds.o): build/mt-%/genpreds.o: \
+  $(srcdir)/genpreds.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+mt_target_rtl_objects = build/mt-%/rtl.o build/mt-%/read-rtl.o \
+  build/mt-%/gensupport.o build/mt-%/print-rtl.o \
+  build/mt-%/min-insn-modes.o
+mt_shared_rtl_objects = build/ggc-none.o build/vec.o \
+  build/hash-table.o build/sort.o $(BUILD_MD) $(BUILD_ERRORS)
+
+$(multi_target_tags:%=build/mt-%/genpreds$(build_exeext)): \
+  build/mt-%/genpreds$(build_exeext): build/mt-%/genpreds.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+# The target's md file is known only at recipe time, from the captured
+# configuration, so editing a secondary target's md files does not
+# retrigger these rules — touch the mt-config file if that matters
+# during development.
+$(multi_target_tags:%=mt-%/insn-constants.h): mt-%/insn-constants.h: \
+  build/genconstants$(build_exeext) mt-config-%.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/genconstants$(build_exeext) $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file > tmp-mt-$*-constants.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-constants.h $@
+
+$(multi_target_tags:%=mt-%/tm-preds.h): mt-%/tm-preds.h: \
+  build/mt-%/genpreds$(build_exeext) mt-config-%.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genpreds$(build_exeext) -h \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  > tmp-mt-$*-preds.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-preds.h $@
+
+$(multi_target_tags:%=mt-%/tm-constrs.h): mt-%/tm-constrs.h: \
+  build/mt-%/genpreds$(build_exeext) mt-config-%.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genpreds$(build_exeext) -c \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  > tmp-mt-$*-constrs.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-constrs.h $@
+
+$(multi_target_tags:%=mt-%/tm_p.h): mt-%/tm_p.h: mt-%/cs-tm_p.h ; @true
+
+$(multi_target_tags:%=mt-%/cs-tm_p.h): mt-%/cs-tm_p.h: mt-config-%.sh \
+  $(srcdir)/mkconfig.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	mt_mkconfig=`cd $(srcdir); ${PWD_COMMAND}`/mkconfig.sh; \
+	cd mt-$* && \
+	TARGET_CPU_DEFAULT="" \
+	HEADERS="$$mt_tm_p_include_list" DEFINES="" \
+	$(SHELL) $$mt_mkconfig tm_p.h
+
+.PHONY: mt-check-md-headers
+mt-check-md-headers: $(mt_md_context_headers)
+
+else
+
+.PHONY: mt-check-md-headers
+mt-check-md-headers:
+	@echo "mt-check-md-headers: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true
