@@ -1926,7 +1926,7 @@ default_named_section_asm_out_destructor (rtx symbol, int priority)
   assemble_addr_to_section (symbol, sec);
 }
 
-#ifdef DTORS_SECTION_ASM_OP
+#if defined (DTORS_SECTION_ASM_OP) || ENABLE_MULTI_TARGET
 void
 default_dtor_section_asm_out_destructor (rtx symbol,
 					 int priority ATTRIBUTE_UNUSED)
@@ -1949,7 +1949,10 @@ default_named_section_asm_out_constructor (rtx symbol, int priority)
   assemble_addr_to_section (symbol, sec);
 }
 
-#ifdef CTORS_SECTION_ASM_OP
+/* In a multi-target compiler a port may reference these on paths
+   its own configuration never reaches; the sections stay null when
+   the primary defines no directive.  */
+#if defined (CTORS_SECTION_ASM_OP) || ENABLE_MULTI_TARGET
 void
 default_ctor_section_asm_out_constructor (rtx symbol,
 					  int priority ATTRIBUTE_UNUSED)
