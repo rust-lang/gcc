@@ -4055,6 +4055,7 @@ $(multi_target_tags:%=mt-%/driver-specs.o): \
 	  -I mt-$* $(ALL_CPPFLAGS) \
 	  -DMT_DRIVER_SPECS_SYMBOL=mt_driver_specs_$* \
 	  -DMT_BACKEND_TRIPLE="\"$$mt_triple\"" \
+	  $${mt_configured_as:+-DMT_CONFIGURED_ASSEMBLER="\"$$mt_configured_as\""} \
 	  -o $@ $<
 
 # The registry enumerates the enabled targets' descriptors through

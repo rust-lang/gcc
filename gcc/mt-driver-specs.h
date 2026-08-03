@@ -54,6 +54,10 @@ struct mt_driver_specs
   const char *const *self_specs;
   size_t num_self_specs;
 
+  /* The assembler configure named for the target with
+     --with-mt-as-<tag>=, or null.  */
+  const char *configured_assembler;
+
   /* The target's OPTION_DEFAULT_SPECS entries.  They act on
      configure-time defaults, which only the primary has, so the
      driver does not run them; the capture keeps the surface whole

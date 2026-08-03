@@ -47,6 +47,12 @@ along with GCC; see the file COPYING3.  If not see
 #define OPTION_DEFAULT_SPECS { "", "" }
 #endif
 
+/* The build passes the override from --with-mt-as-<tag>= when
+   configure recorded one.  */
+#ifndef MT_CONFIGURED_ASSEMBLER
+#define MT_CONFIGURED_ASSEMBLER NULL
+#endif
+
 #ifdef EXTRA_SPECS
 static const struct mt_driver_spec_entry mt_captured_extra_specs[]
   = { EXTRA_SPECS };
@@ -75,6 +81,7 @@ const struct mt_driver_specs MT_DRIVER_SPECS_SYMBOL =
 #endif
   mt_captured_self_specs,
   ARRAY_SIZE (mt_captured_self_specs),
+  MT_CONFIGURED_ASSEMBLER,
   mt_captured_option_defaults,
   ARRAY_SIZE (mt_captured_option_defaults),
 };

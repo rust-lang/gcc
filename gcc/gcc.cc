@@ -417,9 +417,10 @@ static int do_spec_2 (const char *, const char *);
 static void do_option_spec (const char *, const char *);
 static void do_self_spec (const char *);
 #if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+#include "mt-driver-specs.h"
+
 /* The selected secondary's driver spec capture, or null when the
-   primary runs; the type lives with the capture registry below.  */
-struct mt_driver_specs;
+   primary runs.  */
 static const struct mt_driver_specs *mt_selected_capture;
 #endif
 static const char *find_file (const char *);
@@ -3061,34 +3062,13 @@ find_a_file (const struct path_prefix *pprefix, const char *name,
     });
 }
 
-/* Specialization of find_a_file for programs that also takes into account
-   configure-specified default programs. */
+/* The search find_a_program performs: the prefix walk over
+   exec_prefixes, trying the machine-prefixed name in
+   machine-agnostic directories.  */
 
 static char*
-find_a_program (const char *name)
+find_a_program_1 (const char *name)
 {
-  /* Do not search if default matches query. */
-
-#ifdef DEFAULT_ASSEMBLER
-  if (! strcmp (name, "as") && access (DEFAULT_ASSEMBLER, X_OK) == 0)
-    return xstrdup (DEFAULT_ASSEMBLER);
-#endif
-
-#ifdef DEFAULT_LINKER
-  if (! strcmp (name, "ld") && access (DEFAULT_LINKER, X_OK) == 0)
-    return xstrdup (DEFAULT_LINKER);
-#endif
-
-#ifdef DEFAULT_DSYMUTIL
-  if (! strcmp (name, "dsymutil") && access (DEFAULT_DSYMUTIL, X_OK) == 0)
-    return xstrdup (DEFAULT_DSYMUTIL);
-#endif
-
-#ifdef DEFAULT_WINDRES
-  if (! strcmp (name, "windres") && access (DEFAULT_WINDRES, X_OK) == 0)
-    return xstrdup (DEFAULT_WINDRES);
-#endif
-
   /* Find the filename in question (special case for absolute paths).  */
 
   if (IS_ABSOLUTE_PATH (name))
@@ -3148,6 +3128,99 @@ find_a_program (const char *name)
 
       return search(path_len);
     });
+}
+
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+/* Search PATH for the selected target's prefixed NAME - the
+   conventional name installed cross binutils carry, as in
+   <triple>-as.  */
+
+static char *
+mt_find_prefixed_on_path (const char *name)
+{
+  const char *path_list = env.get ("PATH");
+  if (path_list == NULL)
+    return NULL;
+  char *prefixed
+    = concat (just_machine_prefix, name, HOST_EXECUTABLE_SUFFIX,
+	      NULL);
+  const size_t prefixed_length = strlen (prefixed);
+  const char *cursor = path_list;
+  char *found = NULL;
+  while (*cursor != '\0' && found == NULL)
+    {
+      const char *end = strchr (cursor, PATH_SEPARATOR);
+      size_t span
+	= end != NULL ? (size_t) (end - cursor) : strlen (cursor);
+      if (span != 0)
+	{
+	  char *candidate
+	    = XNEWVEC (char, span + 1 + prefixed_length + 1);
+	  memcpy (candidate, cursor, span);
+	  candidate[span] = DIR_SEPARATOR;
+	  memcpy (candidate + span + 1, prefixed,
+		  prefixed_length + 1);
+	  if (access (candidate, X_OK) == 0)
+	    found = candidate;
+	  else
+	    free (candidate);
+	}
+      cursor = end != NULL ? end + 1 : cursor + span;
+    }
+  free (prefixed);
+  return found;
+}
+#endif
+
+/* Specialization of find_a_file for programs that also takes into account
+   configure-specified default programs. */
+
+static char*
+find_a_program (const char *name)
+{
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+  /* For a selected secondary the assembler configure named with
+     --with-mt-as-<tag>= wins, and the primary's configure-time
+     defaults below do not apply.  The regular search already
+     follows the selection - the tool directory and the prefixed
+     program names build on spec_machine - and PATH supplies
+     installed cross binutils under their prefixed name.  */
+  if (mt_selected_capture != NULL)
+    {
+      if (strcmp (name, "as") == 0
+	  && mt_selected_capture->configured_assembler != NULL
+	  && access (mt_selected_capture->configured_assembler,
+		     X_OK) == 0)
+	return xstrdup (mt_selected_capture->configured_assembler);
+      char *found = find_a_program_1 (name);
+      if (found == NULL)
+	found = mt_find_prefixed_on_path (name);
+      return found;
+    }
+#endif
+  /* Do not search if default matches query. */
+
+#ifdef DEFAULT_ASSEMBLER
+  if (! strcmp (name, "as") && access (DEFAULT_ASSEMBLER, X_OK) == 0)
+    return xstrdup (DEFAULT_ASSEMBLER);
+#endif
+
+#ifdef DEFAULT_LINKER
+  if (! strcmp (name, "ld") && access (DEFAULT_LINKER, X_OK) == 0)
+    return xstrdup (DEFAULT_LINKER);
+#endif
+
+#ifdef DEFAULT_DSYMUTIL
+  if (! strcmp (name, "dsymutil") && access (DEFAULT_DSYMUTIL, X_OK) == 0)
+    return xstrdup (DEFAULT_DSYMUTIL);
+#endif
+
+#ifdef DEFAULT_WINDRES
+  if (! strcmp (name, "windres") && access (DEFAULT_WINDRES, X_OK) == 0)
+    return xstrdup (DEFAULT_WINDRES);
+#endif
+
+  return find_a_program_1 (name);
 }
 
 /* Ranking of prefixes in the sort list. -B prefixes are put before
@@ -3426,6 +3499,21 @@ execute (void)
 	return 0;
 #endif /* DEBUG */
     }
+
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+  /* A selected secondary must never fall back to the host's
+     assembler: silently running the wrong architecture's tool is
+     worse than an error.  An unresolved program still carries its
+     bare spec name.  */
+  if (mt_selected_capture != NULL)
+    for (i = 0; i < n_commands; i++)
+      if (strcmp (commands[i].argv[0], "as") == 0)
+	fatal_error (input_location,
+		     "assembler for %qs was not found; install"
+		     " %<%sas%> or configure with %<--with-mt-as-%>",
+		     mt_selected_capture->triple,
+		     just_machine_prefix);
+#endif
 
 #ifdef ENABLE_VALGRIND_CHECKING
   /* Run the each command through valgrind.  To simplify prepending the

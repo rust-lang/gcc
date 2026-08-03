@@ -34540,6 +34540,10 @@ if test x"$multi_target_tags" != x; then
 	  echo "mt_target_cpu_default_final='$mt_target_cpu_default'"
 	} >> mt-config-$mt_tag.sh )
     fi
+    # The per-target assembler override --with-mt-as-<tag>= lands in
+    # the selected target's driver spec capture.
+    eval mt_with_as=\$with_mt_as_$mt_tag
+    echo "mt_configured_as='$mt_with_as'" >> mt-config-$mt_tag.sh
   done
 fi
 
