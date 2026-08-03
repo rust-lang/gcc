@@ -458,6 +458,12 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #define LONG_TYPE_SIZE (mt_active_target_scalars->x_long_type_size ())
 #undef LONG_LONG_TYPE_SIZE
 #define LONG_LONG_TYPE_SIZE (mt_active_target_scalars->x_long_long_type_size ())
+#undef UNITS_PER_WORD
+#define UNITS_PER_WORD (mt_active_target_scalars->x_units_per_word ())
+#undef BITS_PER_WORD
+#define BITS_PER_WORD (mt_active_target_scalars->x_bits_per_word ())
+#undef POINTER_SIZE
+#define POINTER_SIZE (mt_active_target_scalars->x_pointer_size ())
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
