@@ -133,6 +133,7 @@ private:
 #define NEXT_PASS_WITH_ARG(PASS, NUM, ARG) NEXT_PASS (PASS, NUM)
 #define NEXT_PASS_WITH_ARGS(PASS, NUM, ...) NEXT_PASS (PASS, NUM)
 #define TERMINATE_PASS_LIST(PASS)
+#define TARGET_INSERTED_PASS(PASS, NUM)
 
 #include "pass-instances.def"
 

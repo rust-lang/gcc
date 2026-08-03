@@ -110,6 +110,13 @@ public:
 
 protected:
   gcc::context *m_ctxt;
+
+#if ENABLE_MULTI_TARGET
+public:
+  /* Whether the primary's own passes.def inserted this instance;
+     it must not run for another active backend.  */
+  bool mt_target_inserted = false;
+#endif
 };
 
 /* Description of GIMPLE pass.  */

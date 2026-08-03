@@ -64,6 +64,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "diagnostic-core.h" /* for fnotice */
 #include "stringpool.h"
 #include "attribs.h"
+#include "target-backend.h"
 #include "topics/pass-events.h"
 #include "channels.h"
 
@@ -1590,6 +1591,7 @@ pass_manager::pass_manager (context *ctxt)
 #define NEXT_PASS_WITH_ARG(PASS, NUM, ARG) NEXT_PASS (PASS, NUM)
 #define NEXT_PASS_WITH_ARGS(PASS, NUM, ...) NEXT_PASS (PASS, NUM)
 #define TERMINATE_PASS_LIST(PASS)
+#define TARGET_INSERTED_PASS(PASS, NUM)
 #include "pass-instances.def"
 
   /* Initialize the pass_lists array.  */
@@ -1646,6 +1648,13 @@ pass_manager::pass_manager (context *ctxt)
 	  i++;						\
 	}						\
     } while (0)
+
+#if ENABLE_MULTI_TARGET
+#define TARGET_INSERTED_PASS(PASS, NUM) \
+  m_ ## PASS ## _ ## NUM->mt_target_inserted = true;
+#else
+#define TARGET_INSERTED_PASS(PASS, NUM)
+#endif
 
 #include "pass-instances.def"
 
@@ -2588,7 +2597,18 @@ execute_one_pass (opt_pass *pass)
 
   /* Check whether gate check should be avoided.
      User controls the value of the gate through the parameter "gate_status". */
+#if ENABLE_MULTI_TARGET
+  /* A pass the primary's port inserted must not run — nor evaluate
+     its gate, which reads the primary's options — for another
+     active backend.  */
+  if (pass->mt_target_inserted
+      && this_target_backend != &default_target_backend)
+    gate_status = false;
+  else
+    gate_status = pass->gate (cfun);
+#else
   gate_status = pass->gate (cfun);
+#endif
   gate_status = override_gate_status (pass, current_function_decl, gate_status);
 
   /* Override gate with plugin.  */

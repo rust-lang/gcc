@@ -109,6 +109,13 @@ function insert_remove_pass(line, fnname,	arg3, i)
   pass_num = args[2] + 0;
   arg3 = args[3];
   sub(/^[ \t]*/, "", arg3);
+  inserted_name = arg3;
+  sub(/[ \t]*,.*$/, "", inserted_name);
+  if (!(inserted_name in target_inserted_names))
+    {
+      target_inserted_names[inserted_name] = 1;
+      target_inserted_order[++target_inserted_count] = inserted_name;
+    }
   new_line = prefix "NEXT_PASS (" arg3;
   # Add the optional params back.
   i = 4;
@@ -259,8 +266,17 @@ END {
 
       print lines[i];
     }
+  # Mark the instances the target's own passes.def inserted; a
+  # multi-target compiler must not run them for another backend.
+  for (i = 1; i <= target_inserted_count; i++)
+    {
+      name = target_inserted_order[i];
+      for (j = 1; j <= pass_final_counts[name]; j++)
+	printf "TARGET_INSERTED_PASS (%s, %d)\n", name, j;
+    }
   # print out the #undefs
   print "#undef INSERT_PASSES_AFTER"
+  print "#undef TARGET_INSERTED_PASS"
   print "#undef PUSH_INSERT_PASSES_WITHIN"
   print "#undef POP_INSERT_PASSES"
   print "#undef NEXT_PASS"
