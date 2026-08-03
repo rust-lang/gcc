@@ -44,6 +44,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "memmodel.h"
 #include "tm_p.h"
 #include "target-backend.h"
+#include "target-registry.h"
 #include "stringpool.h"
 #include "expmed.h"
 #include "optabs.h"
@@ -4889,6 +4890,11 @@ allocate_struct_function (tree fndecl, bool abstract_p)
     cfun->machine = (*init_machine_status) ();
 
 #if ENABLE_MULTI_TARGET
+  /* Garbage collection walks the object with its allocator's
+     marker; see mt_record_machine_function_owner.  */
+  if (cfun->machine != NULL)
+    mt_record_machine_function_owner (cfun->machine);
+
   if (this_target_backend->x_override_abi_format != NULL)
     this_target_backend->x_override_abi_format (fndecl);
 #else

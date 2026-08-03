@@ -30,6 +30,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "opts.h"
 #include "common/common-target.h"
 #include "ggc.h"
+#include "hash-map.h"
 #include "mode-tables.h"
 #include "register-tables.h"
 #include "rtl.h"
@@ -175,9 +176,9 @@ install_mode_tables (const struct mode_tables *tables)
 	  sizeof (real_format_for_mode));
 }
 
-/* The backend whose GTY roots have been registered; roots register
-   once per process.  */
-static const struct target_backend *gt_roots_registered;
+/* Which backends' GTY roots have been registered; each registers
+   once and stays registered.  */
+static bool gt_roots_registered[ARRAY_SIZE (target_backend_registry)];
 
 /* Install BACKEND's option machinery: the decode and enumeration
    tables, the name-order permutation, the built-in defaults image
@@ -211,17 +212,23 @@ install_target_backend (const struct target_backend *backend)
 
   /* Register the target's GTY roots the way plugin roots register.
      The primary carries no vector here; its roots live in the host
-     root tables.  Re-activation (libgccjit) must not register a
-     vector twice; switching back to a previously active backend is
-     a later phase's concern.  */
-  if (backend->gt_ggc_roots != NULL && gt_roots_registered != backend)
+     root tables.  Each backend registers once and stays registered:
+     a port's rooted statics are always valid addresses, so marking
+     an inactive target's roots is safe, and switching targets in
+     one process (libgccjit) needs every used target marked.  */
+  if (backend->gt_ggc_roots != NULL)
     {
-      gcc_assert (gt_roots_registered == NULL);
-      gt_roots_registered = backend;
-      for (const struct ggc_root_tab *const *table
-	     = backend->gt_ggc_roots;
-	   *table != NULL; table++)
-	ggc_register_root_tab (*table);
+      unsigned int index = 0;
+      while (target_backend_registry[index] != backend)
+	index++;
+      if (!gt_roots_registered[index])
+	{
+	  gt_roots_registered[index] = true;
+	  for (const struct ggc_root_tab *const *table
+		 = backend->gt_ggc_roots;
+	       *table != NULL; table++)
+	    ggc_register_root_tab (*table);
+	}
     }
 
   mt_first_pseudo_register
@@ -246,22 +253,56 @@ install_target_backend (const struct target_backend *backend)
 /* cfun->machine belongs to the port; the generated wrapper macros
    of a multi-target build route its markers here (gengtype's
    --mt-thunk).  The wrappers only call on non-null pointers, so a
-   port with no machine_function never arrives here.  */
+   port with no machine_function never arrives here.
+
+   Every registered backend's roots stay installed across
+   activations, so a collection can reach another target's
+   functions: each machine_function must be walked by the port
+   that laid it out, not by the active one.  The recorder notes
+   the allocating backend; a freed object's entry is overwritten
+   when the allocator reuses its address for a new
+   machine_function.  */
+
+static hash_map<void *, const struct target_backend *>
+  *mt_machine_function_owners;
+
+void
+mt_record_machine_function_owner (void *machine)
+{
+  if (mt_machine_function_owners == NULL)
+    mt_machine_function_owners
+      = new hash_map<void *, const struct target_backend *> ();
+  mt_machine_function_owners->put (machine, this_target_backend);
+}
+
+/* The backend whose init_machine_status allocated MACHINE; the
+   active backend when no record exists.  */
+
+static const struct target_backend *
+mt_machine_function_owner (void *machine)
+{
+  const struct target_backend **slot
+    = (mt_machine_function_owners != NULL
+       ? mt_machine_function_owners->get (machine) : NULL);
+  return slot != NULL ? *slot : this_target_backend;
+}
 
 void
 mt_active_ggc_mx_machine_function (void *x_p)
 {
-  gcc_assert (this_target_backend->x_ggc_mx_machine_function
-	      != NULL);
-  this_target_backend->x_ggc_mx_machine_function (x_p);
+  const struct target_backend *owner
+    = mt_machine_function_owner (x_p);
+  gcc_assert (owner->x_ggc_mx_machine_function != NULL);
+  owner->x_ggc_mx_machine_function (x_p);
 }
 
 void
 mt_active_pch_nx_machine_function (void *x_p)
 {
-  gcc_assert (this_target_backend->x_pch_nx_machine_function
-	      != NULL);
-  this_target_backend->x_pch_nx_machine_function (x_p);
+  const struct target_backend *owner
+    = mt_machine_function_owner (x_p);
+  gcc_assert (owner->x_pch_nx_machine_function != NULL);
+  owner->x_pch_nx_machine_function (x_p);
 }
 #endif
 

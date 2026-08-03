@@ -2732,6 +2732,13 @@ DRIVER_DEFINES = \
   -DNATIVE_SYSTEM_HEADER_DIR=\"$(NATIVE_SYSTEM_HEADER_DIR)\"
 
 CFLAGS-target-backend-def.o += -DTARGET_BACKEND_PRIMARY_TRIPLE="\"$(target)\""
+ifneq ($(multi_target_tags),)
+# Switching back to the primary must reinstall its runtime mode
+# tables like any other activation: the host descriptor binds the
+# primary tag's blob (the primary tag is always the first).
+CFLAGS-target-backend-def.o += \
+  -DMT_BACKEND_MODE_TABLES=mt_mode_tables_$(firstword $(multi_target_tags))
+endif
 CFLAGS-gcc.o += $(DRIVER_DEFINES) -DBASEVER=$(BASEVER_s)
 ifneq ($(multi_target_tags),)
 # The driver validates --target= against the enabled targets.

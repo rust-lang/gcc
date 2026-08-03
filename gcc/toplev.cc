@@ -2330,8 +2330,12 @@ toplev::main (int argc, char **argv)
     for (int i = 1; i < argc; i++)
       if (startswith (argv[i], "-fmulti-target="))
 	mt_triple = argv[i] + strlen ("-fmulti-target=");
-    if (mt_triple != NULL)
-      activate_target_backend (mt_triple);
+    /* No selection means the primary — explicitly, because an
+       earlier invocation in this process (libgccjit) may have
+       activated another target.  */
+    activate_target_backend (mt_triple != NULL
+			     ? mt_triple
+			     : target_backend_registry[0]->triple);
   }
 #endif
 

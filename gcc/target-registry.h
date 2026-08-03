@@ -35,4 +35,9 @@ extern const struct target_backend *find_target_backend (const char *);
    addresses; an unknown triplet is a fatal error.  */
 extern void activate_target_backend (const char *);
 
+/* Note the backend whose init_machine_status allocated a
+   machine_function; garbage collection walks the object with its
+   allocator's marker.  */
+extern void mt_record_machine_function_owner (void *);
+
 #endif
