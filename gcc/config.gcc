@@ -187,6 +187,10 @@
 #			.type symbol_name, ${t_t_f_c}<property>
 #			directive.
 
+#  multi_target_ready	Set to yes if the port can be included as a
+#			secondary target of a multi-target compiler.
+#			Defaults to no.
+#
 # The following variables are used in each case-construct to build up the
 # outgoing variables:
 #
@@ -241,6 +245,7 @@ thread_file=
 default_use_cxa_atexit=no
 default_gnu_indirect_function=no
 target_gtfiles=
+multi_target_ready=no
 need_64bit_isa=
 native_system_header_dir=/usr/include
 target_type_format_char='@'
@@ -335,6 +340,7 @@ cpu_is_64bit=
 case ${target} in
 aarch64*-*-*)
 	cpu_type=aarch64
+	multi_target_ready=yes
 	extra_headers="${extra_headers} arm_fp16.h"
 	extra_headers="${extra_headers} arm_neon.h"
 	extra_headers="${extra_headers} arm_bf16.h"
@@ -435,6 +441,7 @@ fido-*-*)
         ;;
 i[34567]86-*-* | x86_64-*-*)
 	cpu_type=i386
+	multi_target_ready=yes
 	c_target_objs="i386-c.o"
 	cxx_target_objs="i386-c.o"
 	d_target_objs="i386-d.o"
@@ -497,6 +504,7 @@ m32r*-*-*)
         ;;
 m68k-*-*)
 	extra_headers=math-68881.h
+	multi_target_ready=yes
 	extra_options="${extra_options} m68k/m68k-tables.opt"
 	;;
 microblaze*-*-*)
