@@ -60,6 +60,10 @@ struct mt_target_scalars
   int (*x_move_ratio) (int);
   int (*x_clear_ratio) (int);
   int (*x_set_ratio) (int);
+  const char *(*x_type_operand_fmt) (void);
+  const char *(*x_global_asm_op) (void);
+  int (*x_function_boundary) (void);
+  void (*x_asm_output_align) (FILE *, int);
 };
 
 /* One register elimination pair, as ELIMINABLE_REGS lists them.  */

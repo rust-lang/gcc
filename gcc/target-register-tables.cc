@@ -238,6 +238,32 @@ scalar_set_ratio (int speed)
   return SET_RATIO (speed != 0);
 }
 
+static const char *
+scalar_type_operand_fmt (void)
+{
+  return TYPE_OPERAND_FMT;
+}
+
+static const char *
+scalar_global_asm_op (void)
+{
+  return GLOBAL_ASM_OP;
+}
+
+static int
+scalar_function_boundary (void)
+{
+  return FUNCTION_BOUNDARY;
+}
+
+/* The directive's operand convention is the target's own: some
+   ports write a byte count, others the power of two.  */
+static void
+scalar_asm_output_align (FILE *file, int align_log)
+{
+  ASM_OUTPUT_ALIGN (file, align_log);
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -265,6 +291,10 @@ static const struct mt_target_scalars target_scalars =
   scalar_move_ratio,
   scalar_clear_ratio,
   scalar_set_ratio,
+  scalar_type_operand_fmt,
+  scalar_global_asm_op,
+  scalar_function_boundary,
+  scalar_asm_output_align,
 };
 
 /* extern: a const object would otherwise have internal linkage in

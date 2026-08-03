@@ -506,6 +506,17 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #undef SET_RATIO
 #define SET_RATIO(SPEED) \
   (mt_active_target_scalars->x_set_ratio ((int) (SPEED)))
+#undef TYPE_OPERAND_FMT
+#define TYPE_OPERAND_FMT \
+  (mt_active_target_scalars->x_type_operand_fmt ())
+#undef GLOBAL_ASM_OP
+#define GLOBAL_ASM_OP (mt_active_target_scalars->x_global_asm_op ())
+#undef FUNCTION_BOUNDARY
+#define FUNCTION_BOUNDARY \
+  (mt_active_target_scalars->x_function_boundary ())
+#undef ASM_OUTPUT_ALIGN
+#define ASM_OUTPUT_ALIGN(FILE, LOG) \
+  (mt_active_target_scalars->x_asm_output_align ((FILE), (LOG)))
 #undef Pmode
 #define Pmode \
   (scalar_int_mode ((scalar_int_mode::from_int) \
