@@ -29,6 +29,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "optabs.h"
 #include "target.h"
 #include "target-backend.h"
+#include "opts.h"
+#include "common/common-target.h"
 
 /* A single-target build compiles this file once, as the descriptor of
    the configured target.  A multi-target build compiles it once per
@@ -66,6 +68,48 @@ extern int MT_RENAMED (recog) (rtx, rtx_insn *, int *);
 extern void MT_RENAMED (insn_extract) (rtx_insn *);
 extern rtx_insn *MT_RENAMED (split_insns) (rtx, rtx_insn *);
 extern rtx_insn *MT_RENAMED (peephole2_insns) (rtx, rtx_insn *, int *);
+#endif
+
+
+/* The renamed options.cc and options-save.cc symbols; their
+   declarations in opts.h and options.h carry the shared names, and
+   the rename prologues live inside the generated units.  */
+#ifdef MT_BACKEND_PREFIX
+extern const struct cl_option MT_RENAMED (cl_options)[];
+extern const unsigned int MT_RENAMED (cl_options_count);
+extern const struct cl_enum MT_RENAMED (cl_enums)[];
+extern const unsigned int MT_RENAMED (cl_enums_count);
+extern const unsigned short MT_RENAMED (cl_option_name_order)[];
+extern struct gcc_options MT_RENAMED (global_options);
+extern struct gcc_options MT_RENAMED (global_options_set);
+extern const struct gcc_options MT_RENAMED (global_options_init);
+extern bool MT_RENAMED (common_handle_option_auto)
+  (struct gcc_options *, struct gcc_options *,
+   const struct cl_decoded_option *, unsigned int, int, location_t,
+   const struct cl_option_handlers *, diagnostics::context *);
+extern void MT_RENAMED (cpp_handle_option_auto)
+  (const struct gcc_options *, size_t, struct cpp_options *);
+extern void MT_RENAMED (init_global_opts_from_cpp)
+  (struct gcc_options *, const struct cpp_options *);
+extern void MT_RENAMED (cl_target_option_save)
+  (struct cl_target_option *, struct gcc_options *,
+   struct gcc_options *);
+extern void MT_RENAMED (cl_target_option_restore)
+  (struct gcc_options *, struct gcc_options *,
+   struct cl_target_option *);
+extern void MT_RENAMED (cl_target_option_print)
+  (FILE *, int, struct cl_target_option *);
+extern void MT_RENAMED (cl_target_option_print_diff)
+  (FILE *, int, struct cl_target_option *, struct cl_target_option *);
+extern bool MT_RENAMED (cl_target_option_eq)
+  (const struct cl_target_option *, const struct cl_target_option *);
+extern hashval_t MT_RENAMED (cl_target_option_hash)
+  (const struct cl_target_option *);
+extern void MT_RENAMED (cl_target_option_stream_out)
+  (struct output_block *, struct bitpack_d *,
+   struct cl_target_option *);
+extern void MT_RENAMED (cl_target_option_stream_in)
+  (struct data_in *, struct bitpack_d *, struct cl_target_option *);
 #endif
 
 /* The per-target mode tables of a multi-target build; a single-target
@@ -181,15 +225,39 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #endif
   },
   {
-    cl_target_option_save,
-    cl_target_option_restore,
-    cl_target_option_print,
-    cl_target_option_print_diff,
-    cl_target_option_eq,
-    cl_target_option_hash,
-    cl_target_option_stream_out,
-    cl_target_option_stream_in
+    MT_RENAMED (cl_target_option_save),
+    MT_RENAMED (cl_target_option_restore),
+    MT_RENAMED (cl_target_option_print),
+    MT_RENAMED (cl_target_option_print_diff),
+    MT_RENAMED (cl_target_option_eq),
+    MT_RENAMED (cl_target_option_hash),
+    MT_RENAMED (cl_target_option_stream_out),
+    MT_RENAMED (cl_target_option_stream_in)
   },
+
+  /* The tm.h renames route targetm_common to the target's own vector
+     in a multi-target build, exactly as they route targetm above.  */
+  &targetm_common,
+
+  MT_RENAMED (cl_options),
+  MT_RENAMED (cl_options_count),
+  MT_RENAMED (cl_enums),
+  MT_RENAMED (cl_enums_count),
+#if ENABLE_MULTI_TARGET
+  MT_RENAMED (cl_option_name_order),
+#else
+  /* Single-target option tables are sorted as a whole; no permutation
+     exists or is needed.  */
+  NULL,
+#endif
+
+  &MT_RENAMED (global_options),
+  &MT_RENAMED (global_options_set),
+  &MT_RENAMED (global_options_init),
+
+  MT_RENAMED (common_handle_option_auto),
+  MT_RENAMED (cpp_handle_option_auto),
+  MT_RENAMED (init_global_opts_from_cpp),
 
   MT_BACKEND_MODE_TABLES_REF
 };

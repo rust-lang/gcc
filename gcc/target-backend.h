@@ -37,6 +37,13 @@ struct output_block;
 struct bitpack_d;
 class data_in;
 struct mode_tables;
+struct gcc_targetm_common;
+struct cl_option;
+struct cl_enum;
+struct cl_decoded_option;
+struct cl_option_handlers;
+struct cpp_options;
+namespace diagnostics { class context; }
 
 /* The generated insn attribute and DFA scheduler entry points of one
    target (insn-attrtab.cc, insn-automata.cc).  Core consumers reach
@@ -160,6 +167,39 @@ struct target_backend
 
   /* Generated cl_target_option entry points (options-save.cc).  */
   struct cl_target_option_ops option_ops;
+
+
+  /* The backend's common-target hook vector.  */
+  const struct gcc_targetm_common *x_targetm_common;
+
+  /* The target's option tables (options.cc): the decode table, the
+     enumeration value tables, and — in multi-target builds — the
+     name-order permutation that keeps find_opt's binary search
+     working on the two-block table.  */
+  const struct cl_option *x_cl_options;
+  unsigned int x_cl_options_count;
+  const struct cl_enum *x_cl_enums;
+  unsigned int x_cl_enums_count;
+  const unsigned short *x_cl_option_name_order;
+
+  /* The target's option-state images (options.cc): the defaults the
+     target was built with, and the blob's own working state, at the
+     blob's padded layout.  */
+  struct gcc_options *x_global_options;
+  struct gcc_options *x_global_options_set;
+  const struct gcc_options *x_global_options_init;
+
+  /* The target-independent generated option handlers (options.cc).  */
+  bool (*x_common_handle_option_auto) (struct gcc_options *,
+				       struct gcc_options *,
+				       const struct cl_decoded_option *,
+				       unsigned int, int, location_t,
+				       const struct cl_option_handlers *,
+				       diagnostics::context *);
+  void (*x_cpp_handle_option_auto) (const struct gcc_options *, size_t,
+				    struct cpp_options *);
+  void (*x_init_global_opts_from_cpp) (struct gcc_options *,
+				       const struct cpp_options *);
 
   /* The target's machine mode value tables at the union
      numbering (mode-tables.h); null outside multi-target
