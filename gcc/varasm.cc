@@ -64,6 +64,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "asan.h"
 #include "recog.h"
 #include "gimple-expr.h"
+#include "target-backend.h"
 
 /* The (assembler) name of the first globally-visible object output.  */
 extern GTY(()) const char *first_global_object_name;
@@ -2205,12 +2206,17 @@ assemble_start_function (tree decl, const char *fnname)
 						    patch_area_entry, true);
 
   /* Do any machine/system dependent processing of the function name.  */
-#ifdef ASM_DECLARE_FUNCTION_NAME
-  ASM_DECLARE_FUNCTION_NAME (asm_out_file, fnname, current_function_decl);
+#if ENABLE_MULTI_TARGET
+  this_target_backend->x_asm_declare_function_name
+    (asm_out_file, fnname, current_function_decl);
 #else
+# ifdef ASM_DECLARE_FUNCTION_NAME
+  ASM_DECLARE_FUNCTION_NAME (asm_out_file, fnname, current_function_decl);
+# else
   /* Standard thing is just output label for the function.  */
   ASM_OUTPUT_FUNCTION_LABEL (asm_out_file, fnname, current_function_decl);
-#endif /* ASM_DECLARE_FUNCTION_NAME */
+# endif /* ASM_DECLARE_FUNCTION_NAME */
+#endif
 
   /* And the area after the label.  Record it if we haven't done so yet.  */
   if (patch_area_size > patch_area_entry)
@@ -2229,11 +2235,23 @@ assemble_start_function (tree decl, const char *fnname)
 void
 assemble_end_function (tree decl, const char *fnname ATTRIBUTE_UNUSED)
 {
-#ifdef ASM_DECLARE_FUNCTION_SIZE
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_asm_declare_function_size != NULL)
+    {
+      /* We could have switched section in the middle of the
+	 function.  */
+      if (crtl->has_bb_partition)
+	switch_to_section (function_section (decl));
+      this_target_backend->x_asm_declare_function_size
+	(asm_out_file, fnname, decl);
+    }
+#else
+# ifdef ASM_DECLARE_FUNCTION_SIZE
   /* We could have switched section in the middle of the function.  */
   if (crtl->has_bb_partition)
     switch_to_section (function_section (decl));
   ASM_DECLARE_FUNCTION_SIZE (asm_out_file, fnname, decl);
+# endif
 #endif
   if (! CONSTANT_POOL_BEFORE_FUNCTION)
     {

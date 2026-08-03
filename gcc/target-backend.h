@@ -287,6 +287,13 @@ struct target_backend
 
   /* Whether the port has x87-style stack registers (STACK_REGS).  */
   bool has_stack_regs;
+
+  /* The function label and size output of assemble_start_function
+     and assemble_end_function; the label capture folds the
+     ASM_DECLARE_FUNCTION_NAME default, the size capture is null
+     when the port declares no size.  */
+  void (*x_asm_declare_function_name) (FILE *, const char *, tree);
+  void (*x_asm_declare_function_size) (FILE *, const char *, tree);
 };
 
 /* The descriptor of the configured target.  */

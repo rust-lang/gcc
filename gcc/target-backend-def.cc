@@ -52,6 +52,8 @@ along with GCC; see the file COPYING3.  If not see
    ACCUMULATE_OUTGOING_ARGS may read.  */
 #include "predict.h"
 #include "emit-rtl.h"
+/* For assemble_name, which the label macros call.  */
+#include "output.h"
 
 /* A single-target build compiles this file once, as the descriptor of
    the configured target.  A multi-target build compiles it once per
@@ -666,6 +668,31 @@ backend_epilogue_uses (int regno ATTRIBUTE_UNUSED)
   return EPILOGUE_USES (regno);
 }
 
+/* The function label and size output, captured with the varasm
+   default folded in.  */
+
+static void
+backend_asm_declare_function_name (FILE *file,
+				   const char *name ATTRIBUTE_UNUSED,
+				   tree decl ATTRIBUTE_UNUSED)
+{
+#ifdef ASM_DECLARE_FUNCTION_NAME
+  ASM_DECLARE_FUNCTION_NAME (file, name, decl);
+#else
+  ASM_OUTPUT_FUNCTION_LABEL (file, name, decl);
+#endif
+}
+
+#ifdef ASM_DECLARE_FUNCTION_SIZE
+static void
+backend_asm_declare_function_size (FILE *file,
+				   const char *name ATTRIBUTE_UNUSED,
+				   tree decl ATTRIBUTE_UNUSED)
+{
+  ASM_DECLARE_FUNCTION_SIZE (file, name, decl);
+}
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -844,5 +871,12 @@ const struct target_backend MT_BACKEND_SYMBOL =
   true,
 #else
   false,
+#endif
+
+  backend_asm_declare_function_name,
+#ifdef ASM_DECLARE_FUNCTION_SIZE
+  backend_asm_declare_function_size,
+#else
+  NULL,
 #endif
 };
