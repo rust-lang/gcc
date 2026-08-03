@@ -27,6 +27,7 @@ can be quite useful.
 * Plugins recording::    Recording information about pass execution.
 * Plugins gate::         Controlling which passes are being run.
 * Plugins tracking::     Keeping track of available passes.
+* Plugins multi-target:: Plugins in a multi-target compiler.
 * Plugins building::     How can we build a plugin.
 @end menu
 
@@ -466,6 +467,31 @@ When a pass is first added to one of the pass lists, the event
 @code{PLUGIN_NEW_PASS} is invoked, with the callback parameter
 @code{gcc_data} pointing to the new pass.
 
+
+@node Plugins multi-target
+@section Plugins in a multi-target compiler
+@cindex plugins, multi-target
+
+A compiler built with @option{--enable-multi-target=} keeps the
+plugin API source-compatible: @code{targetm} remains the name
+through which the active target's hooks are reached (it becomes a
+reference through a pointer rather than a global structure), and
+structures whose layout depends on the target use the superset
+layout shared by every target built in.  The plugin contract is
+otherwise unchanged: one invocation of the compiler serves exactly
+one target, so a plugin observes a single active target for the
+whole compilation.
+
+Plugins are, however, binary-incompatible between multi-target and
+single-target builds of the same release, exactly as between any
+two differently configured builds:
+@code{plugin_default_version_check} compares the configuration
+arguments, which include @option{--enable-multi-target}, so a
+mismatched plugin is rejected at load time with no further
+provision.  A plugin that needs one port's internal headers
+compiles against that target's context by adding the
+@file{mt-@var{tag}} directory of the build tree to its include
+path.
 
 @node Plugins building
 @section Building GCC plugins

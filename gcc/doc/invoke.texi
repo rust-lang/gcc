@@ -191,6 +191,7 @@ in the following sections.
 -dumpdir @var{dumppfx}  -x @var{language}
 -v  -###  --help@r{[}=@var{class}@r{[},@dots{}@r{]]}  --target-help  --version
 -pass-exit-codes  -pipe  -wrapper
+--target=@var{triple}  -fmulti-target=@var{triple}
 @@@var{file}  -ffile-prefix-map=@var{old}=@var{new}  -fcanon-prefix-map
 -fplugin=@var{file}  -fplugin-arg-@var{name}=@var{arg}
 -fdump-ada-spec@r{[}-slim@r{]}  -fada-spec-parent=@var{unit}
@@ -867,7 +868,7 @@ Objective-C and Objective-C++ Dialects}.
 -print-autofdo-gcov-version
 -print-file-name=@var{library}  -print-libgcc-file-name
 -print-multi-directory  -print-multi-lib  -print-multi-os-directory
--print-multiarch
+-print-multi-targets  -print-multiarch
 -print-prog-name=@var{program}  -print-search-dirs  -Q
 -print-sysroot  -print-sysroot-headers-suffix
 -save-temps  -save-temps=cwd  -save-temps=obj
@@ -876,7 +877,8 @@ Objective-C and Objective-C++ Dialects}.
 --print-autofdo-gcov-version
 --print-file-name=@var{library}  --print-libgcc-file-file-name
 --print-multi-directory  --print-multi-lib  --print-multi-os-directory
---print-multiarch  --print-prog-name=@var{program}
+--print-multi-targets  --print-multiarch
+--print-prog-name=@var{program}
 --print-search-dirs  --print-sysroot  --print-sysroot-headers-suffix
 --save-temps  --specs=@var{file}
 --param @var{name}=@var{value}
@@ -2348,6 +2350,36 @@ gcc -c t.c -wrapper gdb,--args
 This invokes all subprograms of @command{gcc} under
 @samp{gdb --args}, thus the invocation of @command{cc1} is
 @samp{gdb --args cc1 @dots{}}.
+
+@opindex target
+@item --target=@var{triple}
+Select the target of this invocation of a multi-target compiler.  A
+compiler configured with @option{--enable-multi-target=} builds
+secondary targets into the same programs; the configured target
+remains the default, and @option{--target=} selects it or any
+secondary by its triplet.  An unknown triplet is rejected with an
+error listing the targets built in; a single-target compiler does
+not accept the option at all.
+
+Under a secondary selection the driver uses the selected target's
+specs, and @option{-m} options pass through it untouched, to be
+accepted or rejected by the selected target's own option tables.
+@option{-dumpmachine}, @option{-print-prog-name} and the program
+search directories follow the selection, and the assembler is the
+selected target's cross assembler: @file{as} from the target's
+tool directories, @file{@var{triple}-as} in @env{PATH}, or the
+assembler named by @option{--with-mt-as-@var{tag}=} at configure
+time.  Compiling with @option{-S} needs no assembler at all;
+assembling without any reports an error naming the missing tool.
+
+Precompiled headers and @option{-flto} are not supported under a
+secondary selection.
+
+@opindex fmulti-target
+@item -fmulti-target=@var{triple}
+Select the target backend inside the compiler proper.  This is the
+internal form the driver generates from @option{--target=}; there
+is normally no reason to use it directly.
 
 @opindex ffile-prefix-map
 @item -ffile-prefix-map=@var{old}=@var{new}
@@ -21212,6 +21244,13 @@ usually just @file{.}, if OS libraries are present in @file{lib@var{suffix}}
 sibling directories this prints e.g.@: @file{../lib64}, @file{../lib} or
 @file{../lib32}, or if OS libraries are present in @file{lib/@var{subdir}}
 subdirectories it prints e.g.@: @file{amd64}, @file{sparcv9} or @file{ev6}.
+
+@opindex print-multi-targets
+@item -print-multi-targets
+@itemx --print-multi-targets
+Print the targets built into a multi-target compiler, one triplet
+per line with the configured target first.  A single-target
+compiler does not accept the option.
 
 @opindex print-multiarch
 @item -print-multiarch

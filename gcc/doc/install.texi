@@ -1215,6 +1215,15 @@ above rules.
 Same as @uref{#with-as,,@option{--with-as}}
 but for the linker.
 
+@item --with-mt-as-@var{tag}=@var{pathname}
+In a compiler configured with @option{--enable-multi-target=},
+specify the assembler the driver runs when the secondary target
+tagged @var{tag} is selected; the tag is the leading component of
+the target triplet (for example @option{--with-mt-as-m68k=} for
+@samp{m68k-unknown-linux-gnu}).  Without the override, the driver
+looks for @file{as} in the selected target's tool directories and
+for @file{@var{triple}-as} in @env{PATH}.
+
 @item --with-dsymutil=@var{pathname}
 Same as @uref{#with-as,,@option{--with-as}}
 but for the debug linker (only used on Darwin platforms so far).
