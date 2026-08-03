@@ -8419,6 +8419,26 @@ mt_handle_target_option (struct cl_decoded_option *options,
 	    = options[in].arg + strlen ("--target=");
 	  continue;
 	}
+      if (options[in].opt_index == OPT_SPECIAL_unknown
+	  && options[in].arg != NULL
+	  && strcmp (options[in].arg, "-print-multi-targets") == 0)
+	{
+	  /* One triple per line, primary first: the stable
+	     introspection surface for the testsuite and build
+	     scripts.  */
+	  printf ("%s\n", DEFAULT_TARGET_MACHINE);
+	  const char *mt_list = MT_SECONDARY_TARGET_TRIPLES;
+	  while (*mt_list != '\0')
+	    {
+	      const char *mt_end = strchr (mt_list, ' ');
+	      size_t mt_span = mt_end != NULL
+		? (size_t) (mt_end - mt_list) : strlen (mt_list);
+	      printf ("%.*s\n", (int) mt_span, mt_list);
+	      mt_list = mt_end != NULL
+		? mt_end + 1 : mt_list + mt_span;
+	    }
+	  exit (0);
+	}
       options[out++] = options[in];
     }
   *count = out;
