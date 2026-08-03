@@ -1639,6 +1639,36 @@ gcc_jit_block_add_cleanup (gcc_jit_block *block,
 
 #define LIBGCCJIT_HAVE_gcc_jit_block_add_cleanup
 
+/* Get the number of blocks control can transfer to from the end of block,
+   i.e. the number of blocks its terminating statement branches to.
+
+   A block that has not been terminated transfers control nowhere, and thus
+   has no successors.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_55; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_block_get_successor
+*/
+extern int
+gcc_jit_block_get_successor_count (gcc_jit_block *block);
+
+/* Get one of the blocks control can transfer to from the end of block.
+
+   index must be in the range [0, gcc_jit_block_get_successor_count (block)).
+   The order of the successors is unspecified, and a block can occur more
+   than once (a conditional both of whose edges lead to the same block has
+   two successors).
+
+   This API entrypoint was added in LIBGCCJIT_ABI_55; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_block_get_successor
+*/
+extern gcc_jit_block *
+gcc_jit_block_get_successor (gcc_jit_block *block,
+			     int index);
+
+#define LIBGCCJIT_HAVE_gcc_jit_block_get_successor
+
 /* Add evaluation of an rvalue, assigning the result to the given
    lvalue.
 
