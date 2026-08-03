@@ -385,7 +385,17 @@ omp_type_context (type_context_kind context)
 #ifdef GCC_TM_H
 
 #ifndef CUMULATIVE_ARGS_MAGIC
+#if ENABLE_MULTI_TARGET
+/* Every compilation surface must agree on the handle's magic, and
+   targetm is a renamed per-target table inside a secondary's own
+   objects; anchor the magic to the one registry every surface
+   shares.  */
+extern const struct target_backend *const target_backend_registry[];
+#define CUMULATIVE_ARGS_MAGIC \
+  (const_cast <void *> ((const void *) &target_backend_registry))
+#else
 #define CUMULATIVE_ARGS_MAGIC ((void *) &targetm.calls)
+#endif
 #endif
 
 inline CUMULATIVE_ARGS *
