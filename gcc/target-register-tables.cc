@@ -354,6 +354,12 @@ scalar_max_supported_stack_alignment (void)
   return MAX_SUPPORTED_STACK_ALIGNMENT;
 }
 
+static int
+scalar_no_function_cse (void)
+{
+  return NO_FUNCTION_CSE != 0;
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -396,6 +402,7 @@ static const struct mt_target_scalars target_scalars =
   scalar_float_words_big_endian,
   scalar_reg_words_big_endian,
   scalar_max_supported_stack_alignment,
+  scalar_no_function_cse,
 };
 
 /* extern: a const object would otherwise have internal linkage in

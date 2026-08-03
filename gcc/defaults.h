@@ -608,6 +608,9 @@ extern bool (*mt_active_constant_address_p) (rtx);
 #undef CONSTANT_ADDRESS_P
 #define CONSTANT_ADDRESS_P(X) \
   (mt_active_constant_address_p (X))
+#undef NO_FUNCTION_CSE
+#define NO_FUNCTION_CSE \
+  (mt_active_target_scalars->x_no_function_cse () != 0)
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
