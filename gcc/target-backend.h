@@ -311,6 +311,9 @@ struct target_backend
   unsigned char (*x_class_max_nregs) (int, machine_mode);
   int (*x_preferred_reload_class) (rtx, int);
   int (*x_secondary_reload_class) (int, int, machine_mode, rtx);
+
+  /* CONSTANT_ADDRESS_P.  */
+  bool (*x_constant_address_p) (rtx);
 };
 
 /* The descriptor of the configured target.  */

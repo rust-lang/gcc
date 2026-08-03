@@ -791,6 +791,15 @@ static int (*backend_insn_default_latency) (rtx_insn *)
   = insn_default_latency;
 #endif
 
+/* CONSTANT_ADDRESS_P, the target's judgement of a constant as a
+   directly usable address.  */
+
+static bool
+backend_constant_address_p (rtx x)
+{
+  return CONSTANT_ADDRESS_P (x);
+}
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -1018,4 +1027,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #else
   NULL,
 #endif
+
+  backend_constant_address_p,
 };

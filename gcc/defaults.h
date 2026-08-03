@@ -604,6 +604,10 @@ extern bool (*mt_active_epilogue_uses) (int);
 #undef EPILOGUE_USES
 #define EPILOGUE_USES(REGNO) \
   (mt_active_epilogue_uses ((int) (REGNO)))
+extern bool (*mt_active_constant_address_p) (rtx);
+#undef CONSTANT_ADDRESS_P
+#define CONSTANT_ADDRESS_P(X) \
+  (mt_active_constant_address_p (X))
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
