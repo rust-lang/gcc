@@ -319,6 +319,32 @@ scalar_immediate_prefix (void)
 #endif
 }
 
+/* The endianness of the target's memory and register words.  */
+
+static int
+scalar_bytes_big_endian (void)
+{
+  return BYTES_BIG_ENDIAN != 0;
+}
+
+static int
+scalar_words_big_endian (void)
+{
+  return WORDS_BIG_ENDIAN != 0;
+}
+
+static int
+scalar_float_words_big_endian (void)
+{
+  return FLOAT_WORDS_BIG_ENDIAN != 0;
+}
+
+static int
+scalar_reg_words_big_endian (void)
+{
+  return REG_WORDS_BIG_ENDIAN != 0;
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -356,6 +382,10 @@ static const struct mt_target_scalars target_scalars =
   scalar_local_label_prefix,
   scalar_user_label_prefix,
   scalar_immediate_prefix,
+  scalar_bytes_big_endian,
+  scalar_words_big_endian,
+  scalar_float_words_big_endian,
+  scalar_reg_words_big_endian,
 };
 
 /* extern: a const object would otherwise have internal linkage in

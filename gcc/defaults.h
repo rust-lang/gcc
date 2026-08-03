@@ -524,6 +524,18 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #undef IMMEDIATE_PREFIX
 #define IMMEDIATE_PREFIX \
   (mt_active_target_scalars->x_immediate_prefix ())
+#undef BYTES_BIG_ENDIAN
+#define BYTES_BIG_ENDIAN \
+  (mt_active_target_scalars->x_bytes_big_endian ())
+#undef WORDS_BIG_ENDIAN
+#define WORDS_BIG_ENDIAN \
+  (mt_active_target_scalars->x_words_big_endian ())
+#undef FLOAT_WORDS_BIG_ENDIAN
+#define FLOAT_WORDS_BIG_ENDIAN \
+  (mt_active_target_scalars->x_float_words_big_endian ())
+#undef REG_WORDS_BIG_ENDIAN
+#define REG_WORDS_BIG_ENDIAN \
+  (mt_active_target_scalars->x_reg_words_big_endian ())
 #undef FUNCTION_BOUNDARY
 #define FUNCTION_BOUNDARY \
   (mt_active_target_scalars->x_function_boundary ())

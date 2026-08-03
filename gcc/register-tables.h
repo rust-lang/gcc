@@ -70,6 +70,10 @@ struct mt_target_scalars
   const char *(*x_local_label_prefix) (void);
   const char *(*x_user_label_prefix) (void);
   const char *(*x_immediate_prefix) (void);
+  int (*x_bytes_big_endian) (void);
+  int (*x_words_big_endian) (void);
+  int (*x_float_words_big_endian) (void);
+  int (*x_reg_words_big_endian) (void);
 };
 
 /* One register elimination pair, as ELIMINABLE_REGS lists them.  */
