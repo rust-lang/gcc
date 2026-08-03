@@ -416,7 +416,8 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
    FIRST_PSEUDO_REGISTER stay zero.  It only sizes types and tables —
    iteration bounds remain FIRST_PSEUDO_REGISTER.  */
 #ifndef MAX_HARD_REGISTERS
-#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE)
+#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
+  && !defined (USED_FOR_TARGET)
 #include "mt-maxima.h"
 #define MAX_HARD_REGISTERS MT_MAX_HARD_REGISTERS
 #define MAX_REG_CLASSES MT_MAX_REG_CLASSES
@@ -432,11 +433,14 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
    programs keep their native constants, and structures are sized
    by the MAX_* superset macros throughout.  The registry seeds
    the runtime values from the primary's constants under
-   MT_NATIVE_REGISTER_CONSTANTS.  */
+   MT_NATIVE_REGISTER_CONSTANTS.  Target libraries compile
+   tm.h too, under USED_FOR_TARGET; they keep the raw
+   constants.  */
 #if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
   && !defined (IN_TARGET_CODE) \
   && !defined (MT_NATIVE_REGISTER_CONSTANTS) \
-  && !defined (MT_NATIVE_TARGET_SURFACE)
+  && !defined (MT_NATIVE_TARGET_SURFACE) \
+  && !defined (USED_FOR_TARGET)
 extern unsigned int mt_first_pseudo_register;
 extern int mt_n_reg_classes;
 #undef FIRST_PSEUDO_REGISTER
@@ -677,7 +681,8 @@ extern bool (*mt_active_constant_address_p) (rtx);
 #if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
   && !defined (IN_TARGET_CODE) \
   && !defined (MT_NATIVE_REGISTER_CONSTANTS) \
-  && !defined (MT_NATIVE_TARGET_SURFACE)
+  && !defined (MT_NATIVE_TARGET_SURFACE) \
+  && !defined (USED_FOR_TARGET)
 /* The division hides the flipped operand's range from
    -Wsign-compare; mask the result as the scalars are.  */
 #define DWARF2_ADDR_SIZE \
@@ -972,7 +977,8 @@ extern bool (*mt_active_constant_address_p) (rtx);
 #if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
   && !defined (IN_TARGET_CODE) \
   && !defined (MT_NATIVE_REGISTER_CONSTANTS) \
-  && !defined (MT_NATIVE_TARGET_SURFACE)
+  && !defined (MT_NATIVE_TARGET_SURFACE) \
+  && !defined (USED_FOR_TARGET)
 /* The division hides the flipped operand's range from
    -Wsign-compare; mask the result as the scalars are.  */
 #define POINTER_SIZE_UNITS \
@@ -1367,7 +1373,8 @@ extern bool (*mt_active_constant_address_p) (rtx);
 #if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
   && !defined (IN_TARGET_CODE) \
   && !defined (MT_NATIVE_REGISTER_CONSTANTS) \
-  && !defined (MT_NATIVE_TARGET_SURFACE)
+  && !defined (MT_NATIVE_TARGET_SURFACE) \
+  && !defined (USED_FOR_TARGET)
 #undef MAX_SUPPORTED_STACK_ALIGNMENT
 #define MAX_SUPPORTED_STACK_ALIGNMENT \
   (mt_active_target_scalars->x_max_supported_stack_alignment ())
