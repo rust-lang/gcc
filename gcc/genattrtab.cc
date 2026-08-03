@@ -1589,6 +1589,9 @@ write_length_unit_log (FILE *outf)
   else
     length_unit_log = 0;
 
+  if (mt_prefix)
+    fprintf (outf, "#define length_unit_log %slength_unit_log\n",
+	     mt_prefix);
   fprintf (outf, "EXPORTED_CONST int length_unit_log = %u;\n", length_unit_log);
 }
 
@@ -4995,6 +4998,12 @@ make_automaton_attrs (void)
 	  if (val == tune_attr->default_val)
 	    continue;
 	  gcc_assert (GET_CODE (val->value) == CONST_STRING);
+	  if (mt_prefix)
+	    fprintf (dfa_file,
+		     "#define internal_dfa_insn_code_%s "
+		     "%sinternal_dfa_insn_code_%s\n",
+		     XSTR (val->value, 0), mt_prefix,
+		     XSTR (val->value, 0));
 	  fprintf (dfa_file,
 		   "extern int internal_dfa_insn_code_%s (rtx_insn *);\n",
 		   XSTR (val->value, 0));
@@ -5007,6 +5016,12 @@ make_automaton_attrs (void)
 	  if (val == tune_attr->default_val)
 	    continue;
 	  gcc_assert (GET_CODE (val->value) == CONST_STRING);
+	  if (mt_prefix)
+	    fprintf (latency_file,
+		     "#define insn_default_latency_%s "
+		     "%sinsn_default_latency_%s\n",
+		     XSTR (val->value, 0), mt_prefix,
+		     XSTR (val->value, 0));
 	  fprintf (latency_file,
 		   "extern int insn_default_latency_%s (rtx_insn *);\n",
 		   XSTR (val->value, 0));
@@ -5019,6 +5034,16 @@ make_automaton_attrs (void)
 	  if (val == tune_attr->default_val)
 	    continue;
 	  gcc_assert (GET_CODE (val->value) == CONST_STRING);
+	  if (mt_prefix)
+	    fprintf (attr_file,
+		     "#define internal_dfa_insn_code_%s "
+		     "%sinternal_dfa_insn_code_%s\n"
+		     "#define insn_default_latency_%s "
+		     "%sinsn_default_latency_%s\n",
+		     XSTR (val->value, 0), mt_prefix,
+		     XSTR (val->value, 0),
+		     XSTR (val->value, 0), mt_prefix,
+		     XSTR (val->value, 0));
 	  fprintf (attr_file,
 		   "extern int internal_dfa_insn_code_%s (rtx_insn *);\n"
 		   "extern int insn_default_latency_%s (rtx_insn *);\n",

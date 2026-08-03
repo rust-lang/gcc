@@ -3428,9 +3428,9 @@ $(multi_target_tags:%=mt-%/insn-attr.h): mt-%/insn-attr.h: \
   build/mt-%/genattr$(build_exeext) mt-%/insn-conditions.md \
   mt-config-%.sh
 	. ./mt-config-$*.sh; \
-	$(RUN_GEN) build/mt-$*/genattr$(build_exeext) $(srcdir)/common.md \
-	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
-	  > tmp-mt-$*-attr.h
+	$(RUN_GEN) build/mt-$*/genattr$(build_exeext) --mt-prefix=mt_$*_ \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  mt-$*/insn-conditions.md > tmp-mt-$*-attr.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-attr.h $@
 
 $(multi_target_tags:%=mt-%/insn-attr-common.h): \
@@ -3726,6 +3726,94 @@ mt_insn_unit_objects = \
 	$(multi_target_tags:%=mt-%/insn-peep.o) \
 	$(multi_target_tags:%=mt-%/insn-enums.o)
 
+$(multi_target_tags:%=build/mt-%/genattrtab.o): build/mt-%/genattrtab.o: \
+  $(srcdir)/genattrtab.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genattrtab$(build_exeext)): \
+  build/mt-%/genattrtab$(build_exeext): build/mt-%/genattrtab.o \
+  build/inchash.o $(mt_target_rtl_objects) $(mt_shared_rtl_objects) \
+  $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=build/mt-%/genautomata.o): \
+  build/mt-%/genautomata.o: $(srcdir)/genautomata.cc \
+  $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genautomata$(build_exeext)): \
+  build/mt-%/genautomata$(build_exeext): build/mt-%/genautomata.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS) -lm
+
+$(multi_target_tags:%=mt-%/s-attrtab): mt-%/s-attrtab: \
+  build/mt-%/genattrtab$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh $(mt_target_code_prerequisites)
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genattrtab$(build_exeext) \
+	  --mt-prefix=mt_$*_ $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
+	  -Atmp-mt-$*-attrtab.cc -Dtmp-mt-$*-dfatab.cc \
+	  -Ltmp-mt-$*-latencytab.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-attrtab.cc \
+	  mt-$*/insn-attrtab.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-dfatab.cc \
+	  mt-$*/insn-dfatab.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-latencytab.cc \
+	  mt-$*/insn-latencytab.cc
+	$(STAMP) $@
+
+$(multi_target_tags:%=mt-%/insn-attrtab.cc): mt-%/insn-attrtab.cc: \
+  mt-%/s-attrtab ; @true
+$(multi_target_tags:%=mt-%/insn-dfatab.cc): mt-%/insn-dfatab.cc: \
+  mt-%/s-attrtab ; @true
+$(multi_target_tags:%=mt-%/insn-latencytab.cc): \
+  mt-%/insn-latencytab.cc: mt-%/s-attrtab ; @true
+
+$(multi_target_tags:%=mt-%/insn-automata.cc): mt-%/insn-automata.cc: \
+  build/mt-%/genautomata$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh $(mt_target_code_prerequisites)
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genautomata$(build_exeext) \
+	  --mt-prefix=mt_$*_ $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
+	  > tmp-mt-$*-automata.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-automata.cc $@
+
+$(multi_target_tags:%=mt-%/insn-attrtab.o): mt-%/insn-attrtab.o: \
+  mt-%/insn-attrtab.cc $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+$(multi_target_tags:%=mt-%/insn-dfatab.o): mt-%/insn-dfatab.o: \
+  mt-%/insn-dfatab.cc $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+$(multi_target_tags:%=mt-%/insn-latencytab.o): mt-%/insn-latencytab.o: \
+  mt-%/insn-latencytab.cc $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+$(multi_target_tags:%=mt-%/insn-automata.o): mt-%/insn-automata.o: \
+  mt-%/insn-automata.cc $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+mt_attr_unit_objects = \
+	$(multi_target_tags:%=mt-%/insn-attrtab.o) \
+	$(multi_target_tags:%=mt-%/insn-dfatab.o) \
+	$(multi_target_tags:%=mt-%/insn-latencytab.o) \
+	$(multi_target_tags:%=mt-%/insn-automata.o)
+
 # The collision audit: with the rename macros in effect, the targets'
 # generated objects must export pairwise disjoint strong symbols.
 # Weak and vague-linkage definitions — inline and template
@@ -3733,7 +3821,7 @@ mt_insn_unit_objects = \
 # not collisions.
 .PHONY: mt-check-symbols
 mt-check-symbols: $(mt_insn_emit_objects) $(mt_insn_recog_objects) \
-  $(mt_insn_unit_objects)
+  $(mt_insn_unit_objects) $(mt_attr_unit_objects)
 	@for mt_tag in $(multi_target_tags); do \
 	  $(NM) -g -P mt-$$mt_tag/*.o \
 	    | awk 'NF >= 3 && $$2 != "U" && $$2 !~ /^[WwVv]$$/ \

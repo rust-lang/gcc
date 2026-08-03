@@ -44,6 +44,8 @@ gen_attr (md_rtx_info *info)
 
   printf ("#define HAVE_ATTR_%s 1\n", XSTR (attr, 0));
 
+  mt_prefix_define ("get_attr_", XSTR (attr, 0));
+
   /* If numeric attribute, don't need to write an enum.  */
   if (GET_CODE (attr) == DEFINE_ENUM_ATTR)
     printf ("extern enum %s get_attr_%s (%s);\n\n",
@@ -65,6 +67,10 @@ gen_attr (md_rtx_info *info)
      variables used by `insn_current_length'.  */
   if (! strcmp (XSTR (attr, 0), "length"))
     {
+      mt_prefix_define ("insn_default_length", "");
+      mt_prefix_define ("insn_min_length", "");
+      mt_prefix_define ("insn_variable_length_p", "");
+      mt_prefix_define ("insn_current_length", "");
       puts ("\
 extern void shorten_branches (rtx_insn *);\n\
 extern int insn_default_length (rtx_insn *);\n\
@@ -191,6 +197,12 @@ main (int argc, const char **argv)
 	}
     }
 
+  mt_prefix_define ("num_delay_slots", "");
+  mt_prefix_define ("eligible_for_delay", "");
+  mt_prefix_define ("const_num_delay_slots", "");
+  mt_prefix_define ("eligible_for_annul_true", "");
+  mt_prefix_define ("eligible_for_annul_false", "");
+
   printf ("extern int num_delay_slots (rtx_insn *);\n");
   printf ("extern int eligible_for_delay (rtx_insn *, int, rtx_insn *, int);\n\n");
   printf ("extern int const_num_delay_slots (rtx_insn *);\n\n");
@@ -215,9 +227,37 @@ main (int argc, const char **argv)
       printf ("#ifndef CPU_UNITS_QUERY\n");
       printf ("#define CPU_UNITS_QUERY 0\n");
       printf ("#endif\n\n");
+      /* In a multi-target build, rename the generated scheduler
+	 surface into the target's symbol namespace.  init_sched_attrs
+	 is renamed in the tune-attribute branch below; without a tune
+	 attribute it is a function-like stub macro, not a symbol.  */
+      mt_prefix_define ("internal_dfa_insn_code", "");
+      mt_prefix_define ("insn_default_latency", "");
+      mt_prefix_define ("bypass_p", "");
+      mt_prefix_define ("insn_latency", "");
+      mt_prefix_define ("maximal_insn_latency", "");
+      mt_prefix_define ("insn_alts", "");
+      mt_prefix_define ("max_insn_queue_index", "");
+      mt_prefix_define ("state_size", "");
+      mt_prefix_define ("state_reset", "");
+      mt_prefix_define ("state_transition", "");
+      mt_prefix_define ("state_alts", "");
+      mt_prefix_define ("min_issue_delay", "");
+      mt_prefix_define ("state_dead_lock_p", "");
+      mt_prefix_define ("min_insn_conflict_delay", "");
+      mt_prefix_define ("print_reservation", "");
+      mt_prefix_define ("get_cpu_unit_code", "");
+      mt_prefix_define ("cpu_unit_reservation_p", "");
+      mt_prefix_define ("insn_has_dfa_reservation_p", "");
+      mt_prefix_define ("dfa_clean_insn_cache", "");
+      mt_prefix_define ("dfa_clear_single_insn_cache", "");
+      mt_prefix_define ("dfa_start", "");
+      mt_prefix_define ("dfa_finish", "");
+
       /* Interface itself: */
       if (has_tune_attr)
 	{
+	  mt_prefix_define ("init_sched_attrs", "");
 	  printf ("/* Initialize fn pointers for internal_dfa_insn_code\n");
 	  printf ("   and insn_default_latency.  */\n");
 	  printf ("extern void init_sched_attrs (void);\n\n");
