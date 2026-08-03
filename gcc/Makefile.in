@@ -3007,6 +3007,41 @@ mt-check-modes:
 
 endif
 
+# Multi-target builds generate one tm.h per enabled target from the
+# captured configuration: the same mkconfig.sh, run inside mt-<tag>/
+# so that the header guard and the insn-flags.h glue come out exactly
+# as in the build's own tm.h.  The primary target's tm.h is
+# byte-identical to the build's tm.h by construction.
+ifneq ($(multi_target_tags),)
+
+mt_tm_headers = $(multi_target_tags:%=mt-%/tm.h)
+
+@ENABLE_DARWIN_AT_RPATH_FALSE@mt_tm_extra_defines =
+@ENABLE_DARWIN_AT_RPATH_TRUE@mt_tm_extra_defines = DARWIN_AT_RPATH=1
+
+$(mt_tm_headers): mt-%/tm.h: mt-%/cs-tm.h ; @true
+
+$(multi_target_tags:%=mt-%/cs-tm.h): mt-%/cs-tm.h: mt-config-%.sh \
+  $(srcdir)/mkconfig.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	mt_mkconfig=`cd $(srcdir); ${PWD_COMMAND}`/mkconfig.sh; \
+	cd mt-$* && \
+	TARGET_CPU_DEFAULT="$$mt_target_cpu_default_final" \
+	HEADERS="$$mt_tm_include_list" \
+	DEFINES="$$mt_tm_defines_final $(mt_tm_extra_defines)" \
+	$(SHELL) $$mt_mkconfig tm.h
+
+.PHONY: mt-check-tm
+mt-check-tm: $(mt_tm_headers)
+
+else
+
+.PHONY: mt-check-tm
+mt-check-tm:
+	@echo "mt-check-tm: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true

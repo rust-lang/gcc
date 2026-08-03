@@ -34416,6 +34416,49 @@ fi
 
 
 
+# Finish each enabled target's mt-config file with the values that
+# become final only here: the fully appended tm_defines, the resolved
+# target_cpu_default and the include list mkconfig.sh consumes.  The
+# primary target's values are the main configuration's own, so its
+# generated tm.h is byte-identical to the build's tm.h; a secondary
+# target's captured values are already final, because the configure
+# code above that appends to tm_defines or target_cpu_default is
+# policy for the configured target only.
+if test x"$multi_target_tags" != x; then
+  mt_primary_tag=`echo $target \
+    | sed -e 's/-.*$//' -e 's/[^a-zA-Z0-9_]/_/g'`
+  for mt_tag in $multi_target_tags; do
+    if test x"$mt_tag" = x"$mt_primary_tag"; then
+      { echo "# Finished at the end of configure."
+	echo "mt_tm_include_list='$tm_include_list'"
+	echo "mt_tm_defines_final='$tm_defines'"
+	echo "mt_target_cpu_default_final='$target_cpu_default'"
+      } >> mt-config-$mt_tag.sh
+    else
+      ( . ./mt-config-$mt_tag.sh
+	mt_include_list="options.h insn-constants.h"
+	for f in $mt_tm_file defaults.h; do
+	  case $f in
+	    ./* )
+	      mt_include_list="$mt_include_list `echo $f | sed 's/^..//'`"
+	      ;;
+	    defaults.h )
+	      mt_include_list="$mt_include_list $f"
+	      ;;
+	    * )
+	      mt_include_list="$mt_include_list config/$f"
+	      ;;
+	  esac
+	done
+	{ echo "# Finished at the end of configure."
+	  echo "mt_tm_include_list='$mt_include_list'"
+	  echo "mt_tm_defines_final='$mt_tm_defines'"
+	  echo "mt_target_cpu_default_final='$mt_target_cpu_default'"
+	} >> mt-config-$mt_tag.sh )
+    fi
+  done
+fi
+
 
 
 # Echo link setup.
