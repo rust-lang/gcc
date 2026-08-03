@@ -45,6 +45,7 @@ struct cl_option_handlers;
 struct cpp_options;
 namespace diagnostics { class context; }
 struct ggc_root_tab;
+struct mt_register_tables;
 
 /* The generated insn attribute and DFA scheduler entry points of one
    target (insn-attrtab.cc, insn-automata.cc).  Core consumers reach
@@ -217,6 +218,10 @@ struct target_backend
      gengtype outputs), a null-terminated vector; null for the
      primary, whose roots live in the host tables.  */
   const struct ggc_root_tab *const *gt_ggc_roots;
+
+  /* The target's register information (target-register-tables.cc),
+     read from its macros inside its own header context.  */
+  const struct mt_register_tables *register_tables;
 };
 
 /* The descriptor of the configured target.  */

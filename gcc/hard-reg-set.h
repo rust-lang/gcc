@@ -580,7 +580,13 @@ extern struct target_hard_regs *this_target_hard_regs;
 
 /* Vector indexed by reg class giving its name.  */
 
+#if ENABLE_MULTI_TARGET
+/* The active target's class names; installed with its register
+   tables.  */
+extern const char *const *reg_class_names;
+#else
 extern const char * reg_class_names[];
+#endif
 
 /* Given a hard REGN a FROM mode and a TO mode, return true if
    REGN can change from mode FROM to mode TO.  */

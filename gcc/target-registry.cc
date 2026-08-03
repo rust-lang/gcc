@@ -31,6 +31,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "common/common-target.h"
 #include "ggc.h"
 #include "mode-tables.h"
+#include "register-tables.h"
+#include "rtl.h"
 #include "real.h"
 #include "target-registry.h"
 
@@ -55,6 +57,11 @@ struct gcc_target *mt_targetm_pnt = &mt_targetm;
    installs the selected target's values.  */
 unsigned int mt_first_pseudo_register = FIRST_PSEUDO_REGISTER;
 int mt_n_reg_classes = N_REG_CLASSES;
+
+/* REGNO_REG_CLASS for host code; see defaults.h.  The seed is the
+   primary's own copy.  */
+extern int target_regno_reg_class (unsigned int);
+int (*mt_regno_reg_class) (unsigned int) = target_regno_reg_class;
 
 /* The descriptors of the enabled targets, one per tag, compiled from
    target-backend-def.cc inside each target's own header context.  */
@@ -176,6 +183,16 @@ install_target_backend (const struct target_backend *backend)
 	   *table != NULL; table++)
 	ggc_register_root_tab (*table);
     }
+
+  mt_first_pseudo_register
+    = backend->register_tables->x_first_pseudo_register;
+  mt_n_reg_classes = backend->register_tables->x_n_reg_classes;
+  mt_regno_reg_class = backend->register_tables->x_regno_reg_class;
+
+  /* Register usage was initialized from the primary during
+     general_init; redo it from the tables just installed.  The
+     switches that may override it have not been decoded yet.  */
+  init_reg_sets ();
 }
 #endif
 

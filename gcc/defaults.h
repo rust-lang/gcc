@@ -442,6 +442,10 @@ extern int mt_n_reg_classes;
 #define FIRST_PSEUDO_REGISTER mt_first_pseudo_register
 #undef N_REG_CLASSES
 #define N_REG_CLASSES mt_n_reg_classes
+extern int (*mt_regno_reg_class) (unsigned int);
+#undef REGNO_REG_CLASS
+#define REGNO_REG_CLASS(REGNO) \
+  ((enum reg_class) mt_regno_reg_class (REGNO))
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */

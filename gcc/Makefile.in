@@ -1951,6 +1951,7 @@ ALL_FDAS = $(foreach v,$(CONFIG_LANGUAGES),$($(v)_FDAS))
 ALL_HOST_BACKEND_OBJS = $(GCC_OBJS) $(OBJS) $(OBJS-libcommon) \
   $(OBJS-libcommon-target) main.o target-registry.o \
   target-backend-def.o \
+  target-register-tables.o \
   c-family/cppspec.o \
   $(COLLECT2_OBJS) $(EXTRA_GCC_OBJS) $(GCOV_OBJS) $(GCOV_DUMP_OBJS) \
   $(GCOV_TOOL_OBJS) $(GENGTYPE_OBJS) gcc-ar.o gcc-nm.o gcc-ranlib.o \
@@ -1983,7 +1984,8 @@ endif
 EXTRA_BACKEND_OBJS = simple-diagnostic-path.o diagnostics/lazy-paths.o
 
 BACKEND = $(EXTRA_BACKEND_OBJS) target-registry.o \
-	target-backend-def.o $(mt_backend_objects) \
+	target-backend-def.o target-register-tables.o \
+	$(mt_backend_objects) \
 	libbackend.a main.o \
 	libcommon-target.a \
 	libcommon.a $(CPPLIB) $(LIBDECNUMBER)
@@ -2005,6 +2007,7 @@ mt_backend_objects = $(foreach mt_tag,$(multi_target_tags), \
 	mt-$(mt_tag)/insn-preds.o mt-$(mt_tag)/insn-opinit.o \
 	mt-$(mt_tag)/insn-modes-data.o \
 	mt-$(mt_tag)/insn-modes-adjust.o \
+	mt-$(mt_tag)/target-register-tables.o \
 	mt-$(mt_tag)/options.o mt-$(mt_tag)/options-save.o \
 	mt-$(mt_tag)/target-backend-def.o) \
 	$(mt_port_objects)
@@ -4408,6 +4411,16 @@ $(multi_target_tags:%=mt-%/insn-modes-adjust.o): \
 	  -I mt-$* $(ALL_CPPFLAGS) \
 	  -Dinit_adjust_machine_modes=mt_$*_init_adjust_machine_modes \
 	  -Dadjust_mode_mask=mt_$*_adjust_mode_mask -o $@ $<
+
+$(multi_target_tags:%=mt-%/target-register-tables.o):\
+  mt-%/target-register-tables.o: $(srcdir)/target-register-tables.cc \
+  $(srcdir)/register-tables.h $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_headers_all)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) \
+	  -Dtarget_register_tables=mt_$*_target_register_tables \
+	  -Dtarget_regno_reg_class=mt_$*_target_regno_reg_class \
+	  -o $@ $<
 
 .PHONY: mt-check-adjust-units
 mt-check-adjust-units: $(multi_target_tags:%=mt-%/insn-modes-adjust.o)

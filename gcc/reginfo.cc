@@ -37,6 +37,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "tm_p.h"
 #include "insn-config.h"
 #include "regs.h"
+#include "target-backend.h"
+#include "register-tables.h"
 #include "ira.h"
 #include "recog.h"
 #include "diagnostic-core.h"
@@ -97,6 +99,10 @@ HARD_REG_SET global_reg_set;
 /* Declaration for the global register. */
 tree global_regs_decl[MAX_HARD_REGISTERS];
 
+/* In a multi-target build these initial tables — the primary's —
+   only boot the runtime copies; init_reg_sets reads the active
+   target's own tables (register-tables.h).  */
+#if !ENABLE_MULTI_TARGET
 /* Used to initialize reg_alloc_order.  */
 #ifdef REG_ALLOC_ORDER
 #if !ENABLE_MULTI_TARGET
@@ -116,9 +122,16 @@ static const unsigned int_reg_class_contents[MAX_REG_CLASSES][N_REG_INTS]
 
 /* Array containing all of the register names.  */
 static const char *const initial_reg_names[] = REGISTER_NAMES;
+#endif
 
 /* Array containing all of the register class names.  */
+#if ENABLE_MULTI_TARGET
+static const char *const initial_reg_class_names[]
+  = REG_CLASS_NAMES;
+const char *const *reg_class_names = initial_reg_class_names;
+#else
 const char * reg_class_names[] = REG_CLASS_NAMES;
+#endif
 
 /* No more global register variables may be declared; true once
    reginfo has been initialized.  */
@@ -171,6 +184,42 @@ init_reg_sets (void)
 {
   int i, j;
 
+#if ENABLE_MULTI_TARGET
+  /* Read the ACTIVE target's tables; the initial tables above are
+     only ever the primary's.  */
+  const struct mt_register_tables *tables
+    = this_target_backend->register_tables;
+  int registers = (int) tables->x_first_pseudo_register;
+
+  for (i = 0; i < tables->x_n_reg_classes; i++)
+    {
+      CLEAR_HARD_REG_SET (reg_class_contents[i]);
+
+      /* Note that this hard-codes 32, not HOST_BITS_PER_INT.  */
+      for (j = 0; j < registers; j++)
+	if (tables->x_reg_class_contents[i * tables->x_n_reg_ints + j / 32]
+	    & ((unsigned) 1 << (j % 32)))
+	  SET_HARD_REG_BIT (reg_class_contents[i], j);
+    }
+  for (; i < MAX_REG_CLASSES; i++)
+    CLEAR_HARD_REG_SET (reg_class_contents[i]);
+
+  memset (fixed_regs, 0, sizeof fixed_regs);
+  memset (call_used_regs, 0, sizeof call_used_regs);
+  memcpy (fixed_regs, tables->x_fixed_regs, registers);
+  memcpy (call_used_regs, tables->x_call_used_regs, registers);
+  if (tables->x_reg_alloc_order != NULL)
+    memcpy (reg_alloc_order, tables->x_reg_alloc_order,
+	    registers * sizeof (int));
+  else
+    for (i = 0; i < registers; i++)
+      reg_alloc_order[i] = i;
+  for (i = 0; i < registers; i++)
+    reg_names[i] = tables->x_reg_names[i];
+  for (; i < MAX_HARD_REGISTERS; i++)
+    reg_names[i] = "";
+  reg_class_names = tables->x_reg_class_names;
+#else
   /* First copy the register information from the initial int form into
      the regsets.  */
 
@@ -210,6 +259,7 @@ init_reg_sets (void)
 	  sizeof initial_reg_alloc_order);
 #endif
   memcpy (reg_names, initial_reg_names, sizeof initial_reg_names);
+#endif
 
   SET_HARD_REG_SET (accessible_reg_set);
   SET_HARD_REG_SET (operand_reg_set);

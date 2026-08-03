@@ -35,6 +35,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "opts.h"
 #include "common/common-target.h"
 #include "ggc.h"
+#include "register-tables.h"
 
 /* A single-target build compiles this file once, as the descriptor of
    the configured target.  A multi-target build compiles it once per
@@ -169,6 +170,10 @@ static const struct ggc_root_tab *const mt_backend_gt_roots[] =
 #else
 # define MT_BACKEND_GT_ROOTS_REF NULL
 #endif
+
+/* The target's register information (target-register-tables.cc).  */
+extern const struct mt_register_tables
+  MT_RENAMED (target_register_tables);
 
 /* The enabled and preferred_for_* attributes return an int on some
    targets and a target-specific enum on others; these wrappers give
@@ -308,5 +313,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
 
   MT_BACKEND_MODE_TABLES_REF,
   MT_RENAMED (init_adjust_machine_modes),
-  MT_BACKEND_GT_ROOTS_REF
+  MT_BACKEND_GT_ROOTS_REF,
+  &MT_RENAMED (target_register_tables)
 };
