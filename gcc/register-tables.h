@@ -90,6 +90,23 @@ struct mt_dwarf_ops
   rtx (*x_incoming_return_addr_rtx) (void);
 };
 
+/* The frame offset entry points, captured in the descriptor's
+   context: a port's ACCUMULATE_OUTGOING_ARGS may read the function
+   being compiled through cfun, and STACK_DYNAMIC_OFFSET builds on
+   it.  */
+
+struct mt_frame_offset_ops
+{
+  int (*x_accumulate_outgoing_args) (void);
+  HOST_WIDE_INT (*x_first_parm_offset) (const_tree);
+  HOST_WIDE_INT (*x_stack_pointer_offset) (void);
+
+  /* Null unless the port defines the STACK_DYNAMIC_OFFSET macro;
+     the host computes its own default from the members above
+     otherwise.  */
+  void (*x_stack_dynamic_offset) (const_tree, poly_int64 *);
+};
+
 struct mt_register_tables
 {
   /* The target's own FIRST_PSEUDO_REGISTER and N_REG_CLASSES.  */

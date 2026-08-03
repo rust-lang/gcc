@@ -48,6 +48,10 @@ along with GCC; see the file COPYING3.  If not see
 #include "tm-preds-ops.h"
 #include "regs.h"
 #include "addresses.h"
+/* For optimize_function_for_speed_p and crtl, which a port's
+   ACCUMULATE_OUTGOING_ARGS may read.  */
+#include "predict.h"
+#include "emit-rtl.h"
 
 /* A single-target build compiles this file once, as the descriptor of
    the configured target.  A multi-target build compiles it once per
@@ -578,6 +582,49 @@ backend_function_value_regno_p (unsigned int regno)
 }
 #endif
 
+/* The frame offset entry points.  ACCUMULATE_OUTGOING_ARGS and
+   STACK_DYNAMIC_OFFSET may read the function being compiled, so the
+   family lives here rather than with the register-table scalars.  */
+
+static int
+backend_accumulate_outgoing_args (void)
+{
+  return ACCUMULATE_OUTGOING_ARGS;
+}
+
+static HOST_WIDE_INT
+backend_first_parm_offset (const_tree fndecl ATTRIBUTE_UNUSED)
+{
+  return FIRST_PARM_OFFSET (fndecl);
+}
+
+static HOST_WIDE_INT
+backend_stack_pointer_offset (void)
+{
+  return STACK_POINTER_OFFSET;
+}
+
+#ifdef STACK_DYNAMIC_OFFSET
+static void
+backend_stack_dynamic_offset (const_tree fndecl ATTRIBUTE_UNUSED,
+			      poly_int64 *offset)
+{
+  *offset = STACK_DYNAMIC_OFFSET (fndecl);
+}
+#endif
+
+static const struct mt_frame_offset_ops backend_frame_offset_ops =
+{
+  backend_accumulate_outgoing_args,
+  backend_first_parm_offset,
+  backend_stack_pointer_offset,
+#ifdef STACK_DYNAMIC_OFFSET
+  backend_stack_dynamic_offset,
+#else
+  NULL,
+#endif
+};
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -741,4 +788,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #else
   NULL,
 #endif
+
+  &backend_frame_offset_ops,
 };

@@ -78,6 +78,11 @@ const struct mt_dwarf_ops *mt_active_dwarf_ops;
 static const int mt_dwarf_ops_boot
   = (mt_active_dwarf_ops = default_target_backend.dwarf_ops, 0);
 
+const struct mt_frame_offset_ops *mt_active_frame_offset_ops;
+static const int mt_frame_offset_ops_boot
+  = (mt_active_frame_offset_ops
+     = default_target_backend.frame_offset_ops, 0);
+
 /* The descriptors of the enabled targets, one per tag, compiled from
    target-backend-def.cc inside each target's own header context.  */
 #define MT_BACKEND(tag) extern const struct target_backend mt_backend_##tag;
@@ -205,6 +210,7 @@ install_target_backend (const struct target_backend *backend)
   mt_regno_reg_class = backend->register_tables->x_regno_reg_class;
   mt_active_target_scalars = backend->register_tables->x_scalars;
   mt_active_dwarf_ops = backend->dwarf_ops;
+  mt_active_frame_offset_ops = backend->frame_offset_ops;
 
   /* Register usage was initialized from the primary during
      general_init; redo it from the tables just installed.  The

@@ -1945,6 +1945,17 @@ instantiate_decls (tree fndecl)
 poly_int64
 get_stack_dynamic_offset ()
 {
+#if ENABLE_MULTI_TARGET
+  /* A port that defines the macro is captured whole; for the rest
+     the default below reads the routed pieces.  */
+  if (mt_active_frame_offset_ops->x_stack_dynamic_offset != NULL)
+    {
+      poly_int64 offset;
+      mt_active_frame_offset_ops->x_stack_dynamic_offset
+	(current_function_decl, &offset);
+      return offset;
+    }
+#endif
   return STACK_DYNAMIC_OFFSET (current_function_decl);
 }
 

@@ -274,6 +274,9 @@ struct target_backend
   rtx (*x_function_value) (const_tree, const_tree);
   rtx (*x_libcall_value) (machine_mode, const_rtx);
   bool (*x_function_value_regno_p) (unsigned int);
+
+  /* The frame offset entry points (register-tables.h).  */
+  const struct mt_frame_offset_ops *frame_offset_ops;
 };
 
 /* The descriptor of the configured target.  */

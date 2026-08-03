@@ -557,6 +557,16 @@ extern const struct mt_dwarf_ops *mt_active_dwarf_ops;
 #undef REGNO_OK_FOR_INDEX_P
 #define REGNO_OK_FOR_INDEX_P(REGNO) \
   (this_target_backend->x_regno_ok_for_index_p (REGNO))
+extern const struct mt_frame_offset_ops *mt_active_frame_offset_ops;
+#undef ACCUMULATE_OUTGOING_ARGS
+#define ACCUMULATE_OUTGOING_ARGS \
+  (mt_active_frame_offset_ops->x_accumulate_outgoing_args ())
+#undef FIRST_PARM_OFFSET
+#define FIRST_PARM_OFFSET(FNDECL) \
+  (mt_active_frame_offset_ops->x_first_parm_offset (FNDECL))
+#undef STACK_POINTER_OFFSET
+#define STACK_POINTER_OFFSET \
+  (mt_active_frame_offset_ops->x_stack_pointer_offset ())
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
