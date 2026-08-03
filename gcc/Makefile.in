@@ -2003,6 +2003,7 @@ mt_backend_objects = $(foreach mt_tag,$(multi_target_tags), \
 	mt-$(mt_tag)/insn-latencytab.o mt-$(mt_tag)/insn-automata.o \
 	mt-$(mt_tag)/insn-preds.o mt-$(mt_tag)/insn-opinit.o \
 	mt-$(mt_tag)/insn-modes-data.o \
+	mt-$(mt_tag)/insn-modes-adjust.o \
 	mt-$(mt_tag)/options.o mt-$(mt_tag)/options-save.o \
 	mt-$(mt_tag)/target-backend-def.o) \
 	$(mt_port_objects)
@@ -4354,6 +4355,39 @@ else
 .PHONY: mt-check-poly-coeffs
 mt-check-poly-coeffs:
 	@echo "mt-check-poly-coeffs: not a multi-target build"
+
+endif
+
+# Each enabled target's runtime mode adjustments: genmodes -a emits
+# them symbolically over the mode names, so the same output compiles
+# at whatever numbering the including context defines; each blob
+# carries its own copy under its own prefix, and the descriptor
+# binds it for activation to run after installing the value tables.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=mt-%/insn-modes-adjust.cc): \
+  mt-%/insn-modes-adjust.cc: build/mt-%/genmodes$(build_exeext) \
+  mt-poly-coeffs
+	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -a $(mt_poly_flag) \
+	  > tmp-mt-$*-modes-adjust.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-modes-adjust.cc $@
+
+$(multi_target_tags:%=mt-%/insn-modes-adjust.o): \
+  mt-%/insn-modes-adjust.o: mt-%/insn-modes-adjust.cc $(CONFIG_H) \
+  tree-check.h all-tree.def gtype-desc.h genrtl.h \
+  $(mt_target_code_headers_all)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -Dinit_adjust_machine_modes=mt_$*_init_adjust_machine_modes \
+	  -Dadjust_mode_mask=mt_$*_adjust_mode_mask -o $@ $<
+
+.PHONY: mt-check-adjust-units
+mt-check-adjust-units: $(multi_target_tags:%=mt-%/insn-modes-adjust.o)
+
+else
+
+.PHONY: mt-check-adjust-units
+mt-check-adjust-units:
+	@echo "mt-check-adjust-units: not a multi-target build"
 
 endif
 

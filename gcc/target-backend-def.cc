@@ -113,6 +113,7 @@ extern void MT_RENAMED (cl_target_option_stream_out)
    struct cl_target_option *);
 extern void MT_RENAMED (cl_target_option_stream_in)
   (struct data_in *, struct bitpack_d *, struct cl_target_option *);
+extern void MT_RENAMED (init_adjust_machine_modes) (void);
 #endif
 
 
@@ -284,5 +285,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
   MT_RENAMED (cpp_handle_option_auto),
   MT_RENAMED (init_global_opts_from_cpp),
 
-  MT_BACKEND_MODE_TABLES_REF
+  MT_BACKEND_MODE_TABLES_REF,
+  MT_RENAMED (init_adjust_machine_modes)
 };

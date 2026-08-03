@@ -2119,6 +2119,18 @@ emit_insn_modes_c (void)
   emit_mode_int_n ();
 }
 
+/* Emit only the runtime adjustments, for a multi-target build: each
+   backend compiles its own target's adjustments — symbolic over the
+   mode names, so any numbering that defines the names fits — into
+   its blob under its own prefix.  */
+
+static void
+emit_insn_modes_adjust_c (void)
+{
+  emit_insn_modes_c_header ();
+  emit_mode_adjustments ();
+}
+
 static void
 emit_min_insn_modes_c (void)
 {
@@ -2196,7 +2208,7 @@ int
 main (int argc, char **argv)
 {
   bool gen_header = false, gen_inlines = false, gen_min = false;
-  bool gen_dump = false;
+  bool gen_dump = false, gen_adjust = false;
   progname = argv[0];
 
   int i;
@@ -2209,6 +2221,8 @@ main (int argc, char **argv)
       gen_min = true;
     else if (!strcmp (argv[i], "-X"))
       gen_dump = true;
+    else if (!strcmp (argv[i], "-a"))
+      gen_adjust = true;
     else if (startswith (argv[i], "--mt-poly-coeffs="))
       {
 	poly_coeffs = atoi (argv[i] + strlen ("--mt-poly-coeffs="));
@@ -2216,7 +2230,7 @@ main (int argc, char **argv)
       }
     else
       {
-	error ("usage: %s [-h|-i|-m|-X] [--mt-poly-coeffs=<n>] > file",
+	error ("usage: %s [-h|-i|-m|-X|-a] [--mt-poly-coeffs=<n>] > file",
 	       progname);
 	return FATAL_EXIT_CODE;
       }
@@ -2246,6 +2260,8 @@ main (int argc, char **argv)
     emit_min_insn_modes_c ();
   else if (gen_dump)
     emit_mode_dump ();
+  else if (gen_adjust)
+    emit_insn_modes_adjust_c ();
   else
     emit_insn_modes_c ();
 

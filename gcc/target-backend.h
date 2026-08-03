@@ -205,6 +205,11 @@ struct target_backend
      numbering (mode-tables.h); null outside multi-target
      builds.  */
   const struct mode_tables *mode_tables;
+
+  /* The target's runtime mode adjustments (insn-modes.cc, or the
+     per-target adjust unit of a multi-target build); activation
+     runs it after installing the value tables.  */
+  void (*init_adjust_machine_modes) (void);
 };
 
 /* The descriptor of the configured target.  */
