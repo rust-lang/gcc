@@ -261,6 +261,17 @@ backend_init_expanders (void)
 }
 #endif
 
+/* ADJUST_REG_ALLOC_ORDER is the target's allocation-order rewrite,
+   run at allocator setup against the target's own options; captured
+   when the target defines one.  */
+#ifdef ADJUST_REG_ALLOC_ORDER
+static void
+backend_adjust_reg_alloc_order (void)
+{
+  ADJUST_REG_ALLOC_ORDER;
+}
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -384,6 +395,12 @@ const struct target_backend MT_BACKEND_SYMBOL =
 
 #ifdef INIT_EXPANDERS
   backend_init_expanders,
+#else
+  NULL,
+#endif
+
+#ifdef ADJUST_REG_ALLOC_ORDER
+  backend_adjust_reg_alloc_order,
 #else
   NULL,
 #endif

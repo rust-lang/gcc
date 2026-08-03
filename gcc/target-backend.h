@@ -238,6 +238,10 @@ struct target_backend
   /* INIT_EXPANDERS, the per-function expander state setup a target
      may expand into init_emit; null when the target defines none.  */
   void (*x_init_expanders) (void);
+
+  /* ADJUST_REG_ALLOC_ORDER, the allocation-order rewrite a target
+     may run at allocator setup; null when the target defines none.  */
+  void (*x_adjust_reg_alloc_order) (void);
 };
 
 /* The descriptor of the configured target.  */

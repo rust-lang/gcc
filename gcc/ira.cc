@@ -375,6 +375,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "tm_p.h"
 #include "insn-config.h"
 #include "regs.h"
+#include "target-backend.h"
 #include "ira.h"
 #include "ira-int.h"
 #include "diagnostic-core.h"
@@ -514,8 +515,13 @@ setup_class_hard_regs (void)
 static void
 setup_alloc_regs (bool use_hard_frame_p)
 {
-#ifdef ADJUST_REG_ALLOC_ORDER
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_adjust_reg_alloc_order != NULL)
+    this_target_backend->x_adjust_reg_alloc_order ();
+#else
+# ifdef ADJUST_REG_ALLOC_ORDER
   ADJUST_REG_ALLOC_ORDER;
+# endif
 #endif
   no_unit_alloc_regs = fixed_nonglobal_reg_set;
   if (! use_hard_frame_p)
