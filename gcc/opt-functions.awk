@@ -415,3 +415,44 @@ function find_index(var, var_arry, n_var_arry)
     }
     return var_index
 }
+
+
+# In a multi-target build, every enabled target compiles its own
+# options.cc and options-save.cc; the prologue this function prints
+# renames every external name the two files define into the target's
+# own namespace, mirroring the generator programs' --mt-prefix
+# machinery.  mt_prefix arrives on the awk command line and is empty
+# in single-target builds, which keeps their output byte-identical.
+function mt_print_renames(  mt_names, mt_count, mt_i, mt_lang)
+{
+    if (mt_prefix == "")
+        return
+    mt_count = split("cl_options cl_options_count cl_enums" \
+        " cl_enums_count cl_lang_count cl_vars cl_option_name_order" \
+        " lang_names global_options global_options_set" \
+        " global_options_init common_handle_option_auto" \
+        " cpp_handle_option_auto init_global_opts_from_cpp" \
+        " cl_optimization_save cl_optimization_restore" \
+        " cl_optimization_print cl_optimization_print_diff" \
+        " cl_optimization_hash cl_optimization_option_eq" \
+        " cl_optimization_option_free cl_optimization_compare" \
+        " cl_optimization_stream_in cl_optimization_stream_out" \
+        " cl_target_option_save cl_target_option_restore" \
+        " cl_target_option_print cl_target_option_print_diff" \
+        " cl_target_option_eq cl_target_option_hash" \
+        " cl_target_option_free cl_target_option_stream_in" \
+        " cl_target_option_stream_out", mt_names, " ")
+    print "/* Every external name options.cc and options-save.cc"
+    print "   define, renamed to this target's own.  */"
+    for (mt_i = 1; mt_i <= mt_count; mt_i++)
+        print "#define " mt_names[mt_i] " " mt_prefix mt_names[mt_i]
+    for (mt_i = 0; mt_i < n_langs; mt_i++) {
+        mt_lang = lang_sanitized_name(langs[mt_i])
+        print "#define " mt_lang "_handle_option_auto " \
+            mt_prefix mt_lang "_handle_option_auto"
+    }
+    print ""
+    print "/* This unit owns option tables; see opts.h.  */"
+    print "#define MT_OWN_OPTION_TABLES 1"
+    print ""
+}

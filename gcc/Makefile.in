@@ -2001,6 +2001,7 @@ mt_backend_objects = $(foreach mt_tag,$(multi_target_tags), \
 	mt-$(mt_tag)/insn-latencytab.o mt-$(mt_tag)/insn-automata.o \
 	mt-$(mt_tag)/insn-preds.o mt-$(mt_tag)/insn-opinit.o \
 	mt-$(mt_tag)/insn-modes-data.o \
+	mt-$(mt_tag)/options.o mt-$(mt_tag)/options-save.o \
 	mt-$(mt_tag)/target-backend-def.o)
 BACKEND += $(mt_backend_objects)
 endif
@@ -3927,16 +3928,16 @@ target-registry.o: mt-backend-list.h
 
 # The collision audit: with the rename macros in effect, the targets'
 # generated objects must export pairwise disjoint strong symbols.
-# Weak and vague-linkage definitions — inline and template
-# instantiations from shared headers — merge in the linker and are
-# not collisions.
+# Weak, unique and other vague-linkage definitions — inline and
+# template instantiations from shared headers — merge in the linker
+# and are not collisions.
 .PHONY: mt-check-symbols
 mt-check-symbols: $(mt_insn_emit_objects) $(mt_insn_recog_objects) \
   $(mt_insn_unit_objects) $(mt_attr_unit_objects) \
   $(mt_final_unit_objects) $(mt_backend_descriptor_objects)
 	@for mt_tag in $(multi_target_tags); do \
 	  $(NM) -g -P mt-$$mt_tag/*.o \
-	    | awk 'NF >= 3 && $$2 != "U" && $$2 !~ /^[WwVv]$$/ \
+	    | awk 'NF >= 3 && $$2 != "U" && $$2 !~ /^[WwVvu]$$/ \
 		{ print $$1 }' | sort -u \
 	    > tmp-mt-$$mt_tag.symbols || exit 1; \
 	  echo "mt-$$mt_tag exports `wc -l < tmp-mt-$$mt_tag.symbols`" \
@@ -4126,6 +4127,54 @@ else
 .PHONY: mt-check-optsize
 mt-check-optsize:
 	@echo "mt-check-optsize: not a multi-target build"
+
+endif
+
+# Each enabled target's option tables and save machinery compile
+# from the target's own optionlist; the mt_prefix prologue the awk
+# scripts emit renames their external names into the target's own
+# namespace, exactly like the generator programs' --mt-prefix
+# renames.  The renamed global_options triple stays unregistered
+# with the garbage collector: nothing writes to it until runtime
+# activation installs a target, and the activation commit takes care
+# of the roots.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=mt-%/options.cc): mt-%/options.cc: \
+  mt-%/optionlist $(srcdir)/opt-functions.awk $(srcdir)/opt-read.awk \
+  $(srcdir)/optc-gen.awk
+	$(AWK) -f $(srcdir)/opt-functions.awk -f $(srcdir)/opt-read.awk \
+	  -f $(srcdir)/optc-gen.awk -v mt_prefix=mt_$*_ \
+	  -v header_name="config.h system.h coretypes.h options.h tm.h" \
+	  -v multi_target="$(multi_target_triples)" \
+	  < mt-$*/optionlist > tmp-mt-$*-options.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-options.cc $@
+
+$(multi_target_tags:%=mt-%/options-save.cc): mt-%/options-save.cc: \
+  mt-%/optionlist $(srcdir)/opt-functions.awk $(srcdir)/opt-read.awk \
+  $(srcdir)/optc-save-gen.awk
+	$(AWK) -f $(srcdir)/opt-functions.awk -f $(srcdir)/opt-read.awk \
+	  -f $(srcdir)/optc-save-gen.awk -v mt_prefix=mt_$*_ \
+	  -v header_name="config.h system.h coretypes.h tm.h" \
+	  < mt-$*/optionlist > tmp-mt-$*-options-save.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-options-save.cc $@
+
+mt_options_objects = $(foreach mt_tag,$(multi_target_tags), \
+	mt-$(mt_tag)/options.o mt-$(mt_tag)/options-save.o)
+
+$(mt_options_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
+  all-tree.def gtype-desc.h genrtl.h $(mt_target_code_headers_all)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
+	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ $<
+
+.PHONY: mt-check-options-units
+mt-check-options-units: $(mt_options_objects)
+
+else
+
+.PHONY: mt-check-options-units
+mt-check-options-units:
+	@echo "mt-check-options-units: not a multi-target build"
 
 endif
 
