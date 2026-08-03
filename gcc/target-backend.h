@@ -267,6 +267,13 @@ struct target_backend
 
   /* The DWARF and debugger register maps (register-tables.h).  */
   const struct mt_dwarf_ops *dwarf_ops;
+
+  /* The FUNCTION_VALUE macro family of a port that has not moved
+     to the equivalent hooks; null when the port defines the hooks
+     instead.  */
+  rtx (*x_function_value) (const_tree, const_tree);
+  rtx (*x_libcall_value) (machine_mode, const_rtx);
+  bool (*x_function_value_regno_p) (unsigned int);
 };
 
 /* The descriptor of the configured target.  */

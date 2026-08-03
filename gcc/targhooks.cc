@@ -88,6 +88,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "sbitmap.h"
 #include "function-abi.h"
 #include "attribs.h"
+#include "target-backend.h"
 #include "asan.h"
 #include "emit-rtl.h"
 #include "gimple.h"
@@ -1057,10 +1058,17 @@ default_function_value (const_tree ret_type ATTRIBUTE_UNUSED,
       && !DECL_P (fn_decl_or_type))
     fn_decl_or_type = NULL;
 
-#ifdef FUNCTION_VALUE
-  return FUNCTION_VALUE (ret_type, fn_decl_or_type);
-#else
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_function_value != NULL)
+    return this_target_backend->x_function_value (ret_type,
+						  fn_decl_or_type);
   gcc_unreachable ();
+#else
+# ifdef FUNCTION_VALUE
+  return FUNCTION_VALUE (ret_type, fn_decl_or_type);
+# else
+  gcc_unreachable ();
+# endif
 #endif
 }
 
@@ -1068,10 +1076,16 @@ rtx
 default_libcall_value (machine_mode mode ATTRIBUTE_UNUSED,
 		       const_rtx fun ATTRIBUTE_UNUSED)
 {
-#ifdef LIBCALL_VALUE
-  return LIBCALL_VALUE (MACRO_MODE (mode));
-#else
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_libcall_value != NULL)
+    return this_target_backend->x_libcall_value (mode, fun);
   gcc_unreachable ();
+#else
+# ifdef LIBCALL_VALUE
+  return LIBCALL_VALUE (MACRO_MODE (mode));
+# else
+  gcc_unreachable ();
+# endif
 #endif
 }
 
@@ -1080,10 +1094,16 @@ default_libcall_value (machine_mode mode ATTRIBUTE_UNUSED,
 bool
 default_function_value_regno_p (const unsigned int regno ATTRIBUTE_UNUSED)
 {
-#ifdef FUNCTION_VALUE_REGNO_P
-  return FUNCTION_VALUE_REGNO_P (regno);
-#else
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_function_value_regno_p != NULL)
+    return this_target_backend->x_function_value_regno_p (regno);
   gcc_unreachable ();
+#else
+# ifdef FUNCTION_VALUE_REGNO_P
+  return FUNCTION_VALUE_REGNO_P (regno);
+# else
+  gcc_unreachable ();
+# endif
 #endif
 }
 

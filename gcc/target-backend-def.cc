@@ -550,6 +550,34 @@ static const struct mt_dwarf_ops backend_dwarf_ops =
   backend_incoming_return_addr_rtx,
 };
 
+/* The FUNCTION_VALUE macro family of a port that has not moved
+   to the equivalent hooks; the host's default hooks expand the
+   macros in the primary's context.  */
+#ifdef FUNCTION_VALUE
+static rtx
+backend_function_value (const_tree valtype, const_tree func)
+{
+  return FUNCTION_VALUE (valtype, func);
+}
+#endif
+
+#ifdef LIBCALL_VALUE
+static rtx
+backend_libcall_value (machine_mode mode,
+		       const_rtx fun ATTRIBUTE_UNUSED)
+{
+  return LIBCALL_VALUE (mode);
+}
+#endif
+
+#ifdef FUNCTION_VALUE_REGNO_P
+static bool
+backend_function_value_regno_p (unsigned int regno)
+{
+  return FUNCTION_VALUE_REGNO_P (regno);
+}
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -697,4 +725,20 @@ const struct target_backend MT_BACKEND_SYMBOL =
   backend_init_cumulative_libcall_args,
 
   &backend_dwarf_ops,
+
+#ifdef FUNCTION_VALUE
+  backend_function_value,
+#else
+  NULL,
+#endif
+#ifdef LIBCALL_VALUE
+  backend_libcall_value,
+#else
+  NULL,
+#endif
+#ifdef FUNCTION_VALUE_REGNO_P
+  backend_function_value_regno_p,
+#else
+  NULL,
+#endif
 };
