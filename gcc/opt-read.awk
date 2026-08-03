@@ -29,6 +29,7 @@ BEGIN {
 	n_extra_c_includes = 0
 	n_extra_h_includes = 0
 	n_enums = 0
+	have_target_block = 0
 	have_save = 0;
 	quote = "\042"
 	comma = ","
@@ -109,6 +110,14 @@ BEGIN {
 			enum_data[enum_name] = enum_data[enum_name] \
 			  "  { " quote string quote ", " value ", " val_flags \
 			  " },\n"
+		}
+		else if ($1 == "BeginTargetOptions") {
+			# A multi-target build gathers the target's .opt
+			# files as their own block; every record below
+			# comes from them.
+			n_first_target_var = n_extra_vars
+			n_first_target_opt = n_opts
+			have_target_block = 1
 		}
 		else {
 			name = opt_args("Mask", $1)

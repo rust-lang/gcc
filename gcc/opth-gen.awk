@@ -53,60 +53,82 @@ print "#endif"
 print "{"
 print "#endif"
 
-for (i = 0; i < n_extra_vars; i++) {
-	var = extra_vars[i]
-	sub(" *=.*", "", var)
-	orig_var = var
-	name = var
-	type = var
-	type_after = var
-	sub("^.*[ *]", "", name)
-	sub("\\[.*\\]$", "", name)
-	sub("\\[.*\\]$", "", type)
-	sub(" *" name "$", "", type)
-	sub("^.*" name, "", type_after)
-	var_seen[name] = 1
-	print "#ifdef GENERATOR_FILE"
-	print "extern " orig_var ";"
-	print "#else"
-	print "  " type " x_" name type_after ";"
-	print "#define " name " global_options.x_" name
-	print "#endif"
+# Group the members by option block: a multi-target build must lay out
+# the common block's members identically for every target, so all of
+# the target block's members go after them.  Without a target block the
+# second pass is empty and the layout is unchanged.
+if (have_target_block) {
+	var_split = n_first_target_var
+	opt_split = n_first_target_opt
+} else {
+	var_split = n_extra_vars
+	opt_split = n_opts
 }
-
-for (i = 0; i < n_opts; i++) {
-	if (flag_set_p("Save", flags[i]))
-		have_save = 1;
-
-	name = var_name(flags[i]);
-	if (name == "")
-		continue;
-
-	if (name in var_seen)
-		continue;
-
-	var_seen[name] = 1;
-	print "#ifdef GENERATOR_FILE"
-	print "extern " var_type(flags[i]) name ";"
-	print "#else"
-	print "  " var_type(flags[i]) "x_" name ";"
-	print "#define " name " global_options.x_" name
-	print "#endif"
-}
-for (i = 0; i < n_opts; i++) {
-	name = static_var(opts[i], flags[i]);
-	if (name != "") {
+for (block = 0; block < 2; block++) {
+	var_low = (block == 0 ? 0 : var_split)
+	var_high = (block == 0 ? var_split : n_extra_vars)
+	opt_low = (block == 0 ? 0 : opt_split)
+	opt_high = (block == 0 ? opt_split : n_opts)
+	if (block == 1 && have_target_block) {
 		print "#ifndef GENERATOR_FILE"
-		print "  " var_type(flags[i]) "x_" name ";"
-		print "#define x_" name " do_not_use"
+		print "  /* Members of the target's option block.  */"
 		print "#endif"
 	}
-}
-for (i = 0; i < n_opts; i++) {
-	if (flag_set_p("SetByCombined", flags[i])) {
-		print "#ifndef GENERATOR_FILE"
-		print "  bool frontend_set_" var_name(flags[i]) ";"
+	for (i = var_low; i < var_high; i++) {
+		var = extra_vars[i]
+		sub(" *=.*", "", var)
+		orig_var = var
+		name = var
+		type = var
+		type_after = var
+		sub("^.*[ *]", "", name)
+		sub("\\[.*\\]$", "", name)
+		sub("\\[.*\\]$", "", type)
+		sub(" *" name "$", "", type)
+		sub("^.*" name, "", type_after)
+		var_seen[name] = 1
+		print "#ifdef GENERATOR_FILE"
+		print "extern " orig_var ";"
+		print "#else"
+		print "  " type " x_" name type_after ";"
+		print "#define " name " global_options.x_" name
 		print "#endif"
+	}
+
+	for (i = opt_low; i < opt_high; i++) {
+		if (flag_set_p("Save", flags[i]))
+			have_save = 1;
+
+		name = var_name(flags[i]);
+		if (name == "")
+			continue;
+
+		if (name in var_seen)
+			continue;
+
+		var_seen[name] = 1;
+		print "#ifdef GENERATOR_FILE"
+		print "extern " var_type(flags[i]) name ";"
+		print "#else"
+		print "  " var_type(flags[i]) "x_" name ";"
+		print "#define " name " global_options.x_" name
+		print "#endif"
+	}
+	for (i = opt_low; i < opt_high; i++) {
+		name = static_var(opts[i], flags[i]);
+		if (name != "") {
+			print "#ifndef GENERATOR_FILE"
+			print "  " var_type(flags[i]) "x_" name ";"
+			print "#define x_" name " do_not_use"
+			print "#endif"
+		}
+	}
+	for (i = opt_low; i < opt_high; i++) {
+		if (flag_set_p("SetByCombined", flags[i])) {
+			print "#ifndef GENERATOR_FILE"
+			print "  bool frontend_set_" var_name(flags[i]) ";"
+			print "#endif"
+		}
 	}
 }
 print "#ifndef GENERATOR_FILE"
@@ -522,7 +544,11 @@ for (i = 0; i < n_opts; i++)
 	back_chain[i] = "N_OPTS";
 
 enum_value = 0
+n_common_opts = ""
 for (i = 0; i < n_opts; i++) {
+	if (have_target_block && n_common_opts == "" \
+	    && i >= n_first_target_opt)
+		n_common_opts = enum_value
 	# Combine the flags of identical switches.  Switches
 	# appear many times if they are handled by many front
 	# ends, for example.
@@ -575,6 +601,14 @@ print "  OPT_SPECIAL_program_name,"
 print "  OPT_SPECIAL_input_file"
 print "};"
 print ""
+if (have_target_block) {
+	if (n_common_opts == "")
+		n_common_opts = enum_value
+	print "/* Options from this index on belong to the " \
+	      "target block.  */"
+	print "#define N_COMMON_OPTS " n_common_opts
+	print ""
+}
 print "#ifdef GCC_C_COMMON_C"
 print "/* Mapping from cpp message reasons to the options that enable them.  */"
 print "#include <cpplib.h>"

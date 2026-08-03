@@ -225,21 +225,6 @@ print "const unsigned int cl_enums_count = " n_enums ";"
 print ""
 
 print "const struct gcc_options global_options_init =\n{"
-for (i = 0; i < n_extra_vars; i++) {
-	var = extra_vars[i]
-	init = extra_vars[i]
-	if (var ~ "=" ) {
-		sub(".*= *", "", init)
-	} else {
-		init = "0"
-	}
-	sub(" *=.*", "", var)
-	name = var
-	sub("^.*[ *]", "", name)
-	sub("\\[.*\\]$", "", name)
-	var_seen[name] = 1
-	print "  " init ", /* " name " */"
-}
 for (i = 0; i < n_opts; i++) {
 	name = var_name(flags[i]);
 	init = opt_args("Init", flags[i])
@@ -256,33 +241,63 @@ for (i = 0; i < n_opts; i++) {
 		var_init[name] = init
 	}
 }
-for (i = 0; i < n_opts; i++) {
-	name = var_name(flags[i]);
-	if (name == "")
-		continue;
-
-	if (name in var_seen)
-		continue;
-
-	if (name in var_init)
-		init = var_init[name]
-	else
-		init = "0"
-
-	print "  " init ", /* " name " */"
-
-	var_seen[name] = 1;
+# The passes below mirror the member groups of opth-gen.awk's struct
+# gcc_options exactly; keep the two in sync.
+if (have_target_block) {
+	var_split = n_first_target_var
+	opt_split = n_first_target_opt
+} else {
+	var_split = n_extra_vars
+	opt_split = n_opts
 }
-for (i = 0; i < n_opts; i++) {
-	name = static_var(opts[i], flags[i]);
-	if (name != "") {
-		print "  0, /* " name " (private state) */"
-		print "#undef x_" name
+for (block = 0; block < 2; block++) {
+	var_low = (block == 0 ? 0 : var_split)
+	var_high = (block == 0 ? var_split : n_extra_vars)
+	opt_low = (block == 0 ? 0 : opt_split)
+	opt_high = (block == 0 ? opt_split : n_opts)
+	for (i = var_low; i < var_high; i++) {
+		var = extra_vars[i]
+		init = extra_vars[i]
+		if (var ~ "=" ) {
+			sub(".*= *", "", init)
+		} else {
+			init = "0"
+		}
+		sub(" *=.*", "", var)
+		name = var
+		sub("^.*[ *]", "", name)
+		sub("\\[.*\\]$", "", name)
+		var_seen[name] = 1
+		print "  " init ", /* " name " */"
 	}
-}
-for (i = 0; i < n_opts; i++) {
-	if (flag_set_p("SetByCombined", flags[i]))
-		print "  false, /* frontend_set_" var_name(flags[i]) " */"
+	for (i = opt_low; i < opt_high; i++) {
+		name = var_name(flags[i]);
+		if (name == "")
+			continue;
+
+		if (name in var_seen)
+			continue;
+
+		if (name in var_init)
+			init = var_init[name]
+		else
+			init = "0"
+
+		print "  " init ", /* " name " */"
+
+		var_seen[name] = 1;
+	}
+	for (i = opt_low; i < opt_high; i++) {
+		name = static_var(opts[i], flags[i]);
+		if (name != "") {
+			print "  0, /* " name " (private state) */"
+			print "#undef x_" name
+		}
+	}
+	for (i = opt_low; i < opt_high; i++) {
+		if (flag_set_p("SetByCombined", flags[i]))
+			print "  false, /* frontend_set_" var_name(flags[i]) " */"
+	}
 }
 print "};"
 print ""

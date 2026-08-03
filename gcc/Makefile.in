@@ -2697,6 +2697,7 @@ s-options: $(ALL_OPT_FILES) $(ALL_OPT_URL_FILES) Makefile $(srcdir)/opt-gather.a
 	if test -n "$(multi_target_triples)"; then \
 	  $(AWK) -f $(srcdir)/opt-gather.awk $(lang_opt_files) \
 	    $(patsubst %, %.urls, $(lang_opt_files)) > tmp-optionlist; \
+	  echo "BeginTargetOptions" >> tmp-optionlist; \
 	  $(AWK) -f $(srcdir)/opt-gather.awk $(extra_opt_files) \
 	    $(patsubst %, %.urls, $(extra_opt_files)) < /dev/null \
 	    >> tmp-optionlist; \
