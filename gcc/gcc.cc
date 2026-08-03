@@ -416,6 +416,12 @@ static int do_spec_1 (const char *, int, const char *);
 static int do_spec_2 (const char *, const char *);
 static void do_option_spec (const char *, const char *);
 static void do_self_spec (const char *);
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+/* The selected secondary's driver spec capture, or null when the
+   primary runs; the type lives with the capture registry below.  */
+struct mt_driver_specs;
+static const struct mt_driver_specs *mt_selected_capture;
+#endif
 static const char *find_file (const char *);
 static int is_directory (const char *);
 static const char *validate_switches (const char *, bool, bool);
@@ -6074,6 +6080,25 @@ do_self_spec (const char *spec)
 	      break;
 
 	    default:
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+	      /* Under a secondary selection, a self spec's -m output
+		 is saved as switch text, the way an unknown option
+		 would be: the primary's handlers cannot judge
+		 another target's options.  */
+	      if (mt_selected_capture != NULL
+		  && decoded_options[j].orig_option_with_args_text
+		     != NULL
+		  && decoded_options[j].orig_option_with_args_text[0]
+		     == '-'
+		  && decoded_options[j].orig_option_with_args_text[1]
+		     == 'm')
+		{
+		  save_switch
+		    (decoded_options[j].orig_option_with_args_text,
+		     0, NULL, true, false);
+		  break;
+		}
+#endif
 	      read_cmdline_option (&global_options, &global_options_set,
 				   decoded_options + j, UNKNOWN_LOCATION,
 				   CL_DRIVER, &handlers, global_dc);
@@ -8372,9 +8397,11 @@ static const struct mt_driver_specs *const mt_driver_specs_registry[] =
 #undef MT_BACKEND
 };
 
-/* The selected secondary's capture, or null when the primary
-   runs.  */
-static const struct mt_driver_specs *mt_selected_capture;
+/* The primary's own DRIVER_SELF_SPECS entries; they occupy fixed
+   positions in driver_self_specs, where a selected secondary's
+   captured entries run instead.  */
+static const char *const mt_primary_self_specs[]
+  = { DRIVER_SELF_SPECS };
 
 /* The target selected with --target=, or null for the primary.  */
 static const char *mt_selected_target;
@@ -8783,7 +8810,24 @@ driver::set_up_specs () const
      of the command line.  */
 
   for (i = 0; i < ARRAY_SIZE (driver_self_specs); i++)
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+    /* The DRIVER_SELF_SPECS entries occupy the ARRAY_SIZE
+       (mt_primary_self_specs) positions starting at 1; a selected
+       secondary's captured self specs run in their place, once,
+       while the generic entries around them keep running.  */
+    if (mt_selected_capture != NULL
+	&& i >= 1 && i < 1 + ARRAY_SIZE (mt_primary_self_specs))
+      {
+	if (i == 1)
+	  for (size_t entry = 0;
+	       entry < mt_selected_capture->num_self_specs; entry++)
+	    do_self_spec (mt_selected_capture->self_specs[entry]);
+      }
+    else
+      do_self_spec (driver_self_specs[i]);
+#else
     do_self_spec (driver_self_specs[i]);
+#endif
 
   /* If not cross-compiling, look for executables in the standard
      places.  */
@@ -9037,6 +9081,18 @@ driver::handle_unrecognized_options ()
   for (size_t i = 0; (int) i < n_switches; i++)
     if (! switches[i].validated)
       {
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+	/* Under a secondary selection the driver only routes target
+	   option text: a switch starting with -m is outside its own
+	   — the primary's — tables, reaches cc1 through the m-star
+	   group in every compile spec, and is judged there against
+	   the selected target's tables.  */
+	if (mt_selected_capture != NULL && switches[i].part1[0] == 'm')
+	  {
+	    switches[i].validated = true;
+	    continue;
+	  }
+#endif
 	const char *hint = m_option_proposer.suggest_option (switches[i].part1);
 	if (hint)
 	  error ("unrecognized command-line option %<-%s%>;"

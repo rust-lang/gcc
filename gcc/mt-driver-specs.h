@@ -50,8 +50,7 @@ struct mt_driver_specs
 
   /* The target's DRIVER_SELF_SPECS entries.  They normalize the
      command line — forcing default endianness or ABI options onto
-     it — and wait for the driver to learn to carry a foreign
-     target's option text undecoded.  */
+     it — and run in place of the primary's own entries.  */
   const char *const *self_specs;
   size_t num_self_specs;
 
