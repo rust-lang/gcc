@@ -8395,6 +8395,84 @@ driver::~driver ()
   XDELETEVEC (decoded_options);
 }
 
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+/* The target selected with --target=, or null for the primary.  */
+static const char *mt_selected_target;
+
+/* Consume any --target= among OPTIONS and point the machine name
+   at the selection.  The last selection wins, as repeated options
+   conventionally do.  Validation waits until the driver's own
+   diagnostics are configured.  */
+
+static void
+mt_handle_target_option (struct cl_decoded_option *options,
+			 unsigned int *count)
+{
+  unsigned int in, out = 1;
+  for (in = 1; in < *count; in++)
+    {
+      if (options[in].opt_index == OPT_SPECIAL_unknown
+	  && options[in].arg != NULL
+	  && startswith (options[in].arg, "--target="))
+	{
+	  mt_selected_target
+	    = options[in].arg + strlen ("--target=");
+	  continue;
+	}
+      options[out++] = options[in];
+    }
+  *count = out;
+
+  if (mt_selected_target != NULL)
+    spec_machine = mt_selected_target;
+}
+
+/* Diagnose an unknown --target= selection.  This runs right after
+   the specs are set up — after process_command has configured the
+   driver's own diagnostics, so the error obeys the diagnostic
+   options — and before the selection is used any further.  */
+
+static void
+mt_validate_target_selection (void)
+{
+  if (mt_selected_target == NULL)
+    return;
+
+  bool known
+    = strcmp (mt_selected_target, DEFAULT_TARGET_MACHINE) == 0;
+  const size_t length = strlen (mt_selected_target);
+  const char *cursor = MT_SECONDARY_TARGET_TRIPLES;
+  while (!known && *cursor != '\0')
+    {
+      const char *end = strchr (cursor, ' ');
+      size_t span
+	= end != NULL ? (size_t) (end - cursor) : strlen (cursor);
+      known = (span == length
+	       && strncmp (cursor, mt_selected_target, span) == 0);
+      cursor = end != NULL ? end + 1 : cursor + span;
+    }
+  if (!known)
+    fatal_error (input_location,
+		 "unknown target %qs; this compiler supports %s %s",
+		 mt_selected_target, DEFAULT_TARGET_MACHINE,
+		 MT_SECONDARY_TARGET_TRIPLES);
+}
+
+/* Route the --target= selection to cc1 by prepending
+   -fmulti-target= to the cc1 spec.  This runs after the specs are
+   set up, so it composes with a specs file's own cc1 spec instead
+   of being replaced by it.  */
+
+static void
+mt_route_target_to_cc1 (void)
+{
+  if (mt_selected_target == NULL)
+    return;
+  cc1_spec = concat ("-fmulti-target=", mt_selected_target, " ",
+		     cc1_spec, NULL);
+}
+#endif
+
 /* driver::main is implemented as a series of driver:: method calls.  */
 
 int
@@ -8407,7 +8485,14 @@ driver::main (int argc, char **argv)
   decode_argv (argc, const_cast <const char **> (argv));
   global_initializations ();
   build_multilib_strings ();
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+  mt_handle_target_option (decoded_options, &decoded_options_count);
+#endif
   set_up_specs ();
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+  mt_validate_target_selection ();
+  mt_route_target_to_cc1 ();
+#endif
   putenv_COLLECT_AS_OPTIONS (assembler_options);
   putenv_COLLECT_GCC (argv[0]);
   maybe_putenv_COLLECT_LTO_WRAPPER ();
@@ -8647,9 +8732,16 @@ driver::set_up_specs () const
 
   /* Process any configure-time defaults specified for the command line
      options, via OPTION_DEFAULT_SPECS.  */
-  for (i = 0; i < ARRAY_SIZE (option_default_specs); i++)
-    do_option_spec (option_default_specs[i].name,
-		    option_default_specs[i].spec);
+#if ENABLE_MULTI_TARGET && defined (MT_SECONDARY_TARGET_TRIPLES)
+  /* The primary's configured option defaults must not reach another
+     target's cc1; a target's own defaults arrive with its captured
+     specs.  */
+  if (mt_selected_target == NULL
+      || strcmp (mt_selected_target, DEFAULT_TARGET_MACHINE) == 0)
+#endif
+    for (i = 0; i < ARRAY_SIZE (option_default_specs); i++)
+      do_option_spec (option_default_specs[i].name,
+		      option_default_specs[i].spec);
 
   /* Process DRIVER_SELF_SPECS, adding any new options to the end
      of the command line.  */

@@ -2729,6 +2729,11 @@ DRIVER_DEFINES = \
 
 CFLAGS-target-backend-def.o += -DTARGET_BACKEND_PRIMARY_TRIPLE="\"$(target)\""
 CFLAGS-gcc.o += $(DRIVER_DEFINES) -DBASEVER=$(BASEVER_s)
+ifneq ($(multi_target_tags),)
+# The driver validates --target= against the enabled targets.
+CFLAGS-gcc.o += \
+  -DMT_SECONDARY_TARGET_TRIPLES="\"$(multi_target_triples)\""
+endif
 gcc.o: $(BASEVER)
 
 specs.h : s-specs ; @true
