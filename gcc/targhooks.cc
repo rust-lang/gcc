@@ -561,11 +561,13 @@ default_floatn_mode (int n, bool extended)
 	  gcc_unreachable ();
 	}
       if (cand1.exists (&mode)
+	  && mode_present_p (mode)
 	  && REAL_MODE_FORMAT (mode)->ieee_bits > n
 	  && targetm.scalar_mode_supported_p (mode)
 	  && targetm.libgcc_floating_mode_supported_p (mode))
 	return cand1;
       if (cand2.exists (&mode)
+	  && mode_present_p (mode)
 	  && REAL_MODE_FORMAT (mode)->ieee_bits > n
 	  && targetm.scalar_mode_supported_p (mode)
 	  && targetm.libgcc_floating_mode_supported_p (mode))
@@ -608,6 +610,7 @@ default_floatn_mode (int n, bool extended)
 	  break;
 	}
       if (cand.exists (&mode)
+	  && mode_present_p (mode)
 	  && REAL_MODE_FORMAT (mode)->ieee_bits == n
 	  && targetm.scalar_mode_supported_p (mode)
 	  && targetm.libgcc_floating_mode_supported_p (mode))
