@@ -345,6 +345,15 @@ scalar_reg_words_big_endian (void)
   return REG_WORDS_BIG_ENDIAN != 0;
 }
 
+/* Whether the port defines MAX_STACK_ALIGNMENT selects between
+   two defaults.h definitions; the capture evaluates the choice in
+   the target's own context.  */
+static unsigned int
+scalar_max_supported_stack_alignment (void)
+{
+  return MAX_SUPPORTED_STACK_ALIGNMENT;
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -386,6 +395,7 @@ static const struct mt_target_scalars target_scalars =
   scalar_words_big_endian,
   scalar_float_words_big_endian,
   scalar_reg_words_big_endian,
+  scalar_max_supported_stack_alignment,
 };
 
 /* extern: a const object would otherwise have internal linkage in

@@ -1323,6 +1323,19 @@ extern bool (*mt_active_epilogue_uses) (int);
 #define MAX_SUPPORTED_STACK_ALIGNMENT PREFERRED_STACK_BOUNDARY
 #endif
 
+/* The definition above chose a branch by whether the primary
+   defines MAX_STACK_ALIGNMENT; the active target's capture made
+   its own choice.  This flip must follow the definition, which
+   would otherwise redefine over it.  */
+#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
+  && !defined (IN_TARGET_CODE) \
+  && !defined (MT_NATIVE_REGISTER_CONSTANTS) \
+  && !defined (MT_NATIVE_TARGET_SURFACE)
+#undef MAX_SUPPORTED_STACK_ALIGNMENT
+#define MAX_SUPPORTED_STACK_ALIGNMENT \
+  (mt_active_target_scalars->x_max_supported_stack_alignment ())
+#endif
+
 #define SUPPORTS_STACK_ALIGNMENT (MAX_STACK_ALIGNMENT > STACK_BOUNDARY)
 
 #ifndef LOCAL_ALIGNMENT

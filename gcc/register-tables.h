@@ -74,6 +74,7 @@ struct mt_target_scalars
   int (*x_words_big_endian) (void);
   int (*x_float_words_big_endian) (void);
   int (*x_reg_words_big_endian) (void);
+  unsigned int (*x_max_supported_stack_alignment) (void);
 };
 
 /* One register elimination pair, as ELIMINABLE_REGS lists them.  */
