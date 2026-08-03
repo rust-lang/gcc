@@ -375,6 +375,8 @@ print_header (void)
    whose numbers are skipped by a given pattern.  */\n\
 static rtx junk ATTRIBUTE_UNUSED;\n");
 
+  mt_prefix_define ("insn_extract", "");
+
   puts ("\
 void\n\
 insn_extract (rtx_insn *insn)\n{\n\

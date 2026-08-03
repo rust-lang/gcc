@@ -3625,13 +3625,115 @@ $(mt_insn_recog_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
 	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
 	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ $<
 
+$(multi_target_tags:%=build/mt-%/genextract.o): build/mt-%/genextract.o: \
+  $(srcdir)/genextract.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genextract$(build_exeext)): \
+  build/mt-%/genextract$(build_exeext): build/mt-%/genextract.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=build/mt-%/genoutput.o): build/mt-%/genoutput.o: \
+  $(srcdir)/genoutput.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genoutput$(build_exeext)): \
+  build/mt-%/genoutput$(build_exeext): build/mt-%/genoutput.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=build/mt-%/genpeep.o): build/mt-%/genpeep.o: \
+  $(srcdir)/genpeep.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genpeep$(build_exeext)): \
+  build/mt-%/genpeep$(build_exeext): build/mt-%/genpeep.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=mt-%/insn-extract.cc): mt-%/insn-extract.cc: \
+  build/mt-%/genextract$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genextract$(build_exeext) \
+	  --mt-prefix=mt_$*_ $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
+	  > tmp-mt-$*-extract.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-extract.cc $@
+
+$(multi_target_tags:%=mt-%/insn-output.cc): mt-%/insn-output.cc: \
+  build/mt-%/genoutput$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genoutput$(build_exeext) \
+	  --mt-prefix=mt_$*_ $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
+	  > tmp-mt-$*-output.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-output.cc $@
+
+$(multi_target_tags:%=mt-%/insn-peep.cc): mt-%/insn-peep.cc: \
+  build/mt-%/genpeep$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genpeep$(build_exeext) --mt-prefix=mt_$*_ \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  mt-$*/insn-conditions.md > tmp-mt-$*-peep.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-peep.cc $@
+
+# genenums reads only the md enum definitions, never a mode name, so
+# the shared binary serves every target, like genconstants.
+$(multi_target_tags:%=mt-%/insn-enums.cc): mt-%/insn-enums.cc: \
+  build/genenums$(build_exeext) mt-config-%.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/genenums$(build_exeext) --mt-prefix=mt_$*_ \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  > tmp-mt-$*-enums.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-enums.cc $@
+
+$(multi_target_tags:%=mt-%/insn-extract.o): mt-%/insn-extract.o: \
+  mt-%/insn-extract.cc $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+$(multi_target_tags:%=mt-%/insn-output.o): mt-%/insn-output.o: \
+  mt-%/insn-output.cc $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+$(multi_target_tags:%=mt-%/insn-peep.o): mt-%/insn-peep.o: \
+  mt-%/insn-peep.cc $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+$(multi_target_tags:%=mt-%/insn-enums.o): mt-%/insn-enums.o: \
+  mt-%/insn-enums.cc $(CONFIG_H) mt-%/insn-constants.h
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+mt_insn_unit_objects = \
+	$(multi_target_tags:%=mt-%/insn-extract.o) \
+	$(multi_target_tags:%=mt-%/insn-output.o) \
+	$(multi_target_tags:%=mt-%/insn-peep.o) \
+	$(multi_target_tags:%=mt-%/insn-enums.o)
+
 # The collision audit: with the rename macros in effect, the targets'
 # generated objects must export pairwise disjoint strong symbols.
 # Weak and vague-linkage definitions — inline and template
 # instantiations from shared headers — merge in the linker and are
 # not collisions.
 .PHONY: mt-check-symbols
-mt-check-symbols: $(mt_insn_emit_objects) $(mt_insn_recog_objects)
+mt-check-symbols: $(mt_insn_emit_objects) $(mt_insn_recog_objects) \
+  $(mt_insn_unit_objects)
 	@for mt_tag in $(multi_target_tags); do \
 	  $(NM) -g -P mt-$$mt_tag/*.o \
 	    | awk 'NF >= 3 && $$2 != "U" && $$2 !~ /^[WwVv]$$/ \

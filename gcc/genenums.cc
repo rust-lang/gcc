@@ -35,6 +35,11 @@ print_enum_type (void **slot, void *info ATTRIBUTE_UNUSED)
   struct enum_value *value;
 
   def = (struct enum_type *) *slot;
+  /* genenums links only the md reader, so it emits the
+     multi-target rename itself.  */
+  if (mt_prefix)
+    printf ("\n#define %s_strings %s%s_strings",
+	    def->name, mt_prefix, def->name);
   printf ("\nconst char *const %s_strings[] = {", def->name);
   for (value = def->values; value; value = value->next)
     {

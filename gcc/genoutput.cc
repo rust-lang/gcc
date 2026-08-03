@@ -297,6 +297,12 @@ output_insn_data (void)
 	break;
       }
 
+  mt_prefix_define ("insn_data", "");
+  /* The declaration recog.h provides names the unrenamed array; the
+     renamed const definition needs its own, or C++ gives it internal
+     linkage.  */
+  if (mt_prefix)
+    printf ("extern const struct insn_data_d insn_data[];\n");
   printf ("#if GCC_VERSION >= 2007\n__extension__\n#endif\n");
   printf ("\nconst struct insn_data_d insn_data[] = \n{\n");
 
@@ -412,6 +418,7 @@ output_insn_data (void)
 static void
 output_get_insn_name (void)
 {
+  mt_prefix_define ("get_insn_name", "");
   printf ("const char *\n");
   printf ("get_insn_name (int code)\n");
   printf ("{\n");
@@ -1164,6 +1171,7 @@ main (int argc, const char **argv)
      verification shouldn't be too expensive, restrict it to checking builds.
    */
   printf ("\n\n#if CHECKING_P\n");
+  mt_prefix_define ("verify_reg_names_in_constraints", "");
   if (used_reg_names.is_empty ())
     printf ("void verify_reg_names_in_constraints () { }\n");
   else

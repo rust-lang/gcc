@@ -382,6 +382,8 @@ from the machine description file `md'.  */\n\n");
   printf ("#include \"flags.h\"\n");
   printf ("#include \"tm-constrs.h\"\n\n");
 
+  mt_prefix_define ("peephole", "");
+  mt_prefix_define ("peep_operand", "");
   printf ("extern rtx peep_operand[];\n\n");
   printf ("#define operands peep_operand\n\n");
 
