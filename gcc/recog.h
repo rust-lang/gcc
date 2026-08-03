@@ -67,12 +67,24 @@ struct operand_alternative
 
   /* Bit ID is set if the constraint string includes a register constraint with
      register filter ID.  Use test_register_filters (REGISTER_FILTERS, REGNO)
-     to test whether REGNO is a valid start register for the operand.  */
+     to test whether REGNO is a valid start register for the operand.
+     Every compilation surface of a multi-target build must lay this
+     structure out identically — host passes hand these records to
+     inline helpers that a target's own objects also instantiate —
+     so the filter widths take the superset maxima there.  */
+#if ENABLE_MULTI_TARGET
+  unsigned int register_filters : MAX (MT_MAX_REGISTER_FILTERS, 1);
+#else
   unsigned int register_filters : MAX (NUM_REGISTER_FILTERS, 1);
+#endif
 
   /* Bit ID is set if the constraint string includes a dependent
      register constraint with dependent-filter id ID.  */
+#if ENABLE_MULTI_TARGET
+  unsigned int dependent_filters : MAX (MT_MAX_DEPENDENT_FILTERS, 1);
+#else
   unsigned int dependent_filters : MAX (NUM_DEPENDENT_FILTERS, 1);
+#endif
 
   /* Nonzero if '&' was found in the constraint string.  */
   unsigned int earlyclobber : 1;

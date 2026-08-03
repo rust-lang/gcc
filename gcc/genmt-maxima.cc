@@ -51,6 +51,8 @@ main (void)
   printf ("n_reg_classes %d\n", (int) N_REG_CLASSES);
   printf ("cumulative_args_size %d\n",
 	  (int) sizeof (CUMULATIVE_ARGS));
+  printf ("num_register_filters %d\n", NUM_REGISTER_FILTERS);
+  printf ("num_dependent_filters %d\n", NUM_DEPENDENT_FILTERS);
 
   if (ferror (stdout) != 0 || fflush (stdout) != 0)
     return FATAL_EXIT_CODE;
