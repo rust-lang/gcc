@@ -1328,6 +1328,11 @@ SARIF_REPLAY_OBJS = sarif-replay.o libsarifreplay.o
 
 c-family-warn = $(STRICT_WARN)
 
+# In a multi-target build, the C-family binaries also carry the
+# registry of the targets' C-family surfaces and the primary
+# target's surface; the variable is empty in a single-target build.
+MT_C_FAMILY_OBJS = @multi_target_c_family_objects@
+
 # Language-specific object files shared by all C-family front ends.
 C_COMMON_OBJS = c-family/c-common.o c-family/c-cppbuiltin.o c-family/c-dump.o \
   c-family/c-format.o c-family/c-gimplify.o c-family/c-indentation.o \
@@ -1336,7 +1341,7 @@ C_COMMON_OBJS = c-family/c-common.o c-family/c-cppbuiltin.o c-family/c-dump.o \
   c-family/c-semantics.o c-family/c-ada-spec.o \
   c-family/c-ubsan.o c-family/known-headers.o \
   c-family/c-attribs.o c-family/c-warn.o c-family/c-spellcheck.o \
-  c-family/c-type-mismatch.o
+  c-family/c-type-mismatch.o $(MT_C_FAMILY_OBJS)
 
 # Analyzer object files
 ANALYZER_OBJS = \
@@ -2012,6 +2017,7 @@ mt_backend_objects = $(foreach mt_tag,$(multi_target_tags), \
 	mt-$(mt_tag)/target-backend-def.o) \
 	$(mt_port_objects)
 mt_port_objects = @multi_target_port_objects@
+mt_c_port_objects = @multi_target_c_port_objects@
 endif
 
 # This is defined to "yes" if Tree checking is enabled, which roughly means
@@ -3965,6 +3971,22 @@ $(multi_target_tags:%=mt-%/target-backend-def.o): \
 mt_backend_descriptor_objects = \
 	$(multi_target_tags:%=mt-%/target-backend-def.o)
 
+# Each target's C-family surface: the shared source file compiled
+# inside the target's header context.  The primary target's surface
+# compiles from the same file in the host context through the
+# generic rule and is found by identity, so only the secondary
+# compiles pass a triplet.
+$(multi_target_tags:%=mt-%/c-backend-def.o): \
+  mt-%/c-backend-def.o: $(srcdir)/c-family/c-backend-def.cc \
+  mt-config-%.sh $(CONFIG_H) tree-check.h all-tree.def gtype-desc.h \
+  genrtl.h $(mt_target_code_prerequisites)
+	. ./mt-config-$*.sh; \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) \
+	  -DMT_C_BACKEND_SYMBOL=mt_c_backend_$* \
+	  -DMT_C_BACKEND_TRIPLE="\"$$mt_triple\"" \
+	  -o $@ $<
+
 # The registry enumerates the enabled targets' descriptors through
 # this generated list.
 mt-backend-list.h: Makefile
@@ -3974,6 +3996,8 @@ mt-backend-list.h: Makefile
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-backend-list.h $@
 
 target-registry.o: mt-backend-list.h
+
+c-family/c-backend.o: mt-backend-list.h
 
 # The collision audit: with the rename macros in effect, the targets'
 # generated objects must export pairwise disjoint strong symbols.
@@ -4337,7 +4361,8 @@ $(multi_target_tags:%=mt-%/stamp-port-products): \
 
 ifneq ($(mt_port_objects),)
 
-$(mt_port_objects): mt-%.o: $(CONFIG_H) tree-check.h all-tree.def \
+$(mt_port_objects) $(mt_c_port_objects): mt-%.o: $(CONFIG_H) \
+  tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_headers_all) \
   $(multi_target_tags:%=mt-%/s-gt-headers) \
   $(multi_target_tags:%=mt-%/stamp-port-products) \

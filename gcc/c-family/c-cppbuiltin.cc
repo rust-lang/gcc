@@ -33,6 +33,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "common/common-target.h"
 #include "cppbuiltin.h"
 #include "configargs.h"
+#include "c-backend.h"
 
 #ifndef TARGET_OS_CPP_BUILTINS
 # define TARGET_OS_CPP_BUILTINS()
@@ -1717,7 +1718,14 @@ c_cpp_builtins (cpp_reader *pfile)
 # define preprocessing_trad_p() (cpp_get_options (pfile)->traditional)
 # define builtin_define(TXT) cpp_define (pfile, TXT)
 # define builtin_assert(TXT) cpp_assert (pfile, TXT)
+#if ENABLE_MULTI_TARGET
+  /* The target's own macros come from the active target's C-family
+     surface; the OS and object format macros remain the primary's,
+     shared by every built-in target.  */
+  mt_c_cpu_cpp_builtins (pfile);
+#else
   TARGET_CPU_CPP_BUILTINS ();
+#endif
   TARGET_OS_CPP_BUILTINS ();
   TARGET_OBJFMT_CPP_BUILTINS ();
 

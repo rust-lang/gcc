@@ -35,6 +35,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "opts.h"
 #include "plugin.h"
 #include "opt-suggestions.h"
+#include "c-backend.h"
 
 #define GCC_BAD(gmsgid) \
   do { warning (OPT_Wpragmas, gmsgid); return; } while (0)
@@ -1875,8 +1876,12 @@ init_pragma (void)
 
   c_register_pragma_with_expansion (0, "message", handle_pragma_message);
 
-#ifdef REGISTER_TARGET_PRAGMAS
+#if ENABLE_MULTI_TARGET
+  mt_c_register_pragmas ();
+#else
+# ifdef REGISTER_TARGET_PRAGMAS
   REGISTER_TARGET_PRAGMAS ();
+# endif
 #endif
 
   global_sso = default_sso;

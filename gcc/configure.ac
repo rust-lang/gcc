@@ -2110,6 +2110,49 @@ done
 multi_target_port_objects=`echo $multi_target_port_objects`
 AC_SUBST(multi_target_port_objects)
 
+# The secondary targets' port C-family objects: each target's own
+# <cpu>-c.cc compiles once per target into the C front end's link,
+# while the OS-level C-family objects stay the primary's host copies,
+# shared by every built-in target.
+multi_target_c_port_objects=
+mt_first_tag=
+for mt_tag in $multi_target_tags; do
+  if test -z "$mt_first_tag"; then
+    mt_first_tag=$mt_tag
+    continue
+  fi
+  mt_objects=`(. ./mt-config-$mt_tag.sh; \
+	       for mt_object in $mt_c_target_objs; do \
+		 mt_base=\`basename $mt_object .o\`; \
+		 if test -f "$srcdir/config/$mt_cpu_type/$mt_base.cc"; then \
+		   echo $mt_object; \
+		 fi; \
+	       done)`
+  for mt_object in $mt_objects; do
+    multi_target_c_port_objects="$multi_target_c_port_objects mt-$mt_tag/$mt_object"
+  done
+done
+multi_target_c_port_objects=`echo $multi_target_c_port_objects`
+AC_SUBST(multi_target_c_port_objects)
+
+# The C-family binaries carry the registry of the targets' C-family
+# surfaces and the primary target's surface; the C front end also
+# links every secondary target's surface and port C-family objects.
+multi_target_c_family_objects=
+if test -n "$multi_target_tags"; then
+  multi_target_c_family_objects="c-family/c-backend.o c-family/c-backend-def.o"
+  mt_first_tag=
+  for mt_tag in $multi_target_tags; do
+    if test -z "$mt_first_tag"; then
+      mt_first_tag=$mt_tag
+      continue
+    fi
+    c_target_objs="$c_target_objs mt-$mt_tag/c-backend-def.o"
+  done
+  c_target_objs="$c_target_objs $multi_target_c_port_objects"
+fi
+AC_SUBST(multi_target_c_family_objects)
+
 # Say what files are being used for the output code and MD file.
 echo "Using \`$srcdir/config/$out_file' for machine-specific logic."
 echo "Using \`$srcdir/config/$md_file' as machine description file."
