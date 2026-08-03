@@ -3357,6 +3357,8 @@ build/genmddeps.o: genmddeps.cc $(BCONFIG_H) $(SYSTEM_H) $(CORETYPES_H)	\
   errors.h $(READ_MD_H)
 build/genmodes.o : genmodes.cc $(BCONFIG_H) $(SYSTEM_H) errors.h		\
   $(HASHTAB_H) machmode.def $(extra_modes_file)
+build/genmodes-merge.o : genmodes-merge.cc $(BCONFIG_H) $(SYSTEM_H)	\
+  errors.h mode-classes.def
 build/genopinit.o : genopinit.cc $(RTL_BASE_H) $(BCONFIG_H) $(SYSTEM_H)	\
   $(CORETYPES_H) $(GTM_H) errors.h $(GENSUPPORT_H) optabs.def
 build/genoutput.o : genoutput.cc $(RTL_BASE_H) $(BCONFIG_H) $(SYSTEM_H)	\
@@ -3400,7 +3402,8 @@ genprogmd += $(genprogrtl) mddeps constants enums
 $(genprogmd:%=build/gen%$(build_exeext)): $(BUILD_MD)
 
 # All these programs need to report errors.
-genprogerr += $(genprogmd) genrtl modes gtype hooks cfn-macros condmd
+genprogerr += $(genprogmd) genrtl modes modes-merge gtype hooks \
+	cfn-macros condmd
 $(genprogerr:%=build/gen%$(build_exeext)): $(BUILD_ERRORS)
 
 # Remaining build programs.
