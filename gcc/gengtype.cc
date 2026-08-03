@@ -55,6 +55,10 @@ static size_t nb_plugin_files;
 static outf_p plugin_output;
 static char *plugin_output_filename;
 
+/* The multi-target prefix renaming the marker procedures the plugin
+   output defines; see --mt-prefix.  */
+static const char *mt_prefix_string;
+
 /* Our source directory and its length.  */
 const char *srcdir;
 size_t srcdir_len;
@@ -3301,6 +3305,14 @@ get_output_file_for_structure (const_type_p s)
   gcc_assert (union_or_struct_p (s));
   fn = s->u.s.line.file;
 
+  /* In plugin mode, a type synthesized while parsing the
+     plugin files — say a template instantiation a
+     redefined type uses — belongs to the plugin output;
+     the state's own nameless types keep their usual
+     home.  */
+  if (plugin_output && fn == NULL && s->state_number < 0)
+    return plugin_output;
+
   /* The call to get_output_file_with_visibility may update fn by
      caching its result inside, so we need the CONST_CAST.  */
   return get_output_file_with_visibility (const_cast<input_file*> (fn));
@@ -3795,6 +3807,59 @@ static const struct write_types_data pch_wtd = {
   "PCH type-walking procedures.  ",
   WTK_PCH
 };
+
+
+/* In a multi-target build, each enabled target runs gengtype in
+   plugin mode over the target's own GTY-carrying sources, and two
+   targets routinely define markers under one name — every port
+   names its per-function state machine_function.  Renaming every
+   marker procedure this output defines with the target's prefix
+   lets the outputs coexist in one binary; the markers the read-in
+   state owns keep their names, so the output still reaches the
+   shared marking routines.  */
+
+static void
+write_mt_prefix_defines (outf_p plugin_header, type_p structures_list)
+{
+  type_p s;
+
+  oprintf (plugin_header, "\n/* Renames of the marker procedures "
+	   "defined here; see --mt-prefix.  */\n");
+  for (s = structures_list; s; s = s->next)
+    if ((s->gc_used == GC_POINTED_TO || s->gc_used == GC_MAYBE_POINTED_TO)
+	&& !s->u.s.base_class)
+      {
+	options_p opt;
+
+	if (s->u.s.line.file == NULL)
+	  continue;
+	/* A target's redefinition of a type the state already holds
+	   splits it into per-language variants; the rename applies
+	   when any variant's definition lands here.  */
+	if (s->kind == TYPE_LANG_STRUCT)
+	  {
+	    type_p ss;
+	    for (ss = s->u.s.lang_struct; ss; ss = ss->next)
+	      if (get_output_file_for_structure (ss) == plugin_header)
+		break;
+	    if (ss == NULL)
+	      continue;
+	  }
+	else if (get_output_file_for_structure (s) != plugin_header)
+	  continue;
+	for (opt = s->u.s.opt; opt; opt = opt->next)
+	  if (strcmp (opt->name, "ptr_alias") == 0)
+	    break;
+	if (opt)
+	  continue;
+
+	const char *s_id_for_tag = filter_type_name (s->u.s.tag);
+	oprintf (plugin_header, "#define gt_ggc_mx_%s %sgt_ggc_mx_%s\n",
+		 s_id_for_tag, mt_prefix_string, s_id_for_tag);
+	if (s_id_for_tag != s->u.s.tag)
+	  free (const_cast<char *> (s_id_for_tag));
+      }
+}
 
 /* Write out the local pointer-walking routines.  */
 
@@ -5016,6 +5081,7 @@ static const struct option gengtype_long_options[] = {
   {"dump", no_argument, NULL, 'd'},
   {"debug", no_argument, NULL, 'D'},
   {"plugin", required_argument, NULL, 'P'},
+  {"mt-prefix", required_argument, NULL, 'm'},
   {"srcdir", required_argument, NULL, 'S'},
   {"backupdir", required_argument, NULL, 'B'},
   {"inputs", required_argument, NULL, 'I'},
@@ -5038,6 +5104,8 @@ print_usage (void)
   printf ("\t -d | --dump " " \t# Dump state for debugging.\n");
   printf ("\t -P | --plugin <output-file> <plugin-src> ... "
 	  " \t# Generate for plugin.\n");
+  printf ("\t -m | --mt-prefix <prefix> "
+	  " \t# Rename the plugin output's markers for one target.\n");
   printf ("\t -S | --srcdir <GCC-directory> "
 	  " \t# Specify the GCC source directory.\n");
   printf ("\t -B | --backupdir <directory> "
@@ -5060,7 +5128,7 @@ static void
 parse_program_options (int argc, char **argv)
 {
   int opt = -1;
-  while ((opt = getopt_long (argc, argv, "hVvdP:S:B:I:w:r:D",
+  while ((opt = getopt_long (argc, argv, "hVvdP:S:B:I:w:r:Dm:",
 			     gengtype_long_options, NULL)) >= 0)
     {
       switch (opt)
@@ -5085,6 +5153,12 @@ parse_program_options (int argc, char **argv)
 	    plugin_output_filename = optarg;
 	  else
 	    fatal ("missing plugin output file name");
+	  break;
+	case 'm':		/* --mt-prefix */
+	  if (optarg)
+	    mt_prefix_string = optarg;
+	  else
+	    fatal ("missing multi-target prefix");
 	  break;
 	case 'S':		/* --srcdir */
 	  if (optarg)
@@ -5125,6 +5199,8 @@ parse_program_options (int argc, char **argv)
 	  fatal ("unexpected flag");
 	}
     };
+  if (mt_prefix_string && !plugin_output_filename)
+    fatal ("--mt-prefix only applies to plugin mode");
   if (plugin_output_filename)
     {
       /* In plugin mode we require some input files.  */
@@ -5331,6 +5407,34 @@ main (int argc, char **argv)
 
   set_gc_used (variables);
 
+  /* Plugin files can redefine a type the read-in state already
+     holds — each port defines its own machine_function — and the
+     state's mark then stops the walk before the redefinition's own
+     field types are reached.  Re-walk every marked type the plugin
+     output owns, so that the types only the redefinition uses are
+     marked and emitted with it.  */
+  if (plugin_output)
+    for (type_p s = structures; s; s = s->next)
+      {
+	if (!union_or_struct_p (s) || s->gc_used == GC_UNUSED)
+	  continue;
+	enum gc_used_enum mt_level = s->gc_used;
+	if (s->kind == TYPE_LANG_STRUCT)
+	  {
+	    for (type_p ss = s->u.s.lang_struct; ss; ss = ss->next)
+	      if (get_output_file_for_structure (ss) == plugin_output)
+		{
+		  ss->gc_used = GC_UNUSED;
+		  set_gc_used_type (ss, mt_level);
+		}
+	  }
+	else if (get_output_file_for_structure (s) == plugin_output)
+	  {
+	    s->gc_used = GC_UNUSED;
+	    set_gc_used_type (s, mt_level);
+	  }
+      }
+
   for (type_p t = structures; t; t = t->next)
     {
       bool for_user = false;
@@ -5376,6 +5480,8 @@ main (int argc, char **argv)
   DBGPRINT_COUNT_TYPE ("structures before write_types outputheader",
 		       structures);
 
+  if (plugin_output && mt_prefix_string)
+    write_mt_prefix_defines (plugin_output, structures);
   write_types (output_header, structures, &ggc_wtd);
   if (plugin_files == NULL)
     {

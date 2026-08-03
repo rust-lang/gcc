@@ -4178,6 +4178,71 @@ mt-check-options-units:
 
 endif
 
+# Each enabled target's GTY machinery: gengtype runs in plugin mode
+# against the primary's completed state, once for the port's main
+# translation unit — which owns the types the port's headers define,
+# machine_function above all — and once for every further
+# GTY-carrying source, which owns its own file-static roots.  Every
+# run reads the port's GTY-carrying headers too — but only the main
+# run reads the port's tm.h headers, so a type those define walks in
+# exactly one output — and the per-run --mt-prefix keeps the markers
+# a header hands to two runs, and to two targets, apart.  The root
+# tables carry the output path in their names, so they are
+# per-target already; nothing registers them until runtime
+# activation.  The outputs are written in place, exactly as the
+# primary run writes its own gt- headers.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=mt-%/s-gt-headers): mt-%/s-gt-headers: \
+  build/gengtype$(build_exeext) gtype.state mt-config-%.sh \
+  mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	mt_gt_headers=; \
+	mt_gt_sources=; \
+	for mt_f in $$mt_target_gtfiles; do \
+	  mt_f=`echo "$$mt_f" | sed 's|^\$$(srcdir)|$(srcdir)|'`; \
+	  case $$mt_f in \
+	    *.h) mt_gt_headers="$$mt_gt_headers $$mt_f";; \
+	    *) mt_gt_sources="$$mt_gt_sources $$mt_f";; \
+	  esac; \
+	done; \
+	mt_port_headers=; \
+	for mt_f in $$mt_tm_include_list; do \
+	  case $$mt_f in \
+	    config/*) \
+	      mt_port_headers="$$mt_port_headers $(srcdir)/$$mt_f";; \
+	  esac; \
+	done; \
+	mt_base=`basename $$mt_out_file .cc`; \
+	$(RUN_GEN) build/gengtype$(build_exeext) -r gtype.state \
+	  --mt-prefix=mt_$*_`echo $$mt_base | tr - _`_ \
+	  -P mt-$*/gt-$$mt_base.h $$mt_port_headers $$mt_gt_headers \
+	  $(srcdir)/config/$$mt_out_file || exit 1; \
+	for mt_f in $$mt_gt_sources; do \
+	  mt_base=`basename $$mt_f .cc`; \
+	  $(RUN_GEN) build/gengtype$(build_exeext) -r gtype.state \
+	    --mt-prefix=mt_$*_`echo $$mt_base | tr - _`_ \
+	    -P mt-$*/gt-$$mt_base.h $$mt_gt_headers $$mt_f \
+	    || exit 1; \
+	done
+	$(STAMP) $@
+
+.PHONY: mt-check-gt-headers
+mt-check-gt-headers: $(multi_target_tags:%=mt-%/s-gt-headers)
+	@for mt_tag in $(multi_target_tags); do \
+	  echo "== mt-$$mt_tag"; \
+	  grep -c "ggc_root_tab\|^gt_ggc_mx_" mt-$$mt_tag/gt-*.h \
+	    | sed 's|^|  |'; \
+	done
+
+else
+
+.PHONY: mt-check-gt-headers
+mt-check-gt-headers:
+	@echo "mt-check-gt-headers: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true
