@@ -11500,7 +11500,7 @@ recog_for_combine_1 (rtx *pnewpat, rtx_insn *insn, rtx *pnotes,
       else
 	XVECEXP (newpat, 0, 0) = pat;
 
-      add_clobbers (newpat, insn_code_number);
+      target_backend_add_clobbers (newpat, insn_code_number);
 
       for (i = XVECLEN (newpat, 0) - num_clobbers_to_add;
 	   i < XVECLEN (newpat, 0); i++)

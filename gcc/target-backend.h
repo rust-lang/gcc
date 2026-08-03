@@ -155,6 +155,8 @@ struct target_backend
   void (*insn_extract) (rtx_insn *);
   rtx_insn *(*split_insns) (rtx, rtx_insn *);
   rtx_insn *(*peephole2_insns) (rtx, rtx_insn *, int *);
+  void (*add_clobbers) (rtx, int);
+  bool (*added_clobbers_hard_reg_p) (int);
 
   /* Generated optab support (insn-opinit.cc); x_-prefixed like the
      insn_attr_ops fields, because insn-opinit.h renames these names

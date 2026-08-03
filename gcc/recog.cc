@@ -388,12 +388,12 @@ insn_invalid_p (rtx_insn *insn, bool in_group)
     {
       rtx newpat;
 
-      if (added_clobbers_hard_reg_p (icode))
+      if (target_backend_added_clobbers_hard_reg_p (icode))
 	return true;
 
       newpat = gen_rtx_PARALLEL (VOIDmode, rtvec_alloc (num_clobbers + 1));
       XVECEXP (newpat, 0, 0) = pat;
-      add_clobbers (newpat, icode);
+      target_backend_add_clobbers (newpat, icode);
       if (in_group)
 	validate_change (insn, &PATTERN (insn), newpat, 1);
       else

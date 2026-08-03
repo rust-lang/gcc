@@ -1032,7 +1032,7 @@ recog_level2 (insn_change &change, add_regno_clobber_fn add_regno_clobber)
     }
   else
     {
-      icode = ::recog (pat, rtl, &num_clobbers);
+      icode = target_backend_recog (pat, rtl, &num_clobbers);
       if (icode < 0)
 	{
 	  if (dump_file && (dump_flags & TDF_DETAILS))
@@ -1069,7 +1069,7 @@ recog_level2 (insn_change &change, add_regno_clobber_fn add_regno_clobber)
 	  RTVEC_ELT (newvec, 0) = pat;
 	}
       rtx newpat = gen_rtx_PARALLEL (VOIDmode, newvec);
-      add_clobbers (newpat, icode);
+      target_backend_add_clobbers (newpat, icode);
       validate_change (rtl, &PATTERN (rtl), newpat, true);
       for (int i = 0; i < num_clobbers; ++i)
 	if (!add_clobber (change, add_regno_clobber,

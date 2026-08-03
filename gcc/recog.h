@@ -367,6 +367,26 @@ target_backend_peephole2_insns (rtx pattern, rtx_insn *insn,
   return peephole2_insns (pattern, insn, pmatch_len);
 #endif
 }
+
+inline void
+target_backend_add_clobbers (rtx pattern, int icode)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->add_clobbers (pattern, icode);
+#else
+  add_clobbers (pattern, icode);
+#endif
+}
+
+inline bool
+target_backend_added_clobbers_hard_reg_p (int icode)
+{
+#if ENABLE_MULTI_TARGET
+  return this_target_backend->added_clobbers_hard_reg_p (icode);
+#else
+  return added_clobbers_hard_reg_p (icode);
+#endif
+}
 #endif
 
 extern bool store_data_bypass_p (rtx_insn *, rtx_insn *);

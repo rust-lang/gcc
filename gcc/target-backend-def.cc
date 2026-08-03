@@ -91,6 +91,8 @@ extern int MT_RENAMED (recog) (rtx, rtx_insn *, int *);
 extern void MT_RENAMED (insn_extract) (rtx_insn *);
 extern rtx_insn *MT_RENAMED (split_insns) (rtx, rtx_insn *);
 extern rtx_insn *MT_RENAMED (peephole2_insns) (rtx, rtx_insn *, int *);
+extern void MT_RENAMED (add_clobbers) (rtx, int);
+extern bool MT_RENAMED (added_clobbers_hard_reg_p) (int);
 #endif
 
 
@@ -793,6 +795,8 @@ const struct target_backend MT_BACKEND_SYMBOL =
   MT_RENAMED (insn_extract),
   MT_RENAMED (split_insns),
   MT_RENAMED (peephole2_insns),
+  MT_RENAMED (add_clobbers),
+  MT_RENAMED (added_clobbers_hard_reg_p),
   init_all_optabs,
   raw_optab_handler,
   {
