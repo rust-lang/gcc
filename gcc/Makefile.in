@@ -3580,13 +3580,58 @@ $(mt_insn_emit_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
 	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
 	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ $<
 
+$(multi_target_tags:%=build/mt-%/genrecog.o): build/mt-%/genrecog.o: \
+  $(srcdir)/genrecog.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genrecog$(build_exeext)): \
+  build/mt-%/genrecog$(build_exeext): build/mt-%/genrecog.o \
+  build/inchash.o $(mt_target_rtl_objects) $(mt_shared_rtl_objects) \
+  $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+# genrecog embeds the -H argument as the include name in its output
+# files, so it runs inside mt-<tag>/ and writes insn-recog.h in
+# place, exactly as the single-target run does in the build
+# directory.
+$(multi_target_tags:%=mt-%/s-tmp-recog): mt-%/s-tmp-recog: \
+  build/mt-%/genrecog$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh $(mt_target_code_prerequisites)
+	. ./mt-config-$*.sh; \
+	mt_srcdir=`cd $(srcdir); ${PWD_COMMAND}`; \
+	cd mt-$* && \
+	$(RUN_GEN) ../build/mt-$*/genrecog$(build_exeext) \
+	  --mt-prefix=mt_$*_ $$mt_srcdir/common.md \
+	  $$mt_srcdir/config/$$mt_md_file insn-conditions.md \
+	  -Hinsn-recog.h $(INSNRECOG_SPLITS_SEQ:%=-Otmp-recog-%.cc)
+	$(foreach mt_id, $(INSNRECOG_SPLITS_SEQ), \
+	  $(SHELL) $(srcdir)/../move-if-change mt-$*/tmp-recog-$(mt_id).cc \
+	  mt-$*/insn-recog-$(mt_id).cc;)
+	$(STAMP) $@
+
+mt_insn_recog_sources = $(foreach mt_tag,$(multi_target_tags), \
+	$(INSNRECOG_SPLITS_SEQ:%=mt-$(mt_tag)/insn-recog-%.cc))
+mt_insn_recog_objects = $(mt_insn_recog_sources:.cc=.o)
+
+$(multi_target_tags:%=mt-%/insn-recog.h): mt-%/insn-recog.h: \
+  mt-%/s-tmp-recog ; @true
+$(mt_insn_recog_sources): $(multi_target_tags:%=mt-%/s-tmp-recog) ; @true
+
+$(mt_insn_recog_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
+  all-tree.def gtype-desc.h genrtl.h $(mt_target_code_headers_all) \
+  $(multi_target_tags:%=mt-%/insn-recog.h)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
+	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ $<
+
 # The collision audit: with the rename macros in effect, the targets'
 # generated objects must export pairwise disjoint strong symbols.
 # Weak and vague-linkage definitions — inline and template
 # instantiations from shared headers — merge in the linker and are
 # not collisions.
 .PHONY: mt-check-symbols
-mt-check-symbols: $(mt_insn_emit_objects)
+mt-check-symbols: $(mt_insn_emit_objects) $(mt_insn_recog_objects)
 	@for mt_tag in $(multi_target_tags); do \
 	  $(NM) -g -P mt-$$mt_tag/*.o \
 	    | awk 'NF >= 3 && $$2 != "U" && $$2 !~ /^[WwVv]$$/ \

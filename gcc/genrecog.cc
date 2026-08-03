@@ -5167,6 +5167,9 @@ static void
 print_pattern (FILE *f, output_state *os, pattern_routine *routine,
 	       bool in_header = false)
 {
+  if (in_header && mt_prefix)
+    fprintf (f, "\n#define pattern%d %spattern%d",
+	     routine->pattern_id, mt_prefix, routine->pattern_id);
   if (!in_header)
     fprintf (f, "\nint\npattern%d (", routine->pattern_id);
   else
@@ -5237,6 +5240,42 @@ print_subroutine (FILE *f, output_state *os, state *s, int proc_id,
     end = end_default;
   else
     end = end_header;
+
+  /* In a multi-target build, rename the routine into the target's
+     symbol namespace first.  A subroutine's macro lands in
+     insn-recog.h, which every insn-recog file includes; a root
+     routine's macro precedes its definition.  */
+  if (mt_prefix && (in_header || proc_id == 0))
+    switch (os->type)
+      {
+      case RECOG:
+	if (proc_id)
+	  fprintf (f, "#define recog_%d %srecog_%d\n",
+		   proc_id, mt_prefix, proc_id);
+	else
+	  fprintf (f, "#define recog %srecog\n", mt_prefix);
+	break;
+
+      case SPLIT:
+	if (proc_id)
+	  fprintf (f, "#define split_%d %ssplit_%d\n",
+		   proc_id, mt_prefix, proc_id);
+	else
+	  fprintf (f, "#define split_insns %ssplit_insns\n", mt_prefix);
+	break;
+
+      case PEEPHOLE2:
+	if (proc_id)
+	  fprintf (f, "#define peephole2_%d %speephole2_%d\n",
+		   proc_id, mt_prefix, proc_id);
+	else
+	  fprintf (f, "#define peephole2_insns %speephole2_insns\n",
+		   mt_prefix);
+	break;
+
+      default:
+	gcc_unreachable ();
+      }
 
   switch (os->type)
     {
@@ -5470,6 +5509,9 @@ main (int argc, const char **argv)
 
 	  /* Declare the gen_split routine that we'll call if the
 	     pattern matches.  The definition comes from insn-emit.cc.  */
+	  if (mt_prefix)
+	    fprintf (header, "#define gen_split_%d %sgen_split_%d\n",
+		     info.index, mt_prefix, info.index);
 	  fprintf (header, "extern rtx_insn *gen_split_%d "
 		   "(rtx_insn *, rtx *);\n", info.index);
 	  break;
@@ -5482,6 +5524,9 @@ main (int argc, const char **argv)
 
 	  /* Declare the gen_peephole2 routine that we'll call if the
 	     pattern matches.  The definition comes from insn-emit.cc.  */
+	  if (mt_prefix)
+	    fprintf (header, "#define gen_peephole2_%d %sgen_peephole2_%d\n",
+		     info.index, mt_prefix, info.index);
 	  fprintf (header, "extern rtx_insn *gen_peephole2_%d "
 		   "(rtx_insn *, rtx *);\n", info.index);
 	  break;
