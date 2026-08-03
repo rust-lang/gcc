@@ -634,6 +634,7 @@ target_cpu_default=@target_cpu_default@
 OBJC_BOEHM_GC=@objc_boehm_gc@
 extra_modes_file=@extra_modes_file@
 extra_opt_files=@extra_opt_files@
+multi_target_triples=@multi_target_triples@
 host_hook_obj=@out_host_hook_obj@
 
 # Multiarch support
@@ -2701,7 +2702,8 @@ options.cc: optionlist $(srcdir)/opt-functions.awk $(srcdir)/opt-read.awk \
     $(srcdir)/optc-gen.awk
 	$(AWK) -f $(srcdir)/opt-functions.awk -f $(srcdir)/opt-read.awk \
 	       -f $(srcdir)/optc-gen.awk \
-	       -v header_name="config.h system.h coretypes.h options.h tm.h" < $< > $@
+	       -v header_name="config.h system.h coretypes.h options.h tm.h" \
+	       -v multi_target="$(multi_target_triples)" < $< > $@
 
 options-save.cc: optionlist $(srcdir)/opt-functions.awk $(srcdir)/opt-read.awk \
     $(srcdir)/optc-save-gen.awk

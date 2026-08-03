@@ -679,4 +679,36 @@ for (i = 0; i < n_extra_vars; i++) {
 
 print "  { NULL, (unsigned short) -1 }\n};\n#endif"
 
+# A multi-target option table is the common block followed by the
+# target block, each sorted by name, so the table is not sorted as a
+# whole; emit the table indexes in name order for find_opt's binary
+# search.  Single-target tables do not need it.
+if (multi_target != "") {
+	n_unique = 0
+	for (i = 0; i < n_opts; i++) {
+		while (i + 1 != n_opts && opts[i] == opts[i + 1])
+			i++
+		unique_opts[n_unique] = opts[i]
+		name_order[n_unique] = n_unique
+		n_unique++
+	}
+	for (i = 1; i < n_unique; i++) {
+		j = i
+		while (j > 0 &&
+		       unique_opts[name_order[j]] < unique_opts[name_order[j - 1]]) {
+			temp = name_order[j]
+			name_order[j] = name_order[j - 1]
+			name_order[j - 1] = temp
+			j--
+		}
+	}
+	print ""
+	print "#if ENABLE_MULTI_TARGET"
+	print "const unsigned short cl_option_name_order[] =\n{"
+	for (i = 0; i < n_unique; i++)
+		print "  " name_order[i] ",\t/* " unique_opts[name_order[i]] " */"
+	print "};"
+	print "#endif"
+}
+
 }

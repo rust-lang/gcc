@@ -30,6 +30,17 @@ along with GCC; see the file COPYING3.  If not see
 #include "spellcheck.h"
 #include "opts-jobserver.h"
 
+#if ENABLE_MULTI_TARGET
+/* The option table of a multi-target build is the common block
+   followed by the target block, each sorted by name; a name-sorted
+   position maps to a table index through the generated
+   cl_option_name_order.  A single-target table is sorted as a whole,
+   and positions are the indexes themselves.  */
+#define OPTION_AT_RANK(rank) ((size_t) cl_option_name_order[rank])
+#else
+#define OPTION_AT_RANK(rank) (rank)
+#endif
+
 static void prune_options (struct cl_decoded_option **, unsigned int *);
 
 /* An option that is undocumented, that takes a joined argument, and
@@ -89,8 +100,9 @@ find_opt (const char *input, unsigned int lang_mask)
   while (mx - mn > 1)
     {
       md = (mn + mx) / 2;
-      opt_len = cl_options[md].opt_len;
-      comp = strncmp (input, cl_options[md].opt_text + 1, opt_len);
+      opt_len = cl_options[OPTION_AT_RANK (md)].opt_len;
+      comp = strncmp (input, cl_options[OPTION_AT_RANK (md)].opt_text + 1,
+		      opt_len);
 
       if (comp < 0)
 	mx = md;
@@ -99,6 +111,10 @@ find_opt (const char *input, unsigned int lang_mask)
     }
 
   mn_orig = mn;
+  /* MN is a name-sorted position so far; the back chain walked
+     below holds table indexes.  MN_ORIG stays a position for the
+     abbreviation scan.  */
+  mn = OPTION_AT_RANK (mn);
 
   /* This is the switch that is the best match but for a different
      front end, or OPT_SPECIAL_unknown if there is no match at all.  */
@@ -144,24 +160,29 @@ find_opt (const char *input, unsigned int lang_mask)
       size_t mnc = mn_orig + 1;
       size_t cmp_len = strlen (input);
       while (mnc < cl_options_count
-	     && strncmp (input, cl_options[mnc].opt_text + 1, cmp_len) == 0)
+	     && strncmp (input,
+			 cl_options[OPTION_AT_RANK (mnc)].opt_text + 1,
+			 cmp_len) == 0)
 	{
+	  const struct cl_option *candidate
+	    = &cl_options[OPTION_AT_RANK (mnc)];
+	  const struct cl_option *first_candidate
+	    = &cl_options[OPTION_AT_RANK (mn_orig + 1)];
 	  /* Option matching this abbreviation.  OK if it is the first
 	     match and that does not take a joined argument, or the
 	     second match, taking a joined argument and with only '='
 	     added to the first match; otherwise considered
 	     ambiguous.  */
 	  if (mnc == mn_orig + 1
-	      && !(cl_options[mnc].flags & CL_JOINED))
-	    match_wrong_lang = mnc;
+	      && !(candidate->flags & CL_JOINED))
+	    match_wrong_lang = OPTION_AT_RANK (mnc);
 	  else if (mnc == mn_orig + 2
-		   && match_wrong_lang == mn_orig + 1
-		   && (cl_options[mnc].flags & CL_JOINED)
-		   && (cl_options[mnc].opt_len
-		       == cl_options[mn_orig + 1].opt_len + 1)
-		   && strncmp (cl_options[mnc].opt_text + 1,
-			       cl_options[mn_orig + 1].opt_text + 1,
-			       cl_options[mn_orig + 1].opt_len) == 0)
+		   && match_wrong_lang == OPTION_AT_RANK (mn_orig + 1)
+		   && (candidate->flags & CL_JOINED)
+		   && (candidate->opt_len == first_candidate->opt_len + 1)
+		   && strncmp (candidate->opt_text + 1,
+			       first_candidate->opt_text + 1,
+			       first_candidate->opt_len) == 0)
 	    ; /* OK, as long as there are no more matches.  */
 	  else
 	    return OPT_SPECIAL_unknown;

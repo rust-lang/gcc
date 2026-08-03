@@ -155,6 +155,13 @@ struct cl_option_state {
 extern const struct cl_option cl_options[];
 extern const unsigned int cl_options_count;
 
+#if ENABLE_MULTI_TARGET
+/* The table indexes of all options in name-sorted order (generated
+   into options.cc): a multi-target option table is two sorted blocks,
+   and only this order is sorted as a whole.  */
+extern const unsigned short cl_option_name_order[];
+#endif
+
 extern const char *
 get_opt_url_suffix (int option_index, unsigned lang_mask);
 
