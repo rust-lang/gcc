@@ -1921,8 +1921,6 @@ fi
 # Collect host-machine-specific information.
 . ${srcdir}/config.host || exit 1
 
-target_gtfiles=
-
 # Collect target-machine-specific information.
 . ${srcdir}/config.gcc || exit 1
 

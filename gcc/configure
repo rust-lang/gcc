@@ -12989,8 +12989,6 @@ fi
 # Collect host-machine-specific information.
 . ${srcdir}/config.host || exit 1
 
-target_gtfiles=
-
 # Collect target-machine-specific information.
 . ${srcdir}/config.gcc || exit 1
 
@@ -21921,7 +21919,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 21924 "configure"
+#line 21922 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22027,7 +22025,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 22030 "configure"
+#line 22028 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
