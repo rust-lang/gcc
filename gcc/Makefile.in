@@ -3954,6 +3954,68 @@ mt-check-symbols:
 
 endif
 
+# The superset maxima: genmt-maxima compiles once per enabled target,
+# inside the target's header context, because several of these values
+# are expressions over target enumerations; the merge takes the
+# maximum of each.  mt-maxima.h will size the structures every
+# backend shares once the core header swap consumes it.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=build/mt-%/genmt-maxima.o): \
+  build/mt-%/genmt-maxima.o: $(srcdir)/genmt-maxima.cc \
+  mt-%/insn-codes.h mt-%/insn-config.h $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genmt-maxima$(build_exeext)): \
+  build/mt-%/genmt-maxima$(build_exeext): build/mt-%/genmt-maxima.o \
+  $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=mt-%/mt-maxima.vals): mt-%/mt-maxima.vals: \
+  build/mt-%/genmt-maxima$(build_exeext)
+	$(RUN_GEN) build/mt-$*/genmt-maxima$(build_exeext) \
+	  > tmp-mt-$*-maxima.vals
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-maxima.vals $@
+
+mt-maxima.h: $(multi_target_tags:%=mt-%/mt-maxima.vals)
+	{ echo "/* The multi-target superset maxima; generated, do not" \
+	    "edit.  */"; \
+	  echo "#ifndef GCC_MT_MAXIMA_H"; \
+	  echo "#define GCC_MT_MAXIMA_H"; \
+	  for mt_tag in $(multi_target_tags); do \
+	    sed "s/^/\/* $$mt_tag: /;s/$$/.  *\//" mt-$$mt_tag/mt-maxima.vals; \
+	  done; \
+	  cat $(multi_target_tags:%=mt-%/mt-maxima.vals) \
+	    | awk '{ if ($$2 > mt_max[$$1]) mt_max[$$1] = $$2 } \
+	      END { \
+		printf "#define MT_MAX_NUM_INSN_CODES %d\n", \
+		  mt_max["num_insn_codes"]; \
+		printf "#define MT_MAX_RECOG_OPERANDS %d\n", \
+		  mt_max["max_recog_operands"]; \
+		printf "#define MT_MAX_DUP_OPERANDS %d\n", \
+		  mt_max["max_dup_operands"]; \
+		printf "#define MT_MAX_INSNS_PER_PEEP2 %d\n", \
+		  mt_max["max_insns_per_peep2"]; \
+		printf "#define MT_MAX_HARD_REGISTERS %d\n", \
+		  mt_max["first_pseudo_register"]; \
+	      }'; \
+	  echo "#endif /* GCC_MT_MAXIMA_H */"; } > tmp-mt-maxima.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-maxima.h $@
+
+.PHONY: mt-check-maxima
+mt-check-maxima: mt-maxima.h
+	@cat mt-maxima.h
+
+else
+
+.PHONY: mt-check-maxima
+mt-check-maxima:
+	@echo "mt-check-maxima: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true
