@@ -26,10 +26,16 @@ along with GCC; see the file COPYING3.  If not see
 #ifndef GENERATOR_FILE
 
 #include "insn-codes.h"
+#include "hashtab.h"
 
 struct gcc_target;
 struct insn_data_d;
 struct target_optabs;
+struct cl_target_option;
+struct gcc_options;
+struct output_block;
+struct bitpack_d;
+class data_in;
 
 /* The generated insn attribute and DFA scheduler entry points of one
    target (insn-attrtab.cc, insn-automata.cc).  Core consumers reach
@@ -90,6 +96,33 @@ struct insn_attr_ops
   void (*x_dfa_clear_single_insn_cache) (rtx_insn *);
 };
 
+/* The generated cl_target_option entry points of one target
+   (options-save.cc).  They operate on the target block of the option
+   state; core consumers reach them through the target_backend_*
+   accessors below.  */
+
+struct cl_target_option_ops
+{
+  void (*x_cl_target_option_save) (struct cl_target_option *,
+				 struct gcc_options *, struct gcc_options *);
+  void (*x_cl_target_option_restore) (struct gcc_options *,
+				    struct gcc_options *,
+				    struct cl_target_option *);
+  void (*x_cl_target_option_print) (FILE *, int, struct cl_target_option *);
+  void (*x_cl_target_option_print_diff) (FILE *, int,
+				       struct cl_target_option *,
+				       struct cl_target_option *);
+  bool (*x_cl_target_option_eq) (const struct cl_target_option *,
+			       const struct cl_target_option *);
+  hashval_t (*x_cl_target_option_hash) (const struct cl_target_option *);
+  void (*x_cl_target_option_stream_out) (struct output_block *,
+				       struct bitpack_d *,
+				       struct cl_target_option *);
+  void (*x_cl_target_option_stream_in) (class data_in *,
+				      struct bitpack_d *,
+				      struct cl_target_option *);
+};
+
 /* Everything the compiler needs in order to address one built-in
    target.  A single-target build has exactly one instance, describing
    the configured target; a multi-target build registers one instance
@@ -123,6 +156,9 @@ struct target_backend
   /* Generated insn attribute and DFA entry points (insn-attrtab.cc,
      insn-automata.cc).  */
   struct insn_attr_ops attr_ops;
+
+  /* Generated cl_target_option entry points (options-save.cc).  */
+  struct cl_target_option_ops option_ops;
 };
 
 /* The descriptor of the configured target.  */
@@ -137,6 +173,135 @@ extern const struct target_backend *this_target_backend;
    target.  */
 #define this_target_backend (&default_target_backend)
 #endif
+
+#ifndef GENERATOR_FILE
+
+/* Declared in the generated options.h and (the stream pair) in
+   lto-streamer.h; repeated here so the accessors below work wherever
+   this header lands in a translation unit's include order.  */
+extern void cl_target_option_save (struct cl_target_option *,
+				   struct gcc_options *,
+				   struct gcc_options *);
+extern void cl_target_option_restore (struct gcc_options *,
+				      struct gcc_options *,
+				      struct cl_target_option *);
+extern void cl_target_option_print (FILE *, int, struct cl_target_option *);
+extern void cl_target_option_print_diff (FILE *, int,
+					 struct cl_target_option *,
+					 struct cl_target_option *);
+extern bool cl_target_option_eq (const struct cl_target_option *,
+				 const struct cl_target_option *);
+extern hashval_t cl_target_option_hash (const struct cl_target_option *);
+extern void cl_target_option_stream_out (struct output_block *,
+					 struct bitpack_d *,
+					 struct cl_target_option *);
+extern void cl_target_option_stream_in (class data_in *,
+					struct bitpack_d *,
+					struct cl_target_option *);
+
+/* Call the active target's generated cl_target_option entry points
+   through the backend descriptor.  Single-target builds call the
+   generated functions directly, at zero cost.  */
+
+inline void
+target_backend_cl_target_option_save (struct cl_target_option *ptr,
+				      struct gcc_options *opts,
+				      struct gcc_options *opts_set)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->option_ops.x_cl_target_option_save (ptr, opts,
+							 opts_set);
+#else
+  cl_target_option_save (ptr, opts, opts_set);
+#endif
+}
+
+inline void
+target_backend_cl_target_option_restore (struct gcc_options *opts,
+					 struct gcc_options *opts_set,
+					 struct cl_target_option *ptr)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->option_ops.x_cl_target_option_restore (opts, opts_set,
+							    ptr);
+#else
+  cl_target_option_restore (opts, opts_set, ptr);
+#endif
+}
+
+inline void
+target_backend_cl_target_option_print (FILE *file, int indent,
+				       struct cl_target_option *ptr)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->option_ops.x_cl_target_option_print (file, indent, ptr);
+#else
+  cl_target_option_print (file, indent, ptr);
+#endif
+}
+
+inline void
+target_backend_cl_target_option_print_diff (FILE *file, int indent,
+					    struct cl_target_option *ptr1,
+					    struct cl_target_option *ptr2)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->option_ops.x_cl_target_option_print_diff (file, indent,
+							       ptr1, ptr2);
+#else
+  cl_target_option_print_diff (file, indent, ptr1, ptr2);
+#endif
+}
+
+inline bool
+target_backend_cl_target_option_eq (const struct cl_target_option *ptr1,
+				    const struct cl_target_option *ptr2)
+{
+#if ENABLE_MULTI_TARGET
+  return this_target_backend->option_ops.x_cl_target_option_eq (ptr1, ptr2);
+#else
+  return cl_target_option_eq (ptr1, ptr2);
+#endif
+}
+
+inline hashval_t
+target_backend_cl_target_option_hash (const struct cl_target_option *ptr)
+{
+#if ENABLE_MULTI_TARGET
+  return this_target_backend->option_ops.x_cl_target_option_hash (ptr);
+#else
+  return cl_target_option_hash (ptr);
+#endif
+}
+
+inline void
+target_backend_cl_target_option_stream_out (struct output_block *block,
+					    struct bitpack_d *bitpack,
+					    struct cl_target_option *ptr)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->option_ops.x_cl_target_option_stream_out (block,
+							       bitpack, ptr);
+#else
+  cl_target_option_stream_out (block, bitpack, ptr);
+#endif
+}
+
+inline void
+target_backend_cl_target_option_stream_in (class data_in *data_in,
+					   struct bitpack_d *bitpack,
+					   struct cl_target_option *ptr)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->option_ops.x_cl_target_option_stream_in (data_in,
+							      bitpack, ptr);
+#else
+  cl_target_option_stream_in (data_in, bitpack, ptr);
+#endif
+}
+
+#endif
+
 
 #endif /* GENERATOR_FILE */
 #endif

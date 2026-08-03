@@ -22,6 +22,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "backend.h"
 #include "target.h"
 #include "tree.h"
@@ -530,7 +531,8 @@ streamer_write_tree_bitfields (struct output_block *ob, tree expr)
   if (CODE_CONTAINS_STRUCT (code, TS_TARGET_OPTION)
       /* Don't stream these when passing things to a different target.  */
       && !lto_stream_offload_p)
-    cl_target_option_stream_out (ob, &bp, TREE_TARGET_OPTION (expr));
+    target_backend_cl_target_option_stream_out (ob, &bp,
+						TREE_TARGET_OPTION (expr));
 
   if (code == OMP_CLAUSE)
     pack_ts_omp_clause_value_fields (ob, &bp, expr);

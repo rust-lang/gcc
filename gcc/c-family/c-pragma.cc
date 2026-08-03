@@ -20,6 +20,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "target.h"
 #include "function.h"		/* For cfun.  */
 #include "c-common.h"
@@ -1271,8 +1272,9 @@ handle_pragma_pop_options (cpp_reader *)
    * overwritten by invoke_set_current_function_hook.  */
   cl_optimization_restore (&global_options, &global_options_set,
 			   TREE_OPTIMIZATION (p->optimize_binary));
-  cl_target_option_restore (&global_options, &global_options_set,
-			    TREE_TARGET_OPTION (p->target_binary));
+  target_backend_cl_target_option_restore
+    (&global_options, &global_options_set,
+     TREE_TARGET_OPTION (p->target_binary));
 
   if (p->optimize_binary != optimization_current_node)
     {

@@ -92,6 +92,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "backend.h"
 #include "target.h"
 #include "rtl.h"
@@ -295,7 +296,7 @@ report_inline_failed_reason (struct cgraph_edge *e)
 	}
       if (e->inline_failed == CIF_TARGET_OPTION_MISMATCH)
 	if (dump_file)
-	  cl_target_option_print_diff
+	  target_backend_cl_target_option_print_diff
 	    (dump_file, 2, target_opts_for_fn (e->caller->decl),
 	     target_opts_for_fn (e->callee->ultimate_alias_target ()->decl));
       if (e->inline_failed == CIF_OPTIMIZATION_MISMATCH)

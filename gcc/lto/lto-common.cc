@@ -21,6 +21,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "tm.h"
 #include "function.h"
 #include "bitmap.h"
@@ -1309,7 +1310,8 @@ compare_tree_sccs_1 (tree t1, tree t2, tree **map)
       return false;
 
   if (CODE_CONTAINS_STRUCT (code, TS_TARGET_OPTION))
-    if (!cl_target_option_eq (TREE_TARGET_OPTION (t1), TREE_TARGET_OPTION (t2)))
+    if (!target_backend_cl_target_option_eq (TREE_TARGET_OPTION (t1),
+					     TREE_TARGET_OPTION (t2)))
       return false;
 
   if (CODE_CONTAINS_STRUCT (code, TS_OPTIMIZATION))

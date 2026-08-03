@@ -21,6 +21,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "target.h"
 #include "function.h"
 #include "tree.h"
@@ -6474,7 +6475,8 @@ handle_optimize_attribute (tree *node, tree name, tree args,
 
       /* Save current options.  */
       cl_optimization_save (&cur_opts, &global_options, &global_options_set);
-      cl_target_option_save (&cur_target, &global_options, &global_options_set);
+      target_backend_cl_target_option_save (&cur_target, &global_options,
+					    &global_options_set);
 
       tree prev_target_node
 	= old_target
@@ -6499,8 +6501,9 @@ handle_optimize_attribute (tree *node, tree name, tree args,
 				 TREE_OPTIMIZATION (old_opts));
 
       if (old_target)
-	cl_target_option_restore (&global_options, &global_options_set,
-				  TREE_TARGET_OPTION (old_target));
+	target_backend_cl_target_option_restore
+	  (&global_options, &global_options_set,
+	   TREE_TARGET_OPTION (old_target));
 
       /* Parse options, and update the vector.  */
       parse_optimize_options (args, true);
@@ -6518,8 +6521,8 @@ handle_optimize_attribute (tree *node, tree name, tree args,
       /* Restore current options.  */
       cl_optimization_restore (&global_options, &global_options_set,
 			       &cur_opts);
-      cl_target_option_restore (&global_options, &global_options_set,
-				&cur_target);
+      target_backend_cl_target_option_restore
+	(&global_options, &global_options_set, &cur_target);
 
       if (saved_global_options != NULL)
 	{

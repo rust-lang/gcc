@@ -54,6 +54,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "backend.h"
 #include "target.h"
 #include "rtl.h"
@@ -286,7 +287,7 @@ sem_function::get_hash (void)
       /* Add common features of declaration itself.  */
       if (DECL_FUNCTION_SPECIFIC_TARGET (decl))
         hstate.add_hwi
-	 (cl_target_option_hash
+	 (target_backend_cl_target_option_hash
 	   (TREE_TARGET_OPTION (DECL_FUNCTION_SPECIFIC_TARGET (decl))));
       if (DECL_FUNCTION_SPECIFIC_OPTIMIZATION (decl))
 	hstate.add_hwi
@@ -592,12 +593,13 @@ sem_function::equals_wpa (sem_item *item,
   cl_target_option *tar1 = target_opts_for_fn (decl);
   cl_target_option *tar2 = target_opts_for_fn (item->decl);
 
-  if (tar1 != tar2 && !cl_target_option_eq (tar1, tar2))
+  if (tar1 != tar2 && !target_backend_cl_target_option_eq (tar1, tar2))
     {
       if (dump_file && (dump_flags & TDF_DETAILS))
 	{
 	  fprintf (dump_file, "target flags difference");
-	  cl_target_option_print_diff (dump_file, 2, tar1, tar2);
+	  target_backend_cl_target_option_print_diff (dump_file, 2, tar1,
+						      tar2);
 	}
 
       return return_false_with_msg ("Target flags are different");

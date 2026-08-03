@@ -136,6 +136,16 @@ const struct target_backend default_target_backend =
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 #endif
+  },
+  {
+    cl_target_option_save,
+    cl_target_option_restore,
+    cl_target_option_print,
+    cl_target_option_print_diff,
+    cl_target_option_eq,
+    cl_target_option_hash,
+    cl_target_option_stream_out,
+    cl_target_option_stream_in
   }
 };
 

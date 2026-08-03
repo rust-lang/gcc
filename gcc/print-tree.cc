@@ -21,6 +21,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "tm.h"
 #include "tree.h"
 #include "cgraph.h"
@@ -1003,7 +1004,8 @@ print_node (FILE *file, const char *prefix, tree node, int indent,
 	  break;
 
 	case TARGET_OPTION_NODE:
-	  cl_target_option_print (file, indent + 4, TREE_TARGET_OPTION (node));
+	  target_backend_cl_target_option_print (file, indent + 4,
+						 TREE_TARGET_OPTION (node));
 	  break;
 	case IMPORTED_DECL:
 	  fprintf (file, " imported-declaration");

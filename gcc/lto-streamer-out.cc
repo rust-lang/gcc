@@ -23,6 +23,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "backend.h"
 #include "target.h"
 #include "rtl.h"
@@ -1410,7 +1411,8 @@ hash_tree (struct streamer_tree_cache_d *cache, hash_map<tree, hashval_t> *map, 
   if (CODE_CONTAINS_STRUCT (code, TS_TARGET_OPTION)
       /* We don't stream these when passing things to a different target.  */
       && !lto_stream_offload_p)
-    hstate.add_hwi (cl_target_option_hash (TREE_TARGET_OPTION (t)));
+    hstate.add_hwi
+      (target_backend_cl_target_option_hash (TREE_TARGET_OPTION (t)));
 
   if (CODE_CONTAINS_STRUCT (code, TS_OPTIMIZATION))
     hstate.add_hwi (cl_optimization_hash (TREE_OPTIMIZATION (t)));

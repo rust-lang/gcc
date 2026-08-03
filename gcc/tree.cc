@@ -30,6 +30,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "target-backend.h"
 #include "backend.h"
 #include "target.h"
 #include "memmodel.h"
@@ -12222,7 +12223,7 @@ cl_option_hasher::hash (tree x)
   if (TREE_CODE (t) == OPTIMIZATION_NODE)
     return cl_optimization_hash (TREE_OPTIMIZATION (t));
   else if (TREE_CODE (t) == TARGET_OPTION_NODE)
-    return cl_target_option_hash (TREE_TARGET_OPTION (t));
+    return target_backend_cl_target_option_hash (TREE_TARGET_OPTION (t));
   else
     gcc_unreachable ();
 }
@@ -12244,8 +12245,8 @@ cl_option_hasher::equal (tree x, tree y)
     return cl_optimization_option_eq (TREE_OPTIMIZATION (xt),
 				      TREE_OPTIMIZATION (yt));
   else if (TREE_CODE (xt) == TARGET_OPTION_NODE)
-    return cl_target_option_eq (TREE_TARGET_OPTION (xt),
-				TREE_TARGET_OPTION (yt));
+    return target_backend_cl_target_option_eq (TREE_TARGET_OPTION (xt),
+						TREE_TARGET_OPTION (yt));
   else
     gcc_unreachable ();
 }
@@ -12288,8 +12289,8 @@ build_target_option_node (struct gcc_options *opts,
 
   /* Use the cache of optimization nodes.  */
 
-  cl_target_option_save (TREE_TARGET_OPTION (cl_target_option_node),
-			 opts, opts_set);
+  target_backend_cl_target_option_save
+    (TREE_TARGET_OPTION (cl_target_option_node), opts, opts_set);
 
   tree *slot = cl_option_hash_table->find_slot (cl_target_option_node, INSERT);
   t = *slot;
