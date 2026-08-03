@@ -440,9 +440,9 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 extern unsigned int mt_first_pseudo_register;
 extern int mt_n_reg_classes;
 #undef FIRST_PSEUDO_REGISTER
-#define FIRST_PSEUDO_REGISTER mt_first_pseudo_register
+#define FIRST_PSEUDO_REGISTER ((int) (mt_first_pseudo_register & 0xffff))
 #undef N_REG_CLASSES
-#define N_REG_CLASSES mt_n_reg_classes
+#define N_REG_CLASSES ((int) (mt_n_reg_classes & 0xffff))
 extern int (*mt_regno_reg_class) (unsigned int);
 #undef REGNO_REG_CLASS
 #define REGNO_REG_CLASS(REGNO) \
@@ -450,28 +450,38 @@ extern int (*mt_regno_reg_class) (unsigned int);
 #include "register-tables.h"
 extern const struct mt_target_scalars *mt_active_target_scalars;
 #undef CHAR_TYPE_SIZE
-#define CHAR_TYPE_SIZE (mt_active_target_scalars->x_char_type_size ())
+#define CHAR_TYPE_SIZE \
+  ((int) (mt_active_target_scalars->x_char_type_size () & 0xffff))
 #undef SHORT_TYPE_SIZE
-#define SHORT_TYPE_SIZE (mt_active_target_scalars->x_short_type_size ())
+#define SHORT_TYPE_SIZE \
+  ((int) (mt_active_target_scalars->x_short_type_size () & 0xffff))
 #undef INT_TYPE_SIZE
-#define INT_TYPE_SIZE (mt_active_target_scalars->x_int_type_size ())
+#define INT_TYPE_SIZE \
+  ((int) (mt_active_target_scalars->x_int_type_size () & 0xffff))
 #undef LONG_TYPE_SIZE
-#define LONG_TYPE_SIZE (mt_active_target_scalars->x_long_type_size ())
+#define LONG_TYPE_SIZE \
+  ((int) (mt_active_target_scalars->x_long_type_size () & 0xffff))
 #undef LONG_LONG_TYPE_SIZE
-#define LONG_LONG_TYPE_SIZE (mt_active_target_scalars->x_long_long_type_size ())
+#define LONG_LONG_TYPE_SIZE \
+  ((int) (mt_active_target_scalars->x_long_long_type_size () & 0xffff))
 #undef UNITS_PER_WORD
-#define UNITS_PER_WORD (mt_active_target_scalars->x_units_per_word ())
+#define UNITS_PER_WORD \
+  ((int) (mt_active_target_scalars->x_units_per_word () & 0xffff))
 #undef BITS_PER_WORD
-#define BITS_PER_WORD (mt_active_target_scalars->x_bits_per_word ())
+#define BITS_PER_WORD \
+  ((int) (mt_active_target_scalars->x_bits_per_word () & 0xffff))
 #undef POINTER_SIZE
-#define POINTER_SIZE (mt_active_target_scalars->x_pointer_size ())
+#define POINTER_SIZE \
+  ((int) (mt_active_target_scalars->x_pointer_size () & 0xffff))
 #undef STACK_BOUNDARY
-#define STACK_BOUNDARY (mt_active_target_scalars->x_stack_boundary ())
+#define STACK_BOUNDARY \
+  ((int) (mt_active_target_scalars->x_stack_boundary () & 0xffff))
 #undef PREFERRED_STACK_BOUNDARY
 #define PREFERRED_STACK_BOUNDARY \
-  (mt_active_target_scalars->x_preferred_stack_boundary ())
+  ((int) (mt_active_target_scalars->x_preferred_stack_boundary () & 0xffff))
 #undef BIGGEST_ALIGNMENT
-#define BIGGEST_ALIGNMENT (mt_active_target_scalars->x_biggest_alignment ())
+#define BIGGEST_ALIGNMENT \
+  ((int) (mt_active_target_scalars->x_biggest_alignment () & 0xffff))
 #undef MAX_STACK_ALIGNMENT
 #define MAX_STACK_ALIGNMENT \
   (mt_active_target_scalars->x_max_stack_alignment ())
@@ -488,16 +498,16 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #define ARG_POINTER_REGNUM \
   (mt_active_target_scalars->x_arg_pointer_regnum ())
 #undef MOVE_MAX
-#define MOVE_MAX (mt_active_target_scalars->x_move_max ())
+#define MOVE_MAX ((int) (mt_active_target_scalars->x_move_max () & 0xffff))
 #undef MOVE_MAX_PIECES
 #define MOVE_MAX_PIECES \
-  (mt_active_target_scalars->x_move_max_pieces ())
+  ((int) (mt_active_target_scalars->x_move_max_pieces () & 0xffff))
 #undef STORE_MAX_PIECES
 #define STORE_MAX_PIECES \
-  (mt_active_target_scalars->x_store_max_pieces ())
+  ((int) (mt_active_target_scalars->x_store_max_pieces () & 0xffff))
 #undef COMPARE_MAX_PIECES
 #define COMPARE_MAX_PIECES \
-  (mt_active_target_scalars->x_compare_max_pieces ())
+  ((int) (mt_active_target_scalars->x_compare_max_pieces () & 0xffff))
 #undef MOVE_RATIO
 #define MOVE_RATIO(SPEED) \
   (mt_active_target_scalars->x_move_ratio ((int) (SPEED)))
@@ -538,7 +548,7 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
   (mt_active_target_scalars->x_reg_words_big_endian ())
 #undef FUNCTION_BOUNDARY
 #define FUNCTION_BOUNDARY \
-  (mt_active_target_scalars->x_function_boundary ())
+  ((int) (mt_active_target_scalars->x_function_boundary () & 0xffff))
 #undef ASM_OUTPUT_ALIGN
 #define ASM_OUTPUT_ALIGN(FILE, LOG) \
   (mt_active_target_scalars->x_asm_output_align ((FILE), (LOG)))
@@ -551,7 +561,7 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 extern const struct mt_dwarf_ops *mt_active_dwarf_ops;
 #undef DWARF_FRAME_REGISTERS
 #define DWARF_FRAME_REGISTERS \
-  (mt_active_dwarf_ops->x_dwarf_frame_registers ())
+  ((int) (mt_active_dwarf_ops->x_dwarf_frame_registers () & 0xffff))
 #undef DWARF_FRAME_REGNUM
 #define DWARF_FRAME_REGNUM(REG) \
   (mt_active_dwarf_ops->x_dwarf_frame_regnum ((int) (REG)))
