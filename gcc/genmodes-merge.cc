@@ -28,11 +28,11 @@ along with GCC; see the file COPYING3.  If not see
    targets already disagree on both.
 
    With -h the tool emits the union insn-modes.h, with -i the
-   matching insn-modes-inline.h; without either, a report of the
-   union.  The emission of the per-target value tables comes with
-   the multi-target build integration.
+   matching insn-modes-inline.h, and with -d <target> the value
+   tables of one target at the union numbering (mode-tables.h);
+   without a flag, a report of the union.
 
-   Usage: genmodes-merge [-h|-i] <name>=<dump> <name>=<dump> ...  */
+   Usage: genmodes-merge [-h|-i|-d <target>] <name>=<dump> ...  */
 
 #define INCLUDE_STRING
 #define INCLUDE_VECTOR
@@ -674,6 +674,335 @@ emit_union_inline_header (void)
   puts ("\n#endif /* insn-modes-inline.h */");
 }
 
+/* Format one polynomial row value at the union's coefficient count.  */
+
+static std::string
+poly_row (unsigned int value)
+{
+  char text[64];
+  if (poly_int_coeffs_param == 2)
+    snprintf (text, sizeof text, "{ %u, 0 }", value);
+  else
+    snprintf (text, sizeof text, "{ %u }", value);
+  return text;
+}
+
+/* Emit one table of the per-target data file: NAME, with one row per
+   union mode produced by ROW, which receives the union index and the
+   target and returns the row text; an absent-mode row is filled with
+   FILLER, or produced by ROW anyway when FILLER is null.  */
+
+static void
+emit_target_table (const char *name, size_t target, const char *filler,
+		   std::string (*row) (size_t, size_t))
+{
+  printf ("  /* %s */\n  {\n", name);
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      std::string text;
+      if (filler == NULL || union_modes[i].per_target[target].present)
+	text = row (i, target);
+      else
+	text = filler;
+      printf ("    %s,\t\t/* %s */\n", text.c_str (),
+	      union_modes[i].name.c_str ());
+    }
+  printf ("  },\n");
+}
+
+/* Row producers for emit_target_table.  */
+
+/* TARGET if it has union mode I, else the first target that does.
+   The value rows use it so a mode absent on a target still carries
+   its intrinsic properties: MAX_MODE_INT-style widest-mode idioms
+   index the tables directly, and a zeroed row breaks them — a zero
+   precision makes wide-int comparison folds return nonsense.  The
+   properties do not vary between defining targets.  The link rows
+   keep the absent filler, so mode iteration never leaves the
+   target.  */
+
+static size_t
+value_source_target (size_t i, size_t target)
+{
+  if (union_modes[i].per_target[target].present)
+    return target;
+  for (size_t other = 0; other < target_names.size (); other++)
+    if (union_modes[i].per_target[other].present)
+      return other;
+  return target;
+}
+
+static std::string
+precision_row (size_t i, size_t target)
+{
+  target = value_source_target (i, target);
+  const target_mode &record = union_modes[i].per_target[target];
+  if (record.precision != (unsigned int) -1)
+    return poly_row (record.precision);
+  char text[64];
+  if (poly_int_coeffs_param == 2)
+    snprintf (text, sizeof text, "{ %u * BITS_PER_UNIT, 0 }",
+	      record.bytesize);
+  else
+    snprintf (text, sizeof text, "{ %u * BITS_PER_UNIT }", record.bytesize);
+  return text;
+}
+
+static std::string
+size_row (size_t i, size_t target)
+{
+  target = value_source_target (i, target);
+  return poly_row (union_modes[i].per_target[target].bytesize);
+}
+
+static std::string
+nunits_row (size_t i, size_t target)
+{
+  target = value_source_target (i, target);
+  return poly_row (union_modes[i].per_target[target].ncomponents);
+}
+
+static std::string
+mode_reference (const std::string &name)
+{
+  if (name == "-")
+    return "E_VOIDmode";
+  return "E_" + name + "mode";
+}
+
+static std::string
+next_row (size_t i, size_t target)
+{
+  return mode_reference (union_modes[i].per_target[target].wider);
+}
+
+/* The skip-same-size wider walk of genmodes.cc's emit_mode_wider, on
+   TARGET's chain.  */
+
+static std::string
+wider_row (size_t i, size_t target)
+{
+  const union_mode &mode = union_modes[i];
+  int cl = mode.cl;
+  if (cl != MODE_INT && cl != MODE_PARTIAL_INT && cl != MODE_FLOAT
+      && cl != MODE_DECIMAL_FLOAT && cl != MODE_COMPLEX_FLOAT
+      && cl != MODE_FRACT && cl != MODE_UFRACT && cl != MODE_ACCUM
+      && cl != MODE_UACCUM)
+    return "E_VOIDmode";
+  const target_mode *record = &mode.per_target[target];
+  std::string candidate = record->wider;
+  while (candidate != "-" && candidate != "VOID")
+    {
+      const target_mode &next_record
+	= union_modes[union_index_of (candidate)].per_target[target];
+      if (next_record.bytesize == record->bytesize
+	  && next_record.precision == record->precision)
+	{
+	  candidate = next_record.wider;
+	  continue;
+	}
+      break;
+    }
+  if (candidate == "VOID")
+    candidate = "-";
+  return mode_reference (candidate);
+}
+
+/* The double-size walk of genmodes.cc's emit_mode_wider, on TARGET's
+   chain, starting from the mode itself.  */
+
+static std::string
+wider_2x_row (size_t i, size_t target)
+{
+  const union_mode &mode = union_modes[i];
+  const target_mode &record = mode.per_target[target];
+  bool vector_class = (mode.cl == MODE_VECTOR_BOOL
+		       || mode.cl == MODE_VECTOR_INT
+		       || mode.cl == MODE_VECTOR_FLOAT
+		       || mode.cl == MODE_VECTOR_FRACT
+		       || mode.cl == MODE_VECTOR_UFRACT
+		       || mode.cl == MODE_VECTOR_ACCUM
+		       || mode.cl == MODE_VECTOR_UACCUM);
+  std::string candidate = mode.name;
+  while (candidate != "-" && candidate != "VOID")
+    {
+      const target_mode &walk
+	= union_modes[union_index_of (candidate)].per_target[target];
+      if (walk.bytesize < 2 * record.bytesize
+	  || (record.precision != (unsigned int) -1
+	      ? walk.precision != 2 * record.precision
+	      : walk.precision != (unsigned int) -1)
+	  || (vector_class
+	      && (walk.ncomponents != 2 * record.ncomponents
+		  || walk.component != record.component)))
+	{
+	  candidate = walk.wider;
+	  continue;
+	}
+      break;
+    }
+  if (candidate == "VOID")
+    candidate = "-";
+  return mode_reference (candidate);
+}
+
+static std::string
+inner_row (size_t i, size_t target)
+{
+  return mode_reference (union_modes[unit_index (i, target)].name);
+}
+
+static std::string
+unit_size_row (size_t i, size_t target)
+{
+  target = value_source_target (i, target);
+  size_t unit = unit_index (i, target);
+  char text[32];
+  snprintf (text, sizeof text, "%u",
+	    union_modes[unit].per_target[target].bytesize);
+  return text;
+}
+
+static std::string
+unit_precision_row (size_t i, size_t target)
+{
+  target = value_source_target (i, target);
+  const target_mode &unit
+    = union_modes[unit_index (i, target)].per_target[target];
+  char text[32];
+  if (unit.precision != (unsigned int) -1)
+    snprintf (text, sizeof text, "%u", unit.precision);
+  else
+    snprintf (text, sizeof text, "%u*BITS_PER_UNIT", unit.bytesize);
+  return text;
+}
+
+static std::string
+complex_row (size_t i, size_t target)
+{
+  return mode_reference (union_modes[i].per_target[target].complex_mode);
+}
+
+static std::string
+mask_row (size_t i, size_t target)
+{
+  target = value_source_target (i, target);
+  const target_mode &record = union_modes[i].per_target[target];
+  char text[48];
+  if (record.precision != (unsigned int) -1)
+    snprintf (text, sizeof text, "MODE_MASK (%u)", record.precision);
+  else
+    snprintf (text, sizeof text, "MODE_MASK (%u*BITS_PER_UNIT)",
+	      record.bytesize);
+  return text;
+}
+
+static std::string
+ibit_row (size_t i, size_t target)
+{
+  target = value_source_target (i, target);
+  char text[16];
+  snprintf (text, sizeof text, "%u", union_modes[i].per_target[target].ibit);
+  return text;
+}
+
+static std::string
+fbit_row (size_t i, size_t target)
+{
+  target = value_source_target (i, target);
+  char text[16];
+  snprintf (text, sizeof text, "%u", union_modes[i].per_target[target].fbit);
+  return text;
+}
+
+static std::string
+present_row (size_t i, size_t target)
+{
+  return union_modes[i].per_target[target].present ? "1" : "0";
+}
+
+static std::string
+base_align_row (size_t i, size_t target)
+{
+  char text[16];
+  snprintf (text, sizeof text, "%u",
+	    union_modes[i].per_target[target].alignment);
+  return text;
+}
+
+/* Emit the value tables of the target named TARGET_NAME at the union
+   mode numbering, as a mode_tables instance.  */
+
+static void
+emit_target_tables (const std::string &target_name)
+{
+  size_t target = target_names.size ();
+  for (size_t i = 0; i < target_names.size (); i++)
+    if (target_names[i] == target_name)
+      target = i;
+  if (target == target_names.size ())
+    fatal ("%s is not one of the dumped targets", target_name.c_str ());
+
+  printf ("/* Generated automatically by genmodes-merge from the mode"
+	  " tables of:");
+  for (size_t i = 0; i < target_names.size (); i++)
+    printf (" %s", target_names[i].c_str ());
+  printf (".\n   The value tables of target %s at the union mode"
+	  " numbering.  */\n\n", target_name.c_str ());
+  printf ("#include \"config.h\"\n"
+	  "#include \"system.h\"\n"
+	  "#include \"coretypes.h\"\n"
+	  "#include \"mode-tables.h\"\n\n");
+  puts ("#define MODE_MASK(m) \\\n"
+	"  ((m) >= HOST_BITS_PER_WIDE_INT) \\\n"
+	"   ? HOST_WIDE_INT_M1U \\\n"
+	"   : (HOST_WIDE_INT_1U << (m)) - 1\n");
+  /* C++ gives a const object internal linkage unless it is declared
+     extern first.  */
+  printf ("extern const struct mode_tables mt_mode_tables_%s;\n\n",
+	  target_name.c_str ());
+  printf ("const struct mode_tables mt_mode_tables_%s =\n{\n",
+	  target_name.c_str ());
+
+  emit_target_table ("mode_precision", target, NULL, precision_row);
+  emit_target_table ("mode_size", target, NULL, size_row);
+  emit_target_table ("mode_nunits", target, NULL, nunits_row);
+  emit_target_table ("mode_next", target, "E_VOIDmode", next_row);
+  emit_target_table ("mode_wider", target, "E_VOIDmode", wider_row);
+  emit_target_table ("mode_2xwider", target, "E_VOIDmode", wider_2x_row);
+  emit_target_table ("mode_inner", target, "E_VOIDmode", inner_row);
+  emit_target_table ("mode_unit_size", target, NULL, unit_size_row);
+  emit_target_table ("mode_unit_precision", target, NULL,
+		     unit_precision_row);
+  emit_target_table ("mode_complex", target, "E_VOIDmode", complex_row);
+  emit_target_table ("mode_mask_array", target, NULL, mask_row);
+  emit_target_table ("mode_ibit", target, NULL, ibit_row);
+  emit_target_table ("mode_fbit", target, NULL, fbit_row);
+  emit_target_table ("mode_base_align", target, "0", base_align_row);
+  emit_target_table ("mode_present", target, NULL, present_row);
+
+  printf ("  /* class_narrowest_mode: this target's narrowest mode of\n"
+	  "     each class, not the union's.  */\n  {\n");
+  for (int c = 0; c < MAX_MODE_CLASS; c++)
+    {
+      std::string narrowest ("-");
+      /* genmodes never counts a boolean mode as a class's narrowest,
+	 keeping BImode out of the MODE_INT iteration range.  */
+      for (size_t i = 0; i < union_modes.size (); i++)
+	if (union_modes[i].cl == c
+	    && union_modes[i].per_target[target].present
+	    && !union_modes[i].per_target[target].boolean_flag)
+	  {
+	    narrowest = union_modes[i].name;
+	    break;
+	  }
+      printf ("    %s,\t\t/* %s */\n", mode_reference (narrowest).c_str (),
+	      mode_class_names[c]);
+    }
+  printf ("  }\n};\n");
+  printf ("\n#undef MODE_MASK\n");
+}
+
 /* True if MODE is a boolean mode (for the first target that has
    it; divergence shows up in the report as a non-uniform boolean
    property).  */
@@ -880,6 +1209,7 @@ main (int argc, char **argv)
 {
   progname = argv[0];
   bool emit_header = false, emit_inline = false;
+  std::string tables_target;
   int first_argument = 1;
   if (argc > 1 && !strcmp (argv[1], "-h"))
     {
@@ -891,8 +1221,13 @@ main (int argc, char **argv)
       emit_inline = true;
       first_argument = 2;
     }
+  else if (argc > 2 && !strcmp (argv[1], "-d"))
+    {
+      tables_target = argv[2];
+      first_argument = 3;
+    }
   if (argc - first_argument < 1)
-    fatal ("usage: %s [-h|-i] <name>=<dump> <name>=<dump> ...",
+    fatal ("usage: %s [-h|-i|-d <target>] <name>=<dump> ...",
 	   progname);
 
   std::vector<std::string> dump_files;
@@ -914,12 +1249,14 @@ main (int argc, char **argv)
   for (size_t i = 0; i < union_modes.size (); i++)
     union_index_by_name[union_modes[i].name] = i;
 
-  if (emit_header || emit_inline)
+  if (emit_header || emit_inline || !tables_target.empty ())
     {
       if (emit_header)
 	emit_union_header ();
-      else
+      else if (emit_inline)
 	emit_union_inline_header ();
+      else
+	emit_target_tables (tables_target);
       if (fflush (stdout) || fclose (stdout))
 	return FATAL_EXIT_CODE;
       return SUCCESS_EXIT_CODE;

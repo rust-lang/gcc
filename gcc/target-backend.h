@@ -36,6 +36,7 @@ struct gcc_options;
 struct output_block;
 struct bitpack_d;
 class data_in;
+struct mode_tables;
 
 /* The generated insn attribute and DFA scheduler entry points of one
    target (insn-attrtab.cc, insn-automata.cc).  Core consumers reach
@@ -159,6 +160,11 @@ struct target_backend
 
   /* Generated cl_target_option entry points (options-save.cc).  */
   struct cl_target_option_ops option_ops;
+
+  /* The target's machine mode value tables at the union
+     numbering (mode-tables.h); null outside multi-target
+     builds.  */
+  const struct mode_tables *mode_tables;
 };
 
 /* The descriptor of the configured target.  */

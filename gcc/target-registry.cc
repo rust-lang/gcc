@@ -146,7 +146,11 @@ const struct target_backend default_target_backend =
     cl_target_option_hash,
     cl_target_option_stream_out,
     cl_target_option_stream_in
-  }
+  },
+
+  /* Per-target mode tables exist only in multi-target builds;
+     the build glue fills this in.  */
+  NULL
 };
 
 #if ENABLE_MULTI_TARGET
