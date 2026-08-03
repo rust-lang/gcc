@@ -720,6 +720,66 @@ backend_print_operand_punct_valid_p (unsigned char code)
 }
 #endif
 
+/* The reload class and cost macros of a port that has not moved
+   to the corresponding hooks.  */
+
+#ifdef REGISTER_MOVE_COST
+static int
+backend_register_move_cost (machine_mode mode ATTRIBUTE_UNUSED,
+			    int from, int to)
+{
+  return REGISTER_MOVE_COST (mode, (enum reg_class) from,
+			     (enum reg_class) to);
+}
+#endif
+
+#ifdef CLASS_MAX_NREGS
+static unsigned char
+backend_class_max_nregs (int rclass, machine_mode mode)
+{
+  /* The macros predate variable-sized modes.  */
+  fixed_size_mode fixed_mode = as_a <fixed_size_mode> (mode);
+  return (unsigned char) CLASS_MAX_NREGS ((enum reg_class) rclass,
+					  fixed_mode);
+}
+#endif
+
+#ifdef PREFERRED_RELOAD_CLASS
+static int
+backend_preferred_reload_class (rtx x, int rclass)
+{
+  return (int) PREFERRED_RELOAD_CLASS (x, (enum reg_class) rclass);
+}
+#endif
+
+#if defined SECONDARY_RELOAD_CLASS \
+  || defined SECONDARY_INPUT_RELOAD_CLASS \
+  || defined SECONDARY_OUTPUT_RELOAD_CLASS
+static int
+backend_secondary_reload_class (int in_p ATTRIBUTE_UNUSED, int rclass,
+				machine_mode mode, rtx x)
+{
+  enum reg_class result = NO_REGS;
+#if defined SECONDARY_INPUT_RELOAD_CLASS
+  if (in_p)
+    result = SECONDARY_INPUT_RELOAD_CLASS ((enum reg_class) rclass,
+					   mode, x);
+#elif defined SECONDARY_RELOAD_CLASS
+  if (in_p)
+    result = SECONDARY_RELOAD_CLASS ((enum reg_class) rclass, mode, x);
+#endif
+#if defined SECONDARY_OUTPUT_RELOAD_CLASS
+  if (!in_p)
+    result = SECONDARY_OUTPUT_RELOAD_CLASS ((enum reg_class) rclass,
+					    mode, x);
+#elif defined SECONDARY_RELOAD_CLASS
+  if (!in_p)
+    result = SECONDARY_RELOAD_CLASS ((enum reg_class) rclass, mode, x);
+#endif
+  return (int) result;
+}
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -919,6 +979,29 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #endif
 #ifdef PRINT_OPERAND_PUNCT_VALID_P
   backend_print_operand_punct_valid_p,
+#else
+  NULL,
+#endif
+
+#ifdef REGISTER_MOVE_COST
+  backend_register_move_cost,
+#else
+  NULL,
+#endif
+#ifdef CLASS_MAX_NREGS
+  backend_class_max_nregs,
+#else
+  NULL,
+#endif
+#ifdef PREFERRED_RELOAD_CLASS
+  backend_preferred_reload_class,
+#else
+  NULL,
+#endif
+#if defined SECONDARY_RELOAD_CLASS \
+  || defined SECONDARY_INPUT_RELOAD_CLASS \
+  || defined SECONDARY_OUTPUT_RELOAD_CLASS
+  backend_secondary_reload_class,
 #else
   NULL,
 #endif

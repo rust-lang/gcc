@@ -301,6 +301,14 @@ struct target_backend
   void (*x_print_operand) (FILE *, rtx, int);
   void (*x_print_operand_address) (FILE *, rtx);
   bool (*x_print_operand_punct_valid_p) (unsigned char);
+
+  /* The reload class and cost macros of a port that has not moved
+     to the corresponding hooks; null when the port defines the
+     hooks instead.  */
+  int (*x_register_move_cost) (machine_mode, int, int);
+  unsigned char (*x_class_max_nregs) (int, machine_mode);
+  int (*x_preferred_reload_class) (rtx, int);
+  int (*x_secondary_reload_class) (int, int, machine_mode, rtx);
 };
 
 /* The descriptor of the configured target.  */

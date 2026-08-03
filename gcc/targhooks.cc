@@ -1426,15 +1426,23 @@ default_secondary_reload (bool in_p ATTRIBUTE_UNUSED, rtx x ATTRIBUTE_UNUSED,
       sri->icode = sri->prev_sri->t_icode;
       return NO_REGS;
     }
-#ifdef SECONDARY_INPUT_RELOAD_CLASS
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_secondary_reload_class != NULL)
+    rclass = (enum reg_class)
+      this_target_backend->x_secondary_reload_class (in_p,
+						     (int) reload_class,
+						     reload_mode, x);
+#else
+# ifdef SECONDARY_INPUT_RELOAD_CLASS
   if (in_p)
     rclass = SECONDARY_INPUT_RELOAD_CLASS (reload_class,
 					   MACRO_MODE (reload_mode), x);
-#endif
-#ifdef SECONDARY_OUTPUT_RELOAD_CLASS
+# endif
+# ifdef SECONDARY_OUTPUT_RELOAD_CLASS
   if (! in_p)
     rclass = SECONDARY_OUTPUT_RELOAD_CLASS (reload_class,
 					    MACRO_MODE (reload_mode), x);
+# endif
 #endif
   if (rclass != NO_REGS)
     {
@@ -2160,11 +2168,18 @@ default_register_move_cost (machine_mode mode ATTRIBUTE_UNUSED,
                             reg_class_t from ATTRIBUTE_UNUSED,
                             reg_class_t to ATTRIBUTE_UNUSED)
 {
-#ifndef REGISTER_MOVE_COST
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_register_move_cost != NULL)
+    return this_target_backend->x_register_move_cost (mode, (int) from,
+						      (int) to);
   return 2;
 #else
+# ifndef REGISTER_MOVE_COST
+  return 2;
+# else
   return REGISTER_MOVE_COST (MACRO_MODE (mode),
 			     (enum reg_class) from, (enum reg_class) to);
+# endif
 #endif
 }
 
@@ -2353,10 +2368,17 @@ reg_class_t
 default_preferred_reload_class (rtx x ATTRIBUTE_UNUSED,
 			        reg_class_t rclass)
 {
-#ifdef PREFERRED_RELOAD_CLASS
-  return (reg_class_t) PREFERRED_RELOAD_CLASS (x, (enum reg_class) rclass);
-#else
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_preferred_reload_class != NULL)
+    return (reg_class_t)
+      this_target_backend->x_preferred_reload_class (x, (int) rclass);
   return rclass;
+#else
+# ifdef PREFERRED_RELOAD_CLASS
+  return (reg_class_t) PREFERRED_RELOAD_CLASS (x, (enum reg_class) rclass);
+# else
+  return rclass;
+# endif
 #endif
 }
 
@@ -2390,14 +2412,21 @@ unsigned char
 default_class_max_nregs (reg_class_t rclass ATTRIBUTE_UNUSED,
 			 machine_mode mode ATTRIBUTE_UNUSED)
 {
-#ifdef CLASS_MAX_NREGS
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_class_max_nregs != NULL)
+    return this_target_backend->x_class_max_nregs ((int) rclass, mode);
+  unsigned int size = GET_MODE_SIZE (mode).to_constant ();
+  return (size + UNITS_PER_WORD - 1) / UNITS_PER_WORD;
+#else
+# ifdef CLASS_MAX_NREGS
   return (unsigned char) CLASS_MAX_NREGS ((enum reg_class) rclass,
 					  MACRO_MODE (mode));
-#else
+# else
   /* Targets with variable-sized modes must provide their own definition
      of this hook.  */
   unsigned int size = GET_MODE_SIZE (mode).to_constant ();
   return (size + UNITS_PER_WORD - 1) / UNITS_PER_WORD;
+# endif
 #endif
 }
 
