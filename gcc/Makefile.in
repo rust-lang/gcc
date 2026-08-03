@@ -3489,6 +3489,130 @@ mt-check-insn-headers:
 
 endif
 
+# Multi-target builds compile the first per-target generated
+# translation units: genemit runs once per enabled target with
+# --mt-prefix, and the resulting insn-emit files compile inside the
+# target's header context, exactly as in the target's cross build.
+# genopinit runs here too, because optabs.h reaches insn-opinit.h
+# from every target-code compile; its own translation unit is wired
+# up with the remaining generated units.  The mt-check-symbols gate
+# proves the renamed objects export disjoint symbol sets.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=build/mt-%/genopinit.o): build/mt-%/genopinit.o: \
+  $(srcdir)/genopinit.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genopinit$(build_exeext)): \
+  build/mt-%/genopinit$(build_exeext): build/mt-%/genopinit.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=mt-%/s-opinit): mt-%/s-opinit: \
+  build/mt-%/genopinit$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genopinit$(build_exeext) \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  mt-$*/insn-conditions.md -htmp-mt-$*-opinit.h \
+	  -ctmp-mt-$*-opinit.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-opinit.h \
+	  mt-$*/insn-opinit.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-opinit.cc \
+	  mt-$*/insn-opinit.cc
+	$(STAMP) $@
+
+$(multi_target_tags:%=mt-%/insn-opinit.h): mt-%/insn-opinit.h: \
+  mt-%/s-opinit ; @true
+$(multi_target_tags:%=mt-%/insn-opinit.cc): mt-%/insn-opinit.cc: \
+  mt-%/s-opinit ; @true
+
+$(multi_target_tags:%=build/mt-%/genemit.o): build/mt-%/genemit.o: \
+  $(srcdir)/genemit.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genemit$(build_exeext)): \
+  build/mt-%/genemit$(build_exeext): build/mt-%/genemit.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+# The headers the compile of a target-code translation unit reaches;
+# per-tag prerequisites sit on the generation stamp, so the objects
+# inherit the ordering through their sources.
+mt_target_code_prerequisites = mt-%/tm.h mt-%/tm_p.h \
+  mt-%/insn-flags.h mt-%/insn-config.h mt-%/insn-codes.h \
+  mt-%/insn-attr.h mt-%/insn-attr-common.h mt-%/insn-opinit.h \
+  mt-%/tm-constrs.h
+
+# The same list with every tag substituted in: object rules whose stem
+# spans tag and file cannot take per-tag pattern prerequisites, so
+# they conservatively depend on every tag's headers.
+mt_target_code_headers_all = $(foreach mt_tag,$(multi_target_tags), \
+	$(subst %,$(mt_tag),$(mt_target_code_prerequisites)))
+
+$(multi_target_tags:%=mt-%/s-tmp-emit): mt-%/s-tmp-emit: \
+  build/mt-%/genemit$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh $(mt_target_code_prerequisites)
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genemit$(build_exeext) --mt-prefix=mt_$*_ \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  mt-$*/insn-conditions.md \
+	  $(INSNEMIT_SPLITS_SEQ:%=-Otmp-mt-$*-emit-%.cc)
+	$(foreach mt_id, $(INSNEMIT_SPLITS_SEQ), \
+	  $(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-emit-$(mt_id).cc \
+	  mt-$*/insn-emit-$(mt_id).cc;)
+	$(STAMP) $@
+
+mt_insn_emit_sources = $(foreach mt_tag,$(multi_target_tags), \
+	$(INSNEMIT_SPLITS_SEQ:%=mt-$(mt_tag)/insn-emit-%.cc))
+mt_insn_emit_objects = $(mt_insn_emit_sources:.cc=.o)
+
+# Mapping each source to its own tag's stamp would need one rule per
+# tag; depending on every stamp is correct and merely conservative.
+$(mt_insn_emit_sources): $(multi_target_tags:%=mt-%/s-tmp-emit) ; @true
+
+$(mt_insn_emit_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
+  all-tree.def gtype-desc.h genrtl.h $(mt_target_code_headers_all)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
+	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ $<
+
+# The collision audit: with the rename macros in effect, the targets'
+# generated objects must export pairwise disjoint strong symbols.
+# Weak and vague-linkage definitions — inline and template
+# instantiations from shared headers — merge in the linker and are
+# not collisions.
+.PHONY: mt-check-symbols
+mt-check-symbols: $(mt_insn_emit_objects)
+	@for mt_tag in $(multi_target_tags); do \
+	  $(NM) -g -P mt-$$mt_tag/*.o \
+	    | awk 'NF >= 3 && $$2 != "U" && $$2 !~ /^[WwVv]$$/ \
+		{ print $$1 }' | sort -u \
+	    > tmp-mt-$$mt_tag.symbols || exit 1; \
+	  echo "mt-$$mt_tag exports `wc -l < tmp-mt-$$mt_tag.symbols`" \
+	    "symbols"; \
+	done
+	@cat $(multi_target_tags:%=tmp-mt-%.symbols) | sort | uniq -d \
+	  > tmp-mt-symbol-collisions
+	@if test -s tmp-mt-symbol-collisions; then \
+	  echo "cross-target symbol collisions:"; \
+	  cat tmp-mt-symbol-collisions; \
+	  exit 1; \
+	else \
+	  echo "mt-check-symbols: no cross-target symbol collisions"; \
+	fi
+
+else
+
+.PHONY: mt-check-symbols
+mt-check-symbols:
+	@echo "mt-check-symbols: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true

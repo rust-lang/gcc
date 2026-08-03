@@ -573,6 +573,13 @@ gen_split (const md_rtx_info &info, FILE *file)
   get_pattern_stats (&stats, XVEC (split, 2));
   unused = (stats.num_operand_vars == 0 ? " ATTRIBUTE_UNUSED" : "");
 
+  /* In a multi-target build, rename the function into the target's
+     symbol namespace.  insn-recog.cc emits the same macro before
+     its calls.  */
+  if (mt_prefix)
+    fprintf (file, "#define gen_%s_%d %sgen_%s_%d\n",
+	     name, info.index, mt_prefix, name, info.index);
+
   /* Output the prototype, function name and argument declarations.  */
   if (GET_CODE (split) == DEFINE_PEEPHOLE2)
     {
@@ -627,6 +634,8 @@ output_add_clobbers (FILE *file)
   struct clobber_ent *ent;
   int i;
 
+  if (mt_prefix)
+    fprintf (file, "\n#define add_clobbers %sadd_clobbers\n", mt_prefix);
   fprintf (file, "\n\nvoid\nadd_clobbers (rtx pattern ATTRIBUTE_UNUSED, int insn_code_number)\n");
   fprintf (file, "{\n");
   fprintf (file, "  switch (insn_code_number)\n");
@@ -673,6 +682,9 @@ output_added_clobbers_hard_reg_p (FILE *file)
   int clobber_p;
   bool used;
 
+  if (mt_prefix)
+    fprintf (file, "\n#define added_clobbers_hard_reg_p "
+	     "%sadded_clobbers_hard_reg_p\n", mt_prefix);
   fprintf (file, "\n\nbool\nadded_clobbers_hard_reg_p (int insn_code_number)\n");
   fprintf (file, "{\n");
   fprintf (file, "  switch (insn_code_number)\n");
