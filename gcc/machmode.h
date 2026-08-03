@@ -78,8 +78,14 @@ struct mode_traits<machine_mode>
 };
 
 /* Always treat machine modes as fixed-size while compiling code specific
-   to targets that have no variable-size modes.  */
-#if defined (IN_TARGET_CODE) && NUM_POLY_INT_COEFFS == 1
+   to targets that have no variable-size modes.  In a multi-target
+   build every unit compiles at the coefficient superset, and the
+   code of a target with no variable-size modes of its own keeps the
+   fixed-size view of them.  */
+#if defined (IN_TARGET_CODE) \
+    && (NUM_POLY_INT_COEFFS == 1 \
+	|| (defined (MT_NATIVE_POLY_COEFFS) \
+	    && MT_NATIVE_POLY_COEFFS == 1))
 #define ONLY_FIXED_SIZE_MODES 1
 #else
 #define ONLY_FIXED_SIZE_MODES 0

@@ -2943,23 +2943,27 @@ insn-modes-inline.h: s-modes-inline-h; @true
 min-insn-modes.cc: s-modes-m; @true
 
 s-modes: build/genmodes$(build_exeext)
-	$(RUN_GEN) build/genmodes$(build_exeext) > tmp-modes.cc
+	$(RUN_GEN) build/genmodes$(build_exeext) $(mt_poly_flag) \
+	  > tmp-modes.cc
 	$(SHELL) $(srcdir)/../move-if-change tmp-modes.cc insn-modes.cc
 	$(STAMP) s-modes
 
 s-modes-h: build/genmodes$(build_exeext)
-	$(RUN_GEN) build/genmodes$(build_exeext) -h > tmp-modes.h
+	$(RUN_GEN) build/genmodes$(build_exeext) -h $(mt_poly_flag) \
+	  > tmp-modes.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-modes.h insn-modes.h
 	$(STAMP) s-modes-h
 
 s-modes-inline-h: build/genmodes$(build_exeext)
-	$(RUN_GEN) build/genmodes$(build_exeext) -i > tmp-modes-inline.h
+	$(RUN_GEN) build/genmodes$(build_exeext) -i $(mt_poly_flag) \
+	  > tmp-modes-inline.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-modes-inline.h \
 	  insn-modes-inline.h
 	$(STAMP) s-modes-inline-h
 
 s-modes-m: build/genmodes$(build_exeext)
-	$(RUN_GEN) build/genmodes$(build_exeext) -m > tmp-min-modes.cc
+	$(RUN_GEN) build/genmodes$(build_exeext) -m $(mt_poly_flag) \
+	  > tmp-min-modes.cc
 	$(SHELL) $(srcdir)/../move-if-change tmp-min-modes.cc min-insn-modes.cc
 	$(STAMP) s-modes-m
 
@@ -3151,21 +3155,22 @@ mt_md_context_headers = \
 	$(multi_target_tags:%=mt-%/tm_p.h)
 
 $(multi_target_tags:%=mt-%/insn-modes.h): mt-%/insn-modes.h: \
-  build/mt-%/genmodes$(build_exeext)
+  build/mt-%/genmodes$(build_exeext) mt-poly-coeffs
 	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -h \
-	  > tmp-mt-$*-modes.h
+	  $(mt_poly_flag) > tmp-mt-$*-modes.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-modes.h $@
 
 $(multi_target_tags:%=mt-%/insn-modes-inline.h): \
-  mt-%/insn-modes-inline.h: build/mt-%/genmodes$(build_exeext)
+  mt-%/insn-modes-inline.h: build/mt-%/genmodes$(build_exeext) \
+  mt-poly-coeffs
 	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -i \
-	  > tmp-mt-$*-modes-inline.h
+	  $(mt_poly_flag) > tmp-mt-$*-modes-inline.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-modes-inline.h $@
 
 $(multi_target_tags:%=mt-%/min-insn-modes.cc): mt-%/min-insn-modes.cc: \
-  build/mt-%/genmodes$(build_exeext)
+  build/mt-%/genmodes$(build_exeext) mt-poly-coeffs
 	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -m \
-	  > tmp-mt-$*-min-modes.cc
+	  $(mt_poly_flag) > tmp-mt-$*-min-modes.cc
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-min-modes.cc $@
 
 # A tm_file entry with a ./ prefix names a header the target's own
@@ -3595,7 +3600,8 @@ $(multi_target_tags:%=build/mt-%/genemit$(build_exeext)): \
 mt_target_code_prerequisites = mt-%/tm.h mt-%/tm_p.h \
   mt-%/insn-flags.h mt-%/insn-config.h mt-%/insn-codes.h \
   mt-%/insn-attr.h mt-%/insn-attr-common.h mt-%/insn-opinit.h \
-  mt-%/tm-constrs.h mt-%/mt-options-pad.h
+  mt-%/tm-constrs.h mt-%/mt-options-pad.h \
+  mt-%/insn-modes.h mt-%/insn-modes-inline.h
 
 # The same list with every tag substituted in: object rules whose stem
 # spans tag and file cannot take per-tag pattern prerequisites, so
@@ -4310,6 +4316,40 @@ else
 .PHONY: mt-check-port-units
 mt-check-port-units:
 	@echo "mt-check-port-units: not a multi-target build"
+
+endif
+
+# The poly_int coefficient superset: every translation unit of a
+# multi-target build compiles with the largest enabled target's
+# coefficient count, so the compiler links one set of poly_int entry
+# points.  genmodes stamps every insn-modes.h with the superset and
+# the target's own native count; the code of a target whose native
+# count is 1 keeps its scalar idioms through the checked conversion
+# coretypes.h enables from those two values.  The superset comes
+# from the targets' own mode dumps, which depend only on the mode
+# definitions, never on generated headers.
+ifneq ($(multi_target_tags),)
+
+mt_poly_flag = --mt-poly-coeffs=`cat mt-poly-coeffs`
+
+mt-poly-coeffs: $(multi_target_tags:%=mt-%/insn-modes.dump)
+	{ for mt_tag in $(multi_target_tags); do \
+	    sed -n 's/^param poly_int_coeffs //p' \
+	      mt-$$mt_tag/insn-modes.dump; \
+	  done; } | sort -rn | sed -n '1p' > tmp-mt-poly-coeffs
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-poly-coeffs $@
+
+s-modes s-modes-h s-modes-inline-h s-modes-m: mt-poly-coeffs
+
+.PHONY: mt-check-poly-coeffs
+mt-check-poly-coeffs: mt-poly-coeffs
+	@echo "mt-poly-coeffs: `cat mt-poly-coeffs`"
+
+else
+
+.PHONY: mt-check-poly-coeffs
+mt-check-poly-coeffs:
+	@echo "mt-check-poly-coeffs: not a multi-target build"
 
 endif
 

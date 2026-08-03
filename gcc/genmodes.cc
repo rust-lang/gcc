@@ -990,15 +990,12 @@ calc_wider_mode (void)
     }
 }
 
-/* Text to add to the constant part of a poly_int initializer in
-   order to fill out te whole structure.  */
-#if NUM_POLY_INT_COEFFS == 1
-#define ZERO_COEFFS ""
-#elif NUM_POLY_INT_COEFFS == 2
-#define ZERO_COEFFS ", 0"
-#else
-#error "Unknown value of NUM_POLY_INT_COEFFS"
-#endif
+/* The number of coefficients the emitted poly_int initializers
+   carry: the native NUM_POLY_INT_COEFFS, or the superset of every
+   enabled target's count that a multi-target build passes through
+   --mt-poly-coeffs.  */
+static unsigned int poly_coeffs = NUM_POLY_INT_COEFFS;
+static bool mt_poly_override = false;
 
 /* Output routines.  */
 
@@ -1006,6 +1003,22 @@ calc_wider_mode (void)
   int count_ = printf ("  " FMT ",", ARG);		\
   printf ("%*s/* %s */\n", 27 - count_, "", TAG);	\
 } while (0)
+
+
+/* Print a poly_int initializer with poly_coeffs coefficients: FMT
+   formats VALUE as the constant coefficient, the others are zero,
+   and TAG names the mode in the trailing comment.  */
+static void
+tagged_poly_printf (const char *fmt, unsigned int value, const char *tag)
+{
+  unsigned int i;
+  int count = printf ("  { ");
+  count += printf (fmt, value);
+  for (i = 1; i < poly_coeffs; i++)
+    count += printf (", 0");
+  count += printf (" },");
+  printf ("%*s/* %s */\n", 27 - count, "", tag);
+}
 
 #define print_decl(TYPE, NAME, ASIZE) \
   puts ("\nconst " TYPE " " NAME "[" ASIZE "] =\n{");
@@ -1391,7 +1404,10 @@ enum machine_mode\n{");
 
   printf ("#define NUM_INT_N_ENTS %d\n", n_int_n_ents);
 
-  printf ("#define NUM_POLY_INT_COEFFS %d\n", NUM_POLY_INT_COEFFS);
+  printf ("#define NUM_POLY_INT_COEFFS %u\n", poly_coeffs);
+  if (mt_poly_override)
+    printf ("#define MT_NATIVE_POLY_COEFFS %d\n",
+	    NUM_POLY_INT_COEFFS);
 
   puts ("\
 \n\
@@ -1495,10 +1511,9 @@ emit_mode_precision (void)
 
   for_all_modes (c, m)
     if (m->precision != (unsigned int)-1)
-      tagged_printf ("{ %u" ZERO_COEFFS " }", m->precision, m->name);
+      tagged_poly_printf ("%u", m->precision, m->name);
     else
-      tagged_printf ("{ %u * BITS_PER_UNIT" ZERO_COEFFS " }",
-		     m->bytesize, m->name);
+      tagged_poly_printf ("%u * BITS_PER_UNIT", m->bytesize, m->name);
 
   print_closer ();
 }
@@ -1513,7 +1528,7 @@ emit_mode_size (void)
 			  "NUM_MACHINE_MODES", adj_nunits || adj_bytesize);
 
   for_all_modes (c, m)
-    tagged_printf ("{ %u" ZERO_COEFFS " }", m->bytesize, m->name);
+    tagged_poly_printf ("%u", m->bytesize, m->name);
 
   print_closer ();
 }
@@ -1528,7 +1543,7 @@ emit_mode_nunits (void)
 			  "NUM_MACHINE_MODES", adj_nunits);
 
   for_all_modes (c, m)
-    tagged_printf ("{ %u" ZERO_COEFFS " }", m->ncomponents, m->name);
+    tagged_poly_printf ("%u", m->ncomponents, m->name);
 
   print_closer ();
 }
@@ -2184,19 +2199,32 @@ main (int argc, char **argv)
   bool gen_dump = false;
   progname = argv[0];
 
-  if (argc == 1)
-    ;
-  else if (argc == 2 && !strcmp (argv[1], "-h"))
-    gen_header = true;
-  else if (argc == 2 && !strcmp (argv[1], "-i"))
-    gen_inlines = true;
-  else if (argc == 2 && !strcmp (argv[1], "-m"))
-    gen_min = true;
-  else if (argc == 2 && !strcmp (argv[1], "-X"))
-    gen_dump = true;
-  else
+  int i;
+  for (i = 1; i < argc; i++)
+    if (!strcmp (argv[i], "-h"))
+      gen_header = true;
+    else if (!strcmp (argv[i], "-i"))
+      gen_inlines = true;
+    else if (!strcmp (argv[i], "-m"))
+      gen_min = true;
+    else if (!strcmp (argv[i], "-X"))
+      gen_dump = true;
+    else if (startswith (argv[i], "--mt-poly-coeffs="))
+      {
+	poly_coeffs = atoi (argv[i] + strlen ("--mt-poly-coeffs="));
+	mt_poly_override = true;
+      }
+    else
+      {
+	error ("usage: %s [-h|-i|-m|-X] [--mt-poly-coeffs=<n>] > file",
+	       progname);
+	return FATAL_EXIT_CODE;
+      }
+
+  if (mt_poly_override
+      && (poly_coeffs < NUM_POLY_INT_COEFFS || poly_coeffs > 2))
     {
-      error ("usage: %s [-h|-i|-m|-X] > file", progname);
+      error ("--mt-poly-coeffs must cover the native count");
       return FATAL_EXIT_CODE;
     }
 
