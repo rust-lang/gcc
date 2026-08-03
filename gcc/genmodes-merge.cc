@@ -952,6 +952,7 @@ emit_target_tables (const std::string &target_name)
   printf ("#include \"config.h\"\n"
 	  "#include \"system.h\"\n"
 	  "#include \"coretypes.h\"\n"
+	  "#include \"real.h\"\n"
 	  "#include \"mode-tables.h\"\n\n");
   puts ("#define MODE_MASK(m) \\\n"
 	"  ((m) >= HOST_BITS_PER_WIDE_INT) \\\n"
@@ -998,6 +999,27 @@ emit_target_tables (const std::string &target_name)
 	  }
       printf ("    %s,\t\t/* %s */\n", mode_reference (narrowest).c_str (),
 	      mode_class_names[c]);
+    }
+  printf ("  },\n");
+
+  printf ("  /* real_format_for_mode */\n  {\n");
+  for (int c = 0; c < MAX_MODE_CLASS; c++)
+    {
+      if (c != MODE_FLOAT && c != MODE_DECIMAL_FLOAT)
+	continue;
+      for (size_t i = 0; i < union_modes.size (); i++)
+	{
+	  if (union_modes[i].cl != c)
+	    continue;
+	  const target_mode &record = union_modes[i].per_target[target];
+	  if (record.present && record.format != "-"
+	      && record.format != "0")
+	    printf ("    &%s,\t\t/* %s */\n", record.format.c_str (),
+		    union_modes[i].name.c_str ());
+	  else
+	    printf ("    0,\t\t/* %s */\n",
+		    union_modes[i].name.c_str ());
+	}
     }
   printf ("  }\n};\n");
   printf ("\n#undef MODE_MASK\n");

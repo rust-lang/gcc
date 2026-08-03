@@ -20,6 +20,8 @@ along with GCC; see the file COPYING3.  If not see
 #ifndef GCC_MODE_TABLES_H
 #define GCC_MODE_TABLES_H
 
+struct real_format;
+
 /* Include this header after coretypes.h; it relies on the machine_mode
    enum and poly_uint16.
 
@@ -56,6 +58,12 @@ struct mode_tables
   /* The target's narrowest mode of each class, not the union's: the
      union MIN_MODE_* bounds may name modes this target lacks.  */
   unsigned short class_narrowest_mode[MAX_MODE_CLASS];
+
+  /* Indexed as real.h's real_format_for_mode: the float modes,
+     then the decimal float modes; null for modes this target
+     lacks.  */
+  const struct real_format *real_format_for_mode[NUM_MODE_FLOAT
+						 + NUM_MODE_DECIMAL_FLOAT];
 };
 
 #endif
