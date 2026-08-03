@@ -55,6 +55,7 @@ gcc_parallel_test_enable 0
 # plugin_test_list={ {plugin1 test1 test2 ...} {plugin2 test1 ...} ... }
 set plugin_test_list [list \
     { selfassign.cc self-assign-test-1.c self-assign-test-2.c } \
+    { multi_target_plugin.cc multi-target-abi-1.c } \
     { ggcplug.cc ggcplug-test-1.c } \
     { one_time_plugin.cc one_time-test-1.c } \
     { start_unit_plugin.cc start_unit-test-1.c } \
