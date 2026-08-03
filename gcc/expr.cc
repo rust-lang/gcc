@@ -2197,12 +2197,27 @@ block_move_libcall_safe_for_call_parm (void)
   /* If any argument goes in memory, then it might clobber an outgoing
      argument.  */
   {
+#if ENABLE_MULTI_TARGET
+    /* The active target's cursor may be larger than the primary's.  */
+    union
+    {
+      CUMULATIVE_ARGS args_so_far_v;
+      char mt_args_so_far_pad[MT_MAX_CUMULATIVE_ARGS_SIZE];
+    };
+#else
     CUMULATIVE_ARGS args_so_far_v;
+#endif
     cumulative_args_t args_so_far;
     tree arg;
 
     fn = builtin_decl_implicit (BUILT_IN_MEMCPY);
+#if ENABLE_MULTI_TARGET
+    this_target_backend->x_init_cumulative_args (&args_so_far_v,
+						  TREE_TYPE (fn), NULL_RTX,
+						  NULL_TREE, 3);
+#else
     INIT_CUMULATIVE_ARGS (args_so_far_v, TREE_TYPE (fn), NULL_RTX, 0, 3);
+#endif
     args_so_far = pack_cumulative_args (&args_so_far_v);
 
     arg = TYPE_ARG_TYPES (TREE_TYPE (fn));

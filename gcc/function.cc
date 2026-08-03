@@ -2278,7 +2278,16 @@ struct assign_parm_data_all
 {
   /* When INIT_CUMULATIVE_ARGS gets revamped, allocating CUMULATIVE_ARGS
      should become a job of the target or otherwise encapsulated.  */
+#if ENABLE_MULTI_TARGET
+  /* The active target's cursor may be larger than the primary's.  */
+  union
+  {
+    CUMULATIVE_ARGS args_so_far_v;
+    char mt_args_so_far_pad[MT_MAX_CUMULATIVE_ARGS_SIZE];
+  };
+#else
   CUMULATIVE_ARGS args_so_far_v;
+#endif
   cumulative_args_t args_so_far;
   struct args_size stack_args_size;
   tree function_result_decl;
@@ -2313,11 +2322,16 @@ assign_parms_initialize_all (struct assign_parm_data_all *all)
 
   fntype = TREE_TYPE (current_function_decl);
 
+#if ENABLE_MULTI_TARGET
+  this_target_backend->x_init_cumulative_incoming_args
+    (&all->args_so_far_v, fntype, NULL_RTX, current_function_decl);
+#else
 #ifdef INIT_CUMULATIVE_INCOMING_ARGS
   INIT_CUMULATIVE_INCOMING_ARGS (all->args_so_far_v, fntype, NULL_RTX);
 #else
   INIT_CUMULATIVE_ARGS (all->args_so_far_v, fntype, NULL_RTX,
 			current_function_decl, -1);
+#endif
 #endif
   all->args_so_far = pack_cumulative_args (&all->args_so_far_v);
 
@@ -3835,7 +3849,13 @@ assign_parms (tree fndecl)
   /* For stdarg.h function, save info about
      regs and stack space used by the named args.  */
 
+#if ENABLE_MULTI_TARGET
+  /* The pad carries the active target's tail of the cursor.  */
+  memcpy (&crtl->args.info, &all.args_so_far_v,
+	  MT_MAX_CUMULATIVE_ARGS_SIZE);
+#else
   crtl->args.info = all.args_so_far_v;
+#endif
 
   /* Set the rtx used for the function return value.  Put this in its
      own variable so any optimizers that need this information don't have

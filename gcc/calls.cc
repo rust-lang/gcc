@@ -2757,7 +2757,16 @@ expand_call (tree exp, rtx target, int ignore)
   /* Size of arguments before any adjustments (such as rounding).  */
   poly_int64 unadjusted_args_size;
   /* Data on reg parms scanned so far.  */
+#if ENABLE_MULTI_TARGET
+  /* The active target's cursor may be larger than the primary's.  */
+  union
+  {
+    CUMULATIVE_ARGS args_so_far_v;
+    char mt_args_so_far_pad[MT_MAX_CUMULATIVE_ARGS_SIZE];
+  };
+#else
   CUMULATIVE_ARGS args_so_far_v;
+#endif
   cumulative_args_t args_so_far;
   /* Nonzero if a reg parm has been scanned.  */
   int reg_parm_seen;
@@ -3013,7 +3022,13 @@ expand_call (tree exp, rtx target, int ignore)
      calling convention than normal calls.  The fourth argument in
      INIT_CUMULATIVE_ARGS tells the backend if this is an indirect call
      or not.  */
+#if ENABLE_MULTI_TARGET
+  this_target_backend->x_init_cumulative_args (&args_so_far_v, funtype,
+						NULL_RTX, fndecl,
+						n_named_args);
+#else
   INIT_CUMULATIVE_ARGS (args_so_far_v, funtype, NULL_RTX, fndecl, n_named_args);
+#endif
   args_so_far = pack_cumulative_args (&args_so_far_v);
 
   /* Now possibly adjust the number of named args.
@@ -4216,7 +4231,16 @@ emit_library_call_value_1 (int retval, rtx orgfun, rtx value,
   tree fntype ATTRIBUTE_UNUSED = NULL_TREE; /* library calls default to host calling abi ? */
   int count;
   rtx argblock = 0;
+#if ENABLE_MULTI_TARGET
+  /* The active target's cursor may be larger than the primary's.  */
+  union
+  {
+    CUMULATIVE_ARGS args_so_far_v;
+    char mt_args_so_far_pad[MT_MAX_CUMULATIVE_ARGS_SIZE];
+  };
+#else
   CUMULATIVE_ARGS args_so_far_v;
+#endif
   cumulative_args_t args_so_far;
   struct arg
   {
@@ -4330,10 +4354,16 @@ emit_library_call_value_1 (int retval, rtx orgfun, rtx value,
   argvec = XALLOCAVEC (struct arg, nargs + 1);
   memset (argvec, 0, (nargs + 1) * sizeof (struct arg));
 
+#if ENABLE_MULTI_TARGET
+  this_target_backend->x_init_cumulative_libcall_args (&args_so_far_v,
+						       (int) outmode, fun,
+						       nargs);
+#else
 #ifdef INIT_CUMULATIVE_LIBCALL_ARGS
   INIT_CUMULATIVE_LIBCALL_ARGS (args_so_far_v, outmode, fun);
 #else
   INIT_CUMULATIVE_ARGS (args_so_far_v, NULL_TREE, fun, 0, nargs);
+#endif
 #endif
   args_so_far = pack_cumulative_args (&args_so_far_v);
 

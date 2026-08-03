@@ -6260,7 +6260,16 @@ prepare_call_arguments (basic_block bb, rtx_insn *insn)
   rtx this_arg = NULL_RTX;
   tree type = NULL_TREE, t, fndecl = NULL_TREE;
   tree obj_type_ref = NULL_TREE;
+#if ENABLE_MULTI_TARGET
+  /* The active target's cursor may be larger than the primary's.  */
+  union
+  {
+    CUMULATIVE_ARGS args_so_far_v;
+    char mt_args_so_far_pad[MT_MAX_CUMULATIVE_ARGS_SIZE];
+  };
+#else
   CUMULATIVE_ARGS args_so_far_v;
+#endif
   cumulative_args_t args_so_far;
 
   memset (&args_so_far_v, 0, sizeof (args_so_far_v));
@@ -6309,8 +6318,13 @@ prepare_call_arguments (basic_block bb, rtx_insn *insn)
 		  tree struct_addr = build_pointer_type (TREE_TYPE (type));
 		  function_arg_info arg (struct_addr, /*named=*/true);
 		  rtx reg;
+#if ENABLE_MULTI_TARGET
+		  this_target_backend->x_init_cumulative_args
+		    (&args_so_far_v, type, NULL_RTX, fndecl, nargs + 1);
+#else
 		  INIT_CUMULATIVE_ARGS (args_so_far_v, type, NULL_RTX, fndecl,
 					nargs + 1);
+#endif
 		  reg = targetm.calls.function_arg (args_so_far, arg);
 		  targetm.calls.function_arg_advance (args_so_far, arg);
 		  if (reg == NULL_RTX)
@@ -6326,8 +6340,13 @@ prepare_call_arguments (basic_block bb, rtx_insn *insn)
 		}
 	      else
 #endif
+#if ENABLE_MULTI_TARGET
+		this_target_backend->x_init_cumulative_args
+		  (&args_so_far_v, type, NULL_RTX, fndecl, nargs);
+#else
 		INIT_CUMULATIVE_ARGS (args_so_far_v, type, NULL_RTX, fndecl,
 				      nargs);
+#endif
 	      if (obj_type_ref && TYPE_ARG_TYPES (type) != void_list_node)
 		{
 		  t = TYPE_ARG_TYPES (type);

@@ -449,6 +449,47 @@ backend_regno_ok_for_index_p (unsigned int regno)
   return REGNO_OK_FOR_INDEX_P (regno);
 }
 
+/* The INIT_CUMULATIVE_ARGS family, writing the target's cursor
+   through the untyped pointer.  */
+
+static void
+backend_init_cumulative_args (void *cum, tree fntype ATTRIBUTE_UNUSED,
+			      rtx libname ATTRIBUTE_UNUSED,
+			      tree fndecl ATTRIBUTE_UNUSED,
+			      int n_named_args ATTRIBUTE_UNUSED)
+{
+  CUMULATIVE_ARGS *pcum = (CUMULATIVE_ARGS *) cum;
+  INIT_CUMULATIVE_ARGS (*pcum, fntype, libname, fndecl, n_named_args);
+}
+
+static void
+backend_init_cumulative_incoming_args (void *cum,
+				       tree fntype ATTRIBUTE_UNUSED,
+				       rtx libname ATTRIBUTE_UNUSED,
+				       tree fndecl ATTRIBUTE_UNUSED)
+{
+  CUMULATIVE_ARGS *pcum = (CUMULATIVE_ARGS *) cum;
+#ifdef INIT_CUMULATIVE_INCOMING_ARGS
+  INIT_CUMULATIVE_INCOMING_ARGS (*pcum, fntype, libname);
+#else
+  INIT_CUMULATIVE_ARGS (*pcum, fntype, libname, fndecl, -1);
+#endif
+}
+
+static void
+backend_init_cumulative_libcall_args (void *cum,
+				      int outmode ATTRIBUTE_UNUSED,
+				      rtx fun ATTRIBUTE_UNUSED,
+				      int nargs ATTRIBUTE_UNUSED)
+{
+  CUMULATIVE_ARGS *pcum = (CUMULATIVE_ARGS *) cum;
+#ifdef INIT_CUMULATIVE_LIBCALL_ARGS
+  INIT_CUMULATIVE_LIBCALL_ARGS (*pcum, (machine_mode) outmode, fun);
+#else
+  INIT_CUMULATIVE_ARGS (*pcum, NULL_TREE, fun, NULL_TREE, nargs);
+#endif
+}
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -590,4 +631,8 @@ const struct target_backend MT_BACKEND_SYMBOL =
   backend_index_reg_class,
   backend_ok_for_base_p_1,
   backend_regno_ok_for_index_p,
+
+  backend_init_cumulative_args,
+  backend_init_cumulative_incoming_args,
+  backend_init_cumulative_libcall_args,
 };

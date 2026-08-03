@@ -258,6 +258,12 @@ struct target_backend
   bool (*x_ok_for_base_p_1) (unsigned int, machine_mode,
 			     addr_space_t, int, int, rtx_insn *);
   bool (*x_regno_ok_for_index_p) (unsigned int);
+
+  /* The INIT_CUMULATIVE_ARGS family, writing the target's cursor
+     through the untyped pointer.  */
+  void (*x_init_cumulative_args) (void *, tree, rtx, tree, int);
+  void (*x_init_cumulative_incoming_args) (void *, tree, rtx, tree);
+  void (*x_init_cumulative_libcall_args) (void *, int, rtx, int);
 };
 
 /* The descriptor of the configured target.  */
