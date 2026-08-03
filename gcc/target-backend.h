@@ -284,6 +284,9 @@ struct target_backend
 
   /* EPILOGUE_USES.  */
   bool (*x_epilogue_uses) (int);
+
+  /* Whether the port has x87-style stack registers (STACK_REGS).  */
+  bool has_stack_regs;
 };
 
 /* The descriptor of the configured target.  */

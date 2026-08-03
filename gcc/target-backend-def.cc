@@ -839,4 +839,10 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #endif
 
   backend_epilogue_uses,
+
+#ifdef STACK_REGS
+  true,
+#else
+  false,
+#endif
 };

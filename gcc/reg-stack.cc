@@ -175,6 +175,7 @@
 #include "tree-pass.h"
 #include "rtl-iter.h"
 #include "function-abi.h"
+#include "target-backend.h"
 
 #ifdef STACK_REGS
 
@@ -3471,7 +3472,13 @@ public:
   bool gate (function *) final override
     {
 #ifdef STACK_REGS
+#if ENABLE_MULTI_TARGET
+      /* The primary compiles the pass in; run it only for a target
+	 with stack registers.  */
+      return this_target_backend->has_stack_regs;
+#else
       return true;
+#endif
 #else
       return false;
 #endif
