@@ -74,7 +74,16 @@ along with GCC; see the file COPYING3.  If not see
   (this_target_backend->attr_ops.x_eligible_for_annul_true)
 #define eligible_for_annul_false \
   (this_target_backend->attr_ops.x_eligible_for_annul_false)
-#define init_sched_attrs (this_target_backend->attr_ops.x_init_sched_attrs)
+/* A target without a tune attribute has no init_sched_attrs: its
+   generated insn-attr.h makes the name an empty statement and its
+   descriptor carries null, so the routed call checks first.  */
+inline void
+target_backend_init_sched_attrs (void)
+{
+  if (this_target_backend->attr_ops.x_init_sched_attrs != NULL)
+    this_target_backend->attr_ops.x_init_sched_attrs ();
+}
+#define init_sched_attrs target_backend_init_sched_attrs
 #define insn_default_latency \
   (*this_target_backend->attr_ops.x_insn_default_latency)
 #define bypass_p (this_target_backend->attr_ops.x_bypass_p)
