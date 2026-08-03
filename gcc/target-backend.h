@@ -229,6 +229,11 @@ struct target_backend
      identity.  */
   void (*x_ggc_mx_machine_function) (void *);
   void (*x_pch_nx_machine_function) (void *);
+
+  /* OVERRIDE_ABI_FORMAT, the per-function ABI setup a target may
+     expand into allocate_struct_function; null when the target
+     defines none.  */
+  void (*x_override_abi_format) (const_tree);
 };
 
 /* The descriptor of the configured target.  */

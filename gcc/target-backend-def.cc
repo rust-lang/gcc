@@ -36,6 +36,9 @@ along with GCC; see the file COPYING3.  If not see
 #include "common/common-target.h"
 #include "ggc.h"
 #include "register-tables.h"
+/* For the declaration of the target's OVERRIDE_ABI_FORMAT function;
+   tm.h itself arrives through backend.h.  */
+#include "tm_p.h"
 
 /* A single-target build compiles this file once, as the descriptor of
    the configured target.  A multi-target build compiles it once per
@@ -226,6 +229,17 @@ get_attr_preferred_for_speed_int (rtx_insn *insn)
 }
 #endif
 
+/* OVERRIDE_ABI_FORMAT is the target's per-function ABI setup,
+   expanded into allocate_struct_function; captured when the target
+   defines one.  */
+#ifdef OVERRIDE_ABI_FORMAT
+static void
+backend_override_abi_format (const_tree fndecl)
+{
+  OVERRIDE_ABI_FORMAT (fndecl);
+}
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -339,5 +353,11 @@ const struct target_backend MT_BACKEND_SYMBOL =
   MT_BACKEND_GT_ROOTS_REF,
   &MT_RENAMED (target_register_tables),
   MT_BACKEND_MACHINE_GGC_MX,
-  MT_BACKEND_MACHINE_PCH_NX
+  MT_BACKEND_MACHINE_PCH_NX,
+
+#ifdef OVERRIDE_ABI_FORMAT
+  backend_override_abi_format,
+#else
+  NULL,
+#endif
 };

@@ -43,6 +43,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "df.h"
 #include "memmodel.h"
 #include "tm_p.h"
+#include "target-backend.h"
 #include "stringpool.h"
 #include "expmed.h"
 #include "optabs.h"
@@ -4856,8 +4857,13 @@ allocate_struct_function (tree fndecl, bool abstract_p)
   if (init_machine_status)
     cfun->machine = (*init_machine_status) ();
 
-#ifdef OVERRIDE_ABI_FORMAT
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_override_abi_format != NULL)
+    this_target_backend->x_override_abi_format (fndecl);
+#else
+# ifdef OVERRIDE_ABI_FORMAT
   OVERRIDE_ABI_FORMAT (fndecl);
+# endif
 #endif
 
   if (fndecl != NULL_TREE)
