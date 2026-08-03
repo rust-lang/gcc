@@ -324,7 +324,10 @@ for (i = 0; i < n_langs; i++) {
     }
 
 print "  0\n};\n"
-print "const unsigned int cl_options_count = N_OPTS;\n"
+if (mt_pin_sentinel != "")
+	print "const unsigned int cl_options_count = N_OPTS_REAL;\n"
+else
+	print "const unsigned int cl_options_count = N_OPTS;\n"
 print "#if (1U << " n_langs ") > CL_MIN_OPTION_CLASS"
 print "  #error the number of languages exceeds the implementation limit"
 print "#endif"

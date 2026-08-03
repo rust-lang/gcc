@@ -145,11 +145,11 @@ find_opt (const char *input, unsigned int lang_mask)
 	    match_wrong_lang = mn;
 	}
 
-      /* Try the next possibility.  This is cl_options_count if there
-	 are no more.  */
+      /* Try the next possibility.  This is N_OPTS - the shared
+	 sentinel of a multi-target build - if there are no more.  */
       mn = opt->back_chain;
     }
-  while (mn != cl_options_count);
+  while (mn != N_OPTS);
 
   if (match_wrong_lang == OPT_SPECIAL_unknown && input[0] == '-')
     {

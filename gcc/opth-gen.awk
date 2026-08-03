@@ -651,7 +651,13 @@ for (i = 0; i < n_opts; i++) {
 	enum_value++
 }
 
-print "  N_OPTS,"
+if (mt_pin_sentinel != "") {
+	# Every context of a multi-target build shares one sentinel
+	# space above any target's option count.
+	print "  N_OPTS_REAL,"
+	print "  N_OPTS = 28672,"
+} else
+	print "  N_OPTS,"
 print "  OPT_SPECIAL_unknown,"
 print "  OPT_SPECIAL_ignore,"
 print "  OPT_SPECIAL_warn_removed,"

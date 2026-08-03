@@ -2750,7 +2750,8 @@ options.cc: optionlist $(srcdir)/opt-functions.awk $(srcdir)/opt-read.awk \
 	$(AWK) -f $(srcdir)/opt-functions.awk -f $(srcdir)/opt-read.awk \
 	       -f $(srcdir)/optc-gen.awk \
 	       -v header_name="config.h system.h coretypes.h options.h tm.h" \
-	       -v multi_target="$(multi_target_triples)" < $< > $@
+	       -v multi_target="$(multi_target_triples)" \
+	       $(if $(multi_target_tags),-v mt_pin_sentinel=1) < $< > $@
 
 options-save.cc: optionlist $(srcdir)/opt-functions.awk $(srcdir)/opt-read.awk \
     $(srcdir)/optc-save-gen.awk
@@ -2769,6 +2770,7 @@ s-options-h: optionlist $(srcdir)/opt-functions.awk $(srcdir)/opt-read.awk \
     $(srcdir)/opth-gen.awk
 	$(AWK) -f $(srcdir)/opt-functions.awk -f $(srcdir)/opt-read.awk \
 	       -f $(srcdir)/opth-gen.awk \
+	       $(if $(multi_target_tags),-v mt_pin_sentinel=1) \
 	       < $< > tmp-options.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-options.h options.h
 	$(STAMP) $@
@@ -3140,6 +3142,7 @@ $(multi_target_tags:%=mt-%/options.h): mt-%/options.h: \
   $(srcdir)/opth-gen.awk
 	$(AWK) -f $(srcdir)/opt-functions.awk -f $(srcdir)/opt-read.awk \
 	  -f $(srcdir)/opth-gen.awk \
+	  -v mt_pin_sentinel=1 \
 	  < mt-$*/optionlist > tmp-mt-$*-options.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-options.h $@
 
@@ -4193,6 +4196,7 @@ $(multi_target_tags:%=mt-%/options.cc): mt-%/options.cc: \
   $(srcdir)/optc-gen.awk
 	$(AWK) -f $(srcdir)/opt-functions.awk -f $(srcdir)/opt-read.awk \
 	  -f $(srcdir)/optc-gen.awk -v mt_prefix=mt_$*_ \
+	  -v mt_pin_sentinel=1 \
 	  -v header_name="config.h system.h coretypes.h options.h tm.h" \
 	  -v multi_target="$(multi_target_triples)" \
 	  < mt-$*/optionlist > tmp-mt-$*-options.cc
