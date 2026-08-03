@@ -517,6 +517,12 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #undef ASM_OUTPUT_ALIGN
 #define ASM_OUTPUT_ALIGN(FILE, LOG) \
   (mt_active_target_scalars->x_asm_output_align ((FILE), (LOG)))
+/* The named class enumerators are per-target values; the macros
+   shadow the primary's enumerators in host code.  */
+#define ALL_REGS \
+  ((enum reg_class) mt_active_target_scalars->x_all_regs ())
+#define GENERAL_REGS \
+  ((enum reg_class) mt_active_target_scalars->x_general_regs ())
 #undef Pmode
 #define Pmode \
   (scalar_int_mode ((scalar_int_mode::from_int) \

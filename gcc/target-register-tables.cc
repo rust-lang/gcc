@@ -264,6 +264,18 @@ scalar_asm_output_align (FILE *file, int align_log)
   ASM_OUTPUT_ALIGN (file, align_log);
 }
 
+static int
+scalar_all_regs (void)
+{
+  return (int) ALL_REGS;
+}
+
+static int
+scalar_general_regs (void)
+{
+  return (int) GENERAL_REGS;
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -295,6 +307,8 @@ static const struct mt_target_scalars target_scalars =
   scalar_global_asm_op,
   scalar_function_boundary,
   scalar_asm_output_align,
+  scalar_all_regs,
+  scalar_general_regs,
 };
 
 /* extern: a const object would otherwise have internal linkage in

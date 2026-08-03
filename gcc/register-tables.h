@@ -64,6 +64,8 @@ struct mt_target_scalars
   const char *(*x_global_asm_op) (void);
   int (*x_function_boundary) (void);
   void (*x_asm_output_align) (FILE *, int);
+  int (*x_all_regs) (void);
+  int (*x_general_regs) (void);
 };
 
 /* One register elimination pair, as ELIMINABLE_REGS lists them.  */
