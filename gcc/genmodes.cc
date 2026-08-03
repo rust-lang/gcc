@@ -2106,11 +2106,52 @@ emit_min_insn_modes_c (void)
   emit_class_narrowest_mode ();
 }
 
+/* Dump the complete mode table in a stable line-oriented form, for
+   the multi-target mode-table merge.  The adjustment expressions
+   cannot be evaluated at generation time, so they are recorded as
+   text.  */
+
+static void
+emit_mode_dump (void)
+{
+  int c;
+  struct mode_data *m;
+  struct mode_adjust *a;
+
+  printf ("genmodes-dump 1\n");
+  for_all_modes (c, m)
+    printf ("mode %s class=%s order=%u precision=%u bytesize=%u "
+	    "ncomponents=%u alignment=%u format=%s component=%s wider=%s "
+	    "complex=%s ibit=%u fbit=%u int_n=%u boolean=%u\n",
+	    m->name, mode_class_names[m->cl], m->order, m->precision,
+	    m->bytesize, m->ncomponents, m->alignment,
+	    m->format ? m->format : "-",
+	    m->component ? m->component->name : "-",
+	    m->wider ? m->wider->name : "-",
+	    m->complex ? m->complex->name : "-",
+	    m->ibit, m->fbit, m->int_n, (unsigned int) m->boolean);
+  for (a = adj_nunits; a; a = a->next)
+    printf ("adjust nunits %s %s\n", a->mode->name, a->adjustment);
+  for (a = adj_bytesize; a; a = a->next)
+    printf ("adjust bytesize %s %s\n", a->mode->name, a->adjustment);
+  for (a = adj_alignment; a; a = a->next)
+    printf ("adjust alignment %s %s\n", a->mode->name, a->adjustment);
+  for (a = adj_format; a; a = a->next)
+    printf ("adjust format %s %s\n", a->mode->name, a->adjustment);
+  for (a = adj_ibit; a; a = a->next)
+    printf ("adjust ibit %s %s\n", a->mode->name, a->adjustment);
+  for (a = adj_fbit; a; a = a->next)
+    printf ("adjust fbit %s %s\n", a->mode->name, a->adjustment);
+  for (a = adj_precision; a; a = a->next)
+    printf ("adjust precision %s %s\n", a->mode->name, a->adjustment);
+}
+
 /* Master control.  */
 int
 main (int argc, char **argv)
 {
   bool gen_header = false, gen_inlines = false, gen_min = false;
+  bool gen_dump = false;
   progname = argv[0];
 
   if (argc == 1)
@@ -2121,9 +2162,11 @@ main (int argc, char **argv)
     gen_inlines = true;
   else if (argc == 2 && !strcmp (argv[1], "-m"))
     gen_min = true;
+  else if (argc == 2 && !strcmp (argv[1], "-X"))
+    gen_dump = true;
   else
     {
-      error ("usage: %s [-h|-i|-m] > file", progname);
+      error ("usage: %s [-h|-i|-m|-X] > file", progname);
       return FATAL_EXIT_CODE;
     }
 
@@ -2143,6 +2186,8 @@ main (int argc, char **argv)
     emit_insn_modes_inline_h ();
   else if (gen_min)
     emit_min_insn_modes_c ();
+  else if (gen_dump)
+    emit_mode_dump ();
   else
     emit_insn_modes_c ();
 
