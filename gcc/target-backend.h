@@ -277,6 +277,10 @@ struct target_backend
 
   /* The frame offset entry points (register-tables.h).  */
   const struct mt_frame_offset_ops *frame_offset_ops;
+
+  /* The mode-switching entity table (register-tables.h); null when
+     the port defines no mode switching.  */
+  const struct mt_mode_switching_ops *mode_switching_ops;
 };
 
 /* The descriptor of the configured target.  */

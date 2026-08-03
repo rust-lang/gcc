@@ -567,6 +567,15 @@ extern const struct mt_frame_offset_ops *mt_active_frame_offset_ops;
 #undef STACK_POINTER_OFFSET
 #define STACK_POINTER_OFFSET \
   (mt_active_frame_offset_ops->x_stack_pointer_offset ())
+extern const struct mt_mode_switching_ops *mt_active_mode_switching_ops;
+/* Only a primary with mode switching compiles the pass body; the
+   pass sizes its tables from the active capture.  */
+#ifdef OPTIMIZE_MODE_SWITCHING
+#undef OPTIMIZE_MODE_SWITCHING
+#define OPTIMIZE_MODE_SWITCHING(ENTITY) \
+  (mt_active_mode_switching_ops != NULL \
+   && mt_active_mode_switching_ops->x_optimize_p ((int) (ENTITY)) != 0)
+#endif
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */

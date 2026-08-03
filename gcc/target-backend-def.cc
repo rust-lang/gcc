@@ -625,6 +625,38 @@ static const struct mt_frame_offset_ops backend_frame_offset_ops =
 #endif
 };
 
+/* The mode-switching entity table, captured when the port defines
+   one; the pass walks the active target's entities.  */
+#ifdef OPTIMIZE_MODE_SWITCHING
+static const int backend_mode_switching_modes[] =
+  NUM_MODES_FOR_MODE_SWITCHING;
+
+static int
+backend_mode_switching_n_entities (void)
+{
+  return ARRAY_SIZE (backend_mode_switching_modes);
+}
+
+static int
+backend_mode_switching_num_modes (int entity)
+{
+  return backend_mode_switching_modes[entity];
+}
+
+static int
+backend_optimize_mode_switching (int entity)
+{
+  return OPTIMIZE_MODE_SWITCHING (entity) != 0;
+}
+
+static const struct mt_mode_switching_ops backend_mode_switching_ops
+  = {
+      backend_mode_switching_n_entities,
+      backend_mode_switching_num_modes,
+      backend_optimize_mode_switching,
+    };
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -790,4 +822,10 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #endif
 
   &backend_frame_offset_ops,
+
+#ifdef OPTIMIZE_MODE_SWITCHING
+  &backend_mode_switching_ops,
+#else
+  NULL,
+#endif
 };

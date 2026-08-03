@@ -107,6 +107,16 @@ struct mt_frame_offset_ops
   void (*x_stack_dynamic_offset) (const_tree, poly_int64 *);
 };
 
+/* The mode-switching entity table, captured in the descriptor's
+   context.  */
+
+struct mt_mode_switching_ops
+{
+  int (*x_n_entities) (void);
+  int (*x_num_modes) (int);
+  int (*x_optimize_p) (int);
+};
+
 struct mt_register_tables
 {
   /* The target's own FIRST_PSEUDO_REGISTER and N_REG_CLASSES.  */

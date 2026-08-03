@@ -797,10 +797,29 @@ optimize_mode_switching (void)
   int e;
   basic_block bb;
   bool need_commit = false;
+#if ENABLE_MULTI_TARGET
+  /* The active backend's entity table; a target without mode
+     switching contributes no entities.  */
+  const int n_entities_bound
+    = (mt_active_mode_switching_ops != NULL
+       ? mt_active_mode_switching_ops->x_n_entities () : 0);
+  int *num_modes = XALLOCAVEC (int, n_entities_bound);
+  int *entity_map = XALLOCAVEC (int, n_entities_bound);
+  struct bb_info **bb_info
+    = XALLOCAVEC (struct bb_info *, n_entities_bound);
+  for (e = 0; e < n_entities_bound; e++)
+    {
+      num_modes[e] = mt_active_mode_switching_ops->x_num_modes (e);
+      entity_map[e] = 0;
+      bb_info[e] = NULL;
+    }
+#define N_ENTITIES n_entities_bound
+#else
   static const int num_modes[] = NUM_MODES_FOR_MODE_SWITCHING;
 #define N_ENTITIES ARRAY_SIZE (num_modes)
   int entity_map[N_ENTITIES] = {};
   struct bb_info *bb_info[N_ENTITIES] = {};
+#endif
   int i, j;
   int n_entities = 0;
   int max_num_modes = 0;
