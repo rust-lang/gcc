@@ -692,7 +692,7 @@ immed_wide_int_const_1 (const wide_int_ref &v, machine_mode mode)
 #endif
 }
 
-#if TARGET_SUPPORTS_WIDE_INT == 0
+#if TARGET_SUPPORTS_WIDE_INT == 0 || ENABLE_MULTI_TARGET
 /* Return a CONST_DOUBLE or CONST_INT for a value specified as a pair
    of ints: I0 is the low-order word and I1 is the high-order word.
    For values that are larger than HOST_BITS_PER_DOUBLE_INT, the

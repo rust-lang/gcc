@@ -3371,7 +3371,7 @@ extern rtx_insn *end_sequence (void);
 extern double_int rtx_to_double_int (const_rtx);
 #endif
 extern void cwi_output_hex (FILE *, const_rtx);
-#if TARGET_SUPPORTS_WIDE_INT == 0
+#if TARGET_SUPPORTS_WIDE_INT == 0 || ENABLE_MULTI_TARGET
 extern rtx immed_double_const (HOST_WIDE_INT, HOST_WIDE_INT,
 			       machine_mode);
 #endif
