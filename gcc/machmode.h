@@ -24,13 +24,14 @@ typedef opt_mode<machine_mode> opt_machine_mode;
 
 extern CONST_MODE_SIZE poly_uint16 mode_size[NUM_MACHINE_MODES];
 extern CONST_MODE_PRECISION poly_uint16 mode_precision[NUM_MACHINE_MODES];
-extern const unsigned short mode_inner[NUM_MACHINE_MODES];
+extern CONST_MODE_INNER unsigned short mode_inner[NUM_MACHINE_MODES];
 extern CONST_MODE_NUNITS poly_uint16 mode_nunits[NUM_MACHINE_MODES];
 extern CONST_MODE_UNIT_SIZE unsigned char mode_unit_size[NUM_MACHINE_MODES];
-extern const unsigned short mode_unit_precision[NUM_MACHINE_MODES];
-extern const unsigned short mode_next[NUM_MACHINE_MODES];
-extern const unsigned short mode_wider[NUM_MACHINE_MODES];
-extern const unsigned short mode_2xwider[NUM_MACHINE_MODES];
+extern CONST_MODE_UNIT_PRECISION unsigned short
+  mode_unit_precision[NUM_MACHINE_MODES];
+extern CONST_MODE_WIDER unsigned short mode_next[NUM_MACHINE_MODES];
+extern CONST_MODE_WIDER unsigned short mode_wider[NUM_MACHINE_MODES];
+extern CONST_MODE_WIDER unsigned short mode_2xwider[NUM_MACHINE_MODES];
 
 template<typename T>
 struct mode_traits
@@ -828,7 +829,7 @@ GET_MODE_2XWIDER_MODE (const T &m)
 }
 
 /* Get the complex mode from the component mode.  */
-extern const unsigned short mode_complex[NUM_MACHINE_MODES];
+extern CONST_MODE_COMPLEX unsigned short mode_complex[NUM_MACHINE_MODES];
 #define GET_MODE_COMPLEX_MODE(MODE) ((machine_mode) mode_complex[MODE])
 
 /* Represents a machine mode that must have a fixed size.  The main
@@ -978,7 +979,8 @@ extern unsigned get_mode_alignment (machine_mode);
 
 /* For each class, get the narrowest mode in that class.  */
 
-extern const unsigned short class_narrowest_mode[MAX_MODE_CLASS];
+extern CONST_MODE_NARROWEST unsigned short
+  class_narrowest_mode[MAX_MODE_CLASS];
 #define GET_CLASS_NARROWEST_MODE(CLASS) \
   ((machine_mode) class_narrowest_mode[CLASS])
 

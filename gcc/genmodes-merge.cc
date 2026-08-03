@@ -399,40 +399,6 @@ links_vary_p (const union_mode &mode)
   return false;
 }
 
-/* Union-wide property variance, for the CONST_MODE_* defines and the
-   inline fast paths.  */
-
-struct union_variance
-{
-  bool nunits;
-  bool bytesize;
-  bool alignment;
-  bool ibit;
-  bool fbit;
-};
-
-static union_variance
-compute_union_variance (void)
-{
-  union_variance variance = union_variance ();
-  for (size_t i = 0; i < union_modes.size (); i++)
-    {
-      std::string variants = variant_properties (union_modes[i]);
-      if (variants.find ("ncomponents") != std::string::npos
-	  || variants.find ("precision") != std::string::npos)
-	variance.nunits = true;
-      if (variants.find ("bytesize") != std::string::npos)
-	variance.bytesize = true;
-      if (variants.find ("alignment") != std::string::npos)
-	variance.alignment = true;
-      if (variants.find ("ibit") != std::string::npos)
-	variance.ibit = true;
-      if (variants.find ("fbit") != std::string::npos)
-	variance.fbit = true;
-    }
-  return variance;
-}
-
 /* The union index of NAME, which must exist.  */
 
 static size_t
@@ -522,8 +488,6 @@ emit_inline_tail (const char *table_name)
 static void
 emit_union_inline_header (void)
 {
-  union_variance variance = compute_union_variance ();
-
   printf ("/* Generated automatically by genmodes-merge from the mode"
 	  " tables of:");
   for (size_t target = 0; target < target_names.size (); target++)
@@ -532,9 +496,8 @@ emit_union_inline_header (void)
 	  "#define GCC_INSN_MODES_INLINE_H\n"
 	  "\n#if !defined (USED_FOR_TARGET) && GCC_VERSION >= 4001\n\n");
 
-  std::string table_extern
-    (variance.bytesize || variance.nunits ? "" : "const ");
-  table_extern += "poly_uint16 mode_size";
+  /* Nothing here is const; see the union header's qualifiers.  */
+  std::string table_extern ("poly_uint16 mode_size");
   emit_inline_head ("poly_uint16", "mode_size_inline", table_extern, true);
   for (size_t i = 0; i < union_modes.size (); i++)
     {
@@ -559,8 +522,7 @@ emit_union_inline_header (void)
     }
   emit_inline_tail ("mode_size");
 
-  table_extern = variance.nunits ? "" : "const ";
-  table_extern += "poly_uint16 mode_nunits";
+  table_extern = "poly_uint16 mode_nunits";
   emit_inline_head ("poly_uint16", "mode_nunits_inline", table_extern, false);
   for (size_t i = 0; i < union_modes.size (); i++)
     {
@@ -585,7 +547,7 @@ emit_union_inline_header (void)
     }
   emit_inline_tail ("mode_nunits");
 
-  table_extern = "const unsigned short mode_inner";
+  table_extern = "unsigned short mode_inner";
   emit_inline_head ("unsigned short", "mode_inner_inline", table_extern,
 		    true);
   for (size_t i = 0; i < union_modes.size (); i++)
@@ -610,7 +572,7 @@ emit_union_inline_header (void)
     }
   emit_inline_tail ("mode_inner");
 
-  table_extern = "CONST_MODE_UNIT_SIZE unsigned char mode_unit_size";
+  table_extern = "unsigned char mode_unit_size";
   emit_inline_head ("unsigned char", "mode_unit_size_inline", table_extern,
 		    true);
   for (size_t i = 0; i < union_modes.size (); i++)
@@ -639,7 +601,7 @@ emit_union_inline_header (void)
     }
   emit_inline_tail ("mode_unit_size");
 
-  table_extern = "const unsigned short mode_unit_precision";
+  table_extern = "unsigned short mode_unit_precision";
   emit_inline_head ("unsigned short", "mode_unit_precision_inline",
 		    table_extern, true);
   for (size_t i = 0; i < union_modes.size (); i++)
@@ -1176,22 +1138,21 @@ emit_union_header (void)
     }
   printf ("\n");
 
-  /* A property is constant only if no target adjusts it at run time
-     and the targets agree on it, since activation installs the active
-     target's values.  */
-  union_variance variance = compute_union_variance ();
-  printf ("#define CONST_MODE_NUNITS%s\n", variance.nunits ? "" : " const");
-  printf ("#define CONST_MODE_PRECISION%s\n",
-	  variance.nunits ? "" : " const");
-  printf ("#define CONST_MODE_SIZE%s\n",
-	  variance.bytesize || variance.nunits ? "" : " const");
-  printf ("#define CONST_MODE_UNIT_SIZE%s\n",
-	  variance.bytesize ? "" : " const");
-  printf ("#define CONST_MODE_BASE_ALIGN%s\n",
-	  variance.alignment ? "" : " const");
-  printf ("#define CONST_MODE_IBIT%s\n", variance.ibit ? "" : " const");
-  printf ("#define CONST_MODE_FBIT%s\n", variance.fbit ? "" : " const");
-  printf ("#define CONST_MODE_MASK%s\n", variance.nunits ? "" : " const");
+  /* Activation installs the active target's values into every
+     table, so none of them is const in a multi-target build.  */
+  printf ("#define CONST_MODE_NUNITS\n");
+  printf ("#define CONST_MODE_PRECISION\n");
+  printf ("#define CONST_MODE_SIZE\n");
+  printf ("#define CONST_MODE_UNIT_SIZE\n");
+  printf ("#define CONST_MODE_BASE_ALIGN\n");
+  printf ("#define CONST_MODE_IBIT\n");
+  printf ("#define CONST_MODE_FBIT\n");
+  printf ("#define CONST_MODE_MASK\n");
+  printf ("#define CONST_MODE_WIDER\n");
+  printf ("#define CONST_MODE_INNER\n");
+  printf ("#define CONST_MODE_UNIT_PRECISION\n");
+  printf ("#define CONST_MODE_COMPLEX\n");
+  printf ("#define CONST_MODE_NARROWEST\n");
 
   printf ("\n#define BITS_PER_UNIT (%u)\n", bits_per_unit_param);
   printf ("#define MAX_BITSIZE_MODE_ANY_INT %u\n",

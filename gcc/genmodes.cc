@@ -1023,6 +1023,11 @@ tagged_poly_printf (const char *fmt, unsigned int value, const char *tag)
 #define print_decl(TYPE, NAME, ASIZE) \
   puts ("\nconst " TYPE " " NAME "[" ASIZE "] =\n{");
 
+/* The same, under a named const qualifier macro; see the
+   CONST_MODE_* block above.  */
+#define print_qual_decl(QUAL, TYPE, NAME, ASIZE) \
+  puts ("\n" QUAL " " TYPE " " NAME "[" ASIZE "] =\n{");
+
 #define print_maybe_const_decl(TYPE, NAME, ASIZE, NEEDS_ADJ)	\
   printf ("\n" TYPE " " NAME "[" ASIZE "] = \n{\n",		\
 	  NEEDS_ADJ ? "" : "const ")
@@ -1396,6 +1401,14 @@ enum machine_mode\n{");
   printf ("#define CONST_MODE_IBIT%s\n", adj_ibit ? "" : " const");
   printf ("#define CONST_MODE_FBIT%s\n", adj_fbit ? "" : " const");
   printf ("#define CONST_MODE_MASK%s\n", adj_nunits ? "" : " const");
+  /* No target adjusts these at run time; a multi-target build's
+     union header spells them empty, because activation installs
+     the active target's values.  */
+  printf ("#define CONST_MODE_WIDER const\n");
+  printf ("#define CONST_MODE_INNER const\n");
+  printf ("#define CONST_MODE_UNIT_PRECISION const\n");
+  printf ("#define CONST_MODE_COMPLEX const\n");
+  printf ("#define CONST_MODE_NARROWEST const\n");
   emit_max_int ();
 
   for_all_modes (c, m)
@@ -1554,7 +1567,8 @@ emit_mode_wider (void)
   int c;
   struct mode_data *m;
 
-  print_decl ("unsigned short", "mode_next", "NUM_MACHINE_MODES");
+  print_qual_decl ("CONST_MODE_WIDER", "unsigned short", "mode_next",
+		   "NUM_MACHINE_MODES");
 
   for_all_modes (c, m)
     tagged_printf ("E_%smode",
@@ -1562,7 +1576,8 @@ emit_mode_wider (void)
 		   m->name);
 
   print_closer ();
-  print_decl ("unsigned short", "mode_wider", "NUM_MACHINE_MODES");
+  print_qual_decl ("CONST_MODE_WIDER", "unsigned short", "mode_wider",
+		   "NUM_MACHINE_MODES");
 
   for_all_modes (c, m)
     {
@@ -1593,7 +1608,8 @@ emit_mode_wider (void)
     }
 
   print_closer ();
-  print_decl ("unsigned short", "mode_2xwider", "NUM_MACHINE_MODES");
+  print_qual_decl ("CONST_MODE_WIDER", "unsigned short", "mode_2xwider",
+		   "NUM_MACHINE_MODES");
 
   for_all_modes (c, m)
     {
@@ -1650,7 +1666,8 @@ emit_mode_complex (void)
   int c;
   struct mode_data *m;
 
-  print_decl ("unsigned short", "mode_complex", "NUM_MACHINE_MODES");
+  print_qual_decl ("CONST_MODE_COMPLEX", "unsigned short", "mode_complex",
+		   "NUM_MACHINE_MODES");
 
   for_all_modes (c, m)
     tagged_printf ("E_%smode",
@@ -1690,7 +1707,8 @@ emit_mode_inner (void)
   int c;
   struct mode_data *m;
 
-  print_decl ("unsigned short", "mode_inner", "NUM_MACHINE_MODES");
+  print_qual_decl ("CONST_MODE_INNER", "unsigned short", "mode_inner",
+		   "NUM_MACHINE_MODES");
 
   for_all_modes (c, m)
     tagged_printf ("E_%smode",
@@ -1726,7 +1744,8 @@ emit_mode_unit_precision (void)
   int c;
   struct mode_data *m;
 
-  print_decl ("unsigned short", "mode_unit_precision", "NUM_MACHINE_MODES");
+  print_qual_decl ("CONST_MODE_UNIT_PRECISION", "unsigned short",
+		   "mode_unit_precision", "NUM_MACHINE_MODES");
 
   for_all_modes (c, m)
     {
@@ -1763,7 +1782,8 @@ emit_class_narrowest_mode (void)
 {
   int c;
 
-  print_decl ("unsigned short", "class_narrowest_mode", "MAX_MODE_CLASS");
+  print_qual_decl ("CONST_MODE_NARROWEST", "unsigned short",
+		   "class_narrowest_mode", "MAX_MODE_CLASS");
 
   for (c = 0; c < MAX_MODE_CLASS; c++)
     {
@@ -2135,6 +2155,9 @@ static void
 emit_min_insn_modes_c (void)
 {
   emit_min_insn_modes_c_header ();
+  puts ("#define CONST_MODE_WIDER const\n"
+	"#define CONST_MODE_INNER const\n"
+	"#define CONST_MODE_NARROWEST const");
   emit_mode_name ();
   emit_mode_class ();
   emit_mode_nunits ();
