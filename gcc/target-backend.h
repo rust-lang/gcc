@@ -44,6 +44,12 @@ struct target_backend
 
   /* The target's generated instruction table (insn-output.cc).  */
   const struct insn_data_d *insn_data;
+
+  /* Generated recognizer entry points (insn-recog.cc, insn-extract.cc).  */
+  int (*recog) (rtx, rtx_insn *, int *);
+  void (*insn_extract) (rtx_insn *);
+  rtx_insn *(*split_insns) (rtx, rtx_insn *);
+  rtx_insn *(*peephole2_insns) (rtx, rtx_insn *, int *);
 };
 
 /* The descriptor of the configured target.  */

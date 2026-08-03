@@ -367,7 +367,7 @@ insn_invalid_p (rtx_insn *insn, bool in_group)
   int num_clobbers = 0;
   /* If we are before reload and the pattern is a SET, see if we can add
      clobbers.  */
-  int icode = recog (pat, insn,
+  int icode = target_backend_recog (pat, insn,
 		     (GET_CODE (pat) == SET
 		      && ! reload_completed
                       && ! reload_in_progress)
@@ -2897,7 +2897,7 @@ extract_insn (rtx_insn *insn)
       recog_data.n_alternatives = insn_data[icode].n_alternatives;
       recog_data.n_dups = insn_data[icode].n_dups;
 
-      insn_extract (insn);
+      target_backend_insn_extract (insn);
 
       for (i = 0; i < noperands; i++)
 	{
@@ -4331,7 +4331,8 @@ peephole2_optimize (void)
 
 	  /* Match the peephole.  */
 	  head = peep2_insn_data[peep2_current].insn;
-	  attempt = peephole2_insns (PATTERN (head), head, &match_len);
+	  attempt = target_backend_peephole2_insns (PATTERN (head), head,
+						     &match_len);
 	  if (attempt != NULL)
 	    {
 	      rtx_insn *last = peep2_attempt (bb, head, match_len, attempt);

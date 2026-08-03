@@ -319,6 +319,56 @@ extern rtx peep2_find_free_register (int, int, const char *,
 #endif
 extern rtx_insn *peephole2_insns (rtx, rtx_insn *, int *);
 
+#ifndef GENERATOR_FILE
+/* Declared in rtl.h; repeated here for the accessor below.  */
+extern rtx_insn *split_insns (rtx, rtx_insn *);
+
+/* Call the active target's generated recognizer and companions
+   through the backend descriptor.  Single-target builds call the
+   generated functions directly, at zero cost.  */
+
+inline int
+target_backend_recog (rtx x, rtx_insn *insn, int *pnum_clobbers)
+{
+#if ENABLE_MULTI_TARGET
+  return this_target_backend->recog (x, insn, pnum_clobbers);
+#else
+  return recog (x, insn, pnum_clobbers);
+#endif
+}
+
+inline void
+target_backend_insn_extract (rtx_insn *insn)
+{
+#if ENABLE_MULTI_TARGET
+  this_target_backend->insn_extract (insn);
+#else
+  insn_extract (insn);
+#endif
+}
+
+inline rtx_insn *
+target_backend_split_insns (rtx pattern, rtx_insn *insn)
+{
+#if ENABLE_MULTI_TARGET
+  return this_target_backend->split_insns (pattern, insn);
+#else
+  return split_insns (pattern, insn);
+#endif
+}
+
+inline rtx_insn *
+target_backend_peephole2_insns (rtx pattern, rtx_insn *insn,
+				int *pmatch_len)
+{
+#if ENABLE_MULTI_TARGET
+  return this_target_backend->peephole2_insns (pattern, insn, pmatch_len);
+#else
+  return peephole2_insns (pattern, insn, pmatch_len);
+#endif
+}
+#endif
+
 extern bool store_data_bypass_p (rtx_insn *, rtx_insn *);
 extern bool if_test_bypass_p (rtx_insn *, rtx_insn *);
 
@@ -338,7 +388,7 @@ inline int
 recog_memoized (rtx_insn *insn)
 {
   if (INSN_CODE (insn) < 0)
-    INSN_CODE (insn) = recog (PATTERN (insn), insn, 0);
+    INSN_CODE (insn) = target_backend_recog (PATTERN (insn), insn, 0);
   return INSN_CODE (insn);
 }
 #endif

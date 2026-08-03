@@ -39,7 +39,11 @@ const struct target_backend default_target_backend =
 {
   TARGET_BACKEND_PRIMARY_TRIPLE,
   &targetm,
-  insn_data
+  insn_data,
+  recog,
+  insn_extract,
+  split_insns,
+  peephole2_insns
 };
 
 #if ENABLE_MULTI_TARGET

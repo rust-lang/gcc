@@ -533,7 +533,7 @@ combine_split_insns (rtx pattern, rtx_insn *insn,
   rtx_insn *ret;
   unsigned int nregs;
   *old_nregs = max_reg_num ();
-  ret = split_insns (pattern, insn);
+  ret = target_backend_split_insns (pattern, insn);
   *new_regs = nregs = max_reg_num ();
   if (nregs > reg_stat.length ())
     reg_stat.safe_grow_cleared (nregs, true);
@@ -11430,7 +11430,7 @@ recog_for_combine_1 (rtx *pnewpat, rtx_insn *insn, rtx *pnotes,
   PATTERN (insn) = pat;
   REG_NOTES (insn) = NULL_RTX;
 
-  insn_code_number = recog (pat, insn, &num_clobbers_to_add);
+  insn_code_number = target_backend_recog (pat, insn, &num_clobbers_to_add);
   if (dump_file && (dump_flags & TDF_DETAILS))
     {
       if (insn_code_number < 0)
@@ -11464,7 +11464,7 @@ recog_for_combine_1 (rtx *pnewpat, rtx_insn *insn, rtx *pnotes,
 	pat = XVECEXP (pat, 0, 0);
 
       PATTERN (insn) = pat;
-      insn_code_number = recog (pat, insn, &num_clobbers_to_add);
+      insn_code_number = target_backend_recog (pat, insn, &num_clobbers_to_add);
       if (dump_file && (dump_flags & TDF_DETAILS))
 	{
 	  if (insn_code_number < 0)

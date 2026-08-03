@@ -3460,7 +3460,7 @@ eliminate_regs_in_insn (rtx_insn *insn, int replace)
 	      /* If this was an add insn before, rerecognize.  */
 	      || GET_CODE (SET_SRC (old_set)) == PLUS))
 	{
-	  int new_icode = recog (PATTERN (insn), insn, 0);
+	  int new_icode = target_backend_recog (PATTERN (insn), insn, 0);
 	  if (new_icode >= 0)
 	    INSN_CODE (insn) = new_icode;
 	}

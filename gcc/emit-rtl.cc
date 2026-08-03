@@ -3957,7 +3957,7 @@ try_split (rtx pat, rtx_insn *trial, int last)
 
   probability = split_branch_probability;
 
-  seq = split_insns (pat, trial);
+  seq = target_backend_split_insns (pat, trial);
 
   split_branch_probability = profile_probability::uninitialized ();
 

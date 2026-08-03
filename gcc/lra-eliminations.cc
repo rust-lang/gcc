@@ -1415,7 +1415,7 @@ process_insn_for_elimination (rtx_insn *insn, bool final_p, bool first_p)
       /* Check that insn changed its code.  This is a case when a move
 	 insn becomes an add insn and we do not want to process the
 	 insn as a move anymore.  */
-      int icode = recog (PATTERN (insn), insn, 0);
+      int icode = target_backend_recog (PATTERN (insn), insn, 0);
 
       if (icode >= 0 && icode != INSN_CODE (insn))
 	{

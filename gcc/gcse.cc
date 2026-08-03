@@ -565,7 +565,7 @@ compute_can_copy (void)
 #else
 	reg = gen_rtx_REG ((machine_mode) i, LAST_VIRTUAL_REGISTER + 1);
 	insn = emit_insn (gen_rtx_SET (reg, reg));
-	if (recog (PATTERN (insn), insn, NULL) >= 0)
+	if (target_backend_recog (PATTERN (insn), insn, NULL) >= 0)
 	  can_copy[i] = 1;
 #endif
       }
@@ -931,7 +931,7 @@ can_assign_to_reg_without_clobbers_p (rtx x, machine_mode mode)
   PUT_MODE (SET_DEST (PATTERN (test_insn)), mode);
   SET_SRC (PATTERN (test_insn)) = x;
 
-  icode = recog (PATTERN (test_insn), test_insn, &num_clobbers);
+  icode = target_backend_recog (PATTERN (test_insn), test_insn, &num_clobbers);
 
   /* If the test insn is valid and doesn't need clobbers, and the target also
      has no objections, we're good.  */

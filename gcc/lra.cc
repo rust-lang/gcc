@@ -1091,7 +1091,7 @@ lra_set_insn_recog_data (rtx_insn *insn)
     }
   else
     {
-      insn_extract (insn);
+      target_backend_insn_extract (insn);
       data->insn_static_data = insn_static_data
 	= get_static_insn_data (icode, insn_data[icode].n_operands,
 				insn_data[icode].n_dups,
@@ -1291,7 +1291,7 @@ lra_update_insn_recog_data (rtx_insn *insn)
     }
   else
     {
-      insn_extract (insn);
+      target_backend_insn_extract (insn);
       n = insn_static_data->n_operands;
       if (n != 0)
 	memcpy (data->operand_loc, recog_data.operand_loc, n * sizeof (rtx *));

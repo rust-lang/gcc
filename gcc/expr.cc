@@ -160,22 +160,22 @@ init_expr_target (void)
 
 	    SET_SRC (pat) = mem;
 	    SET_DEST (pat) = reg;
-	    if (recog (pat, insn, &num_clobbers) >= 0)
+	    if (target_backend_recog (pat, insn, &num_clobbers) >= 0)
 	      direct_load[(int) mode] = 1;
 
 	    SET_SRC (pat) = mem1;
 	    SET_DEST (pat) = reg;
-	    if (recog (pat, insn, &num_clobbers) >= 0)
+	    if (target_backend_recog (pat, insn, &num_clobbers) >= 0)
 	      direct_load[(int) mode] = 1;
 
 	    SET_SRC (pat) = reg;
 	    SET_DEST (pat) = mem;
-	    if (recog (pat, insn, &num_clobbers) >= 0)
+	    if (target_backend_recog (pat, insn, &num_clobbers) >= 0)
 	      direct_store[(int) mode] = 1;
 
 	    SET_SRC (pat) = reg;
 	    SET_DEST (pat) = mem1;
-	    if (recog (pat, insn, &num_clobbers) >= 0)
+	    if (target_backend_recog (pat, insn, &num_clobbers) >= 0)
 	      direct_store[(int) mode] = 1;
 	  }
     }
@@ -4636,7 +4636,8 @@ emit_move_insn_1 (rtx x, rtx y)
 
       if (ret)
 	{
-	  if (! lra_in_progress || recog (PATTERN (ret), ret, 0) >= 0)
+	  if (! lra_in_progress
+	      || target_backend_recog (PATTERN (ret), ret, 0) >= 0)
 	    return ret;
 	}
     }
