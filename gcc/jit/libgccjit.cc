@@ -3294,6 +3294,63 @@ gcc_jit_blocks_clone (int num_blocks,
     reinterpret_cast<gcc::jit::recording::block **> (out_clones));
 }
 
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::block::get_successor_blocks method in
+   jit-recording.cc.  */
+
+int
+gcc_jit_block_get_successor_count (gcc_jit_block *block)
+{
+  RETURN_VAL_IF_FAIL (block, 0, NULL, NULL, "NULL block");
+  gcc::jit::recording::context *ctxt = block->get_context ();
+  JIT_LOG_FUNC (ctxt->get_logger ());
+
+  /* An unterminated block has no successors.  */
+  if (!block->has_been_terminated ())
+    return 0;
+
+  vec <gcc::jit::recording::block *> successors
+    = block->get_successor_blocks ();
+  int num_successors = successors.length ();
+  successors.release ();
+  return num_successors;
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::block::get_successor_blocks method in
+   jit-recording.cc.  */
+
+gcc_jit_block *
+gcc_jit_block_get_successor (gcc_jit_block *block, int index)
+{
+  RETURN_NULL_IF_FAIL (block, NULL, NULL, "NULL block");
+  gcc::jit::recording::context *ctxt = block->get_context ();
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_NULL_IF_FAIL_PRINTF1 (
+    block->has_been_terminated (), ctxt, NULL,
+    "block %s has not been terminated, so it has no successors",
+    block->get_debug_string ());
+
+  vec <gcc::jit::recording::block *> successors
+    = block->get_successor_blocks ();
+  gcc::jit::recording::block *successor = NULL;
+  bool valid_index = index >= 0 && index < (int) successors.length ();
+  if (valid_index)
+    successor = successors[index];
+  int num_successors = successors.length ();
+  successors.release ();
+
+  RETURN_NULL_IF_FAIL_PRINTF3 (
+    valid_index, ctxt, NULL,
+    "index %i is out of range for block %s, which has %i successors",
+    index, block->get_debug_string (), num_successors);
+
+  return static_cast <gcc_jit_block *> (successor);
+}
 
 /* Public entrypoint.  See description in libgccjit.h.
 
