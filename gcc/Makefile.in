@@ -3062,7 +3062,7 @@ mt_tm_headers = $(multi_target_tags:%=mt-%/tm.h)
 $(mt_tm_headers): mt-%/tm.h: mt-%/cs-tm.h ; @true
 
 $(multi_target_tags:%=mt-%/cs-tm.h): mt-%/cs-tm.h: mt-config-%.sh \
-  $(srcdir)/mkconfig.sh mt-%/stamp-directory
+  $(srcdir)/mkconfig.sh mt-%/stamp-directory Makefile
 	. ./mt-config-$*.sh; \
 	mt_mkconfig=`cd $(srcdir); ${PWD_COMMAND}`/mkconfig.sh; \
 	mt_rename_defines=; \
@@ -3074,6 +3074,7 @@ $(multi_target_tags:%=mt-%/cs-tm.h): mt-%/cs-tm.h: mt-config-%.sh \
 	    mt_rename_defines="$$mt_rename_defines \
 	      $$mt_name=mt_$*_$$mt_name"; \
 	  done; \
+	  mt_rename_defines="$$mt_rename_defines MT_TARGETM_RENAMED=1"; \
 	fi; \
 	cd mt-$* && \
 	TARGET_CPU_DEFAULT="$$mt_target_cpu_default_final" \
@@ -3603,7 +3604,7 @@ mt_target_code_prerequisites = mt-%/tm.h mt-%/tm_p.h \
   mt-%/insn-attr.h mt-%/insn-attr-common.h mt-%/insn-opinit.h \
   mt-%/tm-constrs.h mt-%/mt-options-pad.h \
   mt-%/insn-modes.h mt-%/insn-modes-inline.h mt-maxima.h \
-  $(TM_H)
+  $(TM_H) $(TARGET_H) common/common-target.h opts.h
 
 # The same list with every tag substituted in: object rules whose stem
 # spans tag and file cannot take per-tag pattern prerequisites, so

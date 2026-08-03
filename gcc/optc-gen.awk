@@ -764,6 +764,9 @@ if (multi_target != "" && mt_prefix == "") {
 	print "void (*mt_active_init_global_opts_from_cpp)"
 	print "  (struct gcc_options *, const struct cpp_options *)"
 	print "  = init_global_opts_from_cpp;"
+	print "extern struct gcc_targetm_common mt_targetm_common;"
+	print "const struct gcc_targetm_common *mt_targetm_common_pnt"
+	print "  = &mt_targetm_common;"
 	print "#endif"
 }
 

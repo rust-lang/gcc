@@ -18,3 +18,9 @@
 #include "common/common-target-hooks-def.h"
 #include "hooks.h"
 #include "common/common-targhooks.h"
+
+#if ENABLE_MULTI_TARGET && !defined (MT_TARGETM_RENAMED)
+#undef targetm_common
+#define targetm_common mt_targetm_common
+extern struct gcc_targetm_common targetm_common;
+#endif

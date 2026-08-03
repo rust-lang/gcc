@@ -115,6 +115,30 @@ extern void MT_RENAMED (cl_target_option_stream_in)
   (struct data_in *, struct bitpack_d *, struct cl_target_option *);
 #endif
 
+
+/* Which vector objects the descriptor binds.  A single-target build
+   binds the configured target's vectors by their shared names.  In a
+   multi-target build, a secondary target's tm.h renamed the tokens
+   to the target's own vectors, so the shared names still bind them
+   directly; the primary's copies name the vectors as target-def.h
+   and its common counterpart define them, because the routing macros
+   target.h installs for host code must not bind a descriptor through
+   the switchable pointer.  */
+#if ENABLE_MULTI_TARGET
+# ifdef MT_TARGETM_RENAMED
+#  define MT_TARGETM_REF (&targetm)
+#  define MT_TARGETM_COMMON_REF (&targetm_common)
+# else
+extern struct gcc_target mt_targetm;
+extern struct gcc_targetm_common mt_targetm_common;
+#  define MT_TARGETM_REF (&mt_targetm)
+#  define MT_TARGETM_COMMON_REF (&mt_targetm_common)
+# endif
+#else
+# define MT_TARGETM_REF (&targetm)
+# define MT_TARGETM_COMMON_REF (&targetm_common)
+#endif
+
 /* The per-target mode tables of a multi-target build; a single-target
    build has no use for them.  */
 #ifdef MT_BACKEND_MODE_TABLES
@@ -159,7 +183,7 @@ extern const struct target_backend MT_BACKEND_SYMBOL;
 const struct target_backend MT_BACKEND_SYMBOL =
 {
   MT_BACKEND_TRIPLE,
-  &targetm,
+  MT_TARGETM_REF,
   MT_RENAMED (insn_data),
   MT_RENAMED (recog),
   MT_RENAMED (insn_extract),
@@ -238,9 +262,7 @@ const struct target_backend MT_BACKEND_SYMBOL =
     MT_RENAMED (cl_target_option_stream_in)
   },
 
-  /* The tm.h renames route targetm_common to the target's own vector
-     in a multi-target build, exactly as they route targetm above.  */
-  &targetm_common,
+  MT_TARGETM_COMMON_REF,
 
   MT_RENAMED (cl_options),
   MT_RENAMED (cl_options_count),

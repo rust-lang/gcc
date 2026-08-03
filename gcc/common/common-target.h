@@ -68,4 +68,11 @@ struct default_options
 
 extern struct gcc_targetm_common targetm_common;
 
+#if ENABLE_MULTI_TARGET && !defined (targetm_common)
+/* As with targetm: host code addresses the active backend's
+   common vector through a pointer activation repoints.  */
+extern const struct gcc_targetm_common *mt_targetm_common_pnt;
+#define targetm_common (*mt_targetm_common_pnt)
+#endif
+
 #endif /* GCC_C_TARGET_H */

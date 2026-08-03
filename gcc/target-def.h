@@ -137,3 +137,13 @@
 #include "hooks.h"
 #include "targhooks.h"
 #include "insn-target-def.h"
+
+#if ENABLE_MULTI_TARGET && !defined (MT_TARGETM_RENAMED)
+/* The port's unchanged definition below this header becomes the
+   primary vector's real name; host code reaches it through the
+   active-backend pointer.  A secondary target's context carries
+   its own rename instead.  */
+#undef targetm
+#define targetm mt_targetm
+extern struct gcc_target targetm;
+#endif

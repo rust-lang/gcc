@@ -24,6 +24,7 @@ along with GCC; see the file COPYING3.  If not see
 /* This unit repoints the active option tables; see opts.h.  */
 #define MT_OWN_OPTION_TABLES 1
 #include "opts.h"
+#include "common/common-target.h"
 #include "target-registry.h"
 
 /* The descriptor of the configured target lives in
@@ -36,6 +37,11 @@ along with GCC; see the file COPYING3.  If not see
    a single-target build of the primary.  */
 const struct target_backend *this_target_backend
   = &default_target_backend;
+
+/* Host code reaches the active hook vector here; see target.h.
+   The primary's vector carries the name target-def.h gives it.  */
+extern struct gcc_target mt_targetm;
+struct gcc_target *mt_targetm_pnt = &mt_targetm;
 
 /* The descriptors of the enabled targets, one per tag, compiled from
    target-backend-def.cc inside each target's own header context.  */
@@ -83,6 +89,9 @@ static void
 install_target_backend (const struct target_backend *backend)
 {
   this_target_backend = backend;
+
+  mt_targetm_pnt = backend->target_vector;
+  mt_targetm_common_pnt = backend->x_targetm_common;
 
   mt_active_cl_options = backend->x_cl_options;
   mt_active_cl_options_count = backend->x_cl_options_count;

@@ -323,6 +323,15 @@ extern bool verify_type_context (location_t, type_context_kind, const_tree,
 
 extern struct gcc_target targetm;
 
+#if ENABLE_MULTI_TARGET && !defined (targetm)
+/* Host code addresses the active backend's hook vector; activation
+   repoints this.  Code compiled in a secondary target's context
+   carries its own rename of the token, and the primary port's
+   defining unit redirects it through target-def.h.  */
+extern struct gcc_target *mt_targetm_pnt;
+#define targetm (*mt_targetm_pnt)
+#endif
+
 /* Return an estimate of the runtime value of X, for use in things
    like cost calculations or profiling frequencies.  Note that this
    function should never be used in situations where the actual
