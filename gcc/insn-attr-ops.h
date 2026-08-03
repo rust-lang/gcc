@@ -61,11 +61,44 @@ along with GCC; see the file COPYING3.  If not see
   (this_target_backend->attr_ops.x_insn_variable_length_p)
 #define insn_current_length \
   (this_target_backend->attr_ops.x_insn_current_length)
-#define get_attr_enabled (this_target_backend->attr_ops.x_get_attr_enabled)
+/* A target without one of the boolean attributes stubs its getter
+   out as hook_int_rtx_1 and its descriptor carries null: recog's
+   alternative masks reach the preferred_for getters whenever the
+   target has the enabled attribute at all, so a null capture reads
+   as the stub's constant one.  */
+inline int
+target_backend_get_attr_enabled (rtx_insn *insn)
+{
+  if (this_target_backend->attr_ops.x_get_attr_enabled == NULL)
+    return 1;
+  return this_target_backend->attr_ops.x_get_attr_enabled (insn);
+}
+
+inline int
+target_backend_get_attr_preferred_for_size (rtx_insn *insn)
+{
+  if (this_target_backend->attr_ops.x_get_attr_preferred_for_size
+      == NULL)
+    return 1;
+  return this_target_backend->attr_ops
+    .x_get_attr_preferred_for_size (insn);
+}
+
+inline int
+target_backend_get_attr_preferred_for_speed (rtx_insn *insn)
+{
+  if (this_target_backend->attr_ops.x_get_attr_preferred_for_speed
+      == NULL)
+    return 1;
+  return this_target_backend->attr_ops
+    .x_get_attr_preferred_for_speed (insn);
+}
+
+#define get_attr_enabled target_backend_get_attr_enabled
 #define get_attr_preferred_for_size \
-  (this_target_backend->attr_ops.x_get_attr_preferred_for_size)
+  target_backend_get_attr_preferred_for_size
 #define get_attr_preferred_for_speed \
-  (this_target_backend->attr_ops.x_get_attr_preferred_for_speed)
+  target_backend_get_attr_preferred_for_speed
 #define num_delay_slots (this_target_backend->attr_ops.x_num_delay_slots)
 #define eligible_for_delay (this_target_backend->attr_ops.x_eligible_for_delay)
 #define const_num_delay_slots \
