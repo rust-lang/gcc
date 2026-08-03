@@ -3090,6 +3090,12 @@ $(multi_target_tags:%=mt-%/cs-tm.h): mt-%/cs-tm.h: mt-config-%.sh \
 	mt_rename_defines=; \
 	if test "$*" != "$(firstword $(multi_target_tags))"; then \
 	  for mt_name in targetm targetm_common insn_data \
+	    cl_target_option_save cl_target_option_restore \
+	    cl_target_option_print \
+	    cl_target_option_print_diff \
+	    cl_target_option_eq cl_target_option_hash \
+	    cl_target_option_stream_out \
+	    cl_target_option_stream_in \
 	    ms_va_list_type_node linux_libc_has_function \
 	    linux_libm_function_max_error \
 	    linux_fortify_source_default_level; do \

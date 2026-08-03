@@ -99,6 +99,17 @@ extern void MT_RENAMED (cpp_handle_option_auto)
   (const struct gcc_options *, size_t, struct cpp_options *);
 extern void MT_RENAMED (init_global_opts_from_cpp)
   (struct gcc_options *, const struct cpp_options *);
+/* A secondary target's tm.h renames these entry points for the
+   port's own references; the descriptor spells the rename itself.  */
+#undef cl_target_option_save
+#undef cl_target_option_restore
+#undef cl_target_option_print
+#undef cl_target_option_print_diff
+#undef cl_target_option_eq
+#undef cl_target_option_hash
+#undef cl_target_option_stream_out
+#undef cl_target_option_stream_in
+
 extern void MT_RENAMED (cl_target_option_save)
   (struct cl_target_option *, struct gcc_options *,
    struct gcc_options *);
