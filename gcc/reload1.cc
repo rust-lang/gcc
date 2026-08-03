@@ -43,6 +43,16 @@ along with GCC; see the file COPYING3.  If not see
 #include "dumpfile.h"
 #include "rtl-iter.h"
 #include "function-abi.h"
+#include "target-backend.h"
+#include "register-tables.h"
+
+#if ENABLE_MULTI_TARGET
+/* The offsets must come from the target actually active.  */
+#undef INITIAL_ELIMINATION_OFFSET
+#define INITIAL_ELIMINATION_OFFSET(FROM, TO, OFFSET) \
+  this_target_backend->x_initial_elimination_offset ((FROM), (TO), \
+						     &(OFFSET))
+#endif
 
 /* This file contains the reload pass of the compiler, which is
    run after register allocation has been done.  It checks that
@@ -275,6 +285,17 @@ struct elim_table
 
 static struct elim_table *reg_eliminate = 0;
 
+#if ENABLE_MULTI_TARGET
+/* The active target's elimination pairs; a static image of
+   ELIMINABLE_REGS would initialize before activation and bake the
+   primary's register numbers in.  A port with a reload-specific
+   RELOAD_ELIMINABLE_REGS would need its own capture; no enabled
+   port defines one.  */
+#define reg_eliminate_1 \
+  (this_target_backend->register_tables->x_eliminable_regs)
+#define NUM_ELIMINABLE_REGS \
+  ((size_t) this_target_backend->register_tables->x_eliminable_regs_count)
+#else
 /* This is an intermediate structure to initialize the table.  It has
    exactly the members provided by ELIMINABLE_REGS.  */
 static const struct elim_table_1
@@ -292,6 +313,7 @@ static const struct elim_table_1
 #endif
 
 #define NUM_ELIMINABLE_REGS ARRAY_SIZE (reg_eliminate_1)
+#endif
 
 /* Record the number of pending eliminations that have an offset not equal
    to their initial offset.  If nonzero, we use a new copy of each
@@ -315,7 +337,17 @@ static int num_eliminable_invariants;
 
 static int first_label_num;
 static char *offsets_known_at;
+#if ENABLE_MULTI_TARGET
+/* The elimination count is a runtime value, so the label table is
+   stored flat and OFFSETS_AT recovers the two-dimensional
+   indexing.  */
+static poly_int64 *offsets_at;
+#define OFFSETS_AT(LABEL, INDEX) \
+  offsets_at[(LABEL) * NUM_ELIMINABLE_REGS + (INDEX)]
+#else
 static poly_int64 (*offsets_at)[NUM_ELIMINABLE_REGS];
+#define OFFSETS_AT(LABEL, INDEX) offsets_at[(LABEL)][(INDEX)]
+#endif
 
 vec<reg_equivs_t, va_gc> *reg_equivs;
 
@@ -2354,7 +2386,7 @@ set_label_offsets (rtx x, rtx_insn *insn, int initial_p)
       if (! offsets_known_at[CODE_LABEL_NUMBER (x) - first_label_num])
 	{
 	  for (i = 0; i < NUM_ELIMINABLE_REGS; i++)
-	    offsets_at[CODE_LABEL_NUMBER (x) - first_label_num][i]
+	    OFFSETS_AT (CODE_LABEL_NUMBER (x) - first_label_num, i)
 	      = (initial_p ? reg_eliminate[i].initial_offset
 		 : reg_eliminate[i].offset);
 	  offsets_known_at[CODE_LABEL_NUMBER (x) - first_label_num] = 1;
@@ -2374,7 +2406,8 @@ set_label_offsets (rtx x, rtx_insn *insn, int initial_p)
 	   where the offsets disagree.  */
 
 	for (i = 0; i < NUM_ELIMINABLE_REGS; i++)
-	  if (maybe_ne (offsets_at[CODE_LABEL_NUMBER (x) - first_label_num][i],
+	  if (maybe_ne (OFFSETS_AT (CODE_LABEL_NUMBER (x) - first_label_num,
+				    i),
 			(initial_p ? reg_eliminate[i].initial_offset
 			 : reg_eliminate[i].offset)))
 	    reg_eliminate[i].can_eliminate = 0;
@@ -3826,7 +3859,7 @@ set_offsets_for_label (rtx_insn *insn)
   for (i = 0, ep = reg_eliminate; i < NUM_ELIMINABLE_REGS; ep++, i++)
     {
       ep->offset = ep->previous_offset
-		 = offsets_at[label_nr - first_label_num][i];
+		 = OFFSETS_AT (label_nr - first_label_num, i);
       if (ep->can_eliminate && maybe_ne (ep->offset, ep->initial_offset))
 	num_not_at_initial_offset++;
     }
@@ -3968,7 +4001,11 @@ static void
 init_elim_table (void)
 {
   struct elim_table *ep;
+#if ENABLE_MULTI_TARGET
+  const struct mt_eliminable_pair *ep1;
+#else
   const struct elim_table_1 *ep1;
+#endif
 
   if (!reg_eliminate)
     reg_eliminate = XCNEWVEC (struct elim_table, NUM_ELIMINABLE_REGS);
@@ -4029,8 +4066,13 @@ init_eliminable_invariants (rtx_insn *first, bool do_subregs)
 
   /* Allocate the tables used to store offset information at labels.  */
   offsets_known_at = XNEWVEC (char, num_labels);
+#if ENABLE_MULTI_TARGET
+  offsets_at = (poly_int64 *)
+    xmalloc (num_labels * NUM_ELIMINABLE_REGS * sizeof (poly_int64));
+#else
   offsets_at = (poly_int64 (*)[NUM_ELIMINABLE_REGS])
     xmalloc (num_labels * NUM_ELIMINABLE_REGS * sizeof (poly_int64));
+#endif
 
 /* Look for REG_EQUIV notes; record what each pseudo is equivalent
    to.  If DO_SUBREGS is true, also find all paradoxical subregs and
