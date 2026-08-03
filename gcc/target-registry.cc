@@ -261,9 +261,11 @@ activate_target_backend (const char *by_triple)
       return;
     }
 
-  /* The installation of a secondary backend's surface lands with the
-     activation machinery proper.  */
-  fatal_error (UNKNOWN_LOCATION,
-	       "activation of the secondary target %qs is not yet"
-	       " implemented", by_triple);
+#if ENABLE_MULTI_TARGET
+  install_target_backend (backend);
+#else
+  /* A single-target build knows only the configured target; the
+     registry never lists another.  */
+  gcc_unreachable ();
+#endif
 }
