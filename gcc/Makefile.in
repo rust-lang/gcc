@@ -872,7 +872,8 @@ BUILD_LINKERFLAGS = $(BUILD_CXXFLAGS)
 
 # Native linker and preprocessor flags.  For x-fragment overrides.
 BUILD_LDFLAGS=@BUILD_LDFLAGS@
-BUILD_CPPFLAGS= -I. -I$(@D) -I$(srcdir) -I$(srcdir)/$(@D) \
+BUILD_CPPFLAGS= $(if $(multi_target_tags),-I mt-union) \
+		-I. -I$(@D) -I$(srcdir) -I$(srcdir)/$(@D) \
 		-I$(srcdir)/../include $(INCINTL) $(CPPINC) $(CPPFLAGS)
 
 # Actual name to use when installing a native compiler.
@@ -1003,7 +1004,10 @@ LANGHOOKS_DEF_H = langhooks-def.h $(HOOKS_H)
 TARGET_DEF_H = target-def.h target-hooks-def.h $(HOOKS_H) targhooks.h
 C_TARGET_DEF_H = c-family/c-target-def.h c-family/c-target-hooks-def.h \
   $(TREE_H) $(C_COMMON_H) $(HOOKS_H) common/common-targhooks.h
-CORETYPES_H = coretypes.h insn-modes.h signop.h wide-int.h wide-int-print.h \
+CORETYPES_H = coretypes.h \
+  $(if $(multi_target_tags),mt-union/insn-modes.h \
+    mt-union/insn-modes-inline.h) \
+  insn-modes.h signop.h wide-int.h wide-int-print.h \
   insn-modes-inline.h $(MACHMODE_H) double-int.h align.h poly-int.h \
   poly-int-types.h
 RTL_BASE_H = $(CORETYPES_H) rtl.h rtl.def reg-notes.def \
@@ -2985,8 +2989,14 @@ s-modes-inline-h: build/genmodes$(build_exeext)
 	  insn-modes-inline.h
 	$(STAMP) s-modes-inline-h
 
-s-modes-m: build/genmodes$(build_exeext)
-	$(RUN_GEN) build/genmodes$(build_exeext) -m $(mt_poly_flag) \
+s-modes-m: build/genmodes$(build_exeext) \
+  $(if $(multi_target_tags),$(mt_mode_dumps) \
+    build/genmodes-merge$(build_exeext))
+	$(if $(multi_target_tags),$(RUN_GEN) \
+	  build/genmodes-merge$(build_exeext) -m \
+	  $(firstword $(multi_target_tags)) \
+	  $(mt_dump_arguments),$(RUN_GEN) \
+	  build/genmodes$(build_exeext) -m $(mt_poly_flag)) \
 	  > tmp-min-modes.cc
 	$(SHELL) $(srcdir)/../move-if-change tmp-min-modes.cc min-insn-modes.cc
 	$(STAMP) s-modes-m
@@ -3200,9 +3210,9 @@ $(multi_target_tags:%=mt-%/insn-modes-inline.h): \
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-modes-inline.h $@
 
 $(multi_target_tags:%=mt-%/min-insn-modes.cc): mt-%/min-insn-modes.cc: \
-  build/mt-%/genmodes$(build_exeext) mt-poly-coeffs
-	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -m \
-	  $(mt_poly_flag) > tmp-mt-$*-min-modes.cc
+  $(mt_mode_dumps) build/genmodes-merge$(build_exeext)
+	$(RUN_GEN) build/genmodes-merge$(build_exeext) -m $* \
+	  $(mt_dump_arguments) > tmp-mt-$*-min-modes.cc
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-min-modes.cc $@
 
 # A tm_file entry with a ./ prefix names a header the target's own
@@ -3255,39 +3265,52 @@ $(multi_target_tags:%=mt-%/stamp-build-headers): \
 # gtype-desc.h, and rtl.h pulls in genrtl.h in generator files.
 mt_context_prerequisites = mt-%/tm.h mt-%/options.h \
   mt-%/mt-options-pad.h \
+  mt-union/insn-modes.h mt-union/insn-modes-inline.h \
   mt-%/insn-constants.h mt-%/insn-modes.h mt-%/insn-modes-inline.h \
   mt-%/stamp-build-headers $(HASH_TABLE_H) genrtl.h
+
+# The union headers carry the superset polynomial coefficient
+# count; a target unit's compile predefines the target's own, so
+# that target code with fixed-size modes keeps its fixed-size view.
+mt_build_context_flags = -I mt-union -DMT_NATIVE_POLY_COEFFS=`sed -n \
+    's/^param poly_int_coeffs //p' mt-$*/insn-modes.dump`
 
 $(multi_target_tags:%=build/mt-%/min-insn-modes.o): \
   build/mt-%/min-insn-modes.o: mt-%/min-insn-modes.cc \
   $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/rtl.o): build/mt-%/rtl.o: \
   $(srcdir)/rtl.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/read-rtl.o): build/mt-%/read-rtl.o: \
   $(srcdir)/read-rtl.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/gensupport.o): \
   build/mt-%/gensupport.o: $(srcdir)/gensupport.cc \
   $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/print-rtl.o): build/mt-%/print-rtl.o: \
   $(srcdir)/print-rtl.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genpreds.o): build/mt-%/genpreds.o: \
   $(srcdir)/genpreds.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 mt_target_rtl_objects = build/mt-%/rtl.o build/mt-%/read-rtl.o \
@@ -3362,7 +3385,8 @@ ifneq ($(multi_target_tags),)
 $(multi_target_tags:%=build/mt-%/genconditions.o): \
   build/mt-%/genconditions.o: $(srcdir)/genconditions.cc \
   $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genconditions$(build_exeext)): \
@@ -3389,7 +3413,8 @@ $(multi_target_tags:%=build/mt-%/gencondmd.o): build/mt-%/gencondmd.o: \
   $(filter-out insn-flags.h, $(CORETYPES_H) $(RTL_H) $(FUNCTION_H) \
   $(REGS_H) $(RECOG_H) output.h $(FLAGS_H) $(RESOURCE_H) toplev.h \
   $(DIAGNOSTIC_CORE_H) reload.h $(EXCEPT_H))
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/gencondmd$(build_exeext)): \
@@ -3442,34 +3467,40 @@ mt_insn_headers = \
 
 $(multi_target_tags:%=build/mt-%/genattr.o): build/mt-%/genattr.o: \
   $(srcdir)/genattr.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genattr-common.o): \
   build/mt-%/genattr-common.o: $(srcdir)/genattr-common.cc \
   $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/gencodes.o): build/mt-%/gencodes.o: \
   $(srcdir)/gencodes.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genconfig.o): build/mt-%/genconfig.o: \
   $(srcdir)/genconfig.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genflags.o): build/mt-%/genflags.o: \
   $(srcdir)/genflags.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/gentarget-def.o): \
   build/mt-%/gentarget-def.o: $(srcdir)/gentarget-def.cc \
   $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genattr$(build_exeext)): \
@@ -3586,7 +3617,8 @@ ifneq ($(multi_target_tags),)
 
 $(multi_target_tags:%=build/mt-%/genopinit.o): build/mt-%/genopinit.o: \
   $(srcdir)/genopinit.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genopinit$(build_exeext)): \
@@ -3617,7 +3649,8 @@ $(multi_target_tags:%=mt-%/insn-opinit.cc): mt-%/insn-opinit.cc: \
 
 $(multi_target_tags:%=build/mt-%/genemit.o): build/mt-%/genemit.o: \
   $(srcdir)/genemit.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genemit$(build_exeext)): \
@@ -3672,7 +3705,8 @@ $(mt_insn_emit_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
 
 $(multi_target_tags:%=build/mt-%/genrecog.o): build/mt-%/genrecog.o: \
   $(srcdir)/genrecog.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genrecog$(build_exeext)): \
@@ -3717,7 +3751,8 @@ $(mt_insn_recog_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
 
 $(multi_target_tags:%=build/mt-%/genextract.o): build/mt-%/genextract.o: \
   $(srcdir)/genextract.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genextract$(build_exeext)): \
@@ -3728,7 +3763,8 @@ $(multi_target_tags:%=build/mt-%/genextract$(build_exeext)): \
 
 $(multi_target_tags:%=build/mt-%/genoutput.o): build/mt-%/genoutput.o: \
   $(srcdir)/genoutput.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genoutput$(build_exeext)): \
@@ -3739,7 +3775,8 @@ $(multi_target_tags:%=build/mt-%/genoutput$(build_exeext)): \
 
 $(multi_target_tags:%=build/mt-%/genpeep.o): build/mt-%/genpeep.o: \
   $(srcdir)/genpeep.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genpeep$(build_exeext)): \
@@ -3818,7 +3855,8 @@ mt_insn_unit_objects = \
 
 $(multi_target_tags:%=build/mt-%/genattrtab.o): build/mt-%/genattrtab.o: \
   $(srcdir)/genattrtab.cc $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genattrtab$(build_exeext)): \
@@ -3831,7 +3869,8 @@ $(multi_target_tags:%=build/mt-%/genattrtab$(build_exeext)): \
 $(multi_target_tags:%=build/mt-%/genautomata.o): \
   build/mt-%/genautomata.o: $(srcdir)/genautomata.cc \
   $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genautomata$(build_exeext)): \
@@ -4051,7 +4090,8 @@ ifneq ($(multi_target_tags),)
 $(multi_target_tags:%=build/mt-%/genmt-maxima.o): \
   build/mt-%/genmt-maxima.o: $(srcdir)/genmt-maxima.cc \
   mt-%/insn-codes.h mt-%/insn-config.h $(mt_context_prerequisites)
-	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) \
+	  $(mt_build_context_flags) -I mt-$* \
 	  $(BUILD_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genmt-maxima$(build_exeext)): \

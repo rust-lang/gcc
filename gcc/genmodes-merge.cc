@@ -28,11 +28,14 @@ along with GCC; see the file COPYING3.  If not see
    targets already disagree on both.
 
    With -h the tool emits the union insn-modes.h, with -i the
-   matching insn-modes-inline.h, and with -d <target> the value
-   tables of one target at the union numbering (mode-tables.h);
+   matching insn-modes-inline.h, with -d <target> the value
+   tables of one target at the union numbering (mode-tables.h),
+   and with -m <target> the generator-facing min-insn-modes.cc of
+   one target at the union numbering;
    without a flag, a report of the union.
 
-   Usage: genmodes-merge [-h|-i|-d <target>] <name>=<dump> ...  */
+   Usage: genmodes-merge [-h|-i|-d <target>|-m <target>]
+     <name>=<dump> ...  */
 
 #define INCLUDE_STRING
 #define INCLUDE_VECTOR
@@ -923,6 +926,105 @@ base_align_row (size_t i, size_t target)
   return text;
 }
 
+/* Row producers and emission for -m: the generator-facing
+   min-insn-modes.cc of one target at the union numbering.  */
+
+static std::string
+name_row (size_t i, size_t)
+{
+  return "\"" + union_modes[i].name + "\"";
+}
+
+static std::string
+class_row (size_t i, size_t)
+{
+  return mode_class_names[union_modes[i].cl];
+}
+
+/* Emit one standalone array of the union min tables: DECLARATION
+   carries the type and name, with one row per union mode from ROW and
+   absent-mode rows filled with FILLER.  A null FILLER marks a row
+   producer that is defined for every union mode.  */
+
+static void
+emit_min_table (const char *declaration, size_t target,
+		const char *filler, std::string (*row) (size_t, size_t))
+{
+  printf ("%s[NUM_MACHINE_MODES] =\n{\n", declaration);
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      std::string text;
+      if (filler == NULL || union_modes[i].per_target[target].present)
+	text = row (i, target);
+      else
+	text = filler;
+      printf ("  %s,\t\t/* %s */\n", text.c_str (),
+	      union_modes[i].name.c_str ());
+    }
+  printf ("};\n\n");
+}
+
+/* Emit the min-insn-modes.cc of the target named TARGET_NAME at the
+   union mode numbering: the shape genmodes -m emits, with the union's
+   indexes and the target's own values, so that the generator programs
+   that build a target's code number modes exactly as the compiler
+   proper does.  */
+
+static void
+emit_min_tables (const std::string &target_name)
+{
+  size_t target = target_names.size ();
+  for (size_t i = 0; i < target_names.size (); i++)
+    if (target_names[i] == target_name)
+      target = i;
+  if (target == target_names.size ())
+    fatal ("%s is not one of the dumped targets", target_name.c_str ());
+
+  printf ("/* Generated automatically by genmodes-merge from the mode"
+	  " tables of:");
+  for (size_t i = 0; i < target_names.size (); i++)
+    printf (" %s", target_names[i].c_str ());
+  printf (".\n   The generator-facing tables of target %s at the union"
+	  " mode\n   numbering.  */\n\n", target_name.c_str ());
+  printf ("#include \"bconfig.h\"\n"
+	  "#include \"system.h\"\n"
+	  "#include \"coretypes.h\"\n\n");
+  emit_min_table ("const char *const mode_name", target, NULL, name_row);
+  emit_min_table ("const unsigned char mode_class", target, NULL,
+		  class_row);
+  std::string nunits_filler = poly_row (1);
+  emit_min_table ("poly_uint16 mode_nunits", target,
+		  nunits_filler.c_str (), nunits_row);
+  emit_min_table ("CONST_MODE_WIDER unsigned short mode_next", target,
+		  "E_VOIDmode", next_row);
+  emit_min_table ("CONST_MODE_WIDER unsigned short mode_wider", target,
+		  "E_VOIDmode", wider_row);
+  emit_min_table ("CONST_MODE_WIDER unsigned short mode_2xwider", target,
+		  "E_VOIDmode", wider_2x_row);
+  emit_min_table ("CONST_MODE_INNER unsigned short mode_inner", target,
+		  "E_VOIDmode", inner_row);
+
+  printf ("CONST_MODE_NARROWEST unsigned short "
+	  "class_narrowest_mode[MAX_MODE_CLASS] =\n{\n");
+  for (int cl = 0; cl < MAX_MODE_CLASS; cl++)
+    {
+      std::string narrowest = "-";
+      /* genmodes never counts a boolean mode as a class's narrowest,
+	 keeping BImode out of the MODE_INT iteration range.  */
+      for (size_t i = 0; i < union_modes.size (); i++)
+	if (union_modes[i].cl == cl
+	    && union_modes[i].per_target[target].present
+	    && !union_modes[i].per_target[target].boolean_flag)
+	  {
+	    narrowest = union_modes[i].name;
+	    break;
+	  }
+      printf ("  %s,\t\t/* %s */\n",
+	      mode_reference (narrowest).c_str (), mode_class_names[cl]);
+    }
+  printf ("};\n");
+}
+
 /* Emit the value tables of the target named TARGET_NAME at the union
    mode numbering, as a mode_tables instance.  */
 
@@ -1402,6 +1504,7 @@ main (int argc, char **argv)
   bool emit_header = false, emit_inline = false;
   std::string tables_target;
   std::string core_target;
+  std::string min_target;
   int first_argument = 1;
   if (argc > 1 && !strcmp (argv[1], "-h"))
     {
@@ -1423,9 +1526,14 @@ main (int argc, char **argv)
       core_target = argv[2];
       first_argument = 3;
     }
+  else if (argc > 2 && !strcmp (argv[1], "-m"))
+    {
+      min_target = argv[2];
+      first_argument = 3;
+    }
   if (argc - first_argument < 1)
-    fatal ("usage: %s [-h|-i|-d <target>|-c <target>] <name>=<dump> ...",
-	   progname);
+    fatal ("usage: %s [-h|-i|-d <target>|-c <target>|-m <target>]"
+	   " <name>=<dump> ...", progname);
 
   std::vector<std::string> dump_files;
   for (int i = first_argument; i < argc; i++)
@@ -1447,7 +1555,7 @@ main (int argc, char **argv)
     union_index_by_name[union_modes[i].name] = i;
 
   if (emit_header || emit_inline || !tables_target.empty ()
-      || !core_target.empty ())
+      || !core_target.empty () || !min_target.empty ())
     {
       if (emit_header)
 	emit_union_header ();
@@ -1455,6 +1563,8 @@ main (int argc, char **argv)
 	emit_union_inline_header ();
       else if (!core_target.empty ())
 	emit_core_tables (core_target);
+      else if (!min_target.empty ())
+	emit_min_tables (min_target);
       else
 	emit_target_tables (tables_target);
       if (fflush (stdout) || fclose (stdout))
