@@ -191,6 +191,12 @@
 #			secondary target of a multi-target compiler.
 #			Defaults to no.
 #
+#  multi_target_port_products
+#			Header-like files the port's makefile fragments
+#			generate and its own sources include; a
+#			multi-target build makes them per target before
+#			compiling the port.
+#
 #  multi_target_all_triples
 #			One representative target triplet per multi-target-ready
 #			port, used to expand --enable-multi-target=all.
@@ -250,6 +256,7 @@ default_use_cxa_atexit=no
 default_gnu_indirect_function=no
 target_gtfiles=
 multi_target_ready=no
+multi_target_port_products=
 multi_target_all_triples="x86_64-pc-linux-gnu aarch64-unknown-linux-gnu m68k-unknown-linux-gnu"
 need_64bit_isa=
 native_system_header_dir=/usr/include
@@ -346,6 +353,7 @@ case ${target} in
 aarch64*-*-*)
 	cpu_type=aarch64
 	multi_target_ready=yes
+	multi_target_port_products=aarch64-builtin-iterators.h
 	extra_headers="${extra_headers} arm_fp16.h"
 	extra_headers="${extra_headers} arm_neon.h"
 	extra_headers="${extra_headers} arm_bf16.h"
@@ -447,6 +455,7 @@ fido-*-*)
 i[34567]86-*-* | x86_64-*-*)
 	cpu_type=i386
 	multi_target_ready=yes
+	multi_target_port_products=i386-builtin-types.inc
 	c_target_objs="i386-c.o"
 	cxx_target_objs="i386-c.o"
 	d_target_objs="i386-d.o"

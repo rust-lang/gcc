@@ -1981,7 +1981,8 @@ endif
 EXTRA_BACKEND_OBJS = simple-diagnostic-path.o diagnostics/lazy-paths.o
 
 BACKEND = $(EXTRA_BACKEND_OBJS) target-registry.o \
-	target-backend-def.o libbackend.a main.o \
+	target-backend-def.o $(mt_backend_objects) \
+	libbackend.a main.o \
 	libcommon-target.a \
 	libcommon.a $(CPPLIB) $(LIBDECNUMBER)
 
@@ -2002,8 +2003,9 @@ mt_backend_objects = $(foreach mt_tag,$(multi_target_tags), \
 	mt-$(mt_tag)/insn-preds.o mt-$(mt_tag)/insn-opinit.o \
 	mt-$(mt_tag)/insn-modes-data.o \
 	mt-$(mt_tag)/options.o mt-$(mt_tag)/options-save.o \
-	mt-$(mt_tag)/target-backend-def.o)
-BACKEND += $(mt_backend_objects)
+	mt-$(mt_tag)/target-backend-def.o) \
+	$(mt_port_objects)
+mt_port_objects = @multi_target_port_objects@
 endif
 
 # This is defined to "yes" if Tree checking is enabled, which roughly means
@@ -3039,7 +3041,12 @@ endif
 # captured configuration: the same mkconfig.sh, run inside mt-<tag>/
 # so that the header guard and the insn-flags.h glue come out exactly
 # as in the build's own tm.h.  The primary target's tm.h is
-# byte-identical to the build's tm.h by construction.
+# byte-identical to the build's tm.h by construction; a secondary
+# target's tm.h also renames targetm — and the exports of the
+# shared gnu-user/linux code several ports compile — to the
+# target's own, because the secondary's port compiles once into
+# its blob while the primary's port remains the host's own
+# objects.
 ifneq ($(multi_target_tags),)
 
 mt_tm_headers = $(multi_target_tags:%=mt-%/tm.h)
@@ -3053,10 +3060,21 @@ $(multi_target_tags:%=mt-%/cs-tm.h): mt-%/cs-tm.h: mt-config-%.sh \
   $(srcdir)/mkconfig.sh mt-%/stamp-directory
 	. ./mt-config-$*.sh; \
 	mt_mkconfig=`cd $(srcdir); ${PWD_COMMAND}`/mkconfig.sh; \
+	mt_rename_defines=; \
+	if test "$*" != "$(firstword $(multi_target_tags))"; then \
+	  for mt_name in targetm ms_va_list_type_node \
+	    linux_libc_has_function \
+	    linux_libm_function_max_error \
+	    linux_fortify_source_default_level; do \
+	    mt_rename_defines="$$mt_rename_defines \
+	      $$mt_name=mt_$*_$$mt_name"; \
+	  done; \
+	fi; \
 	cd mt-$* && \
 	TARGET_CPU_DEFAULT="$$mt_target_cpu_default_final" \
 	HEADERS="$$mt_tm_include_list" \
-	DEFINES="$$mt_tm_defines_final $(mt_tm_extra_defines)" \
+	DEFINES="$$mt_tm_defines_final $(mt_tm_extra_defines) \
+	  $$mt_rename_defines" \
 	$(SHELL) $$mt_mkconfig tm.h
 
 .PHONY: mt-check-tm
@@ -3161,6 +3179,7 @@ $(multi_target_tags:%=mt-%/fragments.mk): mt-%/fragments.mk: \
 	{ echo "srcdir = `cd $(srcdir); ${PWD_COMMAND}`"; \
 	  echo "SHELL = $(SHELL)"; \
 	  echo "AWK = $(AWK)"; \
+	  echo "STAMP = $(STAMP)"; \
 	  echo "SYSTEM_HEADER_DIR = $(SYSTEM_HEADER_DIR)"; \
 	  echo "target = $$mt_triple"; \
 	  echo "target_cpu_default = $$mt_target_cpu_default"; \
@@ -4240,6 +4259,57 @@ else
 .PHONY: mt-check-gt-headers
 mt-check-gt-headers:
 	@echo "mt-check-gt-headers: not a multi-target build"
+
+endif
+
+# Each secondary target's port code: the out_file and the extra_objs
+# compile into the target's blob against the target's own headers,
+# with targetm renamed by the target's tm.h.  The primary target's
+# port stays the host's own objects — its blob shares them, and core
+# code keeps reaching its targetm directly until runtime activation
+# installs vectors.  A port source resolves by its object's name
+# under config/, where ports keep every such source; the port's
+# fragment header products, declared through
+# multi_target_port_products in config.gcc, build through the same
+# isolated sub-make as the build headers.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=mt-%/stamp-port-products): \
+  mt-%/stamp-port-products: mt-%/fragments.mk
+	. ./mt-config-$*.sh; \
+	if test -n "$$mt_multi_target_port_products"; then \
+	  cd mt-$* && $(MAKE) -f fragments.mk \
+	    $$mt_multi_target_port_products; \
+	else :; fi
+	$(STAMP) $@
+
+ifneq ($(mt_port_objects),)
+
+$(mt_port_objects): mt-%.o: $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_headers_all) \
+  $(multi_target_tags:%=mt-%/s-gt-headers) \
+  $(multi_target_tags:%=mt-%/stamp-port-products) \
+  $(multi_target_tags:%=mt-%/insn-target-def.h)
+	mt_source=`find $(srcdir)/config -name $(notdir $*).cc -type f`; \
+	test "`echo $$mt_source | wc -w`" = 1 \
+	  || { echo "mt-port: want one source for $(notdir $*).cc," \
+	       "got: $$mt_source"; exit 1; }; \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
+	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ \
+	  $$mt_source
+
+endif
+
+.PHONY: mt-check-port-units
+mt-check-port-units: $(mt_port_objects)
+	@echo "mt-check-port-units: $(words $(mt_port_objects))" \
+	  "port objects"
+
+else
+
+.PHONY: mt-check-port-units
+mt-check-port-units:
+	@echo "mt-check-port-units: not a multi-target build"
 
 endif
 

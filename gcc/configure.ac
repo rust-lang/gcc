@@ -1983,7 +1983,8 @@ mt_probe_ready () {
 mt_config_variables="cpu_type tm_file tm_p_file tm_d_file tm_defines \
   md_file out_file extra_objs extra_options extra_modes extra_headers \
   extra_gcc_objs c_target_objs cxx_target_objs d_target_objs \
-  target_gtfiles target_cpu_default tmake_file"
+  target_gtfiles target_cpu_default tmake_file \
+  multi_target_port_products"
 
 # Capture a secondary target's config.gcc output, in the same pristine
 # subshell as mt_probe_ready, applying the same defaults the main
@@ -2084,6 +2085,27 @@ if test $mt_count -gt 0; then
   multi_target_tags=`echo $multi_target_tags`
 fi
 AC_SUBST(multi_target_tags)
+
+# The secondary targets' port objects, named for the build rules: the
+# primary target's port compiles into the host objects exactly as
+# today and its blob shares them, so only the secondary targets add
+# per-target copies of their port's code.
+multi_target_port_objects=
+mt_first_tag=
+for mt_tag in $multi_target_tags; do
+  if test -z "$mt_first_tag"; then
+    mt_first_tag=$mt_tag
+    continue
+  fi
+  mt_objects=`(. ./mt-config-$mt_tag.sh; \
+	       echo \`basename $mt_out_file .cc\`.o $mt_extra_objs)`
+  for mt_object in $mt_objects; do
+    mt_port_object=mt-$mt_tag/$mt_object
+    multi_target_port_objects="$multi_target_port_objects $mt_port_object"
+  done
+done
+multi_target_port_objects=`echo $multi_target_port_objects`
+AC_SUBST(multi_target_port_objects)
 
 # Say what files are being used for the output code and MD file.
 echo "Using \`$srcdir/config/$out_file' for machine-specific logic."

@@ -44,7 +44,11 @@ gen_attr (md_rtx_info *info)
 
   printf ("#define HAVE_ATTR_%s 1\n", XSTR (attr, 0));
 
-  mt_prefix_define ("get_attr_", XSTR (attr, 0));
+  /* The length attribute's getter is final.cc's, not
+     generated code: it reads the lengths
+     shorten_branches stored, and stays shared.  */
+  if (strcmp (XSTR (attr, 0), "length") != 0)
+    mt_prefix_define ("get_attr_", XSTR (attr, 0));
 
   /* If numeric attribute, don't need to write an enum.  */
   if (GET_CODE (attr) == DEFINE_ENUM_ATTR)
