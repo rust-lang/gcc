@@ -31,4 +31,8 @@ extern const unsigned int target_backend_count;
    the triplet is not built into this compiler.  */
 extern const struct target_backend *find_target_backend (const char *);
 
+/* Make the backend built for a triplet the one the compiler
+   addresses; an unknown triplet is a fatal error.  */
+extern void activate_target_backend (const char *);
+
 #endif

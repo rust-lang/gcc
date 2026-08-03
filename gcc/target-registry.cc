@@ -20,6 +20,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "diagnostic-core.h"
 #include "target-registry.h"
 
 /* The descriptor of the configured target lives in
@@ -65,4 +66,55 @@ find_target_backend (const char *by_triple)
     if (strcmp (target_backend_registry[index]->triple, by_triple) == 0)
       return target_backend_registry[index];
   return NULL;
+}
+
+/* Make the backend built for BY_TRIPLE the one the compiler
+   addresses.  Runs before option decoding, so the diagnostics
+   machinery is up but nothing target-dependent has been read.  */
+
+void
+activate_target_backend (const char *by_triple)
+{
+  const struct target_backend *backend = find_target_backend (by_triple);
+
+  if (backend == NULL)
+    {
+      /* The registry lists the primary once more under its own
+	 tag; name each triplet once.  */
+      char *known = NULL;
+      for (unsigned int index = 0; index < target_backend_count;
+	   index++)
+	{
+	  const char *triple = target_backend_registry[index]->triple;
+	  bool seen = false;
+	  for (unsigned int prior = 0; prior < index; prior++)
+	    if (strcmp (target_backend_registry[prior]->triple,
+			triple) == 0)
+	      seen = true;
+	  if (seen)
+	    continue;
+	  known = (known == NULL ? xstrdup (triple)
+		   : reconcat (known, known, " ", triple, NULL));
+	}
+      fatal_error (UNKNOWN_LOCATION,
+		   "target %qs is not built into this compiler"
+		   " (built-in targets: %s)", by_triple, known);
+    }
+
+  if (backend == target_backend_registry[0])
+    {
+      /* The primary is what the compiler addresses from the start;
+	 selecting it completes here.  A single-target build routes
+	 every reference to the sole descriptor statically.  */
+#if ENABLE_MULTI_TARGET
+      this_target_backend = backend;
+#endif
+      return;
+    }
+
+  /* The installation of a secondary backend's surface lands with the
+     activation machinery proper.  */
+  fatal_error (UNKNOWN_LOCATION,
+	       "activation of the secondary target %qs is not yet"
+	       " implemented", by_triple);
 }

@@ -28,6 +28,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "backend.h"
 #include "target.h"
+#include "target-registry.h"
 #include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
@@ -2318,6 +2319,21 @@ toplev::main (int argc, char **argv)
 
   /* Initialization of GCC's environment, and diagnostics.  */
   general_init (argv[0], m_init_signals, std::move (original_argv));
+
+#if ENABLE_MULTI_TARGET
+  /* Select the target backend before anything reads an option
+     table: the tables themselves are per-target.  The last
+     selection on the command line wins, as it would if the
+     decoded options carried the decision.  */
+  {
+    const char *mt_triple = NULL;
+    for (int i = 1; i < argc; i++)
+      if (startswith (argv[i], "-fmulti-target="))
+	mt_triple = argv[i] + strlen ("-fmulti-target=");
+    if (mt_triple != NULL)
+      activate_target_backend (mt_triple);
+  }
+#endif
 
   /* One-off initialization of options that does not need to be
      repeated when options are added for particular functions.  */

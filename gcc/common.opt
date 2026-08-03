@@ -2454,6 +2454,10 @@ fmultiflags
 Common Driver RejectNegative
 Building block for specs-based multilib-aware TFLAGS.
 
+fmulti-target=
+Common Joined RejectNegative Var(flag_multi_target_triple)
+-fmulti-target=<triple>	Select the target backend of a multi-target compiler.
+
 fdce
 Common Var(flag_dce) Init(1) Optimization
 Use the RTL dead code elimination pass.
