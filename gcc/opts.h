@@ -587,4 +587,49 @@ get_option_url_suffix (int option_index, unsigned lang_mask);
 extern const char *
 maybe_prepend_dump_dir_name (const gcc_options &opts);
 
+#if ENABLE_MULTI_TARGET
+/* The active target's option machinery.  The generated options.cc
+   defines these, pointing at its own tables, so every program that
+   links an option table starts on the primary's; activation repoints
+   them.  The macros below route the shared names here for every
+   translation unit except the table owners themselves, which define
+   MT_OWN_OPTION_TABLES.  */
+extern const struct cl_option *mt_active_cl_options;
+extern unsigned int mt_active_cl_options_count;
+extern const struct cl_enum *mt_active_cl_enums;
+extern unsigned int mt_active_cl_enums_count;
+extern const unsigned short *mt_active_cl_option_name_order;
+extern const struct gcc_options *mt_active_global_options_init;
+extern bool (*mt_active_common_handle_option_auto)
+  (struct gcc_options *, struct gcc_options *,
+   const struct cl_decoded_option *, unsigned int, int, location_t,
+   const struct cl_option_handlers *, diagnostics::context *);
+extern void (*mt_active_cpp_handle_option_auto)
+  (const struct gcc_options *, size_t, struct cpp_options *);
+extern void (*mt_active_init_global_opts_from_cpp)
+  (struct gcc_options *, const struct cpp_options *);
+
+#ifndef MT_OWN_OPTION_TABLES
+#define cl_options mt_active_cl_options
+#define cl_options_count mt_active_cl_options_count
+#define cl_enums mt_active_cl_enums
+#define cl_enums_count mt_active_cl_enums_count
+#define cl_option_name_order mt_active_cl_option_name_order
+#define global_options_init (*mt_active_global_options_init)
+#endif
+
+/* The generated handlers' callers name these; rewriting the shared
+   names themselves would corrupt their declarations wherever this
+   header precedes the generated options.h.  */
+#define mt_common_handle_option_auto (*mt_active_common_handle_option_auto)
+#define mt_cpp_handle_option_auto (*mt_active_cpp_handle_option_auto)
+#define mt_init_global_opts_from_cpp (*mt_active_init_global_opts_from_cpp)
+
+#else /* !ENABLE_MULTI_TARGET */
+
+#define mt_common_handle_option_auto common_handle_option_auto
+#define mt_cpp_handle_option_auto cpp_handle_option_auto
+#define mt_init_global_opts_from_cpp init_global_opts_from_cpp
+#endif
+
 #endif

@@ -829,7 +829,7 @@ c_common_handle_option (size_t scode, const char *arg, HOST_WIDE_INT value,
       gcc_unreachable ();
     }
 
-  cpp_handle_option_auto (&global_options, scode, cpp_opts);
+  mt_cpp_handle_option_auto (&global_options, scode, cpp_opts);
   return result;
 }
 
@@ -1333,7 +1333,8 @@ c_common_post_options (const char **pfilename)
   if (lang_hooks.preprocess_options)
     lang_hooks.preprocess_options (parse_in);
   cpp_post_options (parse_in);
-  init_global_opts_from_cpp (&global_options, cpp_get_options (parse_in));
+  mt_init_global_opts_from_cpp (&global_options,
+				cpp_get_options (parse_in));
   /* For C++23 and explicit -finput-charset=UTF-8, turn on -Winvalid-utf8
      by default and make it a pedwarn unless -Wno-invalid-utf8.  */
   if (cxx_dialect >= cxx23

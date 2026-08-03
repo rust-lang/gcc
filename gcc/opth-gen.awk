@@ -151,7 +151,16 @@ if (have_target_block) {
 print "#ifndef GENERATOR_FILE"
 print "};"
 print "extern struct gcc_options global_options;"
+# opts.h routes global_options_init through the active target's
+# pointer in a multi-target build; a declaration must not expand
+# the routing macro.  A table owner's rename macro must expand:
+# the declaration gives the owner's const definition external
+# linkage.
+if (have_target_block)
+	print "#if !defined (global_options_init) || defined (MT_OWN_OPTION_TABLES)"
 print "extern const struct gcc_options global_options_init;"
+if (have_target_block)
+	print "#endif"
 print "extern struct gcc_options global_options_set;"
 print "#define target_flags_explicit global_options_set.x_target_flags"
 if (have_target_block) {

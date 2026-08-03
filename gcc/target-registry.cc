@@ -21,6 +21,9 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "diagnostic-core.h"
+/* This unit repoints the active option tables; see opts.h.  */
+#define MT_OWN_OPTION_TABLES 1
+#include "opts.h"
 #include "target-registry.h"
 
 /* The descriptor of the configured target lives in
@@ -68,6 +71,34 @@ find_target_backend (const char *by_triple)
   return NULL;
 }
 
+
+#if ENABLE_MULTI_TARGET
+/* Install BACKEND's option machinery: the decode and enumeration
+   tables, the name-order permutation, the built-in defaults image
+   and the generated handlers.  Runs before anything reads an option
+   table; the state the tables describe is decoded afterwards, into
+   the shared padded gcc_options.  */
+
+static void
+install_target_backend (const struct target_backend *backend)
+{
+  this_target_backend = backend;
+
+  mt_active_cl_options = backend->x_cl_options;
+  mt_active_cl_options_count = backend->x_cl_options_count;
+  mt_active_cl_enums = backend->x_cl_enums;
+  mt_active_cl_enums_count = backend->x_cl_enums_count;
+  mt_active_cl_option_name_order = backend->x_cl_option_name_order;
+  mt_active_global_options_init = backend->x_global_options_init;
+  mt_active_common_handle_option_auto
+    = backend->x_common_handle_option_auto;
+  mt_active_cpp_handle_option_auto
+    = backend->x_cpp_handle_option_auto;
+  mt_active_init_global_opts_from_cpp
+    = backend->x_init_global_opts_from_cpp;
+}
+#endif
+
 /* Make the backend built for BY_TRIPLE the one the compiler
    addresses.  Runs before option decoding, so the diagnostics
    machinery is up but nothing target-dependent has been read.  */
@@ -107,7 +138,7 @@ activate_target_backend (const char *by_triple)
 	 selecting it completes here.  A single-target build routes
 	 every reference to the sole descriptor statically.  */
 #if ENABLE_MULTI_TARGET
-      this_target_backend = backend;
+      install_target_backend (backend);
 #endif
       return;
     }

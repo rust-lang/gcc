@@ -29,6 +29,9 @@ along with GCC; see the file COPYING3.  If not see
 #include "optabs.h"
 #include "target.h"
 #include "target-backend.h"
+/* The descriptor binds one target's own tables by their real
+   names; see opts.h.  */
+#define MT_OWN_OPTION_TABLES 1
 #include "opts.h"
 #include "common/common-target.h"
 

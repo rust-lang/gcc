@@ -3499,8 +3499,8 @@ common_handle_option (struct gcc_options *opts,
       break;
     }
 
-  common_handle_option_auto (opts, opts_set, decoded, lang_mask, kind,
-                             loc, handlers, dc);
+  mt_common_handle_option_auto (opts, opts_set, decoded, lang_mask,
+				kind, loc, handlers, dc);
   return true;
 }
 
