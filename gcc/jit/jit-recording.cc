@@ -623,6 +623,7 @@ recording::context::~context ()
     free (optname);
   FOR_EACH_VEC_ELT (m_driver_options, i, optname)
     free (optname);
+  free (m_target_triple);
 
   if (m_builtins_manager)
     delete m_builtins_manager;
@@ -1571,6 +1572,29 @@ recording::context::add_command_line_option (const char *optname)
   m_command_line_options.safe_push (xstrdup (optname));
 }
 
+/* Select the target of a multi-target compiler for this context
+   and its children.  The last selection wins.  */
+
+void
+recording::context::set_target (const char *triple)
+{
+  free (m_target_triple);
+  m_target_triple = xstrdup (triple);
+}
+
+/* The selected target triple, walking up through the parent
+   contexts, or null when the configured target runs.  */
+
+const char *
+recording::context::get_target_triple () const
+{
+  if (m_target_triple != NULL)
+    return m_target_triple;
+  if (m_parent_ctxt != NULL)
+    return m_parent_ctxt->get_target_triple ();
+  return NULL;
+}
+
 /* Add any user-provided extra options, starting with any from
    parent contexts.
    Called by playback::context::make_fake_args.  */
@@ -2155,6 +2179,11 @@ recording::context::dump_reproducer_to_file (const char *path)
 		 inner_bool_option_reproducer_strings[opt_idx],
 		 r.get_identifier (contexts[ctxt_idx]),
 		 m_inner_bool_options[opt_idx]);
+
+      if (m_target_triple != NULL)
+	r.write ("  gcc_jit_context_set_target (%s, \"%s\");\n",
+		 r.get_identifier (contexts[ctxt_idx]),
+		 m_target_triple);
 
       if (!m_command_line_options.is_empty ())
 	{

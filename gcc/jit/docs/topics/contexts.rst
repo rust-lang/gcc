@@ -627,6 +627,27 @@ Additional command-line options
 
       #ifdef LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option
 
+Target selection
+****************
+
+.. function:: void gcc_jit_context_set_target (gcc_jit_context *ctxt,\
+                                              const char *triple)
+
+   Select the target of a multi-target compiler for this context and
+   its children.  ``triple`` must name a target built into the
+   compiler (one configured with ``--enable-multi-target=``); the
+   configured target remains the default, and an unknown triple is
+   reported as an error on the context.  One context observes one
+   target; distinct contexts in the same process may select distinct
+   targets.
+
+   This entrypoint was added in :ref:`LIBGCCJIT_ABI_39`; you can test
+   for its presence using
+
+   .. code-block:: c
+
+      #ifdef LIBGCCJIT_HAVE_gcc_jit_context_set_target
+
 Output options
 **************
 

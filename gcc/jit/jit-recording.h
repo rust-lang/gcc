@@ -296,6 +296,11 @@ public:
   append_command_line_options (vec <char *> *argvec);
 
   void
+  set_target (const char *triple);
+
+  const char *get_target_triple () const;
+
+  void
   add_driver_option (const char *optname);
 
   void
@@ -421,6 +426,7 @@ private:
   bool m_inner_bool_options[NUM_INNER_BOOL_OPTIONS];
   auto_vec <char *> m_command_line_options;
   auto_vec <char *> m_driver_options;
+  char *m_target_triple = nullptr;
 
   /* Dumpfiles that were requested via gcc_jit_context_enable_dump.  */
   auto_vec<requested_dump> m_requested_dumps;

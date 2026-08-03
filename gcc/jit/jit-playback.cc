@@ -46,6 +46,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "stmt.h"
 #include "realmpfr.h"
 
+#include "target-registry.h"
 #include "jit-playback.h"
 #include "jit-result.h"
 #include "jit-builtins.h"
@@ -3189,6 +3190,18 @@ make_fake_args (vec <char *> *argvec,
   ADD_ARG (get_path_c_file ());
   ADD_ARG ("-fPIC");
 
+  /* The context's selected target, routed to the backend selection
+     the way the driver routes --target=.  A selected secondary must
+     not inherit the configured target's option defaults below.  */
+  const char *mt_triple = m_recording_ctxt->get_target_triple ();
+  bool mt_selected_secondary
+    = (mt_triple != NULL
+       && strcmp (mt_triple,
+		  target_backend_registry[0]->triple) != 0);
+  if (mt_triple != NULL)
+    ADD_ARG_TAKE_OWNERSHIP (concat ("-fmulti-target=", mt_triple,
+				    NULL));
+
   /* Handle int options: */
   switch (get_int_option (GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL))
     {
@@ -3295,13 +3308,16 @@ make_fake_args (vec <char *> *argvec,
 	log ("configure_time_options[%i]: %s", i, opt);
 
     /* configure_time_options should now contain the expanded options
-       from OPTION_DEFAULT_SPECS (if any).  */
-    FOR_EACH_VEC_ELT (configure_time_options, i, opt)
-      {
-	gcc_assert (opt);
-	gcc_assert (opt[0] == '-');
-	ADD_ARG (opt);
-      }
+       from OPTION_DEFAULT_SPECS (if any).  They are the configured
+       target's defaults; a selected secondary must not inherit
+       them.  */
+    if (!mt_selected_secondary)
+      FOR_EACH_VEC_ELT (configure_time_options, i, opt)
+	{
+	  gcc_assert (opt);
+	  gcc_assert (opt[0] == '-');
+	  ADD_ARG (opt);
+	}
   }
 
   if (get_timer ())

@@ -180,15 +180,21 @@ EXTRA_GCC_OBJS_EXCLUSIVE = $(foreach _obj1, $(EXTRA_GCC_OBJS), \
 	$(if $(filter $(_obj1), $(EXTRA_OBJS)),, $(_obj1)))
 
 # We avoid using $(BACKEND) from Makefile.in in order to avoid pulling
-# in main.o
-$(LIBGCCJIT_FILENAME): $(jit_OBJS) \
+# in main.o; the target registry, descriptors and driver spec
+# captures it would carry come along explicitly.
+mt_jit_backend_objects = target-registry.o target-backend-def.o \
+	target-register-tables.o $(mt_backend_objects) \
+	$(multi_target_tags:%=mt-%/driver-specs.o)
+
+$(LIBGCCJIT_FILENAME): $(jit_OBJS) $(mt_jit_backend_objects) \
 	libbackend.a libcommon-target.a libcommon.a \
 	$(CPPLIB) $(LIBDECNUMBER) \
 	$(LIBDEPS) $(srcdir)/jit/libgccjit.map \
 	$(EXTRA_GCC_OBJS_EXCLUSIVE) $(jit.prev)
 	@$(call LINK_PROGRESS,$(INDEX.jit),start)
 	+$(LLINKER) $(ALL_LINKERFLAGS) $(JIT_LDFLAGS) -o $@ -shared \
-	     $(jit_OBJS) libbackend.a libcommon-target.a libcommon.a \
+	     $(jit_OBJS) $(mt_jit_backend_objects) \
+	     libbackend.a libcommon-target.a libcommon.a \
 	     $(CPPLIB) $(LIBDECNUMBER) $(EXTRA_GCC_LIBS) $(LIBS) $(BACKENDLIBS) \
 	     $(EXTRA_GCC_OBJS_EXCLUSIVE) \
 	     $(LIBGCCJIT_EXTRA_OPTS)

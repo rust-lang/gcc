@@ -2100,6 +2100,18 @@ gcc_jit_type_is_floating_point (gcc_jit_type * type);
 
 #define LIBGCCJIT_HAVE_gcc_jit_type_is_floating_point
 
+/* Select the target of a multi-target compiler for this context and
+   its children: TRIPLE must name a target built into the compiler.
+   The configured target remains the default.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_39; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_context_set_target  */
+extern void
+gcc_jit_context_set_target (gcc_jit_context *ctxt, const char *triple);
+
+#define LIBGCCJIT_HAVE_gcc_jit_context_set_target
+
 /* Return the type pointed by the pointer type or NULL if it's not a
  * pointer.  */
 extern gcc_jit_type *

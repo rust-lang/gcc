@@ -27,6 +27,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "typed-splay-tree.h"
 #include "cppbuiltin.h"
 
+#include "target-registry.h"
 #include "libgccjit.h"
 #include "jit-recording.h"
 #include "jit-result.h"
@@ -3826,6 +3827,27 @@ gcc_jit_context_add_command_line_option (gcc_jit_context *ctxt,
     ctxt->get_logger ()->log ("optname: %s", optname);
 
   ctxt->add_command_line_option (optname);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   The real work is done by the
+   gcc::jit::recording::context::set_target method in
+   jit-recording.cc.  */
+
+void
+gcc_jit_context_set_target (gcc_jit_context *ctxt, const char *triple)
+{
+  RETURN_IF_FAIL (ctxt, NULL, NULL, "NULL context");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+  RETURN_IF_FAIL (triple, ctxt, NULL, "NULL triple");
+  if (ctxt->get_logger ())
+    ctxt->get_logger ()->log ("triple: %s", triple);
+  RETURN_IF_FAIL_PRINTF1 (find_target_backend (triple) != NULL,
+			  ctxt, NULL,
+			  "unknown target %s", triple);
+
+  ctxt->set_target (triple);
 }
 
 /* Public entrypoint.  See description in libgccjit.h.
