@@ -512,6 +512,18 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
   (mt_active_target_scalars->x_type_operand_fmt ())
 #undef GLOBAL_ASM_OP
 #define GLOBAL_ASM_OP (mt_active_target_scalars->x_global_asm_op ())
+#undef REGISTER_PREFIX
+#define REGISTER_PREFIX \
+  (mt_active_target_scalars->x_register_prefix ())
+#undef LOCAL_LABEL_PREFIX
+#define LOCAL_LABEL_PREFIX \
+  (mt_active_target_scalars->x_local_label_prefix ())
+#undef USER_LABEL_PREFIX
+#define USER_LABEL_PREFIX \
+  (mt_active_target_scalars->x_user_label_prefix ())
+#undef IMMEDIATE_PREFIX
+#define IMMEDIATE_PREFIX \
+  (mt_active_target_scalars->x_immediate_prefix ())
 #undef FUNCTION_BOUNDARY
 #define FUNCTION_BOUNDARY \
   (mt_active_target_scalars->x_function_boundary ())

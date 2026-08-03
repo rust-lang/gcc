@@ -276,6 +276,49 @@ scalar_general_regs (void)
   return (int) GENERAL_REGS;
 }
 
+/* The assembler prefix strings; empty when the port defines none,
+   matching the hosts that print nothing then.  */
+
+static const char *
+scalar_register_prefix (void)
+{
+#ifdef REGISTER_PREFIX
+  return REGISTER_PREFIX;
+#else
+  return "";
+#endif
+}
+
+static const char *
+scalar_local_label_prefix (void)
+{
+#ifdef LOCAL_LABEL_PREFIX
+  return LOCAL_LABEL_PREFIX;
+#else
+  return "";
+#endif
+}
+
+static const char *
+scalar_user_label_prefix (void)
+{
+#ifdef USER_LABEL_PREFIX
+  return USER_LABEL_PREFIX;
+#else
+  return "";
+#endif
+}
+
+static const char *
+scalar_immediate_prefix (void)
+{
+#ifdef IMMEDIATE_PREFIX
+  return IMMEDIATE_PREFIX;
+#else
+  return "";
+#endif
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -309,6 +352,10 @@ static const struct mt_target_scalars target_scalars =
   scalar_asm_output_align,
   scalar_all_regs,
   scalar_general_regs,
+  scalar_register_prefix,
+  scalar_local_label_prefix,
+  scalar_user_label_prefix,
+  scalar_immediate_prefix,
 };
 
 /* extern: a const object would otherwise have internal linkage in
