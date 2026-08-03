@@ -2098,7 +2098,10 @@ for mt_tag in $multi_target_tags; do
     continue
   fi
   mt_objects=`(. ./mt-config-$mt_tag.sh; \
-	       echo \`basename $mt_out_file .cc\`.o $mt_extra_objs)`
+	       echo \`basename $mt_out_file .cc\`.o $mt_extra_objs; \
+	       mt_common=$mt_cpu_type-common.cc; \
+	       test -f "$srcdir/common/config/$mt_cpu_type/$mt_common" \
+		 && echo $mt_cpu_type-common.o)`
   for mt_object in $mt_objects; do
     mt_port_object=mt-$mt_tag/$mt_object
     multi_target_port_objects="$multi_target_port_objects $mt_port_object"

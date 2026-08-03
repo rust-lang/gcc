@@ -3066,8 +3066,8 @@ $(multi_target_tags:%=mt-%/cs-tm.h): mt-%/cs-tm.h: mt-config-%.sh \
 	mt_mkconfig=`cd $(srcdir); ${PWD_COMMAND}`/mkconfig.sh; \
 	mt_rename_defines=; \
 	if test "$*" != "$(firstword $(multi_target_tags))"; then \
-	  for mt_name in targetm ms_va_list_type_node \
-	    linux_libc_has_function \
+	  for mt_name in targetm targetm_common \
+	    ms_va_list_type_node linux_libc_has_function \
 	    linux_libm_function_max_error \
 	    linux_fortify_source_default_level; do \
 	    mt_rename_defines="$$mt_rename_defines \
@@ -4296,7 +4296,8 @@ $(mt_port_objects): mt-%.o: $(CONFIG_H) tree-check.h all-tree.def \
   $(multi_target_tags:%=mt-%/s-gt-headers) \
   $(multi_target_tags:%=mt-%/stamp-port-products) \
   $(multi_target_tags:%=mt-%/insn-target-def.h)
-	mt_source=`find $(srcdir)/config -name $(notdir $*).cc -type f`; \
+	mt_source=`find $(srcdir)/config $(srcdir)/common/config \
+	  -name $(notdir $*).cc -type f`; \
 	test "`echo $$mt_source | wc -w`" = 1 \
 	  || { echo "mt-port: want one source for $(notdir $*).cc," \
 	       "got: $$mt_source"; exit 1; }; \
