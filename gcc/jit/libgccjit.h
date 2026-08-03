@@ -1639,6 +1639,27 @@ gcc_jit_block_add_cleanup (gcc_jit_block *block,
 
 #define LIBGCCJIT_HAVE_gcc_jit_block_add_cleanup
 
+/* Get the number of successor blocks.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_55; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_block_get_successor
+*/
+extern int
+gcc_jit_block_get_successor_count (gcc_jit_block *block);
+
+/* Get one of the successor blocks.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_55; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_block_get_successor
+*/
+extern gcc_jit_block *
+gcc_jit_block_get_successor (gcc_jit_block *block,
+			     int index);
+
+#define LIBGCCJIT_HAVE_gcc_jit_block_get_successor
+
 /* Add evaluation of an rvalue, assigning the result to the given
    lvalue.
 

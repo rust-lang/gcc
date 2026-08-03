@@ -440,3 +440,9 @@ LIBGCCJIT_ABI_54 {
     gcc_jit_type_add_attribute;
     gcc_jit_type_add_integer_attribute;
 } LIBGCCJIT_ABI_53;
+
+LIBGCCJIT_ABI_55 {
+  global:
+    gcc_jit_block_get_successor_count;
+    gcc_jit_block_get_successor;
+} LIBGCCJIT_ABI_54;
