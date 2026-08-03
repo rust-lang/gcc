@@ -409,6 +409,16 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 #define DWARF_FRAME_REGISTERS FIRST_PSEUDO_REGISTER
 #endif
 
+/* The number of hard registers this build's data structures can hold.
+   A multi-target build defines it as the maximum FIRST_PSEUDO_REGISTER
+   over the enabled targets, so that every target's registers fit into
+   the shared layouts; the bits and entries past the active target's
+   FIRST_PSEUDO_REGISTER stay zero.  It only sizes types and tables —
+   iteration bounds remain FIRST_PSEUDO_REGISTER.  */
+#ifndef MAX_HARD_REGISTERS
+#define MAX_HARD_REGISTERS FIRST_PSEUDO_REGISTER
+#endif
+
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
 #ifndef DWARF_CIE_DATA_ALIGNMENT
 #ifdef STACK_GROWS_DOWNWARD

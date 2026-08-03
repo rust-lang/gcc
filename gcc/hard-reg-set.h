@@ -42,7 +42,7 @@ along with GCC; see the file COPYING3.  If not see
 
 typedef unsigned HOST_WIDEST_FAST_INT HARD_REG_ELT_TYPE;
 
-#if FIRST_PSEUDO_REGISTER <= HOST_BITS_PER_WIDEST_FAST_INT
+#if MAX_HARD_REGISTERS <= HOST_BITS_PER_WIDEST_FAST_INT
 
 typedef HARD_REG_ELT_TYPE HARD_REG_SET;
 typedef const HARD_REG_SET const_hard_reg_set;
@@ -50,7 +50,7 @@ typedef const HARD_REG_SET const_hard_reg_set;
 #else
 
 #define HARD_REG_SET_LONGS \
- ((FIRST_PSEUDO_REGISTER + HOST_BITS_PER_WIDEST_FAST_INT - 1)	\
+ ((MAX_HARD_REGISTERS + HOST_BITS_PER_WIDEST_FAST_INT - 1)	\
   / HOST_BITS_PER_WIDEST_FAST_INT)
 
 struct HARD_REG_SET
@@ -161,7 +161,7 @@ struct hard_reg_set_container
 
 #define UHOST_BITS_PER_WIDE_INT ((unsigned) HOST_BITS_PER_WIDEST_FAST_INT)
 
-#if FIRST_PSEUDO_REGISTER <= HOST_BITS_PER_WIDEST_FAST_INT
+#if MAX_HARD_REGISTERS <= HOST_BITS_PER_WIDEST_FAST_INT
 
 #define SET_HARD_REG_BIT(SET, BIT)  \
  ((SET) |= HARD_CONST (1) << (BIT))
@@ -426,7 +426,7 @@ build_error_on_rvalue (T &&)
    These must be exempt from ordinary flow analysis
    and are also considered fixed.  */
 
-extern char global_regs[FIRST_PSEUDO_REGISTER];
+extern char global_regs[MAX_HARD_REGISTERS];
 
 extern HARD_REG_SET global_reg_set;
 
@@ -455,7 +455,7 @@ struct target_hard_regs {
      that are fixed use (stack pointer, pc, frame pointer, etc.;.
      These are the registers that cannot be used to allocate
      a pseudo reg whose life does not cross calls.  */
-  char x_fixed_regs[FIRST_PSEUDO_REGISTER];
+  char x_fixed_regs[MAX_HARD_REGISTERS];
 
   /* The same info as a HARD_REG_SET.  */
   HARD_REG_SET x_fixed_reg_set;
@@ -464,7 +464,7 @@ struct target_hard_regs {
      that are fixed use or are clobbered by function calls.
      These are the registers that cannot be used to allocate
      a pseudo reg whose life crosses calls.  */
-  char x_call_used_regs[FIRST_PSEUDO_REGISTER];
+  char x_call_used_regs[MAX_HARD_REGISTERS];
 
   /* For targets that use reload rather than LRA, this is the set
      of registers that we are able to save and restore around calls
@@ -494,10 +494,10 @@ struct target_hard_regs {
   HARD_REG_SET x_eh_return_data_regs;
 
   /* Table of register numbers in the order in which to try to use them.  */
-  int x_reg_alloc_order[FIRST_PSEUDO_REGISTER];
+  int x_reg_alloc_order[MAX_HARD_REGISTERS];
 
   /* The inverse of reg_alloc_order.  */
-  int x_inv_reg_alloc_order[FIRST_PSEUDO_REGISTER];
+  int x_inv_reg_alloc_order[MAX_HARD_REGISTERS];
 
   /* For each reg class, a HARD_REG_SET saying which registers are in it.  */
   HARD_REG_SET x_reg_class_contents[N_REG_CLASSES];
@@ -521,7 +521,7 @@ struct target_hard_regs {
   enum reg_class x_reg_class_superunion[N_REG_CLASSES][N_REG_CLASSES];
 
   /* Vector indexed by hardware reg giving its name.  */
-  const char *x_reg_names[FIRST_PSEUDO_REGISTER];
+  const char *x_reg_names[MAX_HARD_REGISTERS];
 
   /* Records which registers can form a particular subreg, with the subreg
      being identified by its outer mode, inner mode and offset.  */
