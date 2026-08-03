@@ -64,7 +64,7 @@ public:
   bool has_call;		/* True if the loop contains a call.  */
   /* Maximal register pressure inside loop for given register class
      (defined only for the pressure classes).  */
-  int max_reg_pressure[N_REG_CLASSES];
+  int max_reg_pressure[MAX_REG_CLASSES];
   /* Loop regs referenced and live pseudo-registers.  */
   bitmap_head regs_ref;
   bitmap_head regs_live;
@@ -1321,7 +1321,7 @@ get_inv_cost (struct invariant *inv, int *comp_cost, unsigned *regs_needed,
 	      enum reg_class *cl)
 {
   int i, acomp_cost;
-  unsigned aregs_needed[N_REG_CLASSES];
+  unsigned aregs_needed[MAX_REG_CLASSES];
   unsigned depno;
   struct invariant *dep;
   bitmap_iterator bi;
@@ -1554,7 +1554,7 @@ best_gain_for_invariant (struct invariant **best, unsigned *regs_needed,
 {
   struct invariant *inv;
   int i, gain = 0, again;
-  unsigned aregs_needed[N_REG_CLASSES], invno;
+  unsigned aregs_needed[MAX_REG_CLASSES], invno;
 
   FOR_EACH_VEC_ELT (invariants, invno, inv)
     {
@@ -1622,7 +1622,8 @@ static void
 find_invariants_to_move (bool speed, bool call_p)
 {
   int gain;
-  unsigned i, regs_used, regs_needed[N_REG_CLASSES], new_regs[N_REG_CLASSES];
+  unsigned i, regs_used, regs_needed[MAX_REG_CLASSES],
+    new_regs[MAX_REG_CLASSES];
   struct invariant *inv = NULL;
 
   if (!invariants.length ())
@@ -2001,13 +2002,13 @@ free_loop_data (class loop *loop)
 static bitmap_head curr_regs_live;
 
 /* Current reg pressure for each pressure class.  */
-static int curr_reg_pressure[N_REG_CLASSES];
+static int curr_reg_pressure[MAX_REG_CLASSES];
 
 /* Record all regs that are set in any one insn.  Communication from
    mark_reg_{store,clobber} and global_conflicts.  Asm can refer to
    all hard-registers.  */
-static rtx regs_set[(FIRST_PSEUDO_REGISTER > MAX_RECOG_OPERANDS
-		     ? FIRST_PSEUDO_REGISTER : MAX_RECOG_OPERANDS) * 2];
+static rtx regs_set[(MAX_HARD_REGISTERS > MAX_RECOG_OPERANDS
+		     ? MAX_HARD_REGISTERS : MAX_RECOG_OPERANDS) * 2];
 /* Number of regs stored in the previous array.  */
 static int n_regs_set;
 

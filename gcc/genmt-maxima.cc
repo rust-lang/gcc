@@ -48,6 +48,7 @@ main (void)
   printf ("max_insns_per_peep2 0\n");
 #endif
   printf ("first_pseudo_register %d\n", FIRST_PSEUDO_REGISTER);
+  printf ("n_reg_classes %d\n", (int) N_REG_CLASSES);
 
   if (ferror (stdout) != 0 || fflush (stdout) != 0)
     return FATAL_EXIT_CODE;

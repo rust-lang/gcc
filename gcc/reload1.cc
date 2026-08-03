@@ -108,12 +108,12 @@ static short *reg_old_renumber;
    into hard register N.  If that pseudo reg occupied more than one register,
    reg_reloaded_contents points to that pseudo for each spill register in
    use; all of these must remain set for an inheritance to occur.  */
-static int reg_reloaded_contents[FIRST_PSEUDO_REGISTER];
+static int reg_reloaded_contents[MAX_HARD_REGISTERS];
 
 /* During reload_as_needed, element N contains the insn for which
    hard register N was last used.   Its contents are significant only
    when reg_reloaded_valid is set for this register.  */
-static rtx_insn *reg_reloaded_insn[FIRST_PSEUDO_REGISTER];
+static rtx_insn *reg_reloaded_insn[MAX_HARD_REGISTERS];
 
 /* Indicate if reg_reloaded_insn / reg_reloaded_contents is valid.  */
 static HARD_REG_SET reg_reloaded_valid;
@@ -128,17 +128,17 @@ static int n_spills;
    Holds the last rtx used for any given reg, or 0 if it has never
    been used for spilling yet.  This rtx is reused, provided it has
    the proper mode.  */
-static rtx spill_reg_rtx[FIRST_PSEUDO_REGISTER];
+static rtx spill_reg_rtx[MAX_HARD_REGISTERS];
 
 /* In parallel with spill_regs, contains nonzero for a spill reg
    that was stored after the last time it was used.
    The precise value is the insn generated to do the store.  */
-static rtx_insn *spill_reg_store[FIRST_PSEUDO_REGISTER];
+static rtx_insn *spill_reg_store[MAX_HARD_REGISTERS];
 
 /* This is the register that was stored with spill_reg_store.  This is a
    copy of reload_out / reload_out_reg when the value was stored; if
    reload_out is a MEM, spill_reg_stored_to will be set to reload_out_reg.  */
-static rtx spill_reg_stored_to[FIRST_PSEUDO_REGISTER];
+static rtx spill_reg_stored_to[MAX_HARD_REGISTERS];
 
 /* This table is the inverse mapping of spill_regs:
    indexed by hard reg number,
@@ -146,7 +146,7 @@ static rtx spill_reg_stored_to[FIRST_PSEUDO_REGISTER];
    or -1 for something that is not in spill_regs.
 
    ?!?  This is no longer accurate.  */
-static short spill_reg_order[FIRST_PSEUDO_REGISTER];
+static short spill_reg_order[MAX_HARD_REGISTERS];
 
 /* This reg set indicates registers that can't be used as spill registers for
    the currently processed insn.  These are the hard registers which are live
@@ -169,7 +169,7 @@ static HARD_REG_SET bad_spill_regs_global;
    for a single insn, but also during reload_as_needed where they show all
    the registers ever used by reload.  For the latter case, the information
    is calculated during finish_spills.  */
-static short spill_regs[FIRST_PSEUDO_REGISTER];
+static short spill_regs[MAX_HARD_REGISTERS];
 
 /* This vector of reg sets indicates, for each pseudo, which hard registers
    may not be used for retrying global allocation because the register was
@@ -193,10 +193,10 @@ static HARD_REG_SET used_spill_regs;
 static int last_spill_reg;
 
 /* Record the stack slot for each spilled hard register.  */
-static rtx spill_stack_slot[FIRST_PSEUDO_REGISTER];
+static rtx spill_stack_slot[MAX_HARD_REGISTERS];
 
 /* Width allocated so far for that stack slot.  */
-static poly_uint64 spill_stack_slot_width[FIRST_PSEUDO_REGISTER];
+static poly_uint64 spill_stack_slot_width[MAX_HARD_REGISTERS];
 
 /* Record which pseudos needed to be spilled.  */
 static regset_head spilled_pseudos;
@@ -1684,16 +1684,16 @@ reload_reg_class_lower (const void *r1p, const void *r2p)
 }
 
 /* The cost of spilling each hard reg.  */
-static int spill_cost[FIRST_PSEUDO_REGISTER];
+static int spill_cost[MAX_HARD_REGISTERS];
 
 /* When spilling multiple hard registers, we use SPILL_COST for the first
    spilled hard reg and SPILL_ADD_COST for subsequent regs.  SPILL_ADD_COST
    only the first hard reg for a multi-reg pseudo.  */
-static int spill_add_cost[FIRST_PSEUDO_REGISTER];
+static int spill_add_cost[MAX_HARD_REGISTERS];
 
 /* Map of hard regno to pseudo regno currently occupying the hard
    reg.  */
-static int hard_regno_to_pseudo_regno[FIRST_PSEUDO_REGISTER];
+static int hard_regno_to_pseudo_regno[MAX_HARD_REGISTERS];
 
 /* Update the spill cost arrays, considering that pseudo REG is live.  */
 
@@ -1824,8 +1824,8 @@ find_reg (class insn_chain *chain, int order)
   HARD_REG_SET not_usable;
   HARD_REG_SET used_by_other_reload;
   reg_set_iterator rsi;
-  static int regno_pseudo_regs[FIRST_PSEUDO_REGISTER];
-  static int best_regno_pseudo_regs[FIRST_PSEUDO_REGISTER];
+  static int regno_pseudo_regs[MAX_HARD_REGISTERS];
+  static int best_regno_pseudo_regs[MAX_HARD_REGISTERS];
 
   not_usable = (bad_spill_regs
 		| bad_spill_regs_global
@@ -7038,7 +7038,7 @@ static rtx_insn *other_output_reload_insns[MAX_RECOG_OPERANDS];
 /* Values to be put in spill_reg_store are put here first.  Instructions
    must only be placed here if the associated reload register reaches
    the end of the instruction's reload sequence.  */
-static rtx_insn *new_spill_reg_store[FIRST_PSEUDO_REGISTER];
+static rtx_insn *new_spill_reg_store[MAX_HARD_REGISTERS];
 static HARD_REG_SET reg_reloaded_died;
 
 /* Check if *RELOAD_REG is suitable as an intermediate or scratch register

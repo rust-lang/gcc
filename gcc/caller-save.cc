@@ -52,13 +52,13 @@ along with GCC; see the file COPYING3.  If not see
    if needed.  */
 
 static rtx
-  regno_save_mem[FIRST_PSEUDO_REGISTER][MAX_MOVE_MAX / MIN_UNITS_PER_WORD + 1];
+  regno_save_mem[MAX_HARD_REGISTERS][MAX_MOVE_MAX / MIN_UNITS_PER_WORD + 1];
 
 /* The number of elements in the subsequent array.  */
 static int save_slots_num;
 
 /* Allocated slots so far.  */
-static rtx save_slots[FIRST_PSEUDO_REGISTER];
+static rtx save_slots[MAX_HARD_REGISTERS];
 
 /* Set of hard regs currently residing in save area (during insn scan).  */
 
@@ -307,7 +307,7 @@ struct saved_hard_reg
 };
 
 /* Map: hard register number to the corresponding structure.  */
-static struct saved_hard_reg *hard_reg_map[FIRST_PSEUDO_REGISTER];
+static struct saved_hard_reg *hard_reg_map[MAX_HARD_REGISTERS];
 
 /* The number of all structures representing hard registers should be
    saved, in order words, the number of used elements in the following
@@ -316,7 +316,7 @@ static int saved_regs_num;
 
 /* Pointers to all the structures.  Index is the order number of the
    corresponding structure.  */
-static struct saved_hard_reg *all_saved_regs[FIRST_PSEUDO_REGISTER];
+static struct saved_hard_reg *all_saved_regs[MAX_HARD_REGISTERS];
 
 /* First called function for work with saved hard registers.  */
 static void
@@ -486,10 +486,10 @@ setup_save_areas (void)
       int next_k;
       struct saved_hard_reg *saved_reg2, *saved_reg3;
       int call_saved_regs_num;
-      struct saved_hard_reg *call_saved_regs[FIRST_PSEUDO_REGISTER];
+      struct saved_hard_reg *call_saved_regs[MAX_HARD_REGISTERS];
       int best_slot_num;
       int prev_save_slots_num;
-      rtx prev_save_slots[FIRST_PSEUDO_REGISTER];
+      rtx prev_save_slots[MAX_HARD_REGISTERS];
 
       /* Find saved hard register conflicts.  */
       saved_reg_conflicts = (char *) xmalloc (saved_regs_num * saved_regs_num);
@@ -728,7 +728,7 @@ void
 save_call_clobbered_regs (void)
 {
   class insn_chain *chain, *next, *last = NULL;
-  machine_mode save_mode [FIRST_PSEUDO_REGISTER];
+  machine_mode save_mode[MAX_HARD_REGISTERS];
 
   /* Computed in mark_set_regs, holds all registers set by the current
      instruction.  */

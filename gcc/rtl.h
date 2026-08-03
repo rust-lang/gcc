@@ -3989,14 +3989,14 @@ struct GTY(()) target_rtl {
      necessarily unique, so we allocate them separately from global_rtl.
      They are initialized once per compilation unit, then copied into
      regno_reg_rtx at the beginning of each function.  */
-  rtx x_initial_regno_reg_rtx[FIRST_PSEUDO_REGISTER];
+  rtx x_initial_regno_reg_rtx[MAX_HARD_REGISTERS];
 
   /* A sample (mem:M stack_pointer_rtx) rtx for each mode M.  */
   rtx x_top_of_stack[MAX_MACHINE_MODE];
 
   /* Static hunks of RTL used by the aliasing code; these are treated
      as persistent to avoid unnecessary RTL allocations.  */
-  rtx x_static_reg_base_value[FIRST_PSEUDO_REGISTER];
+  rtx x_static_reg_base_value[MAX_HARD_REGISTERS];
 
   /* The default memory attributes for each mode.  */
   class mem_attrs *x_mode_mem_attrs[(int) MAX_MACHINE_MODE];

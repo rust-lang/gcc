@@ -57,7 +57,7 @@ int lra_live_max_point;
 
 /* Accumulated execution frequency of all references for each hard
    register.  */
-int lra_hard_reg_usage[FIRST_PSEUDO_REGISTER];
+int lra_hard_reg_usage[MAX_HARD_REGISTERS];
 
 /* A global flag whose true value says to build live ranges for all
    pseudos, otherwise the live ranges only for pseudos got memory is

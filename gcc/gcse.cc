@@ -435,7 +435,7 @@ struct bb_data
 {
   /* Maximal register pressure inside basic block for given register class
      (defined only for the pressure classes).  */
-  int max_reg_pressure[N_REG_CLASSES];
+  int max_reg_pressure[MAX_REG_CLASSES];
   /* Recorded register pressure of basic block before trying to hoist
      an expression.  Will be used to restore the register pressure
      if the expression should not be hoisted.  */
@@ -452,7 +452,7 @@ struct bb_data
 static basic_block curr_bb;
 
 /* Current register pressure for each pressure class.  */
-static int curr_reg_pressure[N_REG_CLASSES];
+static int curr_reg_pressure[MAX_REG_CLASSES];
 
 
 static void compute_can_copy (void);

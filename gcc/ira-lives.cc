@@ -63,7 +63,7 @@ static int curr_point;
    class living at the point than number of hard-registers of the
    class available for the allocation.  It is defined only for
    pressure classes.  */
-static int high_pressure_start_point[N_REG_CLASSES];
+static int high_pressure_start_point[MAX_REG_CLASSES];
 
 /* Objects live at current point in the scan.  */
 static sparseset objects_live;
@@ -209,7 +209,7 @@ make_object_dead (ira_object_t obj)
 
 /* The current register pressures for each pressure class for the current
    basic block.  */
-static int curr_reg_pressure[N_REG_CLASSES];
+static int curr_reg_pressure[MAX_REG_CLASSES];
 
 /* Record that register pressure for PCLASS increased by N registers.
    Update the current register pressure, maximal register pressure for

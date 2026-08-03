@@ -108,7 +108,7 @@ static void df_insn_info_delete (unsigned int);
    regs.  Final uses it to generate the code in the function prologue
    and epilogue to save and restore registers as needed.  */
 
-static bool regs_ever_live[FIRST_PSEUDO_REGISTER];
+static bool regs_ever_live[MAX_HARD_REGISTERS];
 
 /* Flags used to tell df_refs_add_to_chains() which vectors it should copy. */
 static const unsigned int copy_defs = 0x1;

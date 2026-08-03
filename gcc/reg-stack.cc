@@ -475,9 +475,9 @@ check_asm_stack_operands (rtx_insn *insn)
   bool malformed_asm = false;
   rtx body = PATTERN (insn);
 
-  char reg_used_as_output[FIRST_PSEUDO_REGISTER];
-  char implicitly_dies[FIRST_PSEUDO_REGISTER];
-  char explicitly_used[FIRST_PSEUDO_REGISTER];
+  char reg_used_as_output[MAX_HARD_REGISTERS];
+  char implicitly_dies[MAX_HARD_REGISTERS];
+  char explicitly_used[MAX_HARD_REGISTERS];
 
   rtx *clobber_reg = 0;
   int n_inputs, n_outputs;

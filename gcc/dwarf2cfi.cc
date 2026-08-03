@@ -275,7 +275,7 @@ struct init_one_dwarf_reg_state
 
   /* For each hard register REGNO, whether init_one_dwarf_reg_size
      was given REGNO to process already.  */
-  bool processed_regno [FIRST_PSEUDO_REGISTER];
+  bool processed_regno [MAX_HARD_REGISTERS];
 
 };
 

@@ -97,7 +97,7 @@ static const char * const scan_actions_name[] =
 
 /* TICK and THIS_TICK are used to record the last time we saw each
    register.  */
-static int tick[FIRST_PSEUDO_REGISTER];
+static int tick[MAX_HARD_REGISTERS];
 static int this_tick = 0;
 
 static struct obstack rename_obstack;
@@ -586,7 +586,7 @@ public:
   /* Copies of the global information.  */
   bitmap_head open_chains_set;
   bitmap_head incoming_open_chains_set;
-  struct incoming_reg_info incoming[FIRST_PSEUDO_REGISTER];
+  struct incoming_reg_info incoming[MAX_HARD_REGISTERS];
 };
 
 /* Initialize a rename_info structure P for basic block BB, which starts a new

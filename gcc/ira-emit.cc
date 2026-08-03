@@ -723,11 +723,11 @@ unify_moves (basic_block bb, bool start_p)
 
 /* Last move (in move sequence being processed) setting up the
    corresponding hard register.  */
-static move_t hard_regno_last_set[FIRST_PSEUDO_REGISTER];
+static move_t hard_regno_last_set[MAX_HARD_REGISTERS];
 
 /* If the element value is equal to CURR_TICK then the corresponding
    element in `hard_regno_last_set' is defined and correct.  */
-static int hard_regno_last_set_check[FIRST_PSEUDO_REGISTER];
+static int hard_regno_last_set_check[MAX_HARD_REGISTERS];
 
 /* Definition of vector of moves.  */
 

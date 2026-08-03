@@ -340,7 +340,7 @@ find_comparison_dom_walker::before_dom_children (basic_block bb)
 {
   rtx_insn *insn, *next;
   bool need_purge = false;
-  rtx_insn *last_setter[FIRST_PSEUDO_REGISTER];
+  rtx_insn *last_setter[MAX_HARD_REGISTERS];
 
   /* The last comparison that was made.  Will be reset to NULL
      once the flags are clobbered.  */

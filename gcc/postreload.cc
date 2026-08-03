@@ -790,7 +790,7 @@ static struct
     int use_ruid;
     bool all_offsets_match;
     rtx expr;
-  } reg_state[FIRST_PSEUDO_REGISTER];
+  } reg_state[MAX_HARD_REGISTERS];
 
 /* Reverse linear uid.  This is increased in reload_combine while scanning
    the instructions from last to first.  It is used to set last_label_ruid
@@ -1726,7 +1726,7 @@ reload_combine_note_use (rtx *xp, rtx_insn *insn, int ruid, rtx containing_mem)
    setting insn is encountered; registers based off that base then
    get the same reg_set_luid.  Constants all get
    move2add_last_label_luid + 1 as their reg_set_luid.  */
-static int reg_set_luid[FIRST_PSEUDO_REGISTER];
+static int reg_set_luid[MAX_HARD_REGISTERS];
 
 /* If reg_base_reg[n] is negative, register n has been set to
    reg_offset[n] or reg_symbol_ref[n] + reg_offset[n] in mode reg_mode[n].
@@ -1736,10 +1736,10 @@ static int reg_set_luid[FIRST_PSEUDO_REGISTER];
    For multi-hard-register registers, all but the first one are
    recorded as BLKmode in reg_mode.  Setting reg_mode to VOIDmode
    marks it as invalid.  */
-static HOST_WIDE_INT reg_offset[FIRST_PSEUDO_REGISTER];
-static int reg_base_reg[FIRST_PSEUDO_REGISTER];
-static rtx reg_symbol_ref[FIRST_PSEUDO_REGISTER];
-static machine_mode reg_mode[FIRST_PSEUDO_REGISTER];
+static HOST_WIDE_INT reg_offset[MAX_HARD_REGISTERS];
+static int reg_base_reg[MAX_HARD_REGISTERS];
+static rtx reg_symbol_ref[MAX_HARD_REGISTERS];
+static machine_mode reg_mode[MAX_HARD_REGISTERS];
 
 /* move2add_luid is linearly increased while scanning the instructions
    from first to last.  It is used to set reg_set_luid in

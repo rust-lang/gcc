@@ -916,10 +916,10 @@ enum reg_class *sched_regno_pressure_class;
 
 /* The current register pressure.  Only elements corresponding pressure
    classes are defined.  */
-static int curr_reg_pressure[N_REG_CLASSES];
+static int curr_reg_pressure[MAX_REG_CLASSES];
 
 /* Saved value of the previous array.  */
-static int saved_reg_pressure[N_REG_CLASSES];
+static int saved_reg_pressure[MAX_REG_CLASSES];
 
 /* Register living at given scheduling point.  */
 static bitmap curr_reg_live;
@@ -935,12 +935,12 @@ static bitmap tmp_bitmap;
 
 /* Effective number of available registers of a given class (see comment
    in sched_pressure_start_bb).  */
-static int sched_class_regs_num[N_REG_CLASSES];
+static int sched_class_regs_num[MAX_REG_CLASSES];
 /* The number of registers that the function would need to save before it
    uses them, and the number of fixed_regs.  Helpers for calculating of
    sched_class_regs_num.  */
-static int call_saved_regs_num[N_REG_CLASSES];
-static int fixed_regs_num[N_REG_CLASSES];
+static int call_saved_regs_num[MAX_REG_CLASSES];
+static int fixed_regs_num[MAX_REG_CLASSES];
 
 /* Initiate register pressure relative info for scheduling the current
    region.  Currently it is only clearing register mentioned in the
@@ -1728,7 +1728,7 @@ setup_insn_reg_pressure_info (rtx_insn *insn)
   enum reg_class cl;
   struct reg_pressure_data *pressure_info;
   int *max_reg_pressure;
-  static int death[N_REG_CLASSES];
+  static int death[MAX_REG_CLASSES];
 
   gcc_checking_assert (!DEBUG_INSN_P (insn));
 
@@ -1883,7 +1883,7 @@ struct model_pressure_limit {
 /* Describes a particular way of measuring register pressure.  */
 struct model_pressure_group {
   /* Index PCI describes the maximum pressure on ira_pressure_classes[PCI].  */
-  struct model_pressure_limit limits[N_REG_CLASSES];
+  struct model_pressure_limit limits[MAX_REG_CLASSES];
 
   /* Index (POINT * ira_num_pressure_classes + PCI) describes the pressure
      on register class ira_pressure_classes[PCI] at point POINT of the
@@ -2119,10 +2119,10 @@ model_recompute (rtx_insn *insn)
   struct {
     int last_use;
     int regno;
-  } uses[FIRST_PSEUDO_REGISTER + MAX_RECOG_OPERANDS];
+  } uses[MAX_HARD_REGISTERS + MAX_RECOG_OPERANDS];
   struct reg_use_data *use;
   struct reg_pressure_data *reg_pressure;
-  int delta[N_REG_CLASSES];
+  int delta[MAX_REG_CLASSES];
   int pci, point, mix, new_last, cl, ref_pressure, queue;
   unsigned int i, num_uses, num_pending_births;
   bool print_p;
@@ -2441,7 +2441,7 @@ model_excess_cost (rtx_insn *insn, bool print_p)
 {
   int point, pci, cl, cost, this_cost, delta;
   struct reg_pressure_data *insn_reg_pressure;
-  int insn_death[N_REG_CLASSES];
+  int insn_death[MAX_REG_CLASSES];
 
   calculate_reg_deaths (insn, insn_death);
   point = model_index (insn);
@@ -3215,7 +3215,7 @@ setup_insn_max_reg_pressure (rtx_insn *after, bool update_p)
   int i, p;
   bool eq_p;
   rtx_insn *insn;
-  static int max_reg_pressure[N_REG_CLASSES];
+  static int max_reg_pressure[MAX_REG_CLASSES];
 
   save_reg_pressure ();
   for (i = 0; i < ira_pressure_classes_num; i++)
@@ -3257,7 +3257,7 @@ static void
 update_reg_and_insn_max_reg_pressure (rtx_insn *insn)
 {
   int i;
-  int before[N_REG_CLASSES];
+  int before[MAX_REG_CLASSES];
 
   for (i = 0; i < ira_pressure_classes_num; i++)
     before[i] = curr_reg_pressure[ira_pressure_classes[i]];
@@ -3338,7 +3338,7 @@ static int
 model_classify_pressure (struct model_insn_info *insn)
 {
   struct reg_pressure_data *reg_pressure;
-  int death[N_REG_CLASSES];
+  int death[MAX_REG_CLASSES];
   int pci, cl, sum;
 
   calculate_reg_deaths (insn->insn, death);
@@ -3588,7 +3588,7 @@ model_record_pressures (struct model_insn_info *insn)
 {
   struct reg_pressure_data *reg_pressure;
   int point, pci, cl, delta;
-  int death[N_REG_CLASSES];
+  int death[MAX_REG_CLASSES];
 
   point = model_index (insn->insn);
   if (sched_verbose >= 2)

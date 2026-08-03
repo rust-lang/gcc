@@ -114,13 +114,13 @@ struct cost_classes
   /* Number of the cost classes in the subsequent array.  */
   int num;
   /* Container of the cost classes.  */
-  enum reg_class classes[N_REG_CLASSES];
+  enum reg_class classes[MAX_REG_CLASSES];
   /* Map reg class -> index of the reg class in the previous array.
      -1 if it is not a cost class.  */
-  int index[N_REG_CLASSES];
+  int index[MAX_REG_CLASSES];
   /* Map hard regno index of first class in array CLASSES containing
      the hard regno, -1 otherwise.  */
-  int hard_regno_index[FIRST_PSEUDO_REGISTER];
+  int hard_regno_index[MAX_HARD_REGISTERS];
 };
 
 /* Types of pointers to the structure above.  */
@@ -167,7 +167,7 @@ static hash_table<cost_classes_hasher> *cost_classes_htab;
 
 /* Map allocno class -> cost classes for pseudo of given allocno
    class.  */
-static cost_classes_t cost_classes_aclass_cache[N_REG_CLASSES];
+static cost_classes_t cost_classes_aclass_cache[MAX_REG_CLASSES];
 
 /* Map mode -> cost classes for pseudo of give mode.  */
 static cost_classes_t cost_classes_mode_cache[MAX_MACHINE_MODE];
@@ -242,7 +242,7 @@ restrict_cost_classes (cost_classes_t full, machine_mode mode,
 		       const_hard_reg_set regs)
 {
   static struct cost_classes narrow;
-  int map[N_REG_CLASSES];
+  int map[MAX_REG_CLASSES];
   narrow.num = 0;
   for (int i = 0; i < full->num; i++)
     {

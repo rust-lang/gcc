@@ -1132,7 +1132,7 @@ lra_set_insn_recog_data (rtx_insn *insn)
     {
       bool use_p;
       rtx link;
-      int n_hard_regs, regno, arg_hard_regs[FIRST_PSEUDO_REGISTER];
+      int n_hard_regs, regno, arg_hard_regs[MAX_HARD_REGISTERS];
 
       n_hard_regs = 0;
       /* Finding implicit hard register usage.	We believe it will be

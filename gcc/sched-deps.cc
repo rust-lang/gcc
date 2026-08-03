@@ -1989,7 +1989,7 @@ setup_insn_reg_uses (class deps_desc *deps, rtx_insn *insn)
 }
 
 /* Register pressure info for the currently processed insn.  */
-static struct reg_pressure_data reg_pressure_info[N_REG_CLASSES];
+static struct reg_pressure_data reg_pressure_info[MAX_REG_CLASSES];
 
 /* Return TRUE if INSN has the use structure for REGNO.  */
 static bool

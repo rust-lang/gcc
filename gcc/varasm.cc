@@ -1031,7 +1031,7 @@ decode_reg_name_and_count (const char *asmspec, int *pnregs)
 	  unsigned long j = strtoul (asmspec, &pend, 10);
 	  if (*pend == '\0')
 	    {
-	      static_assert (FIRST_PSEUDO_REGISTER <= INT_MAX, "");
+	      static_assert (MAX_HARD_REGISTERS <= INT_MAX, "");
 	      if (errno != ERANGE
 		  && j < FIRST_PSEUDO_REGISTER
 		  && reg_names[j][0])

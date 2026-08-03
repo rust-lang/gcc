@@ -6672,7 +6672,8 @@ emit_copy_of_insn_after (rtx_insn *insn, rtx_insn *after)
   return new_rtx;
 }
 
-static GTY((deletable)) rtx hard_reg_clobbers [NUM_MACHINE_MODES][FIRST_PSEUDO_REGISTER];
+static GTY((deletable)) rtx
+  hard_reg_clobbers[NUM_MACHINE_MODES][MAX_HARD_REGISTERS];
 rtx
 gen_hard_reg_clobber (machine_mode mode, unsigned int regno)
 {

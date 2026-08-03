@@ -4050,6 +4050,8 @@ mt-maxima.h: $(multi_target_tags:%=mt-%/mt-maxima.vals)
 		  mt_max["max_insns_per_peep2"]; \
 		printf "#define MT_MAX_HARD_REGISTERS %d\n", \
 		  mt_max["first_pseudo_register"]; \
+		printf "#define MT_MAX_REG_CLASSES %d\n", \
+		  mt_max["n_reg_classes"]; \
 	      }'; \
 	  echo "#endif /* GCC_MT_MAXIMA_H */"; } > tmp-mt-maxima.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-maxima.h $@

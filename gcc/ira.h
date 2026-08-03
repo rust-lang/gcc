@@ -37,7 +37,7 @@ struct target_ira
   /* Map: hard register number -> allocno class it belongs to.  If the
      corresponding class is NO_REGS, the hard register is not available
      for allocation.  */
-  enum reg_class x_ira_hard_regno_allocno_class[FIRST_PSEUDO_REGISTER];
+  enum reg_class x_ira_hard_regno_allocno_class[MAX_HARD_REGISTERS];
 
   /* Number of allocno classes.  Allocno classes are register classes
      which can be used for allocations of allocnos.  */
@@ -45,12 +45,12 @@ struct target_ira
 
   /* The array containing allocno classes.  Only first
      IRA_ALLOCNO_CLASSES_NUM elements are used for this.  */
-  enum reg_class x_ira_allocno_classes[N_REG_CLASSES];
+  enum reg_class x_ira_allocno_classes[MAX_REG_CLASSES];
 
   /* Map of all register classes to corresponding allocno classes
      containing the given class.  If given class is not a subset of an
      allocno class, we translate it into the cheapest allocno class.  */
-  enum reg_class x_ira_allocno_class_translate[N_REG_CLASSES];
+  enum reg_class x_ira_allocno_class_translate[MAX_REG_CLASSES];
 
   /* Number of pressure classes.  Pressure classes are register
      classes for which we calculate register pressure.  */
@@ -58,13 +58,13 @@ struct target_ira
 
   /* The array containing pressure classes.  Only first
      IRA_PRESSURE_CLASSES_NUM elements are used for this.  */
-  enum reg_class x_ira_pressure_classes[N_REG_CLASSES];
+  enum reg_class x_ira_pressure_classes[MAX_REG_CLASSES];
 
   /* Map of all register classes to corresponding pressure classes
      containing the given class.  If given class is not a subset of an
      pressure class, we translate it into the cheapest pressure
      class.  */
-  enum reg_class x_ira_pressure_class_translate[N_REG_CLASSES];
+  enum reg_class x_ira_pressure_class_translate[MAX_REG_CLASSES];
 
   /* Biggest pressure register class containing stack registers.
      NO_REGS if there are no stack registers.  */
@@ -73,41 +73,41 @@ struct target_ira
   /* Maps: register class x machine mode -> maximal/minimal number of
      hard registers of given class needed to store value of given
      mode.  */
-  unsigned char x_ira_reg_class_max_nregs[N_REG_CLASSES][MAX_MACHINE_MODE];
-  unsigned char x_ira_reg_class_min_nregs[N_REG_CLASSES][MAX_MACHINE_MODE];
+  unsigned char x_ira_reg_class_max_nregs[MAX_REG_CLASSES][MAX_MACHINE_MODE];
+  unsigned char x_ira_reg_class_min_nregs[MAX_REG_CLASSES][MAX_MACHINE_MODE];
 
   /* Array analogous to target hook TARGET_MEMORY_MOVE_COST.  */
-  short x_ira_memory_move_cost[MAX_MACHINE_MODE][N_REG_CLASSES][2];
+  short x_ira_memory_move_cost[MAX_MACHINE_MODE][MAX_REG_CLASSES][2];
 
   /* Array of number of hard registers of given class which are
      available for the allocation.  The order is defined by the
      allocation order.  */
-  short x_ira_class_hard_regs[N_REG_CLASSES][FIRST_PSEUDO_REGISTER];
+  short x_ira_class_hard_regs[MAX_REG_CLASSES][MAX_HARD_REGISTERS];
 
   /* The number of elements of the above array for given register
      class.  */
-  int x_ira_class_hard_regs_num[N_REG_CLASSES];
+  int x_ira_class_hard_regs_num[MAX_REG_CLASSES];
 
   /* Register class subset relation: TRUE if the first class is a subset
      of the second one considering only hard registers available for the
      allocation.  */
-  int x_ira_class_subset_p[N_REG_CLASSES][N_REG_CLASSES];
+  int x_ira_class_subset_p[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* The biggest class inside of intersection of the two classes (that
      is calculated taking only hard registers available for allocation
      into account.  If the both classes contain no hard registers
      available for allocation, the value is calculated with taking all
      hard-registers including fixed ones into account.  */
-  enum reg_class x_ira_reg_class_subset[N_REG_CLASSES][N_REG_CLASSES];
+  enum reg_class x_ira_reg_class_subset[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* True if the two classes (that is calculated taking only hard
      registers available for allocation into account; are
      intersected.  */
-  bool x_ira_reg_classes_intersect_p[N_REG_CLASSES][N_REG_CLASSES];
+  bool x_ira_reg_classes_intersect_p[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* If class CL has a single allocatable register of mode M,
      index [CL][M] gives the number of that register, otherwise it is -1.  */
-  short x_ira_class_singleton[N_REG_CLASSES][MAX_MACHINE_MODE];
+  short x_ira_class_singleton[MAX_REG_CLASSES][MAX_MACHINE_MODE];
 
   /* Function specific hard registers cannot be used for the register
      allocation.  */
@@ -116,12 +116,14 @@ struct target_ira
   /* Array whose values are hard regset of hard registers available for
      the allocation of given register class whose targetm.hard_regno_mode_ok
      values for given mode are false.  */
-  HARD_REG_SET x_ira_prohibited_class_mode_regs[N_REG_CLASSES][NUM_MACHINE_MODES];
+  HARD_REG_SET
+    x_ira_prohibited_class_mode_regs[MAX_REG_CLASSES][NUM_MACHINE_MODES];
 
   /* When an allocatable hard register in given mode can not be placed in given
      register class, it is in the set of the following array element.  It can
      happen only when given mode requires more one hard register.  */
-  HARD_REG_SET x_ira_exclude_class_mode_regs[N_REG_CLASSES][NUM_MACHINE_MODES];
+  HARD_REG_SET
+    x_ira_exclude_class_mode_regs[MAX_REG_CLASSES][NUM_MACHINE_MODES];
 };
 
 extern struct target_ira default_target_ira;

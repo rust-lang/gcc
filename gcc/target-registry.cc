@@ -20,6 +20,10 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+/* This unit seeds the runtime register counts from the primary's
+   native constants; see defaults.h.  */
+#define MT_NATIVE_REGISTER_CONSTANTS 1
+#include "tm.h"
 #include "diagnostic-core.h"
 /* This unit repoints the active option tables; see opts.h.  */
 #define MT_OWN_OPTION_TABLES 1
@@ -45,6 +49,12 @@ const struct target_backend *this_target_backend
    The primary's vector carries the name target-def.h gives it.  */
 extern struct gcc_target mt_targetm;
 struct gcc_target *mt_targetm_pnt = &mt_targetm;
+
+/* The active target's register counts — FIRST_PSEUDO_REGISTER and
+   N_REG_CLASSES for host code; see defaults.h.  Activation
+   installs the selected target's values.  */
+unsigned int mt_first_pseudo_register = FIRST_PSEUDO_REGISTER;
+int mt_n_reg_classes = N_REG_CLASSES;
 
 /* The descriptors of the enabled targets, one per tag, compiled from
    target-backend-def.cc inside each target's own header context.  */

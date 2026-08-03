@@ -461,11 +461,11 @@ finish_live_reload_and_inheritance_pseudos (void)
 static int curr_hard_regno_costs_check = 0;
 /* Array used to check that cost of the corresponding hard reg (the
    array element index) is really defined currently.  */
-static int hard_regno_costs_check[FIRST_PSEUDO_REGISTER];
+static int hard_regno_costs_check[MAX_HARD_REGISTERS];
 /* The current costs of allocation of hard regs.  Defined only if the
    value of the corresponding element of the previous array is equal to
    CURR_HARD_REGNO_COSTS_CHECK.	 */
-static int hard_regno_costs[FIRST_PSEUDO_REGISTER];
+static int hard_regno_costs[MAX_HARD_REGISTERS];
 
 /* Adjust cost of HARD_REGNO by INCR.  Reset the cost first if it is
    not defined yet.  */
@@ -856,9 +856,9 @@ static bitmap_head spill_pseudos_bitmap, best_spill_pseudos_bitmap;
    TRY_HARD_REG_PSEUDOS.  */
 static int curr_pseudo_check;
 /* Array used for validity of elements in TRY_HARD_REG_PSEUDOS.	 */
-static int try_hard_reg_pseudos_check[FIRST_PSEUDO_REGISTER];
+static int try_hard_reg_pseudos_check[MAX_HARD_REGISTERS];
 /* Pseudos who hold given hard register at the considered points.  */
-static bitmap_head try_hard_reg_pseudos[FIRST_PSEUDO_REGISTER];
+static bitmap_head try_hard_reg_pseudos[MAX_HARD_REGISTERS];
 
 /* Set up try_hard_reg_pseudos for given program point P and class
    RCLASS.  Those are pseudos living at P and assigned to a hard

@@ -3062,7 +3062,7 @@ cselib_sp_derived_value_p (cselib_val *v)
 
 /* There is no good way to determine how many elements there can be
    in a PARALLEL.  Since it's fairly cheap, use a really large number.  */
-#define MAX_SETS (FIRST_PSEUDO_REGISTER * 2)
+#define MAX_SETS (MAX_HARD_REGISTERS * 2)
 
 struct cselib_record_autoinc_data
 {

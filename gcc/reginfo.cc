@@ -99,7 +99,9 @@ tree global_regs_decl[MAX_HARD_REGISTERS];
 
 /* Used to initialize reg_alloc_order.  */
 #ifdef REG_ALLOC_ORDER
+#if !ENABLE_MULTI_TARGET
 static int initial_reg_alloc_order[FIRST_PSEUDO_REGISTER] = REG_ALLOC_ORDER;
+#endif
 #endif
 
 /* The same information, but as an array of unsigned ints.  We copy from
@@ -107,9 +109,9 @@ static int initial_reg_alloc_order[FIRST_PSEUDO_REGISTER] = REG_ALLOC_ORDER;
    do not have to be aware of the wordsize for machines with <= 64 regs.
    Note that we hard-code 32 here, not HOST_BITS_PER_INT.  */
 #define N_REG_INTS  \
-  ((FIRST_PSEUDO_REGISTER + (32 - 1)) / 32)
+  ((MAX_HARD_REGISTERS + (32 - 1)) / 32)
 
-static const unsigned int_reg_class_contents[N_REG_CLASSES][N_REG_INTS]
+static const unsigned int_reg_class_contents[MAX_REG_CLASSES][N_REG_INTS]
   = REG_CLASS_CONTENTS;
 
 /* Array containing all of the register names.  */

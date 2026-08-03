@@ -1241,7 +1241,7 @@ static bool allocated_memory_p;
 
 /* Array whose element value is TRUE if the corresponding hard
    register was already allocated for an allocno.  */
-static bool allocated_hardreg_p[FIRST_PSEUDO_REGISTER];
+static bool allocated_hardreg_p[MAX_HARD_REGISTERS];
 
 /* Which callee-saved hard registers we've decided to save.  */
 static HARD_REG_SET allocated_callee_save_regs;
@@ -2014,7 +2014,8 @@ assign_hard_reg (ira_allocno_t a, bool retry_p)
   enum reg_class aclass;
   machine_mode mode;
   bool dep_filter_p;
-  static int costs[FIRST_PSEUDO_REGISTER], full_costs[FIRST_PSEUDO_REGISTER];
+  static int costs[MAX_HARD_REGISTERS];
+  static int full_costs[MAX_HARD_REGISTERS];
   int saved_nregs;
   enum reg_class rclass;
   int add_cost;
@@ -3267,7 +3268,7 @@ improve_allocation (void)
   enum reg_class aclass, rclass;
   machine_mode mode;
   int *allocno_costs;
-  int costs[FIRST_PSEUDO_REGISTER];
+  int costs[MAX_HARD_REGISTERS];
   HARD_REG_SET conflicting_regs[2], profitable_hard_regs;
   ira_allocno_t a;
   bitmap_iterator bi;

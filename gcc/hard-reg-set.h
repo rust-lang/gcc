@@ -500,25 +500,25 @@ struct target_hard_regs {
   int x_inv_reg_alloc_order[MAX_HARD_REGISTERS];
 
   /* For each reg class, a HARD_REG_SET saying which registers are in it.  */
-  HARD_REG_SET x_reg_class_contents[N_REG_CLASSES];
+  HARD_REG_SET x_reg_class_contents[MAX_REG_CLASSES];
 
   /* For each reg class, a boolean saying whether the class contains only
      fixed registers.  */
-  bool x_class_only_fixed_regs[N_REG_CLASSES];
+  bool x_class_only_fixed_regs[MAX_REG_CLASSES];
 
   /* For each reg class, number of regs it contains.  */
-  unsigned int x_reg_class_size[N_REG_CLASSES];
+  unsigned int x_reg_class_size[MAX_REG_CLASSES];
 
   /* For each reg class, table listing all the classes contained in it.  */
-  enum reg_class x_reg_class_subclasses[N_REG_CLASSES][N_REG_CLASSES];
+  enum reg_class x_reg_class_subclasses[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* For each pair of reg classes,
      a largest reg class contained in their union.  */
-  enum reg_class x_reg_class_subunion[N_REG_CLASSES][N_REG_CLASSES];
+  enum reg_class x_reg_class_subunion[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* For each pair of reg classes,
      the smallest reg class that contains their union.  */
-  enum reg_class x_reg_class_superunion[N_REG_CLASSES][N_REG_CLASSES];
+  enum reg_class x_reg_class_superunion[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* Vector indexed by hardware reg giving its name.  */
   const char *x_reg_names[MAX_HARD_REGISTERS];

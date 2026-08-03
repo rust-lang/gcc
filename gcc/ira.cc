@@ -791,7 +791,7 @@ setup_pressure_classes (void)
 {
   int cost, i, n, curr;
   int cl, cl2;
-  enum reg_class pressure_classes[N_REG_CLASSES];
+  enum reg_class pressure_classes[MAX_REG_CLASSES];
   int m;
   HARD_REG_SET temp_hard_regset2;
   bool insert_p;
@@ -1149,7 +1149,7 @@ setup_class_translate (void)
 
 /* Order numbers of allocno classes in original target allocno class
    array, -1 for non-allocno classes.  */
-static int allocno_class_order[N_REG_CLASSES];
+static int allocno_class_order[MAX_REG_CLASSES];
 
 /* The function used to sort the important classes.  */
 static int
@@ -1203,7 +1203,7 @@ setup_reg_class_relations (void)
 {
   int i, cl1, cl2, cl3;
   HARD_REG_SET intersection_set, union_set, temp_set2;
-  bool important_class_p[N_REG_CLASSES];
+  bool important_class_p[MAX_REG_CLASSES];
 
   memset (important_class_p, 0, sizeof (important_class_p));
   for (i = 0; i < ira_important_classes_num; i++)
@@ -1547,7 +1547,8 @@ clarify_prohibited_class_mode_regs (void)
 void
 ira_init_register_move_cost (machine_mode mode)
 {
-  static unsigned short last_move_cost[N_REG_CLASSES][N_REG_CLASSES];
+  static unsigned short
+    last_move_cost[MAX_REG_CLASSES][MAX_REG_CLASSES];
   bool all_match = true;
   unsigned int i, cl1, cl2;
   HARD_REG_SET ok_regs;

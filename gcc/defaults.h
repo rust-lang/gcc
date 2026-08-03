@@ -419,9 +419,29 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 #if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE)
 #include "mt-maxima.h"
 #define MAX_HARD_REGISTERS MT_MAX_HARD_REGISTERS
+#define MAX_REG_CLASSES MT_MAX_REG_CLASSES
 #else
 #define MAX_HARD_REGISTERS FIRST_PSEUDO_REGISTER
+#define MAX_REG_CLASSES N_REG_CLASSES
 #endif
+#endif
+
+/* Host code of a multi-target build iterates the ACTIVE target's
+   registers and register classes: the two counts become runtime
+   values that activation installs.  Target code and generator
+   programs keep their native constants, and structures are sized
+   by the MAX_* superset macros throughout.  The registry seeds
+   the runtime values from the primary's constants under
+   MT_NATIVE_REGISTER_CONSTANTS.  */
+#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
+  && !defined (IN_TARGET_CODE) \
+  && !defined (MT_NATIVE_REGISTER_CONSTANTS)
+extern unsigned int mt_first_pseudo_register;
+extern int mt_n_reg_classes;
+#undef FIRST_PSEUDO_REGISTER
+#define FIRST_PSEUDO_REGISTER mt_first_pseudo_register
+#undef N_REG_CLASSES
+#define N_REG_CLASSES mt_n_reg_classes
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */

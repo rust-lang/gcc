@@ -156,7 +156,7 @@ setup_can_eliminate (class lra_elim_table *ep, bool value)
    or NULL if none.  The elimination table may contain more than
    one elimination for the same hard register, but this map specifies
    the one that we are currently using.  */
-static class lra_elim_table *elimination_map[FIRST_PSEUDO_REGISTER];
+static class lra_elim_table *elimination_map[MAX_HARD_REGISTERS];
 
 /* When an eliminable hard register becomes not eliminable, we use the
    following special structure to restore original offsets for the
@@ -166,11 +166,11 @@ static class lra_elim_table self_elim_table;
 /* Offsets should be used to restore original offsets for eliminable
    hard register which just became not eliminable.  Zero,
    otherwise.  */
-static poly_int64 self_elim_offsets[FIRST_PSEUDO_REGISTER];
+static poly_int64 self_elim_offsets[MAX_HARD_REGISTERS];
 
 /* Map: hard regno -> RTL presentation.	 RTL presentations of all
    potentially eliminable hard registers are stored in the map.	 */
-static rtx eliminable_reg_rtx[FIRST_PSEUDO_REGISTER];
+static rtx eliminable_reg_rtx[MAX_HARD_REGISTERS];
 
 /* Set up ELIMINATION_MAP of the currently used eliminations.  */
 static void

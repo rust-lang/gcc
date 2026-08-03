@@ -1637,7 +1637,7 @@ finish_copies (void)
 
 
 /* Pools for cost vectors.  It is defined only for allocno classes.  */
-static pool_allocator *cost_vector_pool[N_REG_CLASSES];
+static pool_allocator *cost_vector_pool[MAX_REG_CLASSES];
 
 /* The function initiates work with hard register cost vectors.  It
    creates allocation pool for each allocno class.  */
@@ -2718,7 +2718,7 @@ update_bad_spill_attribute (void)
   ira_object_t obj;
   live_range_t r;
   enum reg_class aclass;
-  bitmap_head dead_points[N_REG_CLASSES];
+  bitmap_head dead_points[MAX_REG_CLASSES];
 
   for (i = 0; i < ira_allocno_classes_num; i++)
     {

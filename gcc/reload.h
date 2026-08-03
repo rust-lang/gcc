@@ -175,7 +175,7 @@ struct target_reload {
      register because it is live we first try to save in multi-register modes.
      If that is not possible the save is done one register at a time.  */
   machine_mode (x_regno_save_mode
-		     [FIRST_PSEUDO_REGISTER]
+		     [MAX_HARD_REGISTERS]
 		     [MAX_MOVE_MAX / MIN_UNITS_PER_WORD + 1]);
 
   /* Nonzero if an address (plus (reg frame_pointer) (reg ...)) is valid
@@ -187,8 +187,8 @@ struct target_reload {
      address is valid.  We record the INSN_CODE is those insns here since
      when we emit them, the addresses might not be valid, so they might not
      be recognized.  */
-  int x_cached_reg_save_code[FIRST_PSEUDO_REGISTER][MAX_MACHINE_MODE];
-  int x_cached_reg_restore_code[FIRST_PSEUDO_REGISTER][MAX_MACHINE_MODE];
+  int x_cached_reg_save_code[MAX_HARD_REGISTERS][MAX_MACHINE_MODE];
+  int x_cached_reg_restore_code[MAX_HARD_REGISTERS][MAX_MACHINE_MODE];
 };
 
 extern struct target_reload default_target_reload;

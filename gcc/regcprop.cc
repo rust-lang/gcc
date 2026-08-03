@@ -75,7 +75,7 @@ struct value_data_entry
 
 struct value_data
 {
-  struct value_data_entry e[FIRST_PSEUDO_REGISTER];
+  struct value_data_entry e[MAX_HARD_REGISTERS];
   unsigned int max_value_regs;
   unsigned int n_debug_insn_changes;
 };

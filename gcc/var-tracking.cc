@@ -545,7 +545,7 @@ struct dataflow_set
   HOST_WIDE_INT stack_adjust;
 
   /* Attributes for registers (lists of attrs).  */
-  attrs *regs[FIRST_PSEUDO_REGISTER];
+  attrs *regs[MAX_HARD_REGISTERS];
 
   /* Variable locations.  */
   shared_hash *vars;

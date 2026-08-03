@@ -29,14 +29,14 @@ struct target_builtins {
      the register is not used for calling a function.  If the machine
      has register windows, this gives only the outbound registers.
      INCOMING_REGNO gives the corresponding inbound register.  */
-  fixed_size_mode_pod x_apply_args_mode[FIRST_PSEUDO_REGISTER];
+  fixed_size_mode_pod x_apply_args_mode[MAX_HARD_REGISTERS];
 
   /* For each register that may be used for returning values, this gives
      a mode used to copy the register's value.  VOIDmode indicates the
      register is not used for returning values.  If the machine has
      register windows, this gives only the outbound registers.
      INCOMING_REGNO gives the corresponding inbound register.  */
-  fixed_size_mode_pod x_apply_result_mode[FIRST_PSEUDO_REGISTER];
+  fixed_size_mode_pod x_apply_result_mode[MAX_HARD_REGISTERS];
 
   /* Nonzero iff the arrays above have been initialized.  The _plus_one suffix
      is for zero initialization to make it an unreasonable size, used to signal

@@ -300,7 +300,7 @@ struct hard_regs_data
   /* For every register, it has regs that are ok to rename into it.
      The register in question is always set.  If not, this means
      that the whole set is not computed yet.  */
-  HARD_REG_SET regs_for_rename[FIRST_PSEUDO_REGISTER];
+  HARD_REG_SET regs_for_rename[MAX_HARD_REGISTERS];
 
   /* All registers that are used or call used.  */
   HARD_REG_SET regs_ever_used;
@@ -1271,7 +1271,7 @@ mark_unavailable_hard_regs (def_t def, struct reg_rename *reg_rename_p,
 
 /* reg_rename_tick[REG1] > reg_rename_tick[REG2] if REG1 was chosen as the
    best register more recently than REG2.  */
-static int reg_rename_tick[FIRST_PSEUDO_REGISTER];
+static int reg_rename_tick[MAX_HARD_REGISTERS];
 
 /* Indicates the number of times renaming happened before the current one.  */
 static int reg_rename_this_tick;

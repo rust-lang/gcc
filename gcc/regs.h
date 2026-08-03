@@ -200,7 +200,7 @@ extern int caller_save_needed;
 struct target_regs {
   /* For each starting hard register, the number of consecutive hard
      registers that a given machine mode occupies.  */
-  unsigned char x_hard_regno_nregs[FIRST_PSEUDO_REGISTER][MAX_MACHINE_MODE];
+  unsigned char x_hard_regno_nregs[MAX_HARD_REGISTERS][MAX_MACHINE_MODE];
 
   /* The max value found in x_hard_regno_nregs.  */
   unsigned char x_hard_regno_max_nregs;
@@ -209,18 +209,18 @@ struct target_regs {
      This will be a MODE_INT mode if the register can hold integers.  Otherwise
      it will be a MODE_FLOAT or a MODE_CC mode, whichever is valid for the
      register.  */
-  machine_mode x_reg_raw_mode[FIRST_PSEUDO_REGISTER];
+  machine_mode x_reg_raw_mode[MAX_HARD_REGISTERS];
 
   /* Vector indexed by machine mode saying whether there are regs of
      that mode.  */
   bool x_have_regs_of_mode[MAX_MACHINE_MODE];
 
   /* 1 if the corresponding class contains a register of the given mode.  */
-  char x_contains_reg_of_mode[N_REG_CLASSES][MAX_MACHINE_MODE];
+  char x_contains_reg_of_mode[MAX_REG_CLASSES][MAX_MACHINE_MODE];
 
   /* 1 if the corresponding class contains a register of the given mode
      which is not global and can therefore be allocated.  */
-  char x_contains_allocatable_reg_of_mode[N_REG_CLASSES][MAX_MACHINE_MODE];
+  char x_contains_allocatable_reg_of_mode[MAX_REG_CLASSES][MAX_MACHINE_MODE];
 
   /* Record for each mode whether we can move a register directly to or
      from an object of that mode in memory.  If we can't, we won't try

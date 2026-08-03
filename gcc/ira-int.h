@@ -68,7 +68,7 @@ typedef struct ira_object *ira_object_t;
 /* Typedef for pointer to the subsequent structure.  */
 typedef struct ira_loop_tree_node *ira_loop_tree_node_t;
 
-typedef unsigned short move_table[N_REG_CLASSES];
+typedef unsigned short move_table[MAX_REG_CLASSES];
 
 /* In general case, IRA is a regional allocator.  The regions are
    nested and form a tree.  Currently regions are natural loops.  The
@@ -122,7 +122,7 @@ struct ira_loop_tree_node
 
   /* Maximal register pressure inside loop for given register class
      (defined only for the pressure classes).  */
-  int reg_pressure[N_REG_CLASSES];
+  int reg_pressure[MAX_REG_CLASSES];
 
   /* Numbers of allocnos referred or living in the loop node (except
      for its subloops).  */
@@ -853,7 +853,7 @@ public:
   /* Map: hard regs X modes -> set of hard registers for storing value
      of given mode starting with given hard register.  */
   HARD_REG_SET (x_ira_reg_mode_hard_regset
-		[FIRST_PSEUDO_REGISTER][NUM_MACHINE_MODES]);
+		[MAX_HARD_REGISTERS][NUM_MACHINE_MODES]);
 
   /* Maximum cost of moving from a register in one class to a register
      in another class.  Based on TARGET_REGISTER_MOVE_COST.  */
@@ -872,25 +872,25 @@ public:
 
   /* Array analog of the macro MEMORY_MOVE_COST but they contain maximal
      cost not minimal.  */
-  short int x_ira_max_memory_move_cost[MAX_MACHINE_MODE][N_REG_CLASSES][2];
+  short int x_ira_max_memory_move_cost[MAX_MACHINE_MODE][MAX_REG_CLASSES][2];
 
   /* Map class->true if class is a possible allocno class, false
      otherwise. */
-  bool x_ira_reg_allocno_class_p[N_REG_CLASSES];
+  bool x_ira_reg_allocno_class_p[MAX_REG_CLASSES];
 
   /* Map class->true if class is a pressure class, false otherwise. */
-  bool x_ira_reg_pressure_class_p[N_REG_CLASSES];
+  bool x_ira_reg_pressure_class_p[MAX_REG_CLASSES];
 
   /* Array of the number of hard registers of given class which are
      available for allocation.  The order is defined by the hard
      register numbers.  */
-  short x_ira_non_ordered_class_hard_regs[N_REG_CLASSES][FIRST_PSEUDO_REGISTER];
+  short x_ira_non_ordered_class_hard_regs[MAX_REG_CLASSES][MAX_HARD_REGISTERS];
 
   /* Index (in ira_class_hard_regs; for given register class and hard
      register (in general case a hard register can belong to several
      register classes).  The index is negative for hard registers
      unavailable for the allocation.  */
-  short x_ira_class_hard_reg_index[N_REG_CLASSES][FIRST_PSEUDO_REGISTER];
+  short x_ira_class_hard_reg_index[MAX_REG_CLASSES][MAX_HARD_REGISTERS];
 
   /* Index [CL][M] contains R if R appears somewhere in a register of the form:
 
@@ -904,35 +904,36 @@ public:
 
      then (reg:M 2) contributes to [CL][M] and registers 2 and 3 will be
      in the set.  */
-  HARD_REG_SET x_ira_useful_class_mode_regs[N_REG_CLASSES][NUM_MACHINE_MODES];
+  HARD_REG_SET x_ira_useful_class_mode_regs[MAX_REG_CLASSES][NUM_MACHINE_MODES];
 
   /* The value is number of elements in the subsequent array.  */
   int x_ira_important_classes_num;
 
   /* The array containing all non-empty classes.  Such classes is
      important for calculation of the hard register usage costs.  */
-  enum reg_class x_ira_important_classes[N_REG_CLASSES];
+  enum reg_class x_ira_important_classes[MAX_REG_CLASSES];
 
   /* The array containing indexes of important classes in the previous
      array.  The array elements are defined only for important
      classes.  */
-  int x_ira_important_class_nums[N_REG_CLASSES];
+  int x_ira_important_class_nums[MAX_REG_CLASSES];
 
   /* Map class->true if class is an uniform class, false otherwise.  */
-  bool x_ira_uniform_class_p[N_REG_CLASSES];
+  bool x_ira_uniform_class_p[MAX_REG_CLASSES];
 
   /* The biggest important class inside of intersection of the two
      classes (that is calculated taking only hard registers available
      for allocation into account;.  If the both classes contain no hard
      registers available for allocation, the value is calculated with
      taking all hard-registers including fixed ones into account.  */
-  enum reg_class x_ira_reg_class_intersect[N_REG_CLASSES][N_REG_CLASSES];
+  enum reg_class x_ira_reg_class_intersect[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* Classes with end marker LIM_REG_CLASSES which are intersected with
      given class (the first index).  That includes given class itself.
      This is calculated taking only hard registers available for
      allocation into account.  */
-  enum reg_class x_ira_reg_class_super_classes[N_REG_CLASSES][N_REG_CLASSES];
+  enum reg_class
+    x_ira_reg_class_super_classes[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* The biggest (smallest) important class inside of (covering) union
      of the two classes (that is calculated taking only hard registers
@@ -941,13 +942,13 @@ public:
      calculated with taking all hard-registers including fixed ones
      into account.  In other words, the value is the corresponding
      reg_class_subunion (reg_class_superunion) value.  */
-  enum reg_class x_ira_reg_class_subunion[N_REG_CLASSES][N_REG_CLASSES];
-  enum reg_class x_ira_reg_class_superunion[N_REG_CLASSES][N_REG_CLASSES];
+  enum reg_class x_ira_reg_class_subunion[MAX_REG_CLASSES][MAX_REG_CLASSES];
+  enum reg_class x_ira_reg_class_superunion[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* For each reg class, table listing all the classes contained in it
      (excluding the class itself.  Non-allocatable registers are
      excluded from the consideration).  */
-  enum reg_class x_alloc_reg_class_subclasses[N_REG_CLASSES][N_REG_CLASSES];
+  enum reg_class x_alloc_reg_class_subclasses[MAX_REG_CLASSES][MAX_REG_CLASSES];
 
   /* Array whose values are hard regset of hard registers for which
      move of the hard register in given mode into itself is
@@ -958,7 +959,7 @@ public:
   bool x_ira_prohibited_mode_move_regs_initialized_p;
 
   /* Number of real occurrences of hard regs before IRA.  */
-  size_t x_ira_hard_regno_nrefs[FIRST_PSEUDO_REGISTER];
+  size_t x_ira_hard_regno_nrefs[MAX_HARD_REGISTERS];
 };
 
 extern class target_ira_int default_target_ira_int;

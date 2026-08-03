@@ -405,7 +405,7 @@ extern bool lra_undo_inheritance (void);
 extern int lra_live_max_point;
 extern int *lra_point_freq;
 
-extern int lra_hard_reg_usage[FIRST_PSEUDO_REGISTER];
+extern int lra_hard_reg_usage[MAX_HARD_REGISTERS];
 
 extern int lra_live_range_iter;
 extern void lra_reset_live_range_list (lra_live_range_t &);
