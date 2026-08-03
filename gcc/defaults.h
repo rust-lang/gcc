@@ -486,6 +486,26 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #undef ARG_POINTER_REGNUM
 #define ARG_POINTER_REGNUM \
   (mt_active_target_scalars->x_arg_pointer_regnum ())
+#undef MOVE_MAX
+#define MOVE_MAX (mt_active_target_scalars->x_move_max ())
+#undef MOVE_MAX_PIECES
+#define MOVE_MAX_PIECES \
+  (mt_active_target_scalars->x_move_max_pieces ())
+#undef STORE_MAX_PIECES
+#define STORE_MAX_PIECES \
+  (mt_active_target_scalars->x_store_max_pieces ())
+#undef COMPARE_MAX_PIECES
+#define COMPARE_MAX_PIECES \
+  (mt_active_target_scalars->x_compare_max_pieces ())
+#undef MOVE_RATIO
+#define MOVE_RATIO(SPEED) \
+  (mt_active_target_scalars->x_move_ratio ((int) (SPEED)))
+#undef CLEAR_RATIO
+#define CLEAR_RATIO(SPEED) \
+  (mt_active_target_scalars->x_clear_ratio ((int) (SPEED)))
+#undef SET_RATIO
+#define SET_RATIO(SPEED) \
+  (mt_active_target_scalars->x_set_ratio ((int) (SPEED)))
 #undef Pmode
 #define Pmode \
   (scalar_int_mode ((scalar_int_mode::from_int) \

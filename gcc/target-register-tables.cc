@@ -196,6 +196,48 @@ scalar_arg_pointer_regnum (void)
   return ARG_POINTER_REGNUM;
 }
 
+static int
+scalar_move_max (void)
+{
+  return MOVE_MAX;
+}
+
+static int
+scalar_move_max_pieces (void)
+{
+  return MOVE_MAX_PIECES;
+}
+
+static int
+scalar_store_max_pieces (void)
+{
+  return STORE_MAX_PIECES;
+}
+
+static int
+scalar_compare_max_pieces (void)
+{
+  return COMPARE_MAX_PIECES;
+}
+
+static int
+scalar_move_ratio (int speed)
+{
+  return MOVE_RATIO (speed != 0);
+}
+
+static int
+scalar_clear_ratio (int speed)
+{
+  return CLEAR_RATIO (speed != 0);
+}
+
+static int
+scalar_set_ratio (int speed)
+{
+  return SET_RATIO (speed != 0);
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -216,6 +258,13 @@ static const struct mt_target_scalars target_scalars =
   scalar_frame_pointer_regnum,
   scalar_hard_frame_pointer_regnum,
   scalar_arg_pointer_regnum,
+  scalar_move_max,
+  scalar_move_max_pieces,
+  scalar_store_max_pieces,
+  scalar_compare_max_pieces,
+  scalar_move_ratio,
+  scalar_clear_ratio,
+  scalar_set_ratio,
 };
 
 /* extern: a const object would otherwise have internal linkage in

@@ -53,6 +53,13 @@ struct mt_target_scalars
   int (*x_frame_pointer_regnum) (void);
   int (*x_hard_frame_pointer_regnum) (void);
   int (*x_arg_pointer_regnum) (void);
+  int (*x_move_max) (void);
+  int (*x_move_max_pieces) (void);
+  int (*x_store_max_pieces) (void);
+  int (*x_compare_max_pieces) (void);
+  int (*x_move_ratio) (int);
+  int (*x_clear_ratio) (int);
+  int (*x_set_ratio) (int);
 };
 
 /* One register elimination pair, as ELIMINABLE_REGS lists them.  */
