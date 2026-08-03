@@ -27,11 +27,12 @@ along with GCC; see the file COPYING3.  If not see
    floating point formats are per-target data by design: the prototype
    targets already disagree on both.
 
-   With -h the tool emits the union insn-modes.h; without it, a
-   report of the union.  The emission of the per-target value
-   tables comes with the multi-target build integration.
+   With -h the tool emits the union insn-modes.h, with -i the
+   matching insn-modes-inline.h; without either, a report of the
+   union.  The emission of the per-target value tables comes with
+   the multi-target build integration.
 
-   Usage: genmodes-merge [-h] <name>=<dump> <name>=<dump> ...  */
+   Usage: genmodes-merge [-h|-i] <name>=<dump> <name>=<dump> ...  */
 
 #define INCLUDE_STRING
 #define INCLUDE_VECTOR
@@ -398,6 +399,281 @@ links_vary_p (const union_mode &mode)
   return false;
 }
 
+/* Union-wide property variance, for the CONST_MODE_* defines and the
+   inline fast paths.  */
+
+struct union_variance
+{
+  bool nunits;
+  bool bytesize;
+  bool alignment;
+  bool ibit;
+  bool fbit;
+};
+
+static union_variance
+compute_union_variance (void)
+{
+  union_variance variance = union_variance ();
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      std::string variants = variant_properties (union_modes[i]);
+      if (variants.find ("ncomponents") != std::string::npos
+	  || variants.find ("precision") != std::string::npos)
+	variance.nunits = true;
+      if (variants.find ("bytesize") != std::string::npos)
+	variance.bytesize = true;
+      if (variants.find ("alignment") != std::string::npos)
+	variance.alignment = true;
+      if (variants.find ("ibit") != std::string::npos)
+	variance.ibit = true;
+      if (variants.find ("fbit") != std::string::npos)
+	variance.fbit = true;
+    }
+  return variance;
+}
+
+/* The union index of NAME, which must exist.  */
+
+static size_t
+union_index_of (const std::string &name)
+{
+  std::map<std::string, size_t>::iterator found
+    = union_index_by_name.find (name);
+  if (found == union_index_by_name.end ())
+    fatal ("mode %s is not in the union", name.c_str ());
+  return found->second;
+}
+
+/* The union index of the mode that MODE_INDEX's unit size and
+   precision come from for TARGET: the component, except that
+   MODE_PARTIAL_INT modes are their own unit, as in genmodes.cc.  */
+
+static size_t
+unit_index (size_t mode_index, size_t target)
+{
+  const union_mode &mode = union_modes[mode_index];
+  const target_mode &record = mode.per_target[target];
+  if (mode.cl != MODE_PARTIAL_INT && record.component != "-")
+    return union_index_of (record.component);
+  return mode_index;
+}
+
+/* True if MODE_INDEX's byte size is adjusted at run time for TARGET:
+   directly, through a unit count adjustment, or through a size
+   adjustment of its component — the propagation to containing modes
+   of genmodes.cc's emit_mode_size_inline.  */
+
+static bool
+bytesize_adjusted_p (size_t mode_index, size_t target)
+{
+  const union_mode &mode = union_modes[mode_index];
+  const target_mode &record = mode.per_target[target];
+  if (!record.present)
+    return false;
+  if (record.adjusted_bytesize || record.adjusted_nunits)
+    return true;
+  if (record.component != "-")
+    {
+      size_t component = union_index_of (record.component);
+      if (union_modes[component].per_target[target].adjusted_bytesize)
+	return true;
+    }
+  return false;
+}
+
+/* Emit the shared head of one inline accessor: RESULT_TYPE
+   FUNCTION_NAME, falling back to the table declared as TABLE_EXTERN.  */
+
+static void
+emit_inline_head (const char *result_type, const char *function_name,
+		  const std::string &table_extern, bool with_assert)
+{
+  printf ("#ifdef __cplusplus\n"
+	  "inline __attribute__((__always_inline__))\n"
+	  "#else\n"
+	  "extern __inline__ __attribute__((__always_inline__,"
+	  " __gnu_inline__))\n"
+	  "#endif\n"
+	  "%s\n"
+	  "%s (machine_mode mode)\n"
+	  "{\n"
+	  "  extern %s[NUM_MACHINE_MODES];\n", result_type, function_name,
+	  table_extern.c_str ());
+  if (with_assert)
+    printf ("  gcc_assert (mode >= 0 && mode < NUM_MACHINE_MODES);\n");
+  printf ("  switch (mode)\n    {\n");
+}
+
+/* Emit the shared tail: the fall back to TABLE_NAME.  */
+
+static void
+emit_inline_tail (const char *table_name)
+{
+  printf ("    default: return %s[mode];\n    }\n}\n\n", table_name);
+}
+
+/* Emit the union insn-modes-inline.h, mirroring genmodes.cc's
+   emit_insn_modes_inline_h.  A mode gets an inline fast path only when
+   every contributing target computes the same value and none adjusts
+   it at run time; everything else falls back to the table, which
+   activation fills with the active target's values.  */
+
+static void
+emit_union_inline_header (void)
+{
+  union_variance variance = compute_union_variance ();
+
+  printf ("/* Generated automatically by genmodes-merge from the mode"
+	  " tables of:");
+  for (size_t target = 0; target < target_names.size (); target++)
+    printf (" %s", target_names[target].c_str ());
+  printf (".  */\n\n#ifndef GCC_INSN_MODES_INLINE_H\n"
+	  "#define GCC_INSN_MODES_INLINE_H\n"
+	  "\n#if !defined (USED_FOR_TARGET) && GCC_VERSION >= 4001\n\n");
+
+  std::string table_extern
+    (variance.bytesize || variance.nunits ? "" : "const ");
+  table_extern += "poly_uint16 mode_size";
+  emit_inline_head ("poly_uint16", "mode_size_inline", table_extern, true);
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      bool can_inline = true, first = true;
+      unsigned int value = 0;
+      for (size_t target = 0; target < target_names.size (); target++)
+	{
+	  const target_mode &record = union_modes[i].per_target[target];
+	  if (!record.present)
+	    continue;
+	  if (bytesize_adjusted_p (i, target))
+	    can_inline = false;
+	  if (first)
+	    value = record.bytesize;
+	  else if (value != record.bytesize)
+	    can_inline = false;
+	  first = false;
+	}
+      if (can_inline)
+	printf ("    case E_%smode: return %u;\n",
+		union_modes[i].name.c_str (), value);
+    }
+  emit_inline_tail ("mode_size");
+
+  table_extern = variance.nunits ? "" : "const ";
+  table_extern += "poly_uint16 mode_nunits";
+  emit_inline_head ("poly_uint16", "mode_nunits_inline", table_extern, false);
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      bool can_inline = true, first = true;
+      unsigned int value = 0;
+      for (size_t target = 0; target < target_names.size (); target++)
+	{
+	  const target_mode &record = union_modes[i].per_target[target];
+	  if (!record.present)
+	    continue;
+	  if (record.adjusted_nunits)
+	    can_inline = false;
+	  if (first)
+	    value = record.ncomponents;
+	  else if (value != record.ncomponents)
+	    can_inline = false;
+	  first = false;
+	}
+      if (can_inline)
+	printf ("    case E_%smode: return %u;\n",
+		union_modes[i].name.c_str (), value);
+    }
+  emit_inline_tail ("mode_nunits");
+
+  table_extern = "const unsigned short mode_inner";
+  emit_inline_head ("unsigned short", "mode_inner_inline", table_extern,
+		    true);
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      bool can_inline = true, first = true;
+      std::string inner;
+      for (size_t target = 0; target < target_names.size (); target++)
+	{
+	  const target_mode &record = union_modes[i].per_target[target];
+	  if (!record.present)
+	    continue;
+	  std::string unit = union_modes[unit_index (i, target)].name;
+	  if (first)
+	    inner = unit;
+	  else if (inner != unit)
+	    can_inline = false;
+	  first = false;
+	}
+      if (can_inline)
+	printf ("    case E_%smode: return E_%smode;\n",
+		union_modes[i].name.c_str (), inner.c_str ());
+    }
+  emit_inline_tail ("mode_inner");
+
+  table_extern = "CONST_MODE_UNIT_SIZE unsigned char mode_unit_size";
+  emit_inline_head ("unsigned char", "mode_unit_size_inline", table_extern,
+		    true);
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      bool can_inline = true, first = true;
+      unsigned int value = 0;
+      for (size_t target = 0; target < target_names.size (); target++)
+	{
+	  const target_mode &record = union_modes[i].per_target[target];
+	  if (!record.present)
+	    continue;
+	  size_t unit = unit_index (i, target);
+	  if (bytesize_adjusted_p (unit, target))
+	    can_inline = false;
+	  unsigned int unit_size
+	    = union_modes[unit].per_target[target].bytesize;
+	  if (first)
+	    value = unit_size;
+	  else if (value != unit_size)
+	    can_inline = false;
+	  first = false;
+	}
+      if (can_inline)
+	printf ("    case E_%smode: return %u;\n",
+		union_modes[i].name.c_str (), value);
+    }
+  emit_inline_tail ("mode_unit_size");
+
+  table_extern = "const unsigned short mode_unit_precision";
+  emit_inline_head ("unsigned short", "mode_unit_precision_inline",
+		    table_extern, true);
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      bool can_inline = true, first = true;
+      std::string value;
+      for (size_t target = 0; target < target_names.size (); target++)
+	{
+	  const target_mode &record = union_modes[i].per_target[target];
+	  if (!record.present)
+	    continue;
+	  const target_mode &unit
+	    = union_modes[unit_index (i, target)].per_target[target];
+	  char text[32];
+	  if (unit.precision != (unsigned int) -1)
+	    snprintf (text, sizeof text, "%u", unit.precision);
+	  else
+	    snprintf (text, sizeof text, "%u*BITS_PER_UNIT", unit.bytesize);
+	  if (first)
+	    value = text;
+	  else if (value != text)
+	    can_inline = false;
+	  first = false;
+	}
+      if (can_inline)
+	printf ("    case E_%smode: return %s;\n",
+		union_modes[i].name.c_str (), value.c_str ());
+    }
+  emit_inline_tail ("mode_unit_precision");
+
+  puts ("#endif /* GCC_VERSION >= 4001 */");
+  puts ("\n#endif /* insn-modes-inline.h */");
+}
+
 /* True if MODE is a boolean mode (for the first target that has
    it; divergence shows up in the report as a non-uniform boolean
    property).  */
@@ -552,34 +828,19 @@ emit_union_header (void)
   /* A property is constant only if no target adjusts it at run time
      and the targets agree on it, since activation installs the active
      target's values.  */
-  bool nunits_variant = false, bytesize_variant = false;
-  bool alignment_variant = false, ibit_variant = false;
-  bool fbit_variant = false;
-  for (size_t i = 0; i < union_modes.size (); i++)
-    {
-      std::string variants = variant_properties (union_modes[i]);
-      if (variants.find ("ncomponents") != std::string::npos
-	  || variants.find ("precision") != std::string::npos)
-	nunits_variant = true;
-      if (variants.find ("bytesize") != std::string::npos)
-	bytesize_variant = true;
-      if (variants.find ("alignment") != std::string::npos)
-	alignment_variant = true;
-      if (variants.find ("ibit") != std::string::npos)
-	ibit_variant = true;
-      if (variants.find ("fbit") != std::string::npos)
-	fbit_variant = true;
-    }
-  printf ("#define CONST_MODE_NUNITS%s\n", nunits_variant ? "" : " const");
-  printf ("#define CONST_MODE_PRECISION%s\n", nunits_variant ? "" : " const");
+  union_variance variance = compute_union_variance ();
+  printf ("#define CONST_MODE_NUNITS%s\n", variance.nunits ? "" : " const");
+  printf ("#define CONST_MODE_PRECISION%s\n",
+	  variance.nunits ? "" : " const");
   printf ("#define CONST_MODE_SIZE%s\n",
-	  bytesize_variant || nunits_variant ? "" : " const");
-  printf ("#define CONST_MODE_UNIT_SIZE%s\n", bytesize_variant ? "" : " const");
+	  variance.bytesize || variance.nunits ? "" : " const");
+  printf ("#define CONST_MODE_UNIT_SIZE%s\n",
+	  variance.bytesize ? "" : " const");
   printf ("#define CONST_MODE_BASE_ALIGN%s\n",
-	  alignment_variant ? "" : " const");
-  printf ("#define CONST_MODE_IBIT%s\n", ibit_variant ? "" : " const");
-  printf ("#define CONST_MODE_FBIT%s\n", fbit_variant ? "" : " const");
-  printf ("#define CONST_MODE_MASK%s\n", nunits_variant ? "" : " const");
+	  variance.alignment ? "" : " const");
+  printf ("#define CONST_MODE_IBIT%s\n", variance.ibit ? "" : " const");
+  printf ("#define CONST_MODE_FBIT%s\n", variance.fbit ? "" : " const");
+  printf ("#define CONST_MODE_MASK%s\n", variance.nunits ? "" : " const");
 
   printf ("\n#define BITS_PER_UNIT (%u)\n", bits_per_unit_param);
   printf ("#define MAX_BITSIZE_MODE_ANY_INT %u\n",
@@ -618,15 +879,21 @@ int
 main (int argc, char **argv)
 {
   progname = argv[0];
-  bool emit_header = false;
+  bool emit_header = false, emit_inline = false;
   int first_argument = 1;
   if (argc > 1 && !strcmp (argv[1], "-h"))
     {
       emit_header = true;
       first_argument = 2;
     }
+  else if (argc > 1 && !strcmp (argv[1], "-i"))
+    {
+      emit_inline = true;
+      first_argument = 2;
+    }
   if (argc - first_argument < 1)
-    fatal ("usage: %s [-h] <name>=<dump> <name>=<dump> ...", progname);
+    fatal ("usage: %s [-h|-i] <name>=<dump> <name>=<dump> ...",
+	   progname);
 
   std::vector<std::string> dump_files;
   for (int i = first_argument; i < argc; i++)
@@ -643,10 +910,16 @@ main (int argc, char **argv)
     read_dump (dump_files[target].c_str (), target);
 
   std::sort (union_modes.begin (), union_modes.end (), union_order);
+  /* The sort shuffled the indexes the name map holds.  */
+  for (size_t i = 0; i < union_modes.size (); i++)
+    union_index_by_name[union_modes[i].name] = i;
 
-  if (emit_header)
+  if (emit_header || emit_inline)
     {
-      emit_union_header ();
+      if (emit_header)
+	emit_union_header ();
+      else
+	emit_union_inline_header ();
       if (fflush (stdout) || fclose (stdout))
 	return FATAL_EXIT_CODE;
       return SUCCESS_EXIT_CODE;
