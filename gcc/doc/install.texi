@@ -1235,6 +1235,14 @@ For i386, x86-64 targets, possible values for @var{dialect} are @code{gnu} or
 @code{gnu2}, which select between the original GNU dialect and the GNU TLS
 descriptor-based dialect.
 
+@item --enable-multi-target=@var{list}
+Build the given comma-separated list of secondary target triplets into
+the compiler in addition to the configured target, selectable at run
+time.  Each secondary target must be declared multi-target ready by
+@file{config.gcc}.  The value @samp{all} (also the meaning of a bare
+@option{--enable-multi-target}) selects every multi-target-ready port.
+The default is disabled, which builds the usual single-target compiler.
+
 @item --enable-multiarch
 Specify whether to enable or disable multiarch support.  The default is
 to check for glibc start files in a multiarch location, and enable it

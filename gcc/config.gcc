@@ -191,6 +191,10 @@
 #			secondary target of a multi-target compiler.
 #			Defaults to no.
 #
+#  multi_target_all_triples
+#			One representative target triplet per multi-target-ready
+#			port, used to expand --enable-multi-target=all.
+#
 # The following variables are used in each case-construct to build up the
 # outgoing variables:
 #
@@ -246,6 +250,7 @@ default_use_cxa_atexit=no
 default_gnu_indirect_function=no
 target_gtfiles=
 multi_target_ready=no
+multi_target_all_triples="x86_64-pc-linux-gnu aarch64-unknown-linux-gnu m68k-unknown-linux-gnu"
 need_64bit_isa=
 native_system_header_dir=/usr/include
 target_type_format_char='@'

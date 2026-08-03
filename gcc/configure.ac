@@ -1953,6 +1953,68 @@ if test x"$dwarf2" = xyes
 then tm_file="$tm_file tm-dwarf2.h"
 fi
 
+# Support --enable-multi-target: build additional targets into the
+# compiler, selectable at run time.  The argument is a comma-separated
+# list of secondary target triplets, or "all" (also the meaning of a
+# bare --enable-multi-target) for every port that declares
+# multi_target_ready=yes in config.gcc.
+AC_ARG_ENABLE(multi-target,
+[AS_HELP_STRING([--enable-multi-target=LIST],
+		[build the comma-separated LIST of secondary targets into
+		 the compiler; "all" selects every multi-target-ready port])],
+[], [enable_multi_target=no])
+
+# Probe config.gcc for a secondary target in a pristine subshell.
+# Per-target configure defaults such as --with-arch (passed down by the
+# top level for the primary target) must not leak into the probe, where
+# the other port would reject them and exit.  An unsupported target
+# exits the subshell before the echo and so yields an empty answer.
+mt_probe_ready () {
+  ( for mt_variable in `set | sed -n 's/^\(with_@<:@a-zA-Z0-9_@:>@*\)=.*/\1/p'`; do
+      unset $mt_variable
+    done
+    target=$1
+    . ${srcdir}/config.gcc >/dev/null 2>&1
+    echo $multi_target_ready )
+}
+
+multi_target_triples=
+if test x"$enable_multi_target" != xno; then
+  case $enable_multi_target in
+    yes | all)
+      mt_list=$multi_target_all_triples
+      ;;
+    *)
+      mt_list=`echo $enable_multi_target | sed -e 's/,/ /g'`
+      ;;
+  esac
+  for mt_triple in $mt_list; do
+    mt_canonical=`$SHELL ${srcdir}/../config.sub $mt_triple` ||
+      AC_MSG_ERROR([--enable-multi-target: invalid triplet $mt_triple])
+    mt_ready=`mt_probe_ready $mt_canonical`
+    if test x"$mt_ready" != xyes; then
+      AC_MSG_ERROR([--enable-multi-target: $mt_canonical is not multi-target ready])
+    fi
+    case " $multi_target_triples " in
+      *" $mt_canonical "*) ;;
+      *) multi_target_triples="$multi_target_triples $mt_canonical" ;;
+    esac
+  done
+  multi_target_triples=`echo $multi_target_triples`
+fi
+
+mt_count=0
+for mt_triple in $multi_target_triples; do
+  mt_count=`expr $mt_count + 1`
+done
+AC_DEFINE_UNQUOTED(ENABLE_MULTI_TARGET, $mt_count,
+[Define to the number of secondary targets built into the compiler,
+ 0 in a single-target build.])
+AC_SUBST(multi_target_triples)
+if test $mt_count -gt 0; then
+  AC_MSG_NOTICE([building secondary targets: $multi_target_triples])
+fi
+
 # Say what files are being used for the output code and MD file.
 echo "Using \`$srcdir/config/$out_file' for machine-specific logic."
 echo "Using \`$srcdir/config/$md_file' as machine description file."

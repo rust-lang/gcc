@@ -806,6 +806,7 @@ HAVE_AUTO_BUILD
 extra_opt_files
 extra_modes_file
 NATIVE_SYSTEM_HEADER_DIR
+multi_target_triples
 objext
 manext
 LIBICONV_DEP
@@ -1017,6 +1018,7 @@ with_libiconv_prefix
 with_libiconv_type
 enable_sjlj_exceptions
 enable_win32_utf8_manifest
+enable_multi_target
 with_gcc_major_version_only
 enable_nls
 with_libintl_prefix
@@ -1756,6 +1758,10 @@ Optional Features:
   --enable-win32-utf8-manifest
                           enable embedding a utf8 manifest on mingw hosts
                           (default)
+  --enable-multi-target=LIST
+                          build the comma-separated LIST of secondary targets
+                          into the compiler; "all" selects every
+                          multi-target-ready port
   --disable-nls           do not use Native Language Support
   --enable-secureplt      enable -msecure-plt by default for PowerPC
   --enable-mingw-wildcard Set whether to expand wildcard on command-line.
@@ -13021,6 +13027,73 @@ if test x"$dwarf2" = xyes
 then tm_file="$tm_file tm-dwarf2.h"
 fi
 
+# Support --enable-multi-target: build additional targets into the
+# compiler, selectable at run time.  The argument is a comma-separated
+# list of secondary target triplets, or "all" (also the meaning of a
+# bare --enable-multi-target) for every port that declares
+# multi_target_ready=yes in config.gcc.
+# Check whether --enable-multi-target was given.
+if test "${enable_multi_target+set}" = set; then :
+  enableval=$enable_multi_target;
+else
+  enable_multi_target=no
+fi
+
+
+# Probe config.gcc for a secondary target in a pristine subshell.
+# Per-target configure defaults such as --with-arch (passed down by the
+# top level for the primary target) must not leak into the probe, where
+# the other port would reject them and exit.  An unsupported target
+# exits the subshell before the echo and so yields an empty answer.
+mt_probe_ready () {
+  ( for mt_variable in `set | sed -n 's/^\(with_[a-zA-Z0-9_]*\)=.*/\1/p'`; do
+      unset $mt_variable
+    done
+    target=$1
+    . ${srcdir}/config.gcc >/dev/null 2>&1
+    echo $multi_target_ready )
+}
+
+multi_target_triples=
+if test x"$enable_multi_target" != xno; then
+  case $enable_multi_target in
+    yes | all)
+      mt_list=$multi_target_all_triples
+      ;;
+    *)
+      mt_list=`echo $enable_multi_target | sed -e 's/,/ /g'`
+      ;;
+  esac
+  for mt_triple in $mt_list; do
+    mt_canonical=`$SHELL ${srcdir}/../config.sub $mt_triple` ||
+      as_fn_error $? "--enable-multi-target: invalid triplet $mt_triple" "$LINENO" 5
+    mt_ready=`mt_probe_ready $mt_canonical`
+    if test x"$mt_ready" != xyes; then
+      as_fn_error $? "--enable-multi-target: $mt_canonical is not multi-target ready" "$LINENO" 5
+    fi
+    case " $multi_target_triples " in
+      *" $mt_canonical "*) ;;
+      *) multi_target_triples="$multi_target_triples $mt_canonical" ;;
+    esac
+  done
+  multi_target_triples=`echo $multi_target_triples`
+fi
+
+mt_count=0
+for mt_triple in $multi_target_triples; do
+  mt_count=`expr $mt_count + 1`
+done
+
+cat >>confdefs.h <<_ACEOF
+#define ENABLE_MULTI_TARGET $mt_count
+_ACEOF
+
+
+if test $mt_count -gt 0; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: building secondary targets: $multi_target_triples" >&5
+$as_echo "$as_me: building secondary targets: $multi_target_triples" >&6;}
+fi
+
 # Say what files are being used for the output code and MD file.
 echo "Using \`$srcdir/config/$out_file' for machine-specific logic."
 echo "Using \`$srcdir/config/$md_file' as machine description file."
@@ -21919,7 +21992,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 21922 "configure"
+#line 21995 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22025,7 +22098,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 22028 "configure"
+#line 22101 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
