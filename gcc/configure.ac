@@ -1978,6 +1978,38 @@ mt_probe_ready () {
     echo $multi_target_ready )
 }
 
+# The config.gcc output variables the multi-target build machinery
+# consumes, captured per enabled target below.
+mt_config_variables="cpu_type tm_file tm_p_file tm_d_file tm_defines \
+  md_file out_file extra_objs extra_options extra_modes extra_headers \
+  extra_gcc_objs c_target_objs cxx_target_objs d_target_objs \
+  target_gtfiles target_cpu_default tmake_file"
+
+# Capture a secondary target's config.gcc output, in the same pristine
+# subshell as mt_probe_ready, applying the same defaults the main
+# configuration applies to its own config.gcc run.  The caller
+# redirects the emitted assignments into the target's mt-config file.
+mt_capture_config () {
+  ( for mt_variable in `set | sed -n 's/^\(with_@<:@a-zA-Z0-9_@:>@*\)=.*/\1/p'`; do
+      unset $mt_variable
+    done
+    target=$1
+    . ${srcdir}/config.gcc >/dev/null 2>&1
+    if test x"$tm_file" = x; then tm_file=$cpu_type/$cpu_type.h; fi
+    if test x$md_file = x; then md_file=$cpu_type/$cpu_type.md; fi
+    if test x$out_file = x; then out_file=$cpu_type/$cpu_type.cc; fi
+    if test x"$tmake_file" = x; then tmake_file=$cpu_type/t-$cpu_type; fi
+    if test x$enable_initfini_array != xno; then
+      tm_file="${tm_file} initfini-array.h"
+    fi
+    if test x"$dwarf2" = xyes; then tm_file="$tm_file tm-dwarf2.h"; fi
+    echo "mt_triple='$1'"
+    for mt_variable in $mt_config_variables; do
+      eval mt_value=\$$mt_variable
+      echo "mt_${mt_variable}='${mt_value}'"
+    done )
+}
+
 multi_target_triples=
 if test x"$enable_multi_target" != xno; then
   case $enable_multi_target in
@@ -2014,6 +2046,44 @@ AC_SUBST(multi_target_triples)
 if test $mt_count -gt 0; then
   AC_MSG_NOTICE([building secondary targets: $multi_target_triples])
 fi
+
+# Capture each enabled target's config.gcc output for the multi-target
+# build machinery.  The primary target's variables are the ones the
+# main configuration just computed (a pristine re-run would lose its
+# legitimate with_* defaults; note that its extra_objs therefore also
+# carries the host objects); secondary targets are sourced in the
+# pristine probe subshell.  The tags name the per-target build
+# directories and generated symbols.
+multi_target_tags=
+if test $mt_count -gt 0; then
+  # The primary is captured exactly once, even when it is itself one of
+  # the enabled targets (the degenerate self-mode configuration).
+  mt_capture_list=$target
+  for mt_triple in $multi_target_triples; do
+    test x"$mt_triple" = x"$target" ||
+      mt_capture_list="$mt_capture_list $mt_triple"
+  done
+  for mt_triple in $mt_capture_list; do
+    mt_tag=`echo $mt_triple | sed -e 's/-.*$//' -e 's/@<:@^a-zA-Z0-9_@:>@/_/g'`
+    case " $multi_target_tags " in
+      *" $mt_tag "*)
+	AC_MSG_ERROR([--enable-multi-target: two targets share the tag $mt_tag]) ;;
+    esac
+    multi_target_tags="$multi_target_tags $mt_tag"
+    if test x"$mt_triple" = x"$target"; then
+      { echo "mt_triple='$target'"
+	for mt_variable in $mt_config_variables; do
+	  eval mt_value=\$$mt_variable
+	  echo "mt_${mt_variable}='${mt_value}'"
+	done; } > mt-config-$mt_tag.sh
+    else
+      mt_capture_config $mt_triple > mt-config-$mt_tag.sh
+    fi
+    AC_MSG_NOTICE([captured $mt_triple configuration as mt-config-$mt_tag.sh])
+  done
+  multi_target_tags=`echo $multi_target_tags`
+fi
+AC_SUBST(multi_target_tags)
 
 # Say what files are being used for the output code and MD file.
 echo "Using \`$srcdir/config/$out_file' for machine-specific logic."

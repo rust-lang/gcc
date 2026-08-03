@@ -635,6 +635,7 @@ OBJC_BOEHM_GC=@objc_boehm_gc@
 extra_modes_file=@extra_modes_file@
 extra_opt_files=@extra_opt_files@
 multi_target_triples=@multi_target_triples@
+multi_target_tags=@multi_target_tags@
 host_hook_obj=@out_host_hook_obj@
 
 # Multiarch support
