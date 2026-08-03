@@ -3042,6 +3042,52 @@ mt-check-tm:
 
 endif
 
+# Multi-target builds generate each enabled target's options.h from
+# the same two-block optionlist the main configuration uses: the
+# common and language block, identical for every target, then the
+# target's own options behind the BeginTargetOptions marker.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=mt-%/optionlist): mt-%/optionlist: \
+  $(lang_opt_files) $(patsubst %, %.urls, $(lang_opt_files)) Makefile \
+  $(srcdir)/opt-gather.awk mt-config-%.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	mt_opt_files=; \
+	for f in $$mt_extra_options; do \
+	  mt_opt_files="$$mt_opt_files $(srcdir)/config/$$f"; \
+	done; \
+	mt_opt_url_files=; \
+	for f in $$mt_opt_files; do \
+	  mt_opt_url_files="$$mt_opt_url_files $$f.urls"; \
+	done; \
+	LC_ALL=C ; export LC_ALL ; \
+	$(AWK) -f $(srcdir)/opt-gather.awk $(lang_opt_files) \
+	  $(patsubst %, %.urls, $(lang_opt_files)) \
+	  > tmp-mt-$*-optionlist; \
+	echo "BeginTargetOptions" >> tmp-mt-$*-optionlist; \
+	$(AWK) -f $(srcdir)/opt-gather.awk $$mt_opt_files \
+	  $$mt_opt_url_files < /dev/null >> tmp-mt-$*-optionlist
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-optionlist $@
+
+$(multi_target_tags:%=mt-%/options.h): mt-%/options.h: \
+  mt-%/optionlist $(srcdir)/opt-functions.awk $(srcdir)/opt-read.awk \
+  $(srcdir)/opth-gen.awk
+	$(AWK) -f $(srcdir)/opt-functions.awk -f $(srcdir)/opt-read.awk \
+	  -f $(srcdir)/opth-gen.awk \
+	  < mt-$*/optionlist > tmp-mt-$*-options.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-options.h $@
+
+.PHONY: mt-check-options
+mt-check-options: $(multi_target_tags:%=mt-%/options.h)
+
+else
+
+.PHONY: mt-check-options
+mt-check-options:
+	@echo "mt-check-options: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true
