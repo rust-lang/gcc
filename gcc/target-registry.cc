@@ -27,15 +27,21 @@ along with GCC; see the file COPYING3.  If not see
    global one; multi-target builds will register the descriptors of
    the secondary targets alongside it.  */
 
-static const struct target_backend primary_target_backend =
+const struct target_backend default_target_backend =
 {
   TARGET_BACKEND_PRIMARY_TRIPLE,
   &targetm
 };
 
+#if ENABLE_MULTI_TARGET
+/* The backend the compiler is currently addressing.  */
+const struct target_backend *this_target_backend
+  = &default_target_backend;
+#endif
+
 const struct target_backend *const target_backend_registry[] =
 {
-  &primary_target_backend
+  &default_target_backend
 };
 
 const unsigned int target_backend_count

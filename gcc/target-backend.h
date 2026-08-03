@@ -42,5 +42,18 @@ struct target_backend
   struct gcc_target *target_vector;
 };
 
+/* The descriptor of the configured target.  */
+extern const struct target_backend default_target_backend;
+
+#if ENABLE_MULTI_TARGET
+/* The backend the compiler is currently addressing; installed when
+   a target is activated.  */
+extern const struct target_backend *this_target_backend;
+#else
+/* A single-target build only ever addresses the configured
+   target.  */
+#define this_target_backend (&default_target_backend)
+#endif
+
 #endif /* GENERATOR_FILE */
 #endif
