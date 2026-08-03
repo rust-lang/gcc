@@ -3933,6 +3933,15 @@ enum global_rtl_index
 /* For register elimination to work properly these hard_frame_pointer_rtx,
    frame_pointer_rtx, and arg_pointer_rtx must be the same if they refer to
    the same register.  */
+#if ENABLE_MULTI_TARGET
+/* A multi-target host cannot compare the active target's register
+   numbers here, so every slot stays distinct, in target code too:
+   every translation unit must lay target_rtl out the same way.
+   When the active target's pointers share a register,
+   initialization stores one rtx through every alias.  */
+  GR_HARD_FRAME_POINTER,
+  GR_ARG_POINTER,
+#else
 #if FRAME_POINTER_REGNUM == ARG_POINTER_REGNUM
   GR_ARG_POINTER = GR_FRAME_POINTER,
 #endif
@@ -3946,6 +3955,7 @@ enum global_rtl_index
   GR_ARG_POINTER = GR_HARD_FRAME_POINTER,
 #else
   GR_ARG_POINTER,
+#endif
 #endif
 #endif
   GR_VIRTUAL_INCOMING_ARGS,

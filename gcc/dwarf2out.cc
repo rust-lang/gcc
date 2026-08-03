@@ -21123,8 +21123,14 @@ rtl_for_decl_location (tree decl)
 	       && (!REG_P (XEXP (rtl, 0))
 		   || REGNO (XEXP (rtl, 0)) == HARD_FRAME_POINTER_REGNUM
 		   || REGNO (XEXP (rtl, 0)) == STACK_POINTER_REGNUM
+#if ENABLE_MULTI_TARGET
+		   || (!HARD_FRAME_POINTER_IS_ARG_POINTER
+		       && (REGNO (XEXP (rtl, 0))
+			   == (unsigned) ARG_POINTER_REGNUM))
+#else
 #if !HARD_FRAME_POINTER_IS_ARG_POINTER
 		   || REGNO (XEXP (rtl, 0)) == ARG_POINTER_REGNUM
+#endif
 #endif
 		     )
 	       /* Big endian correction check.  */

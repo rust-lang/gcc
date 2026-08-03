@@ -163,6 +163,36 @@ scalar_max_stack_alignment (void)
   return MAX_STACK_ALIGNMENT;
 }
 
+static int
+scalar_stack_pointer_regnum (void)
+{
+  return STACK_POINTER_REGNUM;
+}
+
+static int
+scalar_frame_pointer_regnum (void)
+{
+  return FRAME_POINTER_REGNUM;
+}
+
+/* rtl.h supplies this default; this unit reads the target macros
+   without it.  */
+#ifndef HARD_FRAME_POINTER_REGNUM
+# define HARD_FRAME_POINTER_REGNUM FRAME_POINTER_REGNUM
+#endif
+
+static int
+scalar_hard_frame_pointer_regnum (void)
+{
+  return HARD_FRAME_POINTER_REGNUM;
+}
+
+static int
+scalar_arg_pointer_regnum (void)
+{
+  return ARG_POINTER_REGNUM;
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -179,6 +209,10 @@ static const struct mt_target_scalars target_scalars =
   scalar_biggest_alignment,
   scalar_preferred_stack_boundary,
   scalar_max_stack_alignment,
+  scalar_stack_pointer_regnum,
+  scalar_frame_pointer_regnum,
+  scalar_hard_frame_pointer_regnum,
+  scalar_arg_pointer_regnum,
 };
 
 /* extern: a const object would otherwise have internal linkage in

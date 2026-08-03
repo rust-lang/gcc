@@ -814,10 +814,17 @@ gen_rtx_REG (machine_mode mode, unsigned int regno)
 	  && regno == HARD_FRAME_POINTER_REGNUM
 	  && (!reload_completed || frame_pointer_needed))
 	return hard_frame_pointer_rtx;
+#if ENABLE_MULTI_TARGET
+      if (!HARD_FRAME_POINTER_IS_ARG_POINTER
+	  && FRAME_POINTER_REGNUM != ARG_POINTER_REGNUM
+	  && regno == ARG_POINTER_REGNUM)
+	return arg_pointer_rtx;
+#else
 #if !HARD_FRAME_POINTER_IS_ARG_POINTER
       if (FRAME_POINTER_REGNUM != ARG_POINTER_REGNUM
 	  && regno == ARG_POINTER_REGNUM)
 	return arg_pointer_rtx;
+#endif
 #endif
 #ifdef RETURN_ADDRESS_POINTER_REGNUM
       if (regno == RETURN_ADDRESS_POINTER_REGNUM)
@@ -6272,6 +6279,17 @@ init_emit_regs (void)
   frame_pointer_rtx = gen_raw_REG (Pmode, FRAME_POINTER_REGNUM);
   hard_frame_pointer_rtx = gen_raw_REG (Pmode, HARD_FRAME_POINTER_REGNUM);
   arg_pointer_rtx = gen_raw_REG (Pmode, ARG_POINTER_REGNUM);
+#if ENABLE_MULTI_TARGET
+  /* The multi-target global_rtl keeps every pointer slot distinct;
+     a target whose pointers share a register must still expose one
+     rtx through every alias, as the single-target enum does.  */
+  if (HARD_FRAME_POINTER_IS_FRAME_POINTER)
+    hard_frame_pointer_rtx = frame_pointer_rtx;
+  if (FRAME_POINTER_REGNUM == ARG_POINTER_REGNUM)
+    arg_pointer_rtx = frame_pointer_rtx;
+  else if (HARD_FRAME_POINTER_IS_ARG_POINTER)
+    arg_pointer_rtx = hard_frame_pointer_rtx;
+#endif
   virtual_incoming_args_rtx =
     gen_raw_REG (Pmode, VIRTUAL_INCOMING_ARGS_REGNUM);
   virtual_stack_vars_rtx =

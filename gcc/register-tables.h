@@ -49,6 +49,10 @@ struct mt_target_scalars
   int (*x_biggest_alignment) (void);
   int (*x_preferred_stack_boundary) (void);
   unsigned int (*x_max_stack_alignment) (void);
+  int (*x_stack_pointer_regnum) (void);
+  int (*x_frame_pointer_regnum) (void);
+  int (*x_hard_frame_pointer_regnum) (void);
+  int (*x_arg_pointer_regnum) (void);
 };
 
 struct mt_register_tables

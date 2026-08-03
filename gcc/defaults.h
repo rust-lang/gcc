@@ -474,6 +474,18 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #undef MAX_STACK_ALIGNMENT
 #define MAX_STACK_ALIGNMENT \
   (mt_active_target_scalars->x_max_stack_alignment ())
+#undef STACK_POINTER_REGNUM
+#define STACK_POINTER_REGNUM \
+  (mt_active_target_scalars->x_stack_pointer_regnum ())
+#undef FRAME_POINTER_REGNUM
+#define FRAME_POINTER_REGNUM \
+  (mt_active_target_scalars->x_frame_pointer_regnum ())
+#undef HARD_FRAME_POINTER_REGNUM
+#define HARD_FRAME_POINTER_REGNUM \
+  (mt_active_target_scalars->x_hard_frame_pointer_regnum ())
+#undef ARG_POINTER_REGNUM
+#define ARG_POINTER_REGNUM \
+  (mt_active_target_scalars->x_arg_pointer_regnum ())
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
