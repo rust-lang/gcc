@@ -305,6 +305,24 @@ if ![info exists GCC_UNDER_TEST] {
     set GCC_UNDER_TEST "[find_gcc]"
 }
 
+# Expose a multi-target compiler's secondary targets to the tests;
+# the multi-target testcases skip themselves when the list is empty.
+set mt_result [remote_exec host "$GCC_UNDER_TEST -print-multi-targets"]
+set env(JIT_MULTI_TARGET_SECONDARIES) ""
+if { [lindex $mt_result 0] == 0 } {
+    set mt_list {}
+    foreach mt_line [split [lindex $mt_result 1] "\n"] {
+	set mt_line [string trim $mt_line]
+	if { [regexp {^[A-Za-z0-9_]+(-[-A-Za-z0-9_.]+)+$} $mt_line] } {
+	    lappend mt_list $mt_line
+	}
+    }
+    if { [llength $mt_list] >= 2 } {
+	set env(JIT_MULTI_TARGET_SECONDARIES) \
+	    [join [lrange $mt_list 1 end] " "]
+    }
+}
+
 g++_init
 
 # Initialize dg.
@@ -331,14 +349,18 @@ verbose "tests: $tests"
 proc is_testcase_meant_to_generate_a_reproducer {name} {
     # We expect most testcases to generate a reproducer.
     # The exceptions are the tutorials (which don't have a "test-"
-    # prefix), and test-threads.c and test-benchmark.c (which are each
-    # unique).
+    # prefix), test-threads.c and test-benchmark.c (which are each
+    # unique), and the multi-target tests (which drive their own
+    # contexts).
     verbose "is_testcase_meant_to_generate_a_reproducer: $name"
     if { [string match "*test-*" $name] } {
 	if { [string match "*test-threads.c" $name] } {
 	    return 0
 	}
 	if { [string match "*test-benchmark.c" $name] } {
+	    return 0
+	}
+	if { [string match "*test-multi-target-*.c" $name] } {
 	    return 0
 	}
 	return 1
@@ -458,6 +480,11 @@ proc jit-dg-test { prog do_what extra_tool_flags } {
 
     # test-threads.c needs to be linked against pthreads
     if {[string match "*test-threads.c" $prog]} {
+	append extra_tool_flags " -lpthread"
+    }
+
+    # ... as does test-multi-target-threads.c
+    if {[string match "*test-multi-target-threads.c" $prog]} {
 	append extra_tool_flags " -lpthread"
     }
 
