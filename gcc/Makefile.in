@@ -1980,6 +1980,26 @@ BACKEND = $(EXTRA_BACKEND_OBJS) target-registry.o \
 	libcommon-target.a \
 	libcommon.a $(CPPLIB) $(LIBDECNUMBER)
 
+# In a multi-target build, every enabled target's generated blob and
+# descriptor link into the compiler binaries alongside the primary's
+# own objects.  This list is spelled out here, ahead of the language
+# make fragments whose link rules expand $(BACKEND) as they are read;
+# the per-family variables next to the mt- rules further down mirror
+# it for the mt-check gates.
+ifneq ($(multi_target_tags),)
+mt_backend_objects = $(foreach mt_tag,$(multi_target_tags), \
+	$(INSNEMIT_SPLITS_SEQ:%=mt-$(mt_tag)/insn-emit-%.o) \
+	$(INSNRECOG_SPLITS_SEQ:%=mt-$(mt_tag)/insn-recog-%.o) \
+	mt-$(mt_tag)/insn-extract.o mt-$(mt_tag)/insn-output.o \
+	mt-$(mt_tag)/insn-peep.o mt-$(mt_tag)/insn-enums.o \
+	mt-$(mt_tag)/insn-attrtab.o mt-$(mt_tag)/insn-dfatab.o \
+	mt-$(mt_tag)/insn-latencytab.o mt-$(mt_tag)/insn-automata.o \
+	mt-$(mt_tag)/insn-preds.o mt-$(mt_tag)/insn-opinit.o \
+	mt-$(mt_tag)/insn-modes-data.o \
+	mt-$(mt_tag)/target-backend-def.o)
+BACKEND += $(mt_backend_objects)
+endif
+
 # This is defined to "yes" if Tree checking is enabled, which roughly means
 # front-end checking.
 TREECHECKING = @TREECHECKING@
@@ -3888,6 +3908,16 @@ $(multi_target_tags:%=mt-%/target-backend-def.o): \
 
 mt_backend_descriptor_objects = \
 	$(multi_target_tags:%=mt-%/target-backend-def.o)
+
+# The registry enumerates the enabled targets' descriptors through
+# this generated list.
+mt-backend-list.h: Makefile
+	{ for mt_tag in $(multi_target_tags); do \
+	    echo "MT_BACKEND ($$mt_tag)"; \
+	  done; } > tmp-mt-backend-list.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-backend-list.h $@
+
+target-registry.o: mt-backend-list.h
 
 # The collision audit: with the rename macros in effect, the targets'
 # generated objects must export pairwise disjoint strong symbols.

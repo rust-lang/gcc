@@ -27,14 +27,29 @@ along with GCC; see the file COPYING3.  If not see
    once per enabled target.  */
 
 #if ENABLE_MULTI_TARGET
-/* The backend the compiler is currently addressing.  */
+/* The backend the compiler is currently addressing.  Activation will
+   install other entries; until then the compiler behaves exactly like
+   a single-target build of the primary.  */
 const struct target_backend *this_target_backend
   = &default_target_backend;
+
+/* The descriptors of the enabled targets, one per tag, compiled from
+   target-backend-def.cc inside each target's own header context.  */
+#define MT_BACKEND(tag) extern const struct target_backend mt_backend_##tag;
+#include "mt-backend-list.h"
+#undef MT_BACKEND
 #endif
 
 const struct target_backend *const target_backend_registry[] =
 {
-  &default_target_backend
+  &default_target_backend,
+#if ENABLE_MULTI_TARGET
+  /* The primary's own descriptor appears here too, under its tag; a
+     lookup by triple finds the entry above first.  */
+# define MT_BACKEND(tag) &mt_backend_##tag,
+# include "mt-backend-list.h"
+# undef MT_BACKEND
+#endif
 };
 
 const unsigned int target_backend_count
