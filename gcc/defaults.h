@@ -494,6 +494,9 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #define FUNCTION_MODE \
   (scalar_int_mode ((scalar_int_mode::from_int) \
 		    mt_active_target_scalars->x_function_mode ()))
+#undef REGNO_OK_FOR_INDEX_P
+#define REGNO_OK_FOR_INDEX_P(REGNO) \
+  (this_target_backend->x_regno_ok_for_index_p (REGNO))
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */

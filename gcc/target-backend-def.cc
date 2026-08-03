@@ -46,6 +46,8 @@ along with GCC; see the file COPYING3.  If not see
    tm.h itself arrives through backend.h.  */
 #include "tm_p.h"
 #include "tm-preds-ops.h"
+#include "regs.h"
+#include "addresses.h"
 
 /* A single-target build compiles this file once, as the descriptor of
    the configured target.  A multi-target build compiles it once per
@@ -413,6 +415,40 @@ static const struct mt_constraint_ops backend_constraint_ops =
   backend_eval_dependent_filter,
 };
 
+/* The addressing register class queries, captured through
+   addresses.h compiled in this target's own header context.  */
+
+static int
+backend_base_reg_class (machine_mode mode, addr_space_t as,
+			int outer_code, int index_code,
+			rtx_insn *insn)
+{
+  return (int) base_reg_class (mode, as, (enum rtx_code) outer_code,
+			       (enum rtx_code) index_code, insn);
+}
+
+static int
+backend_index_reg_class (rtx_insn *insn)
+{
+  return (int) index_reg_class (insn);
+}
+
+static bool
+backend_ok_for_base_p_1 (unsigned int regno, machine_mode mode,
+			 addr_space_t as, int outer_code,
+			 int index_code, rtx_insn *insn)
+{
+  return ok_for_base_p_1 (regno, mode, as,
+			  (enum rtx_code) outer_code,
+			  (enum rtx_code) index_code, insn);
+}
+
+static bool
+backend_regno_ok_for_index_p (unsigned int regno)
+{
+  return REGNO_OK_FOR_INDEX_P (regno);
+}
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -549,4 +585,9 @@ const struct target_backend MT_BACKEND_SYMBOL =
   backend_initial_elimination_offset,
 
   &backend_constraint_ops,
+
+  backend_base_reg_class,
+  backend_index_reg_class,
+  backend_ok_for_base_p_1,
+  backend_regno_ok_for_index_p,
 };

@@ -31,6 +31,14 @@ base_reg_class (machine_mode mode ATTRIBUTE_UNUSED,
 		enum rtx_code index_code ATTRIBUTE_UNUSED,
 		rtx_insn *insn ATTRIBUTE_UNUSED = NULL)
 {
+#if ENABLE_MULTI_TARGET && !defined (IN_TARGET_CODE) \
+    && !defined (MT_NATIVE_TARGET_SURFACE)
+  return ((enum reg_class)
+	  this_target_backend->x_base_reg_class (mode, as,
+						 (int) outer_code,
+						 (int) index_code,
+						 insn));
+#else
 #ifdef INSN_BASE_REG_CLASS
   return INSN_BASE_REG_CLASS (insn);
 #else
@@ -49,15 +57,22 @@ base_reg_class (machine_mode mode ATTRIBUTE_UNUSED,
 #endif
 #endif
 #endif
+#endif
 }
 
 inline enum reg_class
 index_reg_class (rtx_insn *insn ATTRIBUTE_UNUSED = NULL)
 {
+#if ENABLE_MULTI_TARGET && !defined (IN_TARGET_CODE) \
+    && !defined (MT_NATIVE_TARGET_SURFACE)
+  return ((enum reg_class)
+	  this_target_backend->x_index_reg_class (insn));
+#else
 #ifdef INSN_INDEX_REG_CLASS
   return INSN_INDEX_REG_CLASS (insn);
 #else
   return INDEX_REG_CLASS;
+#endif
 #endif
 }
 
@@ -74,6 +89,13 @@ ok_for_base_p_1 (unsigned regno ATTRIBUTE_UNUSED,
 		 enum rtx_code index_code ATTRIBUTE_UNUSED,
 		 rtx_insn* insn ATTRIBUTE_UNUSED = NULL)
 {
+#if ENABLE_MULTI_TARGET && !defined (IN_TARGET_CODE) \
+    && !defined (MT_NATIVE_TARGET_SURFACE)
+  return this_target_backend->x_ok_for_base_p_1 (regno, mode, as,
+						 (int) outer_code,
+						 (int) index_code,
+						 insn);
+#else
 #ifdef REGNO_OK_FOR_INSN_BASE_P
   return REGNO_OK_FOR_INSN_BASE_P (regno, insn);
 #else
@@ -89,6 +111,7 @@ ok_for_base_p_1 (unsigned regno ATTRIBUTE_UNUSED,
   return REGNO_MODE_OK_FOR_BASE_P (regno, MACRO_MODE (mode));
 #else
   return REGNO_OK_FOR_BASE_P (regno);
+#endif
 #endif
 #endif
 #endif

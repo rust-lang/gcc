@@ -249,6 +249,15 @@ struct target_backend
 
   /* The generated constraint entry points (tm-preds-ops.h).  */
   const struct mt_constraint_ops *constraint_ops;
+
+  /* The addressing register class queries (addresses.h), with
+     register classes and rtx codes carried as integers.  */
+  int (*x_base_reg_class) (machine_mode, addr_space_t, int, int,
+			   rtx_insn *);
+  int (*x_index_reg_class) (rtx_insn *);
+  bool (*x_ok_for_base_p_1) (unsigned int, machine_mode,
+			     addr_space_t, int, int, rtx_insn *);
+  bool (*x_regno_ok_for_index_p) (unsigned int);
 };
 
 /* The descriptor of the configured target.  */
