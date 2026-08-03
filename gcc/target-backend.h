@@ -26,6 +26,7 @@ along with GCC; see the file COPYING3.  If not see
 #ifndef GENERATOR_FILE
 
 struct gcc_target;
+struct insn_data_d;
 
 /* Everything the compiler needs in order to address one built-in
    target.  A single-target build has exactly one instance, describing
@@ -40,6 +41,9 @@ struct target_backend
 
   /* The backend's target hook vector.  */
   struct gcc_target *target_vector;
+
+  /* The target's generated instruction table (insn-output.cc).  */
+  const struct insn_data_d *insn_data;
 };
 
 /* The descriptor of the configured target.  */

@@ -20,8 +20,16 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "backend.h"
+#include "rtl.h"
+#include "insn-config.h"
+#include "recog.h"
 #include "target.h"
 #include "target-registry.h"
+
+/* recog.h routes core references to insn_data through the descriptor;
+   the registry itself must capture the underlying table.  */
+#undef insn_data
 
 /* The descriptor of the configured target.  Its hook vector is the
    global one; multi-target builds will register the descriptors of
@@ -30,7 +38,8 @@ along with GCC; see the file COPYING3.  If not see
 const struct target_backend default_target_backend =
 {
   TARGET_BACKEND_PRIMARY_TRIPLE,
-  &targetm
+  &targetm,
+  insn_data
 };
 
 #if ENABLE_MULTI_TARGET

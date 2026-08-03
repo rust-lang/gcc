@@ -20,6 +20,8 @@ along with GCC; see the file COPYING3.  If not see
 #ifndef GCC_RECOG_H
 #define GCC_RECOG_H
 
+#include "target-backend.h"
+
 /* For enum tree_code ERROR_MARK.  */
 #include "tree.h"
 
@@ -550,6 +552,13 @@ struct insn_data_d
 };
 
 extern const struct insn_data_d insn_data[];
+
+#if ENABLE_MULTI_TARGET && !defined IN_TARGET_CODE
+/* Core code addresses the active target's instruction table through
+   the backend descriptor; target code and the registry itself keep
+   the underlying array in scope.  */
+#define insn_data (this_target_backend->insn_data)
+#endif
 extern int peep2_current_count;
 
 #ifndef GENERATOR_FILE
