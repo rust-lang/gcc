@@ -800,6 +800,18 @@ backend_constant_address_p (rtx x)
   return CONSTANT_ADDRESS_P (x);
 }
 
+/* PIC_OFFSET_TABLE_REGNUM, the register that holds the PIC base.
+   A port may define it in terms of runtime state (m68k reads
+   flag_pic and the reload progress, x86 asks its pseudo-PIC
+   predicate), so the capture re-evaluates the macro on every
+   read.  */
+
+static unsigned int
+backend_pic_offset_table_regnum (void)
+{
+  return PIC_OFFSET_TABLE_REGNUM;
+}
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -1029,4 +1041,5 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #endif
 
   backend_constant_address_p,
+  backend_pic_offset_table_regnum,
 };

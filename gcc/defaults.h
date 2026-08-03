@@ -625,6 +625,10 @@ extern bool (*mt_active_constant_address_p) (rtx);
 #undef NO_FUNCTION_CSE
 #define NO_FUNCTION_CSE \
   (mt_active_target_scalars->x_no_function_cse () != 0)
+extern unsigned int (*mt_active_pic_offset_table_regnum) (void);
+#undef PIC_OFFSET_TABLE_REGNUM
+#define PIC_OFFSET_TABLE_REGNUM \
+  (mt_active_pic_offset_table_regnum ())
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */

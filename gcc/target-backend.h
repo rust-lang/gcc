@@ -314,6 +314,9 @@ struct target_backend
 
   /* CONSTANT_ADDRESS_P.  */
   bool (*x_constant_address_p) (rtx);
+
+  /* PIC_OFFSET_TABLE_REGNUM.  */
+  unsigned int (*x_pic_offset_table_regnum) (void);
 };
 
 /* The descriptor of the configured target.  */

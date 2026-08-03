@@ -98,6 +98,11 @@ static const int mt_constant_address_boot
   = (mt_active_constant_address_p
      = default_target_backend.x_constant_address_p, 0);
 
+unsigned int (*mt_active_pic_offset_table_regnum) (void);
+static const int mt_pic_offset_table_boot
+  = (mt_active_pic_offset_table_regnum
+     = default_target_backend.x_pic_offset_table_regnum, 0);
+
 /* The descriptors of the enabled targets, one per tag, compiled from
    target-backend-def.cc inside each target's own header context.  */
 #define MT_BACKEND(tag) extern const struct target_backend mt_backend_##tag;
@@ -229,6 +234,8 @@ install_target_backend (const struct target_backend *backend)
   mt_active_mode_switching_ops = backend->mode_switching_ops;
   mt_active_epilogue_uses = backend->x_epilogue_uses;
   mt_active_constant_address_p = backend->x_constant_address_p;
+  mt_active_pic_offset_table_regnum
+    = backend->x_pic_offset_table_regnum;
 
   /* Register usage was initialized from the primary during
      general_init; redo it from the tables just installed.  The
