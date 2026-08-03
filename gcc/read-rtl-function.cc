@@ -1784,12 +1784,13 @@ test_loading_dump_fragment_1 ()
   /* Verify that registers were loaded correctly.  */
   rtx insn_1_dest = SET_DEST (PATTERN (insn_1));
   ASSERT_EQ (REG, GET_CODE (insn_1_dest));
-  ASSERT_EQ ((LAST_VIRTUAL_REGISTER + 1) + 2, REGNO (insn_1_dest));
+  ASSERT_EQ ((unsigned) ((LAST_VIRTUAL_REGISTER + 1) + 2),
+	     REGNO (insn_1_dest));
   rtx insn_1_src = SET_SRC (PATTERN (insn_1));
   ASSERT_EQ (LSHIFTRT, GET_CODE (insn_1_src));
   rtx reg = XEXP (insn_1_src, 0);
   ASSERT_EQ (REG, GET_CODE (reg));
-  ASSERT_EQ (LAST_VIRTUAL_REGISTER + 1, REGNO (reg));
+  ASSERT_EQ ((unsigned) (LAST_VIRTUAL_REGISTER + 1), REGNO (reg));
 
   /* Verify that get_insn_by_uid works.  */
   ASSERT_EQ (insn_1, get_insn_by_uid (1));

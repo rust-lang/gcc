@@ -550,7 +550,7 @@ expand_subword_shift (scalar_int_mode op1_mode, optab binoptab,
 				       unsignedp, methods);
       if (carries == const0_rtx)
 	tmp = const0_rtx;
-      else if (shift_mask == BITS_PER_WORD - 1)
+      else if (shift_mask == (unsigned HOST_WIDE_INT) (BITS_PER_WORD - 1))
 	tmp = expand_unop (op1_mode, one_cmpl_optab, op1, 0, true);
       else
 	{
@@ -724,7 +724,8 @@ expand_doubleword_shift (scalar_int_mode op1_mode, optab binoptab,
      Set SUPERWORD_OP1 to the shift count that should be used to shift
      OUTOF_INPUT into INTO_TARGET when the condition is false.  */
   tmp = immed_wide_int_const (wi::shwi (BITS_PER_WORD, op1_mode), op1_mode);
-  if (!CONSTANT_P (op1) && shift_mask == BITS_PER_WORD - 1)
+  if (!CONSTANT_P (op1)
+      && shift_mask == (unsigned HOST_WIDE_INT) (BITS_PER_WORD - 1))
     {
       /* Set CMP1 to OP1 & BITS_PER_WORD.  The result is zero iff OP1
 	 is a subword shift count.  */
@@ -1838,8 +1839,9 @@ expand_binop (machine_mode mode, optab binoptab, rtx op0, rtx op1,
       /* Make sure that this is a combination that expand_doubleword_shift
 	 can handle.  See the comments there for details.  */
       if (double_shift_mask == 0
-	  || (shift_mask == BITS_PER_WORD - 1
-	      && double_shift_mask == BITS_PER_WORD * 2 - 1))
+	  || (shift_mask == (unsigned HOST_WIDE_INT) (BITS_PER_WORD - 1)
+	      && (double_shift_mask
+		  == (unsigned HOST_WIDE_INT) (BITS_PER_WORD * 2 - 1))))
 	{
 	  rtx_insn *insns;
 	  rtx into_target, outof_target;

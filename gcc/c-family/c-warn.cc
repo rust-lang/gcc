@@ -3944,7 +3944,7 @@ check_for_xor_used_as_pow (location_t lhs_loc, tree lhs_val,
   if (lhs_uhwi == 2)
     {
       /* Would exponentiation fit in int, in long long, or not at all?  */
-      if (rhs_uhwi < (INT_TYPE_SIZE - 1))
+      if (rhs_uhwi < (unsigned HOST_WIDE_INT) (INT_TYPE_SIZE - 1))
 	{
 	  unsigned HOST_WIDE_INT suggested_result = 1 << rhs_uhwi;
 	  loc.add_fixit_replace (lhs_loc, "1");
@@ -3955,7 +3955,7 @@ check_for_xor_used_as_pow (location_t lhs_loc, tree lhs_val,
 			       lhs_uhwi, rhs_uhwi, xor_result,
 			       rhs_uhwi, suggested_result);
 	}
-      else if (rhs_uhwi < (LONG_LONG_TYPE_SIZE - 1))
+      else if (rhs_uhwi < (unsigned HOST_WIDE_INT) (LONG_LONG_TYPE_SIZE - 1))
 	{
 	  loc.add_fixit_replace (lhs_loc, "1LL");
 	  loc.add_fixit_replace (operator_loc, "<<");

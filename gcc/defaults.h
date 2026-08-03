@@ -674,7 +674,17 @@ extern bool (*mt_active_constant_address_p) (rtx);
    Dwarf 2 addresses need to be larger than the architecture's
    pointers.  */
 #ifndef DWARF2_ADDR_SIZE
+#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
+  && !defined (IN_TARGET_CODE) \
+  && !defined (MT_NATIVE_REGISTER_CONSTANTS) \
+  && !defined (MT_NATIVE_TARGET_SURFACE)
+/* The division hides the flipped operand's range from
+   -Wsign-compare; mask the result as the scalars are.  */
+#define DWARF2_ADDR_SIZE \
+  ((int) ((((POINTER_SIZE + BITS_PER_UNIT - 1) / BITS_PER_UNIT)) & 0xffff))
+#else
 #define DWARF2_ADDR_SIZE ((POINTER_SIZE + BITS_PER_UNIT - 1) / BITS_PER_UNIT)
+#endif
 #endif
 
 /* The size in bytes of a DWARF field indicating an offset or length
@@ -959,7 +969,17 @@ extern bool (*mt_active_constant_address_p) (rtx);
 #define POINTER_SIZE BITS_PER_WORD
 #endif
 #ifndef POINTER_SIZE_UNITS
+#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
+  && !defined (IN_TARGET_CODE) \
+  && !defined (MT_NATIVE_REGISTER_CONSTANTS) \
+  && !defined (MT_NATIVE_TARGET_SURFACE)
+/* The division hides the flipped operand's range from
+   -Wsign-compare; mask the result as the scalars are.  */
+#define POINTER_SIZE_UNITS \
+  ((int) ((((POINTER_SIZE + BITS_PER_UNIT - 1) / BITS_PER_UNIT)) & 0xffff))
+#else
 #define POINTER_SIZE_UNITS ((POINTER_SIZE + BITS_PER_UNIT - 1) / BITS_PER_UNIT)
+#endif
 #endif
 
 

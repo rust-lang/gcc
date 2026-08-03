@@ -4167,6 +4167,28 @@ PUT_MODE (rtx x, machine_mode mode)
 
 #define LAST_VIRTUAL_REGISTER		((FIRST_VIRTUAL_REGISTER) + 5)
 
+#if ENABLE_MULTI_TARGET
+/* The virtual register numbers build on the flipped register count
+   by addition, which hides its non-negative range from
+   -Wsign-compare; mask each derived number as the scalars are.  */
+#undef VIRTUAL_STACK_VARS_REGNUM
+#define VIRTUAL_STACK_VARS_REGNUM \
+  ((int) (((FIRST_VIRTUAL_REGISTER) + 1) & 0xffff))
+#undef VIRTUAL_STACK_DYNAMIC_REGNUM
+#define VIRTUAL_STACK_DYNAMIC_REGNUM \
+  ((int) (((FIRST_VIRTUAL_REGISTER) + 2) & 0xffff))
+#undef VIRTUAL_OUTGOING_ARGS_REGNUM
+#define VIRTUAL_OUTGOING_ARGS_REGNUM \
+  ((int) (((FIRST_VIRTUAL_REGISTER) + 3) & 0xffff))
+#undef VIRTUAL_CFA_REGNUM
+#define VIRTUAL_CFA_REGNUM ((int) (((FIRST_VIRTUAL_REGISTER) + 4) & 0xffff))
+#undef LAST_VIRTUAL_REGISTER
+#define LAST_VIRTUAL_REGISTER ((int) (((FIRST_VIRTUAL_REGISTER) + 5) & 0xffff))
+#undef VIRTUAL_PREFERRED_STACK_BOUNDARY_REGNUM
+#define VIRTUAL_PREFERRED_STACK_BOUNDARY_REGNUM \
+  ((int) (((FIRST_VIRTUAL_REGISTER) + 5) & 0xffff))
+#endif
+
 /* Nonzero if REGNUM is a pointer into the stack frame.  */
 #define REGNO_PTR_FRAME_P(REGNUM)		\
   ((REGNUM) == STACK_POINTER_REGNUM		\
