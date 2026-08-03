@@ -57,6 +57,9 @@ static constexpr std::initializer_list<int> table_alloc_order
   = REG_ALLOC_ORDER;
 #endif
 
+static const struct mt_eliminable_pair table_eliminable_regs[]
+  = ELIMINABLE_REGS;
+
 static const char *const table_reg_names[] = REGISTER_NAMES;
 
 static const char *const table_class_names[] = REG_CLASS_NAMES;
@@ -234,5 +237,7 @@ extern const struct mt_register_tables target_register_tables =
   table_reg_names,
   table_class_names,
   target_regno_reg_class,
-  &target_scalars
+  &target_scalars,
+  table_eliminable_regs,
+  (int) ARRAY_SIZE (table_eliminable_regs),
 };

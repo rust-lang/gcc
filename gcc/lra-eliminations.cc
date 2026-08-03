@@ -68,6 +68,8 @@ along with GCC; see the file COPYING3.	If not see
 #include "output.h"
 #include "rtl-error.h"
 #include "lra-int.h"
+#include "target-backend.h"
+#include "register-tables.h"
 
 /* This structure is used to record information about hard register
    eliminations.  */
@@ -102,6 +104,15 @@ public:
    preferred should be specified first.	 */
 static class lra_elim_table *reg_eliminate = 0;
 
+#if ENABLE_MULTI_TARGET
+/* The active target's elimination pairs; a static image of
+   ELIMINABLE_REGS would initialize before activation and bake the
+   primary's register numbers in.  */
+#define reg_eliminate_1 \
+  (this_target_backend->register_tables->x_eliminable_regs)
+#define NUM_ELIMINABLE_REGS \
+  ((size_t) this_target_backend->register_tables->x_eliminable_regs_count)
+#else
 /* This is an intermediate structure to initialize the table.  It has
    exactly the members provided by ELIMINABLE_REGS.  */
 static const struct elim_table_1
@@ -113,6 +124,7 @@ static const struct elim_table_1
   ELIMINABLE_REGS;
 
 #define NUM_ELIMINABLE_REGS ARRAY_SIZE (reg_eliminate_1)
+#endif
 
 /* Print info about elimination table to file F.  */
 static void
@@ -1303,7 +1315,11 @@ init_elim_table (void)
 {
   class lra_elim_table *ep;
   bool value_p;
+#if ENABLE_MULTI_TARGET
+  const struct mt_eliminable_pair *ep1;
+#else
   const struct elim_table_1 *ep1;
+#endif
 
   if (!reg_eliminate)
     reg_eliminate = XCNEWVEC (class lra_elim_table, NUM_ELIMINABLE_REGS);

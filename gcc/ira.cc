@@ -376,6 +376,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "insn-config.h"
 #include "regs.h"
 #include "target-backend.h"
+#include "register-tables.h"
 #include "ira.h"
 #include "ira-int.h"
 #include "diagnostic-core.h"
@@ -2468,7 +2469,17 @@ void
 ira_setup_eliminable_regset (void)
 {
   int i;
+#if ENABLE_MULTI_TARGET
+  /* A static image of ELIMINABLE_REGS would capture whichever
+     target was active when this function first ran.  */
+  const struct mt_eliminable_pair *eliminables
+    = this_target_backend->register_tables->x_eliminable_regs;
+  const int num_eliminables
+    = this_target_backend->register_tables->x_eliminable_regs_count;
+#else
   static const struct {const int from, to; } eliminables[] = ELIMINABLE_REGS;
+  const int num_eliminables = (int) ARRAY_SIZE (eliminables);
+#endif
   int fp_reg_count = hard_regno_nregs (HARD_FRAME_POINTER_REGNUM, Pmode);
 
   /* Setup is_leaf as frame_pointer_required may use it.  This function
@@ -2508,7 +2519,7 @@ ira_setup_eliminable_regset (void)
 
   /* Build the regset of all eliminable registers and show we can't
      use those that we already know won't be eliminated.  */
-  for (i = 0; i < (int) ARRAY_SIZE (eliminables); i++)
+  for (i = 0; i < num_eliminables; i++)
     {
       bool cannot_elim
 	= (! targetm.can_eliminate (eliminables[i].from, eliminables[i].to)

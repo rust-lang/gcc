@@ -55,6 +55,13 @@ struct mt_target_scalars
   int (*x_arg_pointer_regnum) (void);
 };
 
+/* One register elimination pair, as ELIMINABLE_REGS lists them.  */
+struct mt_eliminable_pair
+{
+  int from;
+  int to;
+};
+
 struct mt_register_tables
 {
   /* The target's own FIRST_PSEUDO_REGISTER and N_REG_CLASSES.  */
@@ -86,6 +93,10 @@ struct mt_register_tables
 
   /* The runtime-valued macros above.  */
   const struct mt_target_scalars *x_scalars;
+
+  /* ELIMINABLE_REGS: the target's register elimination pairs.  */
+  const struct mt_eliminable_pair *x_eliminable_regs;
+  int x_eliminable_regs_count;
 };
 
 #endif /* GCC_REGISTER_TABLES_H */
