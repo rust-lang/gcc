@@ -471,6 +471,9 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
   (mt_active_target_scalars->x_preferred_stack_boundary ())
 #undef BIGGEST_ALIGNMENT
 #define BIGGEST_ALIGNMENT (mt_active_target_scalars->x_biggest_alignment ())
+#undef MAX_STACK_ALIGNMENT
+#define MAX_STACK_ALIGNMENT \
+  (mt_active_target_scalars->x_max_stack_alignment ())
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */

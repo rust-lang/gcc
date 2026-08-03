@@ -157,6 +157,12 @@ scalar_preferred_stack_boundary (void)
   return PREFERRED_STACK_BOUNDARY;
 }
 
+static unsigned int
+scalar_max_stack_alignment (void)
+{
+  return MAX_STACK_ALIGNMENT;
+}
+
 static const struct mt_target_scalars target_scalars =
 {
   scalar_char_type_size,
@@ -172,6 +178,7 @@ static const struct mt_target_scalars target_scalars =
   scalar_stack_boundary,
   scalar_biggest_alignment,
   scalar_preferred_stack_boundary,
+  scalar_max_stack_alignment,
 };
 
 /* extern: a const object would otherwise have internal linkage in
