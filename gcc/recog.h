@@ -607,7 +607,7 @@ extern const struct insn_data_d insn_data[];
 /* Core code addresses the active target's instruction table through
    the backend descriptor; target code and the registry itself keep
    the underlying array in scope.  */
-#define insn_data (this_target_backend->insn_data)
+#define insn_data (this_target_backend->x_insn_data)
 #endif
 extern int peep2_current_count;
 

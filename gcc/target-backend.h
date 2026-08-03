@@ -148,7 +148,7 @@ struct target_backend
   struct gcc_target *target_vector;
 
   /* The target's generated instruction table (insn-output.cc).  */
-  const struct insn_data_d *insn_data;
+  const struct insn_data_d *x_insn_data;
 
   /* Generated recognizer entry points (insn-recog.cc, insn-extract.cc).  */
   int (*recog) (rtx, rtx_insn *, int *);

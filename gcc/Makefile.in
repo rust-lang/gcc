@@ -3083,7 +3083,7 @@ $(multi_target_tags:%=mt-%/cs-tm.h): mt-%/cs-tm.h: mt-config-%.sh \
 	mt_mkconfig=`cd $(srcdir); ${PWD_COMMAND}`/mkconfig.sh; \
 	mt_rename_defines=; \
 	if test "$*" != "$(firstword $(multi_target_tags))"; then \
-	  for mt_name in targetm targetm_common \
+	  for mt_name in targetm targetm_common insn_data \
 	    ms_va_list_type_node linux_libc_has_function \
 	    linux_libm_function_max_error \
 	    linux_fortify_source_default_level; do \
