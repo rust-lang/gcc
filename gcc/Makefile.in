@@ -3341,6 +3341,154 @@ mt-check-conditions:
 
 endif
 
+# Multi-target builds run the simple insn header generators once per
+# enabled target, over the target's md and its insn-conditions.md.
+# Like genpreds, each generator is built in the target's context, so
+# its output is exactly what the target's cross build generates.
+ifneq ($(multi_target_tags),)
+
+mt_insn_headers = \
+	$(multi_target_tags:%=mt-%/insn-attr.h) \
+	$(multi_target_tags:%=mt-%/insn-attr-common.h) \
+	$(multi_target_tags:%=mt-%/insn-codes.h) \
+	$(multi_target_tags:%=mt-%/insn-config.h) \
+	$(multi_target_tags:%=mt-%/insn-flags.h) \
+	$(multi_target_tags:%=mt-%/insn-target-def.h)
+
+$(multi_target_tags:%=build/mt-%/genattr.o): build/mt-%/genattr.o: \
+  $(srcdir)/genattr.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genattr-common.o): \
+  build/mt-%/genattr-common.o: $(srcdir)/genattr-common.cc \
+  $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/gencodes.o): build/mt-%/gencodes.o: \
+  $(srcdir)/gencodes.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genconfig.o): build/mt-%/genconfig.o: \
+  $(srcdir)/genconfig.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genflags.o): build/mt-%/genflags.o: \
+  $(srcdir)/genflags.cc $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/gentarget-def.o): \
+  build/mt-%/gentarget-def.o: $(srcdir)/gentarget-def.cc \
+  $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genattr$(build_exeext)): \
+  build/mt-%/genattr$(build_exeext): build/mt-%/genattr.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=build/mt-%/genattr-common$(build_exeext)): \
+  build/mt-%/genattr-common$(build_exeext): \
+  build/mt-%/genattr-common.o $(mt_target_rtl_objects) \
+  $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=build/mt-%/gencodes$(build_exeext)): \
+  build/mt-%/gencodes$(build_exeext): build/mt-%/gencodes.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=build/mt-%/genconfig$(build_exeext)): \
+  build/mt-%/genconfig$(build_exeext): build/mt-%/genconfig.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=build/mt-%/genflags$(build_exeext)): \
+  build/mt-%/genflags$(build_exeext): build/mt-%/genflags.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=build/mt-%/gentarget-def$(build_exeext)): \
+  build/mt-%/gentarget-def$(build_exeext): build/mt-%/gentarget-def.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=mt-%/insn-attr.h): mt-%/insn-attr.h: \
+  build/mt-%/genattr$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genattr$(build_exeext) $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
+	  > tmp-mt-$*-attr.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-attr.h $@
+
+$(multi_target_tags:%=mt-%/insn-attr-common.h): \
+  mt-%/insn-attr-common.h: build/mt-%/genattr-common$(build_exeext) \
+  mt-%/insn-conditions.md mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genattr-common$(build_exeext) \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  mt-$*/insn-conditions.md > tmp-mt-$*-attr-common.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-attr-common.h $@
+
+$(multi_target_tags:%=mt-%/insn-codes.h): mt-%/insn-codes.h: \
+  build/mt-%/gencodes$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/gencodes$(build_exeext) $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
+	  > tmp-mt-$*-codes.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-codes.h $@
+
+$(multi_target_tags:%=mt-%/insn-config.h): mt-%/insn-config.h: \
+  build/mt-%/genconfig$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genconfig$(build_exeext) \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  mt-$*/insn-conditions.md > tmp-mt-$*-config.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-config.h $@
+
+$(multi_target_tags:%=mt-%/insn-flags.h): mt-%/insn-flags.h: \
+  build/mt-%/genflags$(build_exeext) mt-%/insn-conditions.md \
+  mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genflags$(build_exeext) $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
+	  > tmp-mt-$*-flags.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-flags.h $@
+
+$(multi_target_tags:%=mt-%/insn-target-def.h): \
+  mt-%/insn-target-def.h: build/mt-%/gentarget-def$(build_exeext) \
+  mt-%/insn-conditions.md mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/gentarget-def$(build_exeext) \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  mt-$*/insn-conditions.md > tmp-mt-$*-target-def.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-target-def.h $@
+
+.PHONY: mt-check-insn-headers
+mt-check-insn-headers: $(mt_insn_headers)
+
+else
+
+.PHONY: mt-check-insn-headers
+mt-check-insn-headers:
+	@echo "mt-check-insn-headers: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true
