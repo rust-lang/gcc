@@ -47,6 +47,7 @@ struct mt_target_scalars
   int (*x_function_mode) (void);
   int (*x_stack_boundary) (void);
   int (*x_biggest_alignment) (void);
+  int (*x_preferred_stack_boundary) (void);
 };
 
 struct mt_register_tables

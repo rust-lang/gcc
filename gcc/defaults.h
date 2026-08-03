@@ -464,6 +464,13 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #define BITS_PER_WORD (mt_active_target_scalars->x_bits_per_word ())
 #undef POINTER_SIZE
 #define POINTER_SIZE (mt_active_target_scalars->x_pointer_size ())
+#undef STACK_BOUNDARY
+#define STACK_BOUNDARY (mt_active_target_scalars->x_stack_boundary ())
+#undef PREFERRED_STACK_BOUNDARY
+#define PREFERRED_STACK_BOUNDARY \
+  (mt_active_target_scalars->x_preferred_stack_boundary ())
+#undef BIGGEST_ALIGNMENT
+#define BIGGEST_ALIGNMENT (mt_active_target_scalars->x_biggest_alignment ())
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
