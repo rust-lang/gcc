@@ -294,6 +294,13 @@ struct target_backend
      when the port declares no size.  */
   void (*x_asm_declare_function_name) (FILE *, const char *, tree);
   void (*x_asm_declare_function_size) (FILE *, const char *, tree);
+
+  /* The PRINT_OPERAND macro family of a port that has not moved to
+     the print hooks; null when the port defines the hooks
+     instead.  */
+  void (*x_print_operand) (FILE *, rtx, int);
+  void (*x_print_operand_address) (FILE *, rtx);
+  bool (*x_print_operand_punct_valid_p) (unsigned char);
 };
 
 /* The descriptor of the configured target.  */

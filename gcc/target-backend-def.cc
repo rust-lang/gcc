@@ -693,6 +693,33 @@ backend_asm_declare_function_size (FILE *file,
 }
 #endif
 
+/* The PRINT_OPERAND macro family of a port that has not moved to
+   the print hooks.  */
+
+#ifdef PRINT_OPERAND
+static void
+backend_print_operand (FILE *file, rtx x, int code)
+{
+  PRINT_OPERAND (file, x, code);
+}
+#endif
+
+#ifdef PRINT_OPERAND_ADDRESS
+static void
+backend_print_operand_address (FILE *file, rtx x)
+{
+  PRINT_OPERAND_ADDRESS (file, x);
+}
+#endif
+
+#ifdef PRINT_OPERAND_PUNCT_VALID_P
+static bool
+backend_print_operand_punct_valid_p (unsigned char code)
+{
+  return PRINT_OPERAND_PUNCT_VALID_P (code);
+}
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -876,6 +903,22 @@ const struct target_backend MT_BACKEND_SYMBOL =
   backend_asm_declare_function_name,
 #ifdef ASM_DECLARE_FUNCTION_SIZE
   backend_asm_declare_function_size,
+#else
+  NULL,
+#endif
+
+#ifdef PRINT_OPERAND
+  backend_print_operand,
+#else
+  NULL,
+#endif
+#ifdef PRINT_OPERAND_ADDRESS
+  backend_print_operand_address,
+#else
+  NULL,
+#endif
+#ifdef PRINT_OPERAND_PUNCT_VALID_P
+  backend_print_operand_punct_valid_p,
 #else
   NULL,
 #endif

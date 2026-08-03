@@ -393,10 +393,19 @@ void
 default_print_operand (FILE *stream ATTRIBUTE_UNUSED, rtx x ATTRIBUTE_UNUSED,
 		       int code ATTRIBUTE_UNUSED)
 {
-#ifdef PRINT_OPERAND
-  PRINT_OPERAND (stream, x, code);
-#else
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_print_operand != NULL)
+    {
+      this_target_backend->x_print_operand (stream, x, code);
+      return;
+    }
   gcc_unreachable ();
+#else
+# ifdef PRINT_OPERAND
+  PRINT_OPERAND (stream, x, code);
+# else
+  gcc_unreachable ();
+# endif
 #endif
 }
 
@@ -408,10 +417,19 @@ default_print_operand_address (FILE *stream ATTRIBUTE_UNUSED,
 			       machine_mode /*mode*/,
 			       rtx x ATTRIBUTE_UNUSED)
 {
-#ifdef PRINT_OPERAND_ADDRESS
-  PRINT_OPERAND_ADDRESS (stream, x);
-#else
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_print_operand_address != NULL)
+    {
+      this_target_backend->x_print_operand_address (stream, x);
+      return;
+    }
   gcc_unreachable ();
+#else
+# ifdef PRINT_OPERAND_ADDRESS
+  PRINT_OPERAND_ADDRESS (stream, x);
+# else
+  gcc_unreachable ();
+# endif
 #endif
 }
 
@@ -421,10 +439,16 @@ default_print_operand_address (FILE *stream ATTRIBUTE_UNUSED,
 bool
 default_print_operand_punct_valid_p (unsigned char code ATTRIBUTE_UNUSED)
 {
-#ifdef PRINT_OPERAND_PUNCT_VALID_P
-  return PRINT_OPERAND_PUNCT_VALID_P (code);
-#else
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_print_operand_punct_valid_p != NULL)
+    return this_target_backend->x_print_operand_punct_valid_p (code);
   return false;
+#else
+# ifdef PRINT_OPERAND_PUNCT_VALID_P
+  return PRINT_OPERAND_PUNCT_VALID_P (code);
+# else
+  return false;
+# endif
 #endif
 }
 
