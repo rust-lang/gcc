@@ -3266,6 +3266,81 @@ mt-check-md-headers:
 
 endif
 
+# Multi-target builds run genconditions and compile gencondmd once
+# per enabled target.  gencondmd is target code — it evaluates every
+# md condition against the target's own headers — so both programs
+# are built in the target's context, and the resulting
+# mt-<tag>/insn-conditions.md carries the target's own pattern
+# elision, exactly as in the target's cross build.
+ifneq ($(multi_target_tags),)
+
+$(multi_target_tags:%=build/mt-%/genconditions.o): \
+  build/mt-%/genconditions.o: $(srcdir)/genconditions.cc \
+  $(mt_context_prerequisites)
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/genconditions$(build_exeext)): \
+  build/mt-%/genconditions$(build_exeext): build/mt-%/genconditions.o \
+  $(mt_target_rtl_objects) $(mt_shared_rtl_objects) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=mt-%/gencondmd.cc): mt-%/gencondmd.cc: \
+  build/mt-%/genconditions$(build_exeext) mt-config-%.sh
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genconditions$(build_exeext) \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  > tmp-mt-$*-condmd.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-condmd.cc $@
+
+# gencondmd.cc pulls in tm-preds.h, whose inline predicate wrappers
+# must be discardable, as in the single-target rule.
+$(multi_target_tags:%=build/mt-%/gencondmd.o): BUILD_CFLAGS := \
+  $(filter-out -fkeep-inline-functions, $(BUILD_CFLAGS))
+$(multi_target_tags:%=build/mt-%/gencondmd.o): build/mt-%/gencondmd.o: \
+  mt-%/gencondmd.cc mt-%/tm_p.h mt-%/tm-preds.h mt-%/tm-constrs.h \
+  $(mt_context_prerequisites) $(BCONFIG_H) $(SYSTEM_H) \
+  $(filter-out insn-flags.h, $(CORETYPES_H) $(RTL_H) $(FUNCTION_H) \
+  $(REGS_H) $(RECOG_H) output.h $(FLAGS_H) $(RESOURCE_H) toplev.h \
+  $(DIAGNOSTIC_CORE_H) reload.h $(EXCEPT_H))
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) -I mt-$* \
+	  $(BUILD_CPPFLAGS) -o $@ $<
+
+$(multi_target_tags:%=build/mt-%/gencondmd$(build_exeext)): \
+  build/mt-%/gencondmd$(build_exeext): build/mt-%/gencondmd.o \
+  $(BUILD_ERRORS) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  $(filter-out $(BUILD_LIBDEPS), $^) $(BUILD_LIBS)
+
+$(multi_target_tags:%=mt-%/insn-conditions.md): \
+  mt-%/insn-conditions.md: build/mt-%/gencondmd$(build_exeext)
+	$(RUN_GEN) build/mt-$*/gencondmd$(build_exeext) \
+	  > tmp-mt-$*-cond.md
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-cond.md $@
+
+# The gate reports how many conditions each target's gencondmd
+# decided at build time; a surprising count is the first sign of a
+# wrong target context.
+.PHONY: mt-check-conditions
+mt-check-conditions: $(multi_target_tags:%=mt-%/insn-conditions.md)
+	@for mt_tag in $(multi_target_tags); do \
+	  mt_file=mt-$$mt_tag/insn-conditions.md; \
+	  mt_true=`grep -c '^  (1 ' $$mt_file`; \
+	  mt_false=`grep -c '^  (0 ' $$mt_file`; \
+	  mt_runtime=`grep -c '^  (-1 ' $$mt_file`; \
+	  echo "$$mt_file: $$mt_true always true, $$mt_false never" \
+	    "true, $$mt_runtime decided at run time"; \
+	done
+
+else
+
+.PHONY: mt-check-conditions
+mt-check-conditions:
+	@echo "mt-check-conditions: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true
