@@ -9362,6 +9362,8 @@ test_scalar_ops ()
   for (unsigned int i = 0; i < NUM_MACHINE_MODES; ++i)
     {
       machine_mode mode = (machine_mode) i;
+      if (!mode_present_p (mode))
+	continue;
       if (SCALAR_INT_MODE_P (mode) && mode != BImode)
 	test_scalar_int_ops (mode);
     }
@@ -9731,7 +9733,7 @@ test_vector_subregs_modes (rtx x, poly_uint64 elt_bias = 0,
   for (unsigned int modei = 0; modei < NUM_MACHINE_MODES; ++modei)
     {
       machine_mode outer_mode = (machine_mode) modei;
-      if (!VECTOR_MODE_P (outer_mode))
+      if (!mode_present_p (outer_mode) || !VECTOR_MODE_P (outer_mode))
 	continue;
 
       unsigned int outer_nunits;
@@ -9883,7 +9885,7 @@ test_vector_ops ()
   for (unsigned int i = 0; i < NUM_MACHINE_MODES; ++i)
     {
       machine_mode mode = (machine_mode) i;
-      if (VECTOR_MODE_P (mode))
+      if (mode_present_p (mode) && VECTOR_MODE_P (mode))
 	{
 	  rtx scalar_reg = make_test_reg (GET_MODE_INNER (mode));
 	  test_vector_ops_duplicate (mode, scalar_reg);

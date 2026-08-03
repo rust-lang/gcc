@@ -681,6 +681,26 @@ GET_MODE_SIZE (const T &mode)
 }
 #endif
 
+/* Return true if the active target has MODE.  In a multi-target
+   build the mode enumeration spans every enabled target's modes;
+   the value tables keep every mode's intrinsic properties, so a
+   dedicated presence table answers.  */
+
+#if ENABLE_MULTI_TARGET
+extern unsigned char mode_present[NUM_MACHINE_MODES];
+#endif
+
+inline bool
+mode_present_p (machine_mode mode ATTRIBUTE_UNUSED)
+{
+#if ENABLE_MULTI_TARGET
+  return (mode == VOIDmode || mode == BLKmode
+	  || mode_present[mode] != 0);
+#else
+  return true;
+#endif
+}
+
 /* Get the size in bits of an object of mode MODE.  */
 
 #if ONLY_FIXED_SIZE_MODES

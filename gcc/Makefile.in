@@ -1201,7 +1201,8 @@ BUILD_ERRORS = build/errors.o
 # -I$(@D) and -I$(srcdir)/$(@D) cause the subdirectory of the file
 # currently being compiled, in both source trees, to be examined as well.
 # libintl.h will be found in ../intl if we are using the included libintl.
-INCLUDES = -I. -I$(@D) -I$(srcdir) -I$(srcdir)/$(@D) \
+INCLUDES = $(if $(multi_target_tags),-I mt-union) \
+	   -I. -I$(@D) -I$(srcdir) -I$(srcdir)/$(@D) \
 	   -I$(srcdir)/../include $(INCINTL) \
 	   $(CPPINC) $(CODYINC) $(GMPINC) $(DECNUMINC) $(BACKTRACEINC) \
 	   $(ISLINC)
@@ -2910,7 +2911,8 @@ s-attrtab : $(MD_DEPS) build/genattrtab$(build_exeext) \
 insn-opinit.cc insn-opinit.h: s-opinit ; @true
 s-opinit: $(MD_DEPS) build/genopinit$(build_exeext) insn-conditions.md
 	$(RUN_GEN) build/genopinit$(build_exeext) $(md_file) \
-	  insn-conditions.md -htmp-opinit.h -ctmp-opinit.cc
+	  insn-conditions.md $(if $(multi_target_tags),--mt-symbolic-modes) \
+	  -htmp-opinit.h -ctmp-opinit.cc
 	$(SHELL) $(srcdir)/../move-if-change tmp-opinit.h insn-opinit.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-opinit.cc insn-opinit.cc
 	$(STAMP) s-opinit
@@ -2945,8 +2947,16 @@ insn-modes-inline.h: s-modes-inline-h; @true
 min-insn-modes.cc: s-modes-m; @true
 
 s-modes: build/genmodes$(build_exeext)
-	$(RUN_GEN) build/genmodes$(build_exeext) $(mt_poly_flag) \
-	  > tmp-modes.cc
+	if test -n "$(multi_target_tags)"; then \
+	  $(RUN_GEN) build/genmodes-merge$(build_exeext) -c \
+	    $(firstword $(multi_target_tags)) $(mt_dump_arguments) \
+	    > tmp-modes.cc; \
+	  $(RUN_GEN) build/genmodes$(build_exeext) -a $(mt_poly_flag) \
+	    >> tmp-modes.cc; \
+	else \
+	  $(RUN_GEN) build/genmodes$(build_exeext) $(mt_poly_flag) \
+	    > tmp-modes.cc; \
+	fi
 	$(SHELL) $(srcdir)/../move-if-change tmp-modes.cc insn-modes.cc
 	$(STAMP) s-modes
 
@@ -3571,7 +3581,7 @@ $(multi_target_tags:%=mt-%/s-opinit): mt-%/s-opinit: \
   mt-config-%.sh
 	. ./mt-config-$*.sh; \
 	$(RUN_GEN) build/mt-$*/genopinit$(build_exeext) \
-	  --mt-prefix=mt_$*_ $(srcdir)/common.md \
+	  --mt-prefix=mt_$*_ --mt-symbolic-modes $(srcdir)/common.md \
 	  $(srcdir)/config/$$mt_md_file \
 	  mt-$*/insn-conditions.md -htmp-mt-$*-opinit.h \
 	  -ctmp-mt-$*-opinit.cc
@@ -3605,7 +3615,9 @@ mt_target_code_prerequisites = mt-%/tm.h mt-%/tm_p.h \
   mt-%/insn-attr.h mt-%/insn-attr-common.h mt-%/insn-opinit.h \
   mt-%/tm-constrs.h mt-%/mt-options-pad.h \
   mt-%/insn-modes.h mt-%/insn-modes-inline.h mt-maxima.h \
-  $(TM_H) $(TARGET_H) common/common-target.h opts.h
+  $(TM_H) $(TARGET_H) common/common-target.h opts.h \
+  mt-union/insn-modes.h mt-union/insn-modes-inline.h \
+  mt-%/insn-modes.dump
 
 # The same list with every tag substituted in: object rules whose stem
 # spans tag and file cannot take per-tag pattern prerequisites, so
@@ -3636,7 +3648,7 @@ $(mt_insn_emit_sources): $(multi_target_tags:%=mt-%/s-tmp-emit) ; @true
 
 $(mt_insn_emit_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
   all-tree.def gtype-desc.h genrtl.h $(mt_target_code_headers_all)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
 	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genrecog.o): build/mt-%/genrecog.o: \
@@ -3681,7 +3693,7 @@ $(mt_insn_recog_sources): $(multi_target_tags:%=mt-%/s-tmp-recog) ; @true
 $(mt_insn_recog_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
   all-tree.def gtype-desc.h genrtl.h $(mt_target_code_headers_all) \
   $(multi_target_tags:%=mt-%/insn-recog.h)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
 	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=build/mt-%/genextract.o): build/mt-%/genextract.o: \
@@ -3759,25 +3771,25 @@ $(multi_target_tags:%=mt-%/insn-enums.cc): mt-%/insn-enums.cc: \
 $(multi_target_tags:%=mt-%/insn-extract.o): mt-%/insn-extract.o: \
   mt-%/insn-extract.cc $(CONFIG_H) tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=mt-%/insn-output.o): mt-%/insn-output.o: \
   mt-%/insn-output.cc $(CONFIG_H) tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=mt-%/insn-peep.o): mt-%/insn-peep.o: \
   mt-%/insn-peep.cc $(CONFIG_H) tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=mt-%/insn-enums.o): mt-%/insn-enums.o: \
   mt-%/insn-enums.cc $(CONFIG_H) mt-%/insn-constants.h
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 mt_insn_unit_objects = \
 	$(multi_target_tags:%=mt-%/insn-extract.o) \
@@ -3846,26 +3858,26 @@ $(multi_target_tags:%=mt-%/insn-automata.cc): mt-%/insn-automata.cc: \
 $(multi_target_tags:%=mt-%/insn-attrtab.o): mt-%/insn-attrtab.o: \
   mt-%/insn-attrtab.cc $(CONFIG_H) tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=mt-%/insn-dfatab.o): mt-%/insn-dfatab.o: \
   mt-%/insn-dfatab.cc $(CONFIG_H) tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=mt-%/insn-latencytab.o): mt-%/insn-latencytab.o: \
   mt-%/insn-latencytab.cc $(CONFIG_H) tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=mt-%/insn-automata.o): mt-%/insn-automata.o: \
   mt-%/insn-automata.cc $(CONFIG_H) tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 mt_attr_unit_objects = \
 	$(multi_target_tags:%=mt-%/insn-attrtab.o) \
@@ -3885,14 +3897,14 @@ $(multi_target_tags:%=mt-%/insn-preds.cc): mt-%/insn-preds.cc: \
 $(multi_target_tags:%=mt-%/insn-preds.o): mt-%/insn-preds.o: \
   mt-%/insn-preds.cc mt-%/tm-preds.h $(CONFIG_H) tree-check.h \
   all-tree.def gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 $(multi_target_tags:%=mt-%/insn-opinit.o): mt-%/insn-opinit.o: \
   mt-%/insn-opinit.cc $(CONFIG_H) tree-check.h all-tree.def \
   gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
-	  -o $@ $<
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) -o $@ $<
 
 # The mode tables are union-indexed core-side data: the arrays are
 # sized by the union's NUM_MACHINE_MODES, so the unit compiles
@@ -3935,7 +3947,8 @@ $(multi_target_tags:%=mt-%/target-backend-def.o): \
   mt-config-%.sh $(CONFIG_H) tree-check.h all-tree.def gtype-desc.h \
   genrtl.h $(mt_target_code_prerequisites)
 	. ./mt-config-$*.sh; \
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) \
 	  -DMT_BACKEND_PREFIX=mt_$*_ \
 	  -DMT_BACKEND_SYMBOL=mt_backend_$* \
 	  -DMT_BACKEND_TRIPLE="\"$$mt_triple\"" \
@@ -4193,7 +4206,7 @@ mt_options_objects = $(foreach mt_tag,$(multi_target_tags), \
 
 $(mt_options_objects): mt-%.o: mt-%.cc $(CONFIG_H) tree-check.h \
   all-tree.def gtype-desc.h genrtl.h $(mt_target_code_headers_all)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
 	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ $<
 
 .PHONY: mt-check-options-units
@@ -4305,7 +4318,7 @@ $(mt_port_objects): mt-%.o: $(CONFIG_H) tree-check.h all-tree.def \
 	test "`echo $$mt_source | wc -w`" = 1 \
 	  || { echo "mt-port: want one source for $(notdir $*).cc," \
 	       "got: $$mt_source"; exit 1; }; \
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
 	  -I mt-$(patsubst %/,%,$(dir $*)) $(ALL_CPPFLAGS) -o $@ \
 	  $$mt_source
 
@@ -4376,7 +4389,8 @@ $(multi_target_tags:%=mt-%/insn-modes-adjust.o): \
   mt-%/insn-modes-adjust.o: mt-%/insn-modes-adjust.cc $(CONFIG_H) \
   tree-check.h all-tree.def gtype-desc.h genrtl.h \
   $(mt_target_code_headers_all)
-	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(mt_host_context_flags) \
+	  -I mt-$* $(ALL_CPPFLAGS) \
 	  -Dinit_adjust_machine_modes=mt_$*_init_adjust_machine_modes \
 	  -Dadjust_mode_mask=mt_$*_adjust_mode_mask -o $@ $<
 
@@ -4388,6 +4402,25 @@ else
 .PHONY: mt-check-adjust-units
 mt-check-adjust-units:
 	@echo "mt-check-adjust-units: not a multi-target build"
+
+endif
+
+# Multi-target host compilation happens at the union mode numbering:
+# core code and every target's units agree on the mode enum, so the
+# values one unit stores mean the same in every other.  The
+# per-target directories keep the native headers for the target's
+# build programs; host compiles shadow them with the union staging
+# copies, and predefine the target's own native poly_int count for
+# the fixed-size-mode and conversion gates.
+ifneq ($(multi_target_tags),)
+
+mt_native_tag = $(or $(patsubst %/,%,$(filter-out ./,$(dir $*))),$*)
+mt_host_context_flags = -I mt-union \
+  -DMT_NATIVE_POLY_COEFFS=`sed -n \
+    's/^param poly_int_coeffs //p' \
+    mt-$(mt_native_tag)/insn-modes.dump`
+
+s-modes: $(mt_mode_dumps) build/genmodes-merge$(build_exeext)
 
 endif
 
@@ -4701,7 +4734,8 @@ generated_files = config.h tm.h $(TM_P_H) $(TM_D_H) $(TM_JIT_H) $(TM_H) \
 ifneq ($(multi_target_tags),)
 # Host code includes the primary target's options.h, which in a
 # multi-target build reads the option-state padding header.
-generated_files += mt-options-pad.h mt-maxima.h
+generated_files += mt-options-pad.h mt-maxima.h \
+  mt-union/insn-modes.h mt-union/insn-modes-inline.h
 endif
 
 #

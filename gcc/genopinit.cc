@@ -76,6 +76,12 @@ optab_rcode_cmp (const void *va, const void *vb)
 static const char *header_file_name = "init-opinit.h";
 static const char *source_file_name = "init-opinit.c";
 
+/* True when the generated tables must spell machine modes
+   symbolically, leaving the numbering to whichever compile includes
+   the output; a multi-target build compiles it at the union
+   numbering, not this generator's native one.  */
+static bool mt_symbolic_modes;
+
 static bool
 handle_arg (const char *arg)
 {
@@ -87,6 +93,13 @@ handle_arg (const char *arg)
     case 'c':
       source_file_name = &arg[2];
       return true;
+    case '-':
+      if (strcmp (arg, "--mt-symbolic-modes") == 0)
+	{
+	  mt_symbolic_modes = true;
+	  return true;
+	}
+      return false;
     default:
       return false;
     }
@@ -389,10 +402,50 @@ main (int argc, const char **argv)
 	   "};\n\n");
 
   fprintf (s_file,
-	   "static const struct optab_pat pats[NUM_OPTAB_PATTERNS] = {\n");
+	   "static %sstruct optab_pat pats[NUM_OPTAB_PATTERNS] = {\n",
+	   mt_symbolic_modes ? "" : "const ");
   for (i = 0; patterns.iterate (i, &p); ++i)
-    fprintf (s_file, "  { %#08x, CODE_FOR_%s },\n", p->sort_num, p->name);
+    {
+      if (mt_symbolic_modes)
+	/* Spelled so that the numbers land in whatever numbering the
+	   compile of the generated source sees.  */
+	fprintf (s_file,
+		 "  { (%uU << 20) | (E_%smode << 10) | E_%smode, "
+		 "CODE_FOR_%s },\n",
+		 p->op, GET_MODE_NAME (p->m2), GET_MODE_NAME (p->m1),
+		 p->name);
+      else
+	fprintf (s_file, "  { %#08x, CODE_FOR_%s },\n", p->sort_num,
+		 p->name);
+    }
   fprintf (s_file, "};\n\n");
+
+  /* The order above is the generator's native one; no single order
+     holds in every enabled target's numbering, so a symbolic table
+     sorts itself on first use.  */
+  if (mt_symbolic_modes)
+    fprintf (s_file,
+	     "STATIC_ASSERT (NUM_MACHINE_MODES <= 0x3ff);\n\n"
+	     "static int\n"
+	     "optab_pat_compare (const void *first_pat, "
+	     "const void *second_pat)\n"
+	     "{\n"
+	     "  unsigned first = ((const struct optab_pat *) "
+	     "first_pat)->scode;\n"
+	     "  unsigned second = ((const struct optab_pat *) "
+	     "second_pat)->scode;\n"
+	     "  return first < second ? -1 : first > second;\n"
+	     "}\n\n"
+	     "static void\n"
+	     "sort_optab_pats (void)\n"
+	     "{\n"
+	     "  static bool sorted;\n"
+	     "  if (sorted)\n"
+	     "    return;\n"
+	     "  qsort (pats, NUM_OPTAB_PATTERNS, sizeof (pats[0]),\n"
+	     "\t optab_pat_compare);\n"
+	     "  sorted = true;\n"
+	     "}\n\n");
 
   /* Some targets like riscv have a large number of patterns.  In order to
      prevent pathological situations in dataflow analysis split the init
@@ -419,6 +472,8 @@ main (int argc, const char **argv)
 
       fprintf (s_file, "void\ninit_all_optabs "
 	       "(struct target_optabs *optabs)\n{\n");
+      if (mt_symbolic_modes)
+	fprintf (s_file, "  sort_optab_pats ();\n");
       for (i = 0; i < num_init_functions; ++i)
 	fprintf (s_file, "  init_optabs_%02d (optabs);\n", i);
       fprintf (s_file, "}\n\n");
@@ -427,6 +482,8 @@ main (int argc, const char **argv)
     {
       fprintf (s_file, "void\ninit_all_optabs "
 	       "(struct target_optabs *optabs)\n{\n");
+      if (mt_symbolic_modes)
+	fprintf (s_file, "  sort_optab_pats ();\n");
       fprintf (s_file, "  bool *ena = optabs->pat_enable;\n");
       for (i = 0; patterns.iterate (i, &p); ++i)
 	fprintf (s_file, "  ena[%u] = HAVE_%s;\n", i, p->name);
