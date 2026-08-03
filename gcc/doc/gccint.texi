@@ -129,6 +129,7 @@ Additional tutorial information is linked to from
 * Header Dirs::     Understanding the standard header file directories.
 * Type Information:: GCC's memory management; generating type information.
 * Plugins::         Extending the compiler with plugins.
+* Multi-Target::    Building several targets into one compiler.
 * LTO::             Using Link-Time Optimization.
 
 * Match and Simplify:: How to write expression simplification patterns for GIMPLE and GENERIC
@@ -173,6 +174,7 @@ Additional tutorial information is linked to from
 @include headerdirs.texi
 @include gty.texi
 @include plugins.texi
+@include multi-target.texi
 @include lto.texi
 @include match-and-simplify.texi
 @include analyzer.texi

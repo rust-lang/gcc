@@ -1,0 +1,336 @@
+@c Copyright (C) 2026 Free Software Foundation, Inc.
+@c This is part of the GCC manual.
+@c For copying conditions, see the file gcc.texi.
+
+@node Multi-Target
+@chapter Multi-Target Support
+@cindex multi-target
+@findex ENABLE_MULTI_TARGET
+
+A multi-target build links several complete backends into one
+compiler: one @command{cc1} (and one @file{libgccjit}) carries the
+configured target and a set of secondary targets, and each invocation
+compiles for exactly one of them.  The driver selects with
+@option{--target=}, the compiler proper with @option{-fmulti-target=},
+and a JIT context with @code{gcc_jit_context_set_target}.  The mode is
+opt-in: it exists only under @option{--enable-multi-target}, every
+change in shared code sits behind @code{ENABLE_MULTI_TARGET}, and a
+default build compiles byte-identically to one that predates the
+feature.
+
+This chapter describes the internals for maintainers: how the build
+composes several targets, what the shared ``union'' surface is, how a
+backend is described and activated at runtime, and what a port must
+satisfy to participate.
+
+@menu
+* Multi-target configuration::  Tags and captured configurations.
+* Multi-target union surface::  One layout for every backend.
+* Multi-target blobs::          Per-target generated code and renames.
+* Multi-target descriptor::     What describes a backend.
+* Multi-target activation::     The registry and the runtime switch.
+* Multi-target host routing::   Reading the active target from core code.
+* Multi-target options::        Option tables and state under several
+                                targets.
+* Multi-target driver::         Selection, specs and cross tools.
+* Multi-target libgccjit::      Target selection and switching in JIT.
+* Multi-target testing::        Identity gates and the testsuites.
+* Multi-target limitations::    What is fenced or deferred.
+@end menu
+
+@node Multi-target configuration
+@section Tags and captured configurations
+
+@code{--enable-multi-target=@var{triple},@var{triple},@dots{}} names
+the secondary targets; @code{--enable-multi-target} alone (or
+@code{=all}) enables every port that declares itself ready (see the
+porting checklist below).  Each enabled target --- the primary
+included, and always first --- receives a @dfn{tag}, the CPU component
+of its triple: a build for x86_64 with aarch64 and m68k secondaries
+works with the tags @code{x86_64}, @code{aarch64} and @code{m68k}.
+
+For every tag, @file{configure} re-sources @file{config.gcc} in a
+pristine probe subshell with that target's triple and captures the
+resulting variables --- @code{tm_file}, @code{md_file},
+@code{extra_objs}, the configured assembler override and so on --- into
+@file{mt-config-@var{tag}.sh} in the build directory.  Everything the
+build later does per target is driven by these captures; the host
+configuration itself remains exactly the primary's.
+
+@node Multi-target union surface
+@section One layout for every backend
+
+Core code is compiled once, against the primary's headers plus a set
+of routed macros (@pxref{Multi-target host routing}).  Everything
+whose @emph{layout} depends on a target macro must instead be laid out
+identically for every backend of the build; the mechanisms are:
+
+@itemize @bullet
+@item
+@dfn{Union machine modes}.  The mode enumeration is the union of every
+enabled target's modes, numbered once for the whole build.  Each
+target contributes a table blob holding its values at the union
+numbering, installed at activation into the runtime arrays
+(@code{mode_precision}, @code{mode_size}, the wider/inner/complex
+links, @code{class_narrowest_mode}, @code{real_format_for_mode},
+@dots{}).  Value rows of modes a target lacks carry the mode's
+intrinsic properties --- scalar precision and size are facts about the
+mode, not about a target, and ``infinite precision'' idioms such as
+@code{MAX_MODE_INT} folds read them --- while link rows stay
+per-target, so mode iteration never reaches a foreign mode.  A
+dedicated @code{mode_present} predicate answers whether the active
+target has a mode at all.
+
+@item
+@dfn{Superset maxima}.  Structures sized by a target constant use the
+maximum over the enabled targets, collected into @file{mt-maxima.h}:
+@code{MAX_HARD_REGISTERS} and @code{MAX_REG_CLASSES} size register
+sets and tables (iteration bounds remain the active target's runtime
+counts), @code{MT_MAX_CUMULATIVE_ARGS_SIZE} pads the argument cursor
+inside @code{struct function}, and the @code{operand_alternative}
+register-filter bitfields take the widest layout.  Host-wide constants
+that shape types, such as @code{NUM_POLY_INT_COEFFS}, are likewise the
+maximum.
+
+@item
+@dfn{No conditional layouts}.  A declaration shared across surfaces
+must not change shape under a target's preprocessor conditions.  The
+canonical example is @code{global_rtl_index}: single-target builds
+collapse the frame, argument and hard-frame pointer slots when a
+port's macros make them aliases, but a multi-target build keeps every
+slot distinct in @emph{every} translation unit --- target code
+included --- and establishes the aliasing at runtime instead, when
+@code{init_emit_regs} stores one rtx through every alias.  A backend
+translation unit that collapsed the enum by its own macros would read
+every member of @code{struct target_rtl} behind the array through a
+shifted layout.
+@end itemize
+
+@node Multi-target blobs
+@section Per-target generated code and renames
+
+Each enabled target gets a full set of generated backend files, built
+in @file{mt-@var{tag}/} inside the target's own header context:
+target-independent generators are built once and run once per target
+(with the target's @file{.md} file and insn conditions), while
+generators whose own build depends on target headers
+(@command{genmodes}, @command{gencondmd}) are built per target in
+@file{build/mt-@var{tag}/}.  Pattern elision through
+@command{gencondmd} therefore stays exactly per-target.
+
+Symbol namespacing is source-level: every generator knows the external
+symbols it emits, and under @option{--mt-prefix=mt_@var{tag}_} it
+prepends a rename prologue (@code{#define gen_addsi3
+mt_x86_64_gen_addsi3} and so on) to its output headers, included by
+both the generated translation units and the port's own objects
+through the per-target @file{tm.h} chain.  Port exports are already
+prefixed by port convention.  The @code{mt-check-symbols} build rule
+runs an @command{nm} audit asserting that no global symbol collides
+across blobs and that a blob's exports are its descriptor surface.
+
+Each secondary also receives a plugin-style @command{gengtype -P} run
+over its @code{target_gtfiles}: the resulting root tables are
+registered at activation, and the port-owned @code{machine_function}
+markers join the backend descriptor (@pxref{Multi-target activation}).
+
+@node Multi-target descriptor
+@section What describes a backend
+
+@code{struct target_backend} (@file{target-backend.h}) is the stable
+contract between a blob and the compiler.  It carries the canonical
+triple, the target hook vectors (@code{targetm} and the common hooks),
+the generated entry points (instruction data, recognizer, extractor,
+splitters, peepholes, optab initialization, attribute and DFA tables),
+the option tables and state images, the mode table blob, the register
+information read from the port's macros, and a set of @dfn{captured
+callables} for target macros host code must evaluate: the
+@code{FUNCTION_VALUE} and @code{PRINT_OPERAND} families, reload
+classes and costs, frame offsets, @code{EPILOGUE_USES},
+@code{CONSTANT_ADDRESS_P}, @code{PIC_OFFSET_TABLE_REGNUM} and others.
+
+A capture is a function compiled inside the target's header context
+that evaluates the port's macro at each call, so macros defined in
+terms of runtime state (@code{flag_pic}, reload progress, the port's
+own predicates) behave exactly as they do in a single-target build.
+Two units host them: @file{target-register-tables.cc} reads the
+register-file macros without @file{rtl.h}, and
+@file{target-backend-def.cc} --- which has full RTL context ---
+captures the rest and defines the descriptor object itself.  The
+descriptor is compiled once per target under the target's renames; the
+primary's copy, @code{default_target_backend}, is the host build's
+own.
+
+@node Multi-target activation
+@section The registry and the runtime switch
+
+@file{target-registry.cc} holds
+@code{target_backend_registry}, the configured target first.
+@code{activate_target_backend} makes a backend the one the compiler
+addresses; it runs before option decoding --- from the
+@option{-fmulti-target=} prescan in @code{toplev::main}, which
+activates the primary explicitly when nothing is selected, because an
+earlier invocation in the same process (libgccjit) may have activated
+another target.
+
+Installation swaps the pointers core code reads --- the hook vectors,
+option tables, register tables and scalars, the captured callables ---
+copies the target's mode tables into the runtime arrays (the primary
+binds its own tag's blob for this purpose, so switching back reinstalls
+values identical to its seed), and re-runs @code{init_reg_sets} from
+the just-installed register tables.
+
+Two pieces make repeated activation in one process safe:
+
+@itemize @bullet
+@item
+Every backend's GTY roots are registered the first time it becomes
+active and stay registered.  A port's rooted statics are static
+storage, always valid to mark, and whatever they still reference from
+an earlier activation must survive until the target is activated
+again.
+
+@item
+Because those roots keep another target's objects reachable, a
+garbage collection can encounter a foreign @code{struct function}.
+@code{cfun->machine} is laid out by the port that allocated it, so
+@code{allocate_struct_function} records each
+@code{machine_function}'s allocating backend and the marker thunks
+walk every object with its owner's marker, never the active one's.
+@end itemize
+
+@node Multi-target host routing
+@section Reading the active target from core code
+
+Host code keeps using the historical macro names; in a multi-target
+build @file{defaults.h} redefines them over the active target's
+captures --- a scalar member, a captured callable or a descriptor
+field.  The flip region is guarded by the canonical exclusion set, and
+the guards are load-bearing:
+
+@table @code
+@item GENERATOR_FILE
+Generator programs are host tools with their own header context.
+
+@item IN_TARGET_CODE
+Port code and per-target units read their own macros natively.
+
+@item MT_NATIVE_TARGET_SURFACE, MT_NATIVE_REGISTER_CONSTANTS
+The descriptor and registry units bind a target's own tables by their
+real names and seed the runtime values from the primary.
+
+@item USED_FOR_TARGET
+Target libraries compile @file{tm.h} too and keep raw constants.
+@end table
+
+The rule for new work mirrors the original classification: a macro
+needs routing if and only if the contents of a
+non-@code{IN_TARGET_CODE} object depend on it.  Macros that shape
+types take the union-surface mechanisms instead, and macros only port
+code reads need nothing at all.
+
+@node Multi-target options
+@section Option tables and state under several targets
+
+The option table is two blocks: the common and language rows, in
+identical order for every target, then each target's own rows.  A
+per-target name-order permutation keeps @code{find_opt}'s binary
+search working over the two-block table, so common @code{OPT_*} values
+stay build-wide constants.  @code{struct gcc_options} keeps an
+identical common prefix and pads the target tail to the largest
+enabled target; the save/restore/print/hash entry points for target
+option state are per-target functions reached through the descriptor.
+Activation installs tables, permutation and defaults image before
+anything decodes.
+
+@node Multi-target driver
+@section Selection, specs and cross tools
+
+The driver consumes @option{--target=} before spec setup, validates it
+against the built-in triples once diagnostics are configured, and
+routes the selection to @command{cc1} by prepending
+@option{-fmulti-target=} to @code{cc1_spec}.  Each target's spec
+strings --- @code{ASM_SPEC}, its @code{EXTRA_SPECS} table, its
+@code{DRIVER_SELF_SPECS} and its @code{OPTION_DEFAULT_SPECS} --- are
+captured by @file{driver-specs.cc} compiled per tag; under a secondary
+selection the capture is installed into @code{static_specs} inside
+@code{set_up_specs}, the captured self specs run in the macro's
+positions, and the configure-time option defaults are deliberately
+@emph{not} run, because @code{do_option_spec} would match generic
+names against the primary's configure defaults.
+
+Unrecognized @option{-m} options under a secondary selection pass
+through to @command{cc1}, which re-parses them with the active
+target's table --- the driver only routes text, so a foreign option is
+diagnosed by the target that owns it.  Cross tools resolve in the
+order configured override (@code{--with-mt-as-@var{tag}=}), prefixed
+@file{@var{triple}-as} in the driver's search directories, then on
+@env{PATH}; a compilation that needs an assembler and found none stops
+with a clear error, while @option{-S} and @option{-###} need none.
+@option{-print-multi-targets} lists the built-in triples, primary
+first, and is what the testsuites key on.
+
+@node Multi-target libgccjit
+@section Target selection and switching in JIT
+
+@code{gcc_jit_context_set_target} records a triple on the context
+(validated against the registry immediately), and playback appends
+@option{-fmulti-target=} to the fake argv, so every compilation enters
+through the same prescan as @command{cc1}.  One process may compile
+for target after target: each compilation activates its target ---
+explicitly the primary when the context selects nothing --- and the
+switching support in the registry (permanent roots, owner-walked
+machine function marking, the primary's own mode-table blob) keeps
+repeated and interleaved activations deterministic.  The jit testsuite
+asserts determinism byte-for-byte: recompiling after switching away
+and back must reproduce the earlier output exactly, for secondary and
+default targets alike.
+
+@node Multi-target testing
+@section Identity gates and the testsuites
+
+Three properties anchor the series and any future port work:
+
+@itemize @bullet
+@item
+@dfn{Disabled identity}: a build without @option{--enable-multi-target}
+produces byte-identical generated sources and objects.
+
+@item
+@dfn{Primary identity}: selecting the primary explicitly produces
+output byte-identical to a plain invocation.
+
+@item
+@dfn{Golden secondaries}: a secondary's output is instruction-identical
+to a real cross compiler built from the same sources.
+@end itemize
+
+@file{gcc.dg/multi-target/} exercises selection, driver specs and tool
+lookup; @file{lib/target-supports.exp} exposes
+@code{check_effective_target_multi_target} (and per-tag variants)
+keyed on @option{-print-multi-targets}, so the tests self-skip in
+single-target builds.  The jit.dg multi-target tests cover switching,
+shared-state bleed (the long double format), context reuse and
+threads.
+
+@node Multi-target limitations
+@section What is fenced or deferred
+
+@itemize @bullet
+@item
+@code{lto1} is not multi-target; @option{-flto} with a selected
+secondary is unsupported.
+
+@item
+Precompiled headers do not record target identity; using a PCH across
+selections is unsupported.
+
+@item
+A secondary's own inserted passes (its @file{@var{port}-passes.def})
+are not woven into the pass list; the primary's inserted passes are
+gated on the active backend.  Optimization tie-breaks that those
+passes would decide can differ from a native cross compiler.
+
+@item
+RTL dump cosmetics (register and unspec @emph{names}) print through
+the host's tables; the numbers are the active target's.
+@end itemize
