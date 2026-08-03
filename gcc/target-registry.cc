@@ -63,6 +63,17 @@ int mt_n_reg_classes = N_REG_CLASSES;
 extern int target_regno_reg_class (unsigned int);
 int (*mt_regno_reg_class) (unsigned int) = target_regno_reg_class;
 
+/* The runtime-valued macros of the active target; see defaults.h.
+   The seed is the primary's own table.  */
+extern const struct mt_register_tables target_register_tables;
+const struct mt_target_scalars *mt_active_target_scalars;
+
+/* Boot the pointer before any host macro reads it; dynamic
+   initialization runs before main.  */
+static const int mt_scalars_boot
+  = (mt_active_target_scalars
+     = target_register_tables.x_scalars, 0);
+
 /* The descriptors of the enabled targets, one per tag, compiled from
    target-backend-def.cc inside each target's own header context.  */
 #define MT_BACKEND(tag) extern const struct target_backend mt_backend_##tag;
@@ -188,6 +199,7 @@ install_target_backend (const struct target_backend *backend)
     = backend->register_tables->x_first_pseudo_register;
   mt_n_reg_classes = backend->register_tables->x_n_reg_classes;
   mt_regno_reg_class = backend->register_tables->x_regno_reg_class;
+  mt_active_target_scalars = backend->register_tables->x_scalars;
 
   /* Register usage was initialized from the primary during
      general_init; redo it from the tables just installed.  The

@@ -76,6 +76,97 @@ target_regno_reg_class (unsigned int regno)
   return (int) REGNO_REG_CLASS (regno);
 }
 
+/* The runtime-valued macros, evaluated in this target's context at
+   call time; several read the decoded option state.  */
+
+static int
+scalar_char_type_size (void)
+{
+  return CHAR_TYPE_SIZE;
+}
+
+static int
+scalar_short_type_size (void)
+{
+  return SHORT_TYPE_SIZE;
+}
+
+static int
+scalar_int_type_size (void)
+{
+  return INT_TYPE_SIZE;
+}
+
+static int
+scalar_long_type_size (void)
+{
+  return LONG_TYPE_SIZE;
+}
+
+static int
+scalar_long_long_type_size (void)
+{
+  return LONG_LONG_TYPE_SIZE;
+}
+
+static int
+scalar_pointer_size (void)
+{
+  return POINTER_SIZE;
+}
+
+static int
+scalar_units_per_word (void)
+{
+  return UNITS_PER_WORD;
+}
+
+static int
+scalar_bits_per_word (void)
+{
+  return BITS_PER_WORD;
+}
+
+static int
+scalar_pmode (void)
+{
+  return (int) Pmode;
+}
+
+static int
+scalar_function_mode (void)
+{
+  return (int) FUNCTION_MODE;
+}
+
+static int
+scalar_stack_boundary (void)
+{
+  return STACK_BOUNDARY;
+}
+
+static int
+scalar_biggest_alignment (void)
+{
+  return BIGGEST_ALIGNMENT;
+}
+
+static const struct mt_target_scalars target_scalars =
+{
+  scalar_char_type_size,
+  scalar_short_type_size,
+  scalar_int_type_size,
+  scalar_long_type_size,
+  scalar_long_long_type_size,
+  scalar_pointer_size,
+  scalar_units_per_word,
+  scalar_bits_per_word,
+  scalar_pmode,
+  scalar_function_mode,
+  scalar_stack_boundary,
+  scalar_biggest_alignment,
+};
+
 /* extern: a const object would otherwise have internal linkage in
    C++.  */
 extern const struct mt_register_tables target_register_tables =
@@ -94,5 +185,6 @@ extern const struct mt_register_tables target_register_tables =
 #endif
   table_reg_names,
   table_class_names,
-  target_regno_reg_class
+  target_regno_reg_class,
+  &target_scalars
 };

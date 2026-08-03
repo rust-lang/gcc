@@ -446,6 +446,18 @@ extern int (*mt_regno_reg_class) (unsigned int);
 #undef REGNO_REG_CLASS
 #define REGNO_REG_CLASS(REGNO) \
   ((enum reg_class) mt_regno_reg_class (REGNO))
+#include "register-tables.h"
+extern const struct mt_target_scalars *mt_active_target_scalars;
+#undef CHAR_TYPE_SIZE
+#define CHAR_TYPE_SIZE (mt_active_target_scalars->x_char_type_size ())
+#undef SHORT_TYPE_SIZE
+#define SHORT_TYPE_SIZE (mt_active_target_scalars->x_short_type_size ())
+#undef INT_TYPE_SIZE
+#define INT_TYPE_SIZE (mt_active_target_scalars->x_int_type_size ())
+#undef LONG_TYPE_SIZE
+#define LONG_TYPE_SIZE (mt_active_target_scalars->x_long_type_size ())
+#undef LONG_LONG_TYPE_SIZE
+#define LONG_LONG_TYPE_SIZE (mt_active_target_scalars->x_long_long_type_size ())
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */

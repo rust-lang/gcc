@@ -27,6 +27,28 @@ along with GCC; see the file COPYING3.  If not see
    copy into the MAX_HARD_REGISTERS / MAX_REG_CLASSES superset
    structures and leave the rest zero.  */
 
+/* Runtime-valued target macros host code must read from the ACTIVE
+   target: on many ports these are expressions over the decoded
+   option state, at the port's own field offsets, so each entry is a
+   callable evaluated inside the target's context.  The mode-valued
+   entries return the union mode number.  */
+
+struct mt_target_scalars
+{
+  int (*x_char_type_size) (void);
+  int (*x_short_type_size) (void);
+  int (*x_int_type_size) (void);
+  int (*x_long_type_size) (void);
+  int (*x_long_long_type_size) (void);
+  int (*x_pointer_size) (void);
+  int (*x_units_per_word) (void);
+  int (*x_bits_per_word) (void);
+  int (*x_pmode) (void);
+  int (*x_function_mode) (void);
+  int (*x_stack_boundary) (void);
+  int (*x_biggest_alignment) (void);
+};
+
 struct mt_register_tables
 {
   /* The target's own FIRST_PSEUDO_REGISTER and N_REG_CLASSES.  */
@@ -55,6 +77,9 @@ struct mt_register_tables
   /* REGNO_REG_CLASS, as a callable; the value is the target's own
      register class enumerator.  */
   int (*x_regno_reg_class) (unsigned int);
+
+  /* The runtime-valued macros above.  */
+  const struct mt_target_scalars *x_scalars;
 };
 
 #endif /* GCC_REGISTER_TABLES_H */
