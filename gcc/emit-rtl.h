@@ -26,6 +26,13 @@ class predefined_function_abi;
 namespace rtl_ssa { class function_info; }
 
 /* Information mainlined about RTL representation of incoming arguments.  */
+#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE)
+/* Every enabled target must see one rtl_data layout, so the
+   argument cursor below pads out to the largest among them.  */
+#define MT_CUMULATIVE_ARGS_PAD \
+  (MT_MAX_CUMULATIVE_ARGS_SIZE - sizeof (CUMULATIVE_ARGS))
+#endif
+
 struct GTY(()) incoming_args {
   /* Number of bytes of args popped by function being compiled on its return.
      Zero if no bytes are to be popped.
@@ -49,6 +56,12 @@ struct GTY(()) incoming_args {
   /* Quantities of various kinds of registers
      used for the current function's args.  */
   CUMULATIVE_ARGS info;
+#if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE)
+  /* gengtype walks the primary's own cursor only; garbage
+     collected members of a secondary's cursor are a known gap
+     here.  */
+  char mt_info_pad[MT_CUMULATIVE_ARGS_PAD];
+#endif
 
   /* The arg pointer hard register, or the pseudo into which it was copied.  */
   rtx internal_arg_pointer;

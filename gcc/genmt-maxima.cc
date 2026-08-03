@@ -49,6 +49,8 @@ main (void)
 #endif
   printf ("first_pseudo_register %d\n", FIRST_PSEUDO_REGISTER);
   printf ("n_reg_classes %d\n", (int) N_REG_CLASSES);
+  printf ("cumulative_args_size %d\n",
+	  (int) sizeof (CUMULATIVE_ARGS));
 
   if (ferror (stdout) != 0 || fflush (stdout) != 0)
     return FATAL_EXIT_CODE;
