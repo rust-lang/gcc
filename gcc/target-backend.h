@@ -281,6 +281,9 @@ struct target_backend
   /* The mode-switching entity table (register-tables.h); null when
      the port defines no mode switching.  */
   const struct mt_mode_switching_ops *mode_switching_ops;
+
+  /* EPILOGUE_USES.  */
+  bool (*x_epilogue_uses) (int);
 };
 
 /* The descriptor of the configured target.  */

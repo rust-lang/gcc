@@ -657,6 +657,15 @@ static const struct mt_mode_switching_ops backend_mode_switching_ops
     };
 #endif
 
+/* EPILOGUE_USES, the registers a port's epilogue reads beyond the
+   data flow's own knowledge.  */
+
+static bool
+backend_epilogue_uses (int regno ATTRIBUTE_UNUSED)
+{
+  return EPILOGUE_USES (regno);
+}
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -828,4 +837,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
 #else
   NULL,
 #endif
+
+  backend_epilogue_uses,
 };

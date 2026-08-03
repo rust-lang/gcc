@@ -576,6 +576,10 @@ extern const struct mt_mode_switching_ops *mt_active_mode_switching_ops;
   (mt_active_mode_switching_ops != NULL \
    && mt_active_mode_switching_ops->x_optimize_p ((int) (ENTITY)) != 0)
 #endif
+extern bool (*mt_active_epilogue_uses) (int);
+#undef EPILOGUE_USES
+#define EPILOGUE_USES(REGNO) \
+  (mt_active_epilogue_uses ((int) (REGNO)))
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
