@@ -66,7 +66,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree-ssa-live.h"
 #include "tree-outof-ssa.h"
 #include "cfgloop.h"
-#include "insn-attr.h" /* For INSN_SCHEDULING.  */
+#include "insn-attr-ops.h" /* For INSN_SCHEDULING.  */
 #include "stringpool.h"
 #include "attribs.h"
 #include "asan.h"

@@ -31,7 +31,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "cfganal.h"
 #include "cfgbuild.h"
 #include "insn-config.h"
-#include "insn-attr.h"
+#include "insn-attr-ops.h"
 #include "recog.h"
 #include "target.h"
 #include "sched-int.h"

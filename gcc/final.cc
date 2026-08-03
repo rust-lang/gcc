@@ -61,7 +61,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "cgraph.h"
 #include "tree-pretty-print.h" /* for dump_function_header */
 #include "varasm.h"
-#include "insn-attr.h"
+#include "insn-attr-ops.h"
 #include "conditions.h"
 #include "flags.h"
 #include "output.h"

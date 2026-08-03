@@ -30,7 +30,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "cfgbuild.h"
 #include "cfgcleanup.h"
 #include "insn-config.h"
-#include "insn-attr.h"
+#include "insn-attr-ops.h"
 #include "target.h"
 #include "sched-int.h"
 #include "rtlhooks-def.h"

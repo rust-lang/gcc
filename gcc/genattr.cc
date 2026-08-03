@@ -221,6 +221,7 @@ main (int argc, const char **argv)
 	  printf ("/* Initialize fn pointers for internal_dfa_insn_code\n");
 	  printf ("   and insn_default_latency.  */\n");
 	  printf ("extern void init_sched_attrs (void);\n\n");
+	  printf ("#define HAVE_INIT_SCHED_ATTRS 1\n\n");
 	  printf ("/* Internal insn code number used by automata.  */\n");
 	  printf ("extern int (*internal_dfa_insn_code) (rtx_insn *);\n\n");
 	  printf ("/* Insn latency time defined in define_insn_reservation. */\n");

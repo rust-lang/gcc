@@ -33,7 +33,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "output.h"
 #include "debug.h" /* for debug_hooks.  */
 #include "insn-attr-common.h" /* for INSN_SCHEDULING.  */
-#include "insn-attr.h" /* for init_sched_attrs.  */
+#include "insn-attr-ops.h" /* for init_sched_attrs.  */
 #include "run-rtl-passes.h"
 
 /* Run the backend passes, starting at the given pass.

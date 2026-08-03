@@ -34,7 +34,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "emit-rtl.h"
 #include "gcov-io.h"
 #include "profile.h"
-#include "insn-attr.h"
+#include "insn-attr-ops.h"
 #include "cfgrtl.h"
 #include "sched-int.h"
 #include "cfgloop.h"

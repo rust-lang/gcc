@@ -56,7 +56,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "emit-rtl.h"
 #include "recog.h"
 #include "profile.h"
-#include "insn-attr.h"
+#include "insn-attr-ops.h"
 #include "except.h"
 #include "cfganal.h"
 #include "sched-int.h"

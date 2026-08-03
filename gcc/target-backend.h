@@ -31,6 +31,58 @@ struct gcc_target;
 struct insn_data_d;
 struct target_optabs;
 
+/* The generated insn attribute and DFA scheduler entry points of one
+   target (insn-attrtab.cc, insn-automata.cc).  Core consumers reach
+   them through the routing macros of insn-attr-ops.h.  The fields
+   carry an x_ prefix, as in target-globals: insn-attr.h defines
+   several of these names as object-like stub macros on targets
+   that lack the underlying attribute, and the fields must survive
+   being compiled alongside it.  */
+
+struct insn_attr_ops
+{
+  /* Variable-length insn support (stub hooks when the target has no
+     length attribute).  */
+  int (*x_insn_default_length) (rtx_insn *);
+  int (*x_insn_min_length) (rtx_insn *);
+  int (*x_insn_variable_length_p) (rtx_insn *);
+  int (*x_insn_current_length) (rtx_insn *);
+
+  /* The special boolean attributes consulted by the alternative
+     filtering in recog.cc (stub hooks when not defined).  */
+  int (*x_get_attr_enabled) (rtx_insn *);
+  int (*x_get_attr_preferred_for_size) (rtx_insn *);
+  int (*x_get_attr_preferred_for_speed) (rtx_insn *);
+
+  /* Delay slot descriptions consumed by reorg.cc.  */
+  int (*x_num_delay_slots) (rtx_insn *);
+  int (*x_eligible_for_delay) (rtx_insn *, int, rtx_insn *, int);
+  int (*x_const_num_delay_slots) (rtx_insn *);
+  int (*x_eligible_for_annul_true) (rtx_insn *, int, rtx_insn *, int);
+  int (*x_eligible_for_annul_false) (rtx_insn *, int, rtx_insn *, int);
+
+  /* The DFA pipeline hazard recognizer (insn-automata.cc); null when
+     the target has no insn reservations.  x_insn_default_latency points
+     at the target's generated insn_default_latency function pointer
+     variable, set up by init_sched_attrs.  The void * state arguments are the
+     state_t of insn-attr.h.  */
+  void (*x_init_sched_attrs) (void);
+  int (**x_insn_default_latency) (rtx_insn *);
+  int (*x_bypass_p) (rtx_insn *);
+  int (*x_insn_latency) (rtx_insn *, rtx_insn *);
+  int (*x_maximal_insn_latency) (rtx_insn *);
+  const int *x_max_insn_queue_index;
+  int (*x_state_size) (void);
+  void (*x_state_reset) (void *);
+  int (*x_state_transition) (void *, rtx);
+  int (*x_state_dead_lock_p) (void *);
+  int (*x_min_insn_conflict_delay) (void *, rtx_insn *, rtx_insn *);
+  void (*x_print_reservation) (FILE *, rtx_insn *);
+  void (*x_dfa_start) (void);
+  void (*x_dfa_finish) (void);
+  void (*x_dfa_clear_single_insn_cache) (rtx_insn *);
+};
+
 /* Everything the compiler needs in order to address one built-in
    target.  A single-target build has exactly one instance, describing
    the configured target; a multi-target build registers one instance
@@ -60,6 +112,10 @@ struct target_backend
      optabs.h.  */
   void (*x_init_all_optabs) (struct target_optabs *);
   enum insn_code (*x_raw_optab_handler) (unsigned);
+
+  /* Generated insn attribute and DFA entry points (insn-attrtab.cc,
+     insn-automata.cc).  */
+  struct insn_attr_ops attr_ops;
 };
 
 /* The descriptor of the configured target.  */

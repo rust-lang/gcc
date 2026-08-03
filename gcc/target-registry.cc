@@ -24,6 +24,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "rtl.h"
 #include "insn-config.h"
 #include "recog.h"
+#include "insn-attr.h"
 #include "memmodel.h"
 #include "optabs.h"
 #include "target.h"
@@ -32,6 +33,34 @@ along with GCC; see the file COPYING3.  If not see
 /* recog.h routes core references to insn_data through the descriptor;
    the registry itself must capture the underlying table.  */
 #undef insn_data
+
+/* The enabled and preferred_for_* attributes return an int on some
+   targets and a target-specific enum on others; these wrappers give
+   the descriptor a uniform signature.  */
+
+#if HAVE_ATTR_enabled
+static int
+get_attr_enabled_int (rtx_insn *insn)
+{
+  return get_attr_enabled (insn);
+}
+#endif
+
+#if HAVE_ATTR_preferred_for_size
+static int
+get_attr_preferred_for_size_int (rtx_insn *insn)
+{
+  return get_attr_preferred_for_size (insn);
+}
+#endif
+
+#if HAVE_ATTR_preferred_for_speed
+static int
+get_attr_preferred_for_speed_int (rtx_insn *insn)
+{
+  return get_attr_preferred_for_speed (insn);
+}
+#endif
 
 /* The descriptor of the configured target.  Its hook vector is the
    global one; multi-target builds will register the descriptors of
@@ -47,7 +76,63 @@ const struct target_backend default_target_backend =
   split_insns,
   peephole2_insns,
   init_all_optabs,
-  raw_optab_handler
+  raw_optab_handler,
+  {
+    insn_default_length,
+    insn_min_length,
+    insn_variable_length_p,
+    insn_current_length,
+#if HAVE_ATTR_enabled
+    get_attr_enabled_int,
+#else
+    /* The stub takes a plain rtx; core tests HAVE_ATTR_enabled before
+       calling, so the descriptor can carry null instead.  */
+    NULL,
+#endif
+#if HAVE_ATTR_preferred_for_size
+    get_attr_preferred_for_size_int,
+#else
+    NULL,
+#endif
+#if HAVE_ATTR_preferred_for_speed
+    get_attr_preferred_for_speed_int,
+#else
+    NULL,
+#endif
+    num_delay_slots,
+    eligible_for_delay,
+    const_num_delay_slots,
+    eligible_for_annul_true,
+    eligible_for_annul_false,
+#ifdef INSN_SCHEDULING
+# ifdef HAVE_INIT_SCHED_ATTRS
+    init_sched_attrs,
+    &insn_default_latency,
+# else
+    /* Without a tune attribute, init_sched_attrs is a stub macro and
+       insn_default_latency a plain function; the activation phase
+       supplies the wrapper.  */
+    NULL,
+    NULL,
+# endif
+    bypass_p,
+    insn_latency,
+    maximal_insn_latency,
+    &max_insn_queue_index,
+    state_size,
+    state_reset,
+    state_transition,
+    state_dead_lock_p,
+    min_insn_conflict_delay,
+    print_reservation,
+    dfa_start,
+    dfa_finish,
+    dfa_clear_single_insn_cache,
+#else
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+#endif
+  }
 };
 
 #if ENABLE_MULTI_TARGET

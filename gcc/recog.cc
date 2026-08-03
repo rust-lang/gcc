@@ -34,7 +34,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "regs.h"
 #include "emit-rtl.h"
 #include "recog.h"
-#include "insn-attr.h"
+#include "insn-attr-ops.h"
 #include "addresses.h"
 #include "cfgrtl.h"
 #include "cfgbuild.h"

@@ -104,7 +104,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "insn-config.h"
 #include "emit-rtl.h"
 #include "recog.h"
-#include "insn-attr.h"
+#include "insn-attr-ops.h"
 #include "resource.h"
 #include "tree-pass.h"
 

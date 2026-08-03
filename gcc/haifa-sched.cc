@@ -136,7 +136,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "regs.h"
 #include "ira.h"
 #include "recog.h"
-#include "insn-attr.h"
+#include "insn-attr-ops.h"
 #include "cfgrtl.h"
 #include "cfgbuild.h"
 #include "sched-int.h"
