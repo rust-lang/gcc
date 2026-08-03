@@ -3464,9 +3464,9 @@ $(multi_target_tags:%=mt-%/insn-flags.h): mt-%/insn-flags.h: \
   build/mt-%/genflags$(build_exeext) mt-%/insn-conditions.md \
   mt-config-%.sh
 	. ./mt-config-$*.sh; \
-	$(RUN_GEN) build/mt-$*/genflags$(build_exeext) $(srcdir)/common.md \
-	  $(srcdir)/config/$$mt_md_file mt-$*/insn-conditions.md \
-	  > tmp-mt-$*-flags.h
+	$(RUN_GEN) build/mt-$*/genflags$(build_exeext) --mt-prefix=mt_$*_ \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  mt-$*/insn-conditions.md > tmp-mt-$*-flags.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-flags.h $@
 
 $(multi_target_tags:%=mt-%/insn-target-def.h): \

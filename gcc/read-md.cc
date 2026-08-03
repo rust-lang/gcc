@@ -47,6 +47,9 @@ int have_error = 0;
    processed.  To be used for creation of the dependency file.  */
 void (*include_callback) (const char *);
 
+/* The multi-target symbol prefix from --mt-prefix, or null.  */
+const char *mt_prefix;
+
 /* Global singleton.  */
 
 md_reader *md_reader_ptr;
@@ -1249,6 +1252,15 @@ md_reader::read_md_files (int argc, const char **argv,
 	      add_include_path (argv[i]);
 	    else
 	      fatal ("directory name missing after -I option");
+	    continue;
+	  }
+
+	/* A multi-target build passes --mt-prefix=mt_<tag>_ so that
+	   the generated code's external symbols land in the target's
+	   own namespace.  */
+	if (startswith (argv[i], "--mt-prefix="))
+	  {
+	    mt_prefix = argv[i] + strlen ("--mt-prefix=");
 	    continue;
 	  }
 

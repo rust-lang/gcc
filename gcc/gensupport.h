@@ -154,6 +154,10 @@ extern const char *get_c_test (rtx);
    was run.  */
 extern int maybe_eval_c_test (const char *);
 
+/* Emit the multi-target rename macro for the symbol STEM NAME when
+   --mt-prefix was given; do nothing otherwise.  */
+extern void mt_prefix_define (const char *, const char *);
+
 /* Add an entry to the table of conditions.  Used by genconditions and
    by read-rtl.cc.  */
 extern void add_c_test (const char *, int);

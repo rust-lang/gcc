@@ -3448,6 +3448,19 @@ maybe_eval_c_test (const char *expr)
   return test->value;
 }
 
+/* If --mt-prefix was given, emit the macro renaming the external
+   symbol STEM NAME into the target's own namespace.  A multi-target
+   build compiles one copy of the generated code per enabled target;
+   the macro renames the declaration, the definition and every call
+   site alike, because they all include the header that carries it.  */
+
+void
+mt_prefix_define (const char *stem, const char *name)
+{
+  if (mt_prefix)
+    printf ("#define %s%s %s%s%s\n", stem, name, mt_prefix, stem, name);
+}
+
 /* Record the C test expression EXPR in the condition_table, with
    value VAL.  Duplicates clobber previous entries.  */
 

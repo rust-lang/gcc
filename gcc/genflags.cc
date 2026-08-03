@@ -239,6 +239,15 @@ main (int argc, const char **argv)
   obstack_grow (&obstack, &dummy, sizeof (rtx));
   insns = XOBFINISH (&obstack, rtx *);
 
+  /* In a multi-target build, first rename the generator functions
+     into the target's symbol namespace.  The macros rename the
+     prototypes below, the definitions in insn-emit.cc and every
+     call site alike.  Elided patterns become static inline dummies
+     with no external symbol, so they keep their names.  */
+  for (insn_ptr = insns; *insn_ptr; insn_ptr++)
+    if (maybe_eval_c_test (XSTR (*insn_ptr, 2)) != 0)
+      mt_prefix_define ("gen_", XSTR (*insn_ptr, 0));
+
   for (insn_ptr = insns; *insn_ptr; insn_ptr++)
     gen_proto (*insn_ptr);
 

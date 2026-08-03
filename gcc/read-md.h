@@ -375,6 +375,9 @@ extern rtx_reader *rtx_reader_ptr;
 
 extern void (*include_callback) (const char *);
 
+/* The multi-target symbol prefix from --mt-prefix, or null.  */
+extern const char *mt_prefix;
+
 /* Read the next character from the MD file.  */
 
 inline int
