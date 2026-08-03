@@ -27,11 +27,11 @@ along with GCC; see the file COPYING3.  If not see
    floating point formats are per-target data by design: the prototype
    targets already disagree on both.
 
-   For now the tool reports the union; the emission of the union
-   headers and the per-target value tables comes with the multi-target
-   build integration.
+   With -h the tool emits the union insn-modes.h; without it, a
+   report of the union.  The emission of the per-target value
+   tables comes with the multi-target build integration.
 
-   Usage: genmodes-merge <name>=<dump> <name>=<dump> ... > report.  */
+   Usage: genmodes-merge [-h] <name>=<dump> <name>=<dump> ...  */
 
 #define INCLUDE_STRING
 #define INCLUDE_VECTOR
@@ -90,12 +90,21 @@ struct union_mode
 {
   std::string name;
   int cl;
+  size_t first_seen;
   std::vector<target_mode> per_target;
 };
 
 static std::vector<std::string> target_names;
 static std::vector<union_mode> union_modes;
 static std::map<std::string, size_t> union_index_by_name;
+
+/* Global parameters of the union table, from the dumps' param
+   records: the unit size must agree, the maxima and the poly_int
+   coefficient count are superset maxima.  */
+static unsigned int bits_per_unit_param;
+static unsigned int max_bitsize_any_int_param;
+static unsigned int max_bitsize_any_mode_param;
+static unsigned int poly_int_coeffs_param = 1;
 
 /* Split LINE into whitespace-separated tokens.  */
 
@@ -145,6 +154,7 @@ union_slot (const char *file, const std::string &name, int cl)
       union_mode *mode = &union_modes.back ();
       mode->name = name;
       mode->cl = cl;
+      mode->first_seen = union_modes.size () - 1;
       mode->per_target.resize (target_names.size ());
       return mode;
     }
@@ -252,6 +262,29 @@ read_dump (const char *file, size_t target)
 	    record->adjusted_precision = true;
 	  else
 	    fatal ("%s:%u: unknown adjustment kind %s", file, line_number,
+		   tokens[1].c_str ());
+	}
+      else if (tokens[0] == "param")
+	{
+	  if (tokens.size () != 3)
+	    fatal ("%s:%u: truncated param record", file, line_number);
+	  unsigned int value = strtoul (tokens[2].c_str (), NULL, 10);
+	  if (tokens[1] == "bits_per_unit")
+	    {
+	      if (bits_per_unit_param && bits_per_unit_param != value)
+		fatal ("%s: bits_per_unit %u does not match %u", file,
+		       value, bits_per_unit_param);
+	      bits_per_unit_param = value;
+	    }
+	  else if (tokens[1] == "max_bitsize_mode_any_int")
+	    max_bitsize_any_int_param = MAX (max_bitsize_any_int_param, value);
+	  else if (tokens[1] == "max_bitsize_mode_any_mode")
+	    max_bitsize_any_mode_param
+	      = MAX (max_bitsize_any_mode_param, value);
+	  else if (tokens[1] == "poly_int_coeffs")
+	    poly_int_coeffs_param = MAX (poly_int_coeffs_param, value);
+	  else
+	    fatal ("%s:%u: unknown param %s", file, line_number,
 		   tokens[1].c_str ());
 	}
       else
@@ -365,26 +398,238 @@ links_vary_p (const union_mode &mode)
   return false;
 }
 
-/* Order the union class-major, then by name.  The final enum layout is
-   decided by the emission step; this order only serves the report.  */
+/* True if MODE is a boolean mode (for the first target that has
+   it; divergence shows up in the report as a non-uniform boolean
+   property).  */
+
+static bool
+boolean_mode_p (const union_mode &mode)
+{
+  for (size_t target = 0; target < target_names.size (); target++)
+    if (mode.per_target[target].present)
+      return mode.per_target[target].boolean_flag != 0;
+  return false;
+}
+
+/* The machmode.h wrapper class for modes of class CL, as in
+   genmodes.cc's get_mode_class.  */
+
+static const char *
+wrapper_class (int cl)
+{
+  switch (cl)
+    {
+    case MODE_INT:
+    case MODE_PARTIAL_INT:
+      return "scalar_int_mode";
+
+    case MODE_FRACT:
+    case MODE_UFRACT:
+    case MODE_ACCUM:
+    case MODE_UACCUM:
+      return "scalar_mode";
+
+    case MODE_FLOAT:
+    case MODE_DECIMAL_FLOAT:
+      return "scalar_float_mode";
+
+    case MODE_COMPLEX_INT:
+    case MODE_COMPLEX_FLOAT:
+      return "complex_mode";
+
+    default:
+      return NULL;
+    }
+}
+
+/* Emit the union insn-modes.h, mirroring genmodes.cc's
+   emit_insn_modes_h.  The union enum is laid out class-major, with
+   every class's modes in order of first appearance across the dumps,
+   so the primary target's layout leads and later targets append.  */
+
+static void
+emit_union_header (void)
+{
+  printf ("/* Generated automatically by genmodes-merge from the mode"
+	  " tables of:");
+  for (size_t target = 0; target < target_names.size (); target++)
+    printf (" %s", target_names[target].c_str ());
+  printf (".  */\n\n#ifndef GCC_INSN_MODES_H\n#define GCC_INSN_MODES_H\n"
+	  "\nenum machine_mode\n{\n");
+
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      const union_mode &mode = union_modes[i];
+      int count = printf ("  E_%smode,", mode.name.c_str ());
+      printf ("%*s/*", count < 27 ? 27 - count : 1, "");
+      for (size_t target = 0; target < target_names.size (); target++)
+	if (mode.per_target[target].present)
+	  printf (" %s", target_names[target].c_str ());
+      printf (" */\n");
+      printf ("#define HAVE_%smode\n", mode.name.c_str ());
+      printf ("#ifdef USE_ENUM_MODES\n");
+      printf ("#define %smode E_%smode\n", mode.name.c_str (),
+	      mode.name.c_str ());
+      printf ("#else\n");
+      if (const char *wrapper = wrapper_class (mode.cl))
+	printf ("#define %smode (%s ((%s::from_int) E_%smode))\n",
+		mode.name.c_str (), wrapper, wrapper, mode.name.c_str ());
+      else
+	printf ("#define %smode ((void) 0, E_%smode)\n",
+		mode.name.c_str (), mode.name.c_str ());
+      printf ("#endif\n");
+    }
+
+  puts ("  MAX_MACHINE_MODE,\n");
+
+  for (int c = 0; c < MAX_MODE_CLASS; c++)
+    {
+      /* Find the class's slice and check that its boolean modes lead
+	 it; they get their own range, as in genmodes.cc (see the
+	 MIN_MODE_INT comment there).  */
+      size_t first = 0, last = 0;
+      bool have_modes = false, saw_non_boolean = false;
+      for (size_t i = 0; i < union_modes.size (); i++)
+	{
+	  if (union_modes[i].cl != c)
+	    continue;
+	  if (!have_modes)
+	    first = i;
+	  have_modes = true;
+	  last = i;
+	  if (boolean_mode_p (union_modes[i]))
+	    {
+	      if (saw_non_boolean)
+		fatal ("boolean mode %s does not lead its class",
+		       union_modes[i].name.c_str ());
+	    }
+	  else
+	    saw_non_boolean = true;
+	}
+
+      if (have_modes && boolean_mode_p (union_modes[first]))
+	{
+	  size_t last_boolean = first;
+	  printf ("  MIN_MODE_BOOL = E_%smode,\n",
+		  union_modes[first].name.c_str ());
+	  while (first <= last && boolean_mode_p (union_modes[first]))
+	    {
+	      last_boolean = first;
+	      first++;
+	    }
+	  printf ("  MAX_MODE_BOOL = E_%smode,\n\n",
+		  union_modes[last_boolean].name.c_str ());
+	  if (first > last)
+	    have_modes = false;
+	}
+
+      if (have_modes)
+	printf ("  MIN_%s = E_%smode,\n  MAX_%s = E_%smode,\n\n",
+		mode_class_names[c], union_modes[first].name.c_str (),
+		mode_class_names[c], union_modes[last].name.c_str ());
+      else
+	printf ("  MIN_%s = E_VOIDmode,\n  MAX_%s = E_VOIDmode,\n\n",
+		mode_class_names[c], mode_class_names[c]);
+    }
+
+  puts ("  NUM_MACHINE_MODES = MAX_MACHINE_MODE\n};\n");
+
+  for (int c = 0; c < MAX_MODE_CLASS; c++)
+    {
+      bool have_modes = false;
+      for (size_t i = 0; i < union_modes.size (); i++)
+	if (union_modes[i].cl == c)
+	  have_modes = true;
+      printf ("#define NUM_%s ", mode_class_names[c]);
+      if (have_modes)
+	printf ("(MAX_%s - MIN_%s + 1)\n", mode_class_names[c],
+		mode_class_names[c]);
+      else
+	printf ("0\n");
+    }
+  printf ("\n");
+
+  /* A property is constant only if no target adjusts it at run time
+     and the targets agree on it, since activation installs the active
+     target's values.  */
+  bool nunits_variant = false, bytesize_variant = false;
+  bool alignment_variant = false, ibit_variant = false;
+  bool fbit_variant = false;
+  for (size_t i = 0; i < union_modes.size (); i++)
+    {
+      std::string variants = variant_properties (union_modes[i]);
+      if (variants.find ("ncomponents") != std::string::npos
+	  || variants.find ("precision") != std::string::npos)
+	nunits_variant = true;
+      if (variants.find ("bytesize") != std::string::npos)
+	bytesize_variant = true;
+      if (variants.find ("alignment") != std::string::npos)
+	alignment_variant = true;
+      if (variants.find ("ibit") != std::string::npos)
+	ibit_variant = true;
+      if (variants.find ("fbit") != std::string::npos)
+	fbit_variant = true;
+    }
+  printf ("#define CONST_MODE_NUNITS%s\n", nunits_variant ? "" : " const");
+  printf ("#define CONST_MODE_PRECISION%s\n", nunits_variant ? "" : " const");
+  printf ("#define CONST_MODE_SIZE%s\n",
+	  bytesize_variant || nunits_variant ? "" : " const");
+  printf ("#define CONST_MODE_UNIT_SIZE%s\n", bytesize_variant ? "" : " const");
+  printf ("#define CONST_MODE_BASE_ALIGN%s\n",
+	  alignment_variant ? "" : " const");
+  printf ("#define CONST_MODE_IBIT%s\n", ibit_variant ? "" : " const");
+  printf ("#define CONST_MODE_FBIT%s\n", fbit_variant ? "" : " const");
+  printf ("#define CONST_MODE_MASK%s\n", nunits_variant ? "" : " const");
+
+  printf ("\n#define BITS_PER_UNIT (%u)\n", bits_per_unit_param);
+  printf ("#define MAX_BITSIZE_MODE_ANY_INT %u\n",
+	  max_bitsize_any_int_param);
+  printf ("#define MAX_BITSIZE_MODE_ANY_MODE %u\n",
+	  max_bitsize_any_mode_param);
+
+  unsigned int int_n_entries = 0;
+  for (size_t i = 0; i < union_modes.size (); i++)
+    for (size_t target = 0; target < target_names.size (); target++)
+      if (union_modes[i].per_target[target].present
+	  && union_modes[i].per_target[target].int_n)
+	{
+	  int_n_entries++;
+	  break;
+	}
+  printf ("#define NUM_INT_N_ENTS %u\n", int_n_entries);
+  printf ("#define NUM_POLY_INT_COEFFS %u\n", poly_int_coeffs_param);
+
+  puts ("\n#endif /* insn-modes.h */");
+}
+
+/* Order the union class-major, then by first appearance across the
+   dumps, so the primary target's enum layout leads within every
+   class and later targets append.  */
 
 static bool
 union_order (const union_mode &first, const union_mode &second)
 {
   if (first.cl != second.cl)
     return first.cl < second.cl;
-  return first.name < second.name;
+  return first.first_seen < second.first_seen;
 }
 
 int
 main (int argc, char **argv)
 {
   progname = argv[0];
-  if (argc < 2)
-    fatal ("usage: %s <name>=<dump> <name>=<dump> ... > report", progname);
+  bool emit_header = false;
+  int first_argument = 1;
+  if (argc > 1 && !strcmp (argv[1], "-h"))
+    {
+      emit_header = true;
+      first_argument = 2;
+    }
+  if (argc - first_argument < 1)
+    fatal ("usage: %s [-h] <name>=<dump> <name>=<dump> ...", progname);
 
   std::vector<std::string> dump_files;
-  for (int i = 1; i < argc; i++)
+  for (int i = first_argument; i < argc; i++)
     {
       std::string argument (argv[i]);
       size_t equals = argument.find ('=');
@@ -398,6 +643,14 @@ main (int argc, char **argv)
     read_dump (dump_files[target].c_str (), target);
 
   std::sort (union_modes.begin (), union_modes.end (), union_order);
+
+  if (emit_header)
+    {
+      emit_union_header ();
+      if (fflush (stdout) || fclose (stdout))
+	return FATAL_EXIT_CODE;
+      return SUCCESS_EXIT_CODE;
+    }
 
   printf ("%lu targets, %lu modes in the union\n",
 	  (unsigned long) target_names.size (),

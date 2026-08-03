@@ -2119,6 +2119,26 @@ emit_mode_dump (void)
   struct mode_adjust *a;
 
   printf ("genmodes-dump 1\n");
+  {
+    unsigned int max_int_bytes = 1, max_bytes = 1;
+    for (m = modes[MODE_INT]; m; m = m->next)
+      if (max_int_bytes < m->bytesize)
+	max_int_bytes = m->bytesize;
+    for (m = modes[MODE_PARTIAL_INT]; m; m = m->next)
+      if (max_int_bytes < m->bytesize)
+	max_int_bytes = m->bytesize;
+    for_all_modes (c, m)
+      if (max_bytes < m->bytesize)
+	max_bytes = m->bytesize;
+    printf ("param bits_per_unit %d\n", bits_per_unit);
+    printf ("param max_bitsize_mode_any_int %d\n",
+	    max_bitsize_mode_any_int
+	    ? max_bitsize_mode_any_int : max_int_bytes * bits_per_unit);
+    printf ("param max_bitsize_mode_any_mode %d\n",
+	    max_bitsize_mode_any_mode
+	    ? max_bitsize_mode_any_mode : max_bytes * bits_per_unit);
+    printf ("param poly_int_coeffs %d\n", NUM_POLY_INT_COEFFS);
+  }
   for_all_modes (c, m)
     printf ("mode %s class=%s order=%u precision=%u bytesize=%u "
 	    "ncomponents=%u alignment=%u format=%s component=%s wider=%s "
