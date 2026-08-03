@@ -486,6 +486,14 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
 #undef ARG_POINTER_REGNUM
 #define ARG_POINTER_REGNUM \
   (mt_active_target_scalars->x_arg_pointer_regnum ())
+#undef Pmode
+#define Pmode \
+  (scalar_int_mode ((scalar_int_mode::from_int) \
+		    mt_active_target_scalars->x_pmode ()))
+#undef FUNCTION_MODE
+#define FUNCTION_MODE \
+  (scalar_int_mode ((scalar_int_mode::from_int) \
+		    mt_active_target_scalars->x_function_mode ()))
 #endif
 
 /* Offsets recorded in opcodes are a multiple of this alignment factor.  */
