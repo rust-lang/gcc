@@ -272,6 +272,105 @@ proc check_runtime {prop args} {
     }]
 }
 
+# Multi-target support.  A multi-target compiler answers
+# -print-multi-targets with the targets built into it, the
+# configured target first and one triple per line; a single-target
+# compiler rejects the option, leaving the list empty.
+
+proc multi_target_list { } {
+    global multi_target_cached_list
+    global tool
+
+    if {![info exists multi_target_cached_list]} {
+	set multi_target_cached_list {}
+	set options [list "additional_flags=-print-multi-targets"]
+	set output [${tool}_target_compile "" "" "none" $options]
+	foreach line [split $output "\n"] {
+	    set line [string trim $line]
+	    if { [regexp {^[A-Za-z0-9_]+(-[A-Za-z0-9_.]+)+$} $line] } {
+		lappend multi_target_cached_list $line
+	    }
+	}
+    }
+    return $multi_target_cached_list
+}
+
+# Return the triple of the enabled target whose name starts with
+# TAG, or the empty string.
+
+proc multi_target_triple { tag } {
+    foreach triple [multi_target_list] {
+	if { [string match "$tag-*" $triple] } {
+	    return $triple
+	}
+    }
+    return ""
+}
+
+# Return 1 for a multi-target compiler.
+
+proc check_effective_target_multi_target { } {
+    return [expr { [llength [multi_target_list]] >= 2 }]
+}
+
+# One check per target the multi-target tests cover.
+
+proc check_effective_target_multi_target_x86_64 { } {
+    return [expr { [multi_target_triple x86_64] ne "" }]
+}
+
+proc check_effective_target_multi_target_aarch64 { } {
+    return [expr { [multi_target_triple aarch64] ne "" }]
+}
+
+proc check_effective_target_multi_target_m68k { } {
+    return [expr { [multi_target_triple m68k] ne "" }]
+}
+
+# Return 1 if the driver can assemble for the TAG target: the
+# selection resolves an assembler and it accepts the output.
+
+proc multi_target_can_assemble { tag } {
+    set triple [multi_target_triple $tag]
+    if { $triple eq "" } {
+	return 0
+    }
+    return [check_no_compiler_messages multi_target_as_$tag object {
+	int multi_target_assemble_probe (void)
+	{
+	    return 1;
+	}
+    } "--target=$triple"]
+}
+
+proc check_effective_target_multi_target_as_aarch64 { } {
+    return [multi_target_can_assemble aarch64]
+}
+
+proc check_effective_target_multi_target_as_m68k { } {
+    return [multi_target_can_assemble m68k]
+}
+
+# Return 1 if the driver resolves no assembler at all for the TAG
+# target, so assembling reports the multi-target missing-tool error.
+
+proc multi_target_as_unresolved { tag } {
+    global tool
+
+    set triple [multi_target_triple $tag]
+    if { $triple eq "" } {
+	return 0
+    }
+    set options [list "additional_flags=--target=$triple" \
+		     "additional_flags=-print-prog-name=as"]
+    set output [${tool}_target_compile "" "" "none" $options]
+    return [expr { [string trim $output] eq "as" }]
+}
+
+proc check_effective_target_multi_target_as_unresolved_m68k { } {
+    return [multi_target_as_unresolved m68k]
+}
+
 # Return 1 if GCC was configured with $pattern.
 proc check_configured_with { pattern } {
     global tool

@@ -1,0 +1,108 @@
+#   Copyright (C) 2026 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GCC; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+
+# Multi-target driver and code generation tests.  Everything here
+# exercises a compiler configured with --enable-multi-target=; a
+# single-target compiler skips the whole directory.
+
+load_lib gcc-dg.exp
+
+if { ![check_effective_target_multi_target] } {
+    return
+}
+
+dg-init
+
+# The introspection surface: the configured target leads the list,
+# and at least one secondary follows.
+set test_name "print-multi-targets-1"
+set target_list [multi_target_list]
+set options [list "additional_flags=-dumpmachine"]
+set output [${tool}_target_compile "" "" "none" $options]
+set primary [string trim $output]
+if { [llength $target_list] >= 2
+     && [lindex $target_list 0] eq $primary } {
+    pass $test_name
+} else {
+    fail $test_name
+}
+
+# Naming the primary with --target= changes nothing: the output is
+# byte-identical to a plain compilation.
+set test_name "default-unchanged-1"
+set source_file "$srcdir/$subdir/default-unchanged-1.c"
+set plain_file "multi-target-plain.s"
+set selected_file "multi-target-selected.s"
+${tool}_target_compile $source_file $plain_file assembly ""
+set options [list "additional_flags=--target=$primary"]
+${tool}_target_compile $source_file $selected_file assembly $options
+if { [file exists $plain_file] && [file exists $selected_file] } {
+    set plain_handle [open $plain_file r]
+    set selected_handle [open $selected_file r]
+    set identical [string equal [read $plain_handle] \
+		       [read $selected_handle]]
+    close $plain_handle
+    close $selected_handle
+    if { $identical } {
+	pass $test_name
+    } else {
+	fail $test_name
+    }
+} else {
+    fail $test_name
+}
+file delete $plain_file $selected_file
+
+# The selection's captured specs compose the assembler command
+# line; -### shows it without needing the tool.
+foreach { mt_tag mt_flag mt_expect } {
+    m68k -fPIC --pcrel
+    aarch64 -mbig-endian -EB
+} {
+    if { ![is-effective-target multi_target_$mt_tag] } {
+	continue
+    }
+    set test_name "driver-specs-$mt_tag-1"
+    set mt_triple [multi_target_triple $mt_tag]
+    set options [list "additional_flags=--target=$mt_triple" \
+		     "additional_flags=$mt_flag" \
+		     "additional_flags=-###"]
+    set output [${tool}_target_compile \
+		    "$srcdir/$subdir/default-unchanged-1.c" \
+		    "multi-target-specs.o" "object" $options]
+    if { [string match "*$mt_expect*" $output] } {
+	pass $test_name
+    } else {
+	fail $test_name
+    }
+}
+
+# The generic tests select targets themselves or not at all.
+dg-runtest [list "$srcdir/$subdir/unknown-target-1.c" \
+		"$srcdir/$subdir/default-unchanged-1.c"] "" ""
+
+# Each enabled target's tests run under its selection.
+foreach mt_tag { x86_64 aarch64 m68k } {
+    if { ![is-effective-target multi_target_$mt_tag] } {
+	continue
+    }
+    set mt_triple [multi_target_triple $mt_tag]
+    dg-runtest [lsort [glob -nocomplain \
+			   $srcdir/$subdir/mt-$mt_tag-*.c]] \
+	"--target=$mt_triple" ""
+}
+
+dg-finish
