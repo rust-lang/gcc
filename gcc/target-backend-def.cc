@@ -175,6 +175,29 @@ static const struct ggc_root_tab *const mt_backend_gt_roots[] =
 extern const struct mt_register_tables
   MT_RENAMED (target_register_tables);
 
+/* The port's machine_function markers.  A secondary's aggregation
+   header names its renamed marker; the primary's are the host's
+   own, whose presence the generated wrapper macro signals.  In a
+   multi-target build the primary must define machine_function
+   whenever any enabled target does, or the field walk of struct
+   function omits it.  */
+#include "gtype-desc.h"
+#if defined (MT_BACKEND_PREFIX) && defined (MT_TARGETM_RENAMED)
+# ifdef MT_GT_MACHINE_FUNCTION_GGC_MX
+extern void MT_GT_MACHINE_FUNCTION_GGC_MX (void *);
+#  define MT_BACKEND_MACHINE_GGC_MX MT_GT_MACHINE_FUNCTION_GGC_MX
+# else
+#  define MT_BACKEND_MACHINE_GGC_MX NULL
+# endif
+# define MT_BACKEND_MACHINE_PCH_NX NULL
+#elif defined (gt_ggc_m_16machine_function)
+# define MT_BACKEND_MACHINE_GGC_MX gt_ggc_mx_machine_function
+# define MT_BACKEND_MACHINE_PCH_NX gt_pch_nx_machine_function
+#else
+# define MT_BACKEND_MACHINE_GGC_MX NULL
+# define MT_BACKEND_MACHINE_PCH_NX NULL
+#endif
+
 /* The enabled and preferred_for_* attributes return an int on some
    targets and a target-specific enum on others; these wrappers give
    the descriptor a uniform signature.  */
@@ -314,5 +337,7 @@ const struct target_backend MT_BACKEND_SYMBOL =
   MT_BACKEND_MODE_TABLES_REF,
   MT_RENAMED (init_adjust_machine_modes),
   MT_BACKEND_GT_ROOTS_REF,
-  &MT_RENAMED (target_register_tables)
+  &MT_RENAMED (target_register_tables),
+  MT_BACKEND_MACHINE_GGC_MX,
+  MT_BACKEND_MACHINE_PCH_NX
 };

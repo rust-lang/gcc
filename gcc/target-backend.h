@@ -222,6 +222,13 @@ struct target_backend
   /* The target's register information (target-register-tables.cc),
      read from its macros inside its own header context.  */
   const struct mt_register_tables *register_tables;
+
+  /* The port-owned machine_function markers (per-target gengtype
+     outputs); null when the port has no machine_function, and the
+     PCH walker is null for secondaries until PCH carries target
+     identity.  */
+  void (*x_ggc_mx_machine_function) (void *);
+  void (*x_pch_nx_machine_function) (void *);
 };
 
 /* The descriptor of the configured target.  */

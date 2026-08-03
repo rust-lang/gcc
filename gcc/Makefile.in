@@ -4280,10 +4280,17 @@ $(multi_target_tags:%=mt-%/s-gt-headers): mt-%/s-gt-headers: \
 mt_gt_root_sed = s/^.*ggc_root_tab \
   \(gt_ggc_r_[a-z0-9_]*\).*/MT_GT_ROOT_TAB (\1)/p
 
+# The tag's renamed machine_function marker, when the port
+# has one.
+mt_gt_machine_sed = s/^\#define gt_ggc_mx_machine_function /\#define \
+  MT_GT_MACHINE_FUNCTION_GGC_MX /p
+
 $(multi_target_tags:%=mt-%/mt-gt-roots.h): mt-%/mt-gt-roots.h: \
   mt-%/s-gt-headers Makefile
 	sed -n '$(mt_gt_root_sed)' mt-$*/gt-*.h \
 	  > tmp-mt-$*-gt-roots.h
+	sed -n '$(mt_gt_machine_sed)' mt-$*/gt-*.h \
+	  >> tmp-mt-$*-gt-roots.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-gt-roots.h \
 	  mt-$*/mt-gt-roots.h
 
@@ -4741,6 +4748,7 @@ s-gtype: $(EXTRA_GTYPE_DEPS) build/gengtype$(build_exeext) \
 # gtype.state is correctly read:
 	$(SHELL) $(srcdir)/../move-if-change tmp-gtype.state gtype.state
 	$(RUN_GEN) build/gengtype$(build_exeext) $(GENGTYPE_FLAGS) \
+                    $(if $(multi_target_tags),--mt-thunk=machine_function) \
                     -r gtype.state
 	$(STAMP) s-gtype
 

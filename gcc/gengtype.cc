@@ -59,6 +59,10 @@ static char *plugin_output_filename;
    output defines; see --mt-prefix.  */
 static const char *mt_prefix_string;
 
+/* The one type whose markers route through the multi-target
+   backend registry; see --mt-thunk.  */
+static const char *mt_thunk_type_string;
+
 /* Our source directory and its length.  */
 const char *srcdir;
 size_t srcdir_len;
@@ -3701,13 +3705,39 @@ write_types (outf_p output_header, type_p structures,
 
 	const char *s_id_for_tag = filter_type_name (s->u.s.tag);
 
+	if (mt_prefix_string != NULL)
+	  {
+	    /* The main run's header is read alongside this one and
+	       may define the wrapper already — machine_function's
+	       routes through the registry; this run's local marker
+	       takes over.  */
+	    oprintf (output_header, "#undef gt_%s_", wtd->prefix);
+	    output_mangled_typename (output_header, s);
+	    oprintf (output_header, "\n");
+	  }
 	oprintf (output_header, "#define gt_%s_", wtd->prefix);
 	output_mangled_typename (output_header, s);
 	oprintf (output_header, "(X) do { \\\n");
-	oprintf (output_header,
-		 "  if ((intptr_t)(X) != 0) gt_%sx_%s (X);\\\n",
-		 wtd->prefix, s_id_for_tag);
-	oprintf (output_header, "  } while (0)\n");
+	if (mt_thunk_type_string != NULL
+	    && strcmp (s->u.s.tag, mt_thunk_type_string) == 0)
+	  {
+	    /* The type belongs to the active target; its markers
+	       route through the backend registry.  */
+	    oprintf (output_header,
+		     "  if ((intptr_t)(X) != 0) mt_active_%sx_%s (X);\\\n",
+		     wtd->prefix, s_id_for_tag);
+	    oprintf (output_header, "  } while (0)\n");
+	    oprintf (output_header,
+		     "extern void mt_active_%sx_%s (void *);\n",
+		     wtd->prefix, s_id_for_tag);
+	  }
+	else
+	  {
+	    oprintf (output_header,
+		     "  if ((intptr_t)(X) != 0) gt_%sx_%s (X);\\\n",
+		     wtd->prefix, s_id_for_tag);
+	    oprintf (output_header, "  } while (0)\n");
+	  }
 
 	for (opt = s->u.s.opt; opt; opt = opt->next)
 	  if (strcmp (opt->name, "ptr_alias") == 0
@@ -5082,6 +5112,7 @@ static const struct option gengtype_long_options[] = {
   {"debug", no_argument, NULL, 'D'},
   {"plugin", required_argument, NULL, 'P'},
   {"mt-prefix", required_argument, NULL, 'm'},
+  {"mt-thunk", required_argument, NULL, 'k'},
   {"srcdir", required_argument, NULL, 'S'},
   {"backupdir", required_argument, NULL, 'B'},
   {"inputs", required_argument, NULL, 'I'},
@@ -5128,7 +5159,7 @@ static void
 parse_program_options (int argc, char **argv)
 {
   int opt = -1;
-  while ((opt = getopt_long (argc, argv, "hVvdP:S:B:I:w:r:Dm:",
+  while ((opt = getopt_long (argc, argv, "hVvdP:S:B:I:w:r:Dm:k:",
 			     gengtype_long_options, NULL)) >= 0)
     {
       switch (opt)
@@ -5159,6 +5190,12 @@ parse_program_options (int argc, char **argv)
 	    mt_prefix_string = optarg;
 	  else
 	    fatal ("missing multi-target prefix");
+	  break;
+	case 'k':		/* --mt-thunk */
+	  if (optarg)
+	    mt_thunk_type_string = optarg;
+	  else
+	    fatal ("missing multi-target thunk type");
 	  break;
 	case 'S':		/* --srcdir */
 	  if (optarg)

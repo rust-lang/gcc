@@ -194,6 +194,27 @@ install_target_backend (const struct target_backend *backend)
      switches that may override it have not been decoded yet.  */
   init_reg_sets ();
 }
+
+/* cfun->machine belongs to the port; the generated wrapper macros
+   of a multi-target build route its markers here (gengtype's
+   --mt-thunk).  The wrappers only call on non-null pointers, so a
+   port with no machine_function never arrives here.  */
+
+void
+mt_active_ggc_mx_machine_function (void *x_p)
+{
+  gcc_assert (this_target_backend->x_ggc_mx_machine_function
+	      != NULL);
+  this_target_backend->x_ggc_mx_machine_function (x_p);
+}
+
+void
+mt_active_pch_nx_machine_function (void *x_p)
+{
+  gcc_assert (this_target_backend->x_pch_nx_machine_function
+	      != NULL);
+  this_target_backend->x_pch_nx_machine_function (x_p);
+}
 #endif
 
 /* Make the backend built for BY_TRIPLE the one the compiler
