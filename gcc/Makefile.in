@@ -1940,7 +1940,8 @@ ALL_HOST_FRONTEND_OBJS = $(foreach v,$(CONFIG_LANGUAGES),$($(v)_OBJS))
 ALL_FDAS = $(foreach v,$(CONFIG_LANGUAGES),$($(v)_FDAS))
 
 ALL_HOST_BACKEND_OBJS = $(GCC_OBJS) $(OBJS) $(OBJS-libcommon) \
-  $(OBJS-libcommon-target) main.o c-family/cppspec.o \
+  $(OBJS-libcommon-target) main.o target-registry.o \
+  c-family/cppspec.o \
   $(COLLECT2_OBJS) $(EXTRA_GCC_OBJS) $(GCOV_OBJS) $(GCOV_DUMP_OBJS) \
   $(GCOV_TOOL_OBJS) $(GENGTYPE_OBJS) gcc-ar.o gcc-nm.o gcc-ranlib.o \
   lto-wrapper.o collect-utils.o lockfile.o lto-ltrans-cache.o
@@ -1971,7 +1972,8 @@ endif
 # yet they are supposed to be part of the plugin ABI.  See PR116143.
 EXTRA_BACKEND_OBJS = simple-diagnostic-path.o diagnostics/lazy-paths.o
 
-BACKEND = $(EXTRA_BACKEND_OBJS) libbackend.a main.o libcommon-target.a \
+BACKEND = $(EXTRA_BACKEND_OBJS) target-registry.o libbackend.a main.o \
+	libcommon-target.a \
 	libcommon.a $(CPPLIB) $(LIBDECNUMBER)
 
 # This is defined to "yes" if Tree checking is enabled, which roughly means
@@ -2676,6 +2678,7 @@ DRIVER_DEFINES = \
   -DTOOL_INCLUDE_DIR=\"$(gcc_tooldir)/include\" \
   -DNATIVE_SYSTEM_HEADER_DIR=\"$(NATIVE_SYSTEM_HEADER_DIR)\"
 
+CFLAGS-target-registry.o += -DTARGET_BACKEND_PRIMARY_TRIPLE="\"$(target)\""
 CFLAGS-gcc.o += $(DRIVER_DEFINES) -DBASEVER=$(BASEVER_s)
 gcc.o: $(BASEVER)
 
