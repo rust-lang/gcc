@@ -2933,6 +2933,80 @@ s-modes-m: build/genmodes$(build_exeext)
 	$(SHELL) $(srcdir)/../move-if-change tmp-min-modes.cc min-insn-modes.cc
 	$(STAMP) s-modes-m
 
+# Multi-target builds run one genmodes per enabled target and merge the
+# dumped mode tables into the union headers and the per-target value
+# tables.  The rules are inert in single-target builds.
+ifneq ($(multi_target_tags),)
+
+mt_directory_stamps = $(multi_target_tags:%=mt-%/stamp-directory)
+mt_genmodes_programs = \
+	$(multi_target_tags:%=build/mt-%/genmodes$(build_exeext))
+mt_mode_dumps = $(multi_target_tags:%=mt-%/insn-modes.dump)
+mt_mode_data_files = $(multi_target_tags:%=mt-%/insn-modes-data.cc)
+mt_dump_arguments = \
+	$(foreach mt_tag,$(multi_target_tags),$(mt_tag)=mt-$(mt_tag)/insn-modes.dump)
+
+$(mt_directory_stamps): mt-%/stamp-directory:
+	-test -d mt-$* || mkdir mt-$*
+	-test -d build/mt-$* || mkdir build/mt-$*
+	$(STAMP) $@
+
+# The target's own modes file is read through MT_EXTRA_MODES_FILE; it
+# is known only at recipe time (from the captured configuration), so
+# editing a secondary target's modes.def does not retrigger this rule —
+# touch the mt-config file if that matters during development.
+$(multi_target_tags:%=build/mt-%/genmodes.o): build/mt-%/genmodes.o: \
+  genmodes.cc $(BCONFIG_H) $(SYSTEM_H) errors.h $(HASHTAB_H) \
+  machmode.def mt-config-%.sh mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	$(COMPILER_FOR_BUILD) -c $(BUILD_COMPILERFLAGS) $(BUILD_CPPFLAGS) \
+	  $${mt_extra_modes:+-DMT_EXTRA_MODES_FILE=config/$$mt_extra_modes} \
+	  -o $@ $(srcdir)/genmodes.cc
+
+$(mt_genmodes_programs): build/mt-%/genmodes$(build_exeext): \
+  build/mt-%/genmodes.o $(BUILD_ERRORS) $(BUILD_LIBDEPS)
+	+$(LINKER_FOR_BUILD) $(BUILD_LINKERFLAGS) $(BUILD_LDFLAGS) -o $@ \
+	  build/mt-$*/genmodes.o $(BUILD_ERRORS) $(BUILD_LIBS)
+
+$(mt_mode_dumps): mt-%/insn-modes.dump: build/mt-%/genmodes$(build_exeext)
+	$(RUN_GEN) build/mt-$*/genmodes$(build_exeext) -X > tmp-mt-$*.dump
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*.dump $@
+
+mt-insn-modes.h: $(mt_mode_dumps) build/genmodes-merge$(build_exeext)
+	$(RUN_GEN) build/genmodes-merge$(build_exeext) -h $(mt_dump_arguments) \
+	  > tmp-mt-insn-modes.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-insn-modes.h $@
+
+mt-insn-modes-inline.h: $(mt_mode_dumps) build/genmodes-merge$(build_exeext)
+	$(RUN_GEN) build/genmodes-merge$(build_exeext) -i $(mt_dump_arguments) \
+	  > tmp-mt-insn-modes-inline.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-insn-modes-inline.h $@
+
+mt-modes.report: $(mt_mode_dumps) build/genmodes-merge$(build_exeext)
+	$(RUN_GEN) build/genmodes-merge$(build_exeext) $(mt_dump_arguments) \
+	  > tmp-mt-modes.report
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-modes.report $@
+
+$(mt_mode_data_files): mt-%/insn-modes-data.cc: $(mt_mode_dumps) \
+  build/genmodes-merge$(build_exeext)
+	$(RUN_GEN) build/genmodes-merge$(build_exeext) -d $* \
+	  $(mt_dump_arguments) > tmp-mt-$*-data.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-data.cc $@
+
+# The mode-merge gate: every enabled target dumps, the union emits,
+# and the per-target value tables generate.
+.PHONY: mt-check-modes
+mt-check-modes: mt-insn-modes.h mt-insn-modes-inline.h mt-modes.report \
+  $(mt_mode_data_files)
+
+else
+
+.PHONY: mt-check-modes
+mt-check-modes:
+	@echo "mt-check-modes: not a multi-target build"
+
+endif
+
 insn-preds.cc: s-preds; @true
 tm-preds.h: s-preds-h; @true
 tm-constrs.h: s-constrs-h; @true

@@ -38,6 +38,16 @@ static const char *const mode_class_names[MAX_MODE_CLASS] =
 #undef DEF_MODE_CLASS
 #undef MODE_CLASSES
 
+#ifdef MT_EXTRA_MODES_FILE
+/* A multi-target build compiles one genmodes per enabled target,
+   each against its own modes file; the build passes the path
+   unquoted.  */
+# undef EXTRA_MODES_FILE
+# define MT_STRINGIFY_1(path) #path
+# define MT_STRINGIFY(path) MT_STRINGIFY_1 (path)
+# define EXTRA_MODES_FILE MT_STRINGIFY (MT_EXTRA_MODES_FILE)
+#endif
+
 #ifdef EXTRA_MODES_FILE
 # define HAVE_EXTRA_MODES 1
 #else
