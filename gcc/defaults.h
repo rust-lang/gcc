@@ -487,16 +487,16 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
   (mt_active_target_scalars->x_max_stack_alignment ())
 #undef STACK_POINTER_REGNUM
 #define STACK_POINTER_REGNUM \
-  (mt_active_target_scalars->x_stack_pointer_regnum ())
+  ((int) (mt_active_target_scalars->x_stack_pointer_regnum () & 0xffff))
 #undef FRAME_POINTER_REGNUM
 #define FRAME_POINTER_REGNUM \
-  (mt_active_target_scalars->x_frame_pointer_regnum ())
+  ((int) (mt_active_target_scalars->x_frame_pointer_regnum () & 0xffff))
 #undef HARD_FRAME_POINTER_REGNUM
 #define HARD_FRAME_POINTER_REGNUM \
-  (mt_active_target_scalars->x_hard_frame_pointer_regnum ())
+  ((int) (mt_active_target_scalars->x_hard_frame_pointer_regnum () & 0xffff))
 #undef ARG_POINTER_REGNUM
 #define ARG_POINTER_REGNUM \
-  (mt_active_target_scalars->x_arg_pointer_regnum ())
+  ((int) (mt_active_target_scalars->x_arg_pointer_regnum () & 0xffff))
 #undef MOVE_MAX
 #define MOVE_MAX ((int) (mt_active_target_scalars->x_move_max () & 0xffff))
 #undef MOVE_MAX_PIECES
@@ -570,7 +570,7 @@ extern const struct mt_dwarf_ops *mt_active_dwarf_ops;
   (mt_active_dwarf_ops->x_debugger_regno ((int) (REG)))
 #undef DWARF_FRAME_RETURN_COLUMN
 #define DWARF_FRAME_RETURN_COLUMN \
-  (mt_active_dwarf_ops->x_dwarf_frame_return_column ())
+  ((int) (mt_active_dwarf_ops->x_dwarf_frame_return_column () & 0xffff))
 #undef INCOMING_FRAME_SP_OFFSET
 #define INCOMING_FRAME_SP_OFFSET \
   (mt_active_dwarf_ops->x_incoming_frame_sp_offset ())
