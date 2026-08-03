@@ -483,9 +483,17 @@ typedef unsigned char uchar;
    should be able to treat poly_int like a normal constant, with a
    conversion operator going from the former to the latter.  We also
    allow this for gencondmd.cc for all targets, so that we can treat
-   machine_modes as enums without causing build failures.  */
+   machine_modes as enums without causing build failures.  A
+   multi-target build uses the maximum coefficient count over the
+   enabled targets; the code of a target whose native count is 1
+   (MT_NATIVE_POLY_COEFFS, from its tm context) keeps the
+   conversion, with the is_constant assertion catching any value
+   that actually uses the higher coefficients.  */
 #if (defined (IN_TARGET_CODE) \
-     && (defined (USE_ENUM_MODES) || NUM_POLY_INT_COEFFS == 1))
+     && (defined (USE_ENUM_MODES) \
+	 || NUM_POLY_INT_COEFFS == 1 \
+	 || (defined (MT_NATIVE_POLY_COEFFS) \
+	     && MT_NATIVE_POLY_COEFFS == 1)))
 #define POLY_INT_CONVERSION 1
 #else
 #define POLY_INT_CONVERSION 0
