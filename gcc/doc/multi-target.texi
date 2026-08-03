@@ -36,6 +36,8 @@ satisfy to participate.
 * Multi-target libgccjit::      Target selection and switching in JIT.
 * Multi-target testing::        Identity gates and the testsuites.
 * Multi-target limitations::    What is fenced or deferred.
+* Multi-target porting::        Making a port multi-target ready.
+* Multi-target producer::      The blob contract and version two.
 @end menu
 
 @node Multi-target configuration
@@ -334,3 +336,101 @@ passes would decide can differ from a native cross compiler.
 RTL dump cosmetics (register and unspec @emph{names}) print through
 the host's tables; the numbers are the active target's.
 @end itemize
+
+@node Multi-target porting
+@section Making a port multi-target ready
+@findex multi_target_ready
+
+A port declares readiness by setting @code{multi_target_ready=yes} in
+its @file{config.gcc} case; @option{--enable-multi-target} without an
+argument then includes it, and naming its triple explicitly works.
+Work through this checklist first --- each item names the mechanism
+that depends on it:
+
+@enumerate
+@item
+@emph{Namespace hygiene.}  Every symbol the port's objects export
+must carry the port's prefix; generated symbols are renamed by the
+build, but a legacy unprefixed port export collides with another
+blob or the host.  Rename such exports in standalone prep commits;
+@code{mt-check-symbols} is the tripwire.
+
+@item
+@emph{Headers that re-enter.}  The port's @file{tm.h} chain must
+compile inside the per-tag context that @file{mt-config-@var{tag}.sh}
+reconstructs, and its spec macros must be self-contained: a spec
+that composes with driver-private fragments needs those fragments
+hoisted into @file{driver-spec-macros.h}, as the PIE block was.
+
+@item
+@emph{The one-layout rule.}  Audit the port's macro values against
+every conditional layout in shared headers: a value that collapses
+an enumeration or changes a structure's shape (aliased pointer
+registers, an unusual @code{FIRST_PSEUDO_REGISTER}, a wide
+@code{CUMULATIVE_ARGS}) must be absorbed by the union surface ---
+distinct slots, runtime aliasing, superset maxima --- never by a
+divergent per-surface layout (@pxref{Multi-target union surface}).
+
+@item
+@emph{Descriptor coverage.}  A target macro needs work if and only
+if a non-@code{IN_TARGET_CODE} object's contents depend on it.  If
+the port defines a host-visible macro no enabled port defined
+before, extend the descriptor with a captured callable or scalar
+and route it in @file{defaults.h}; a macro only the port itself
+reads needs nothing.
+
+@item
+@emph{Garbage-collected port state.}  @code{machine_function}
+markers come from the port's @code{target_gtfiles} through the
+plugin-style @command{gengtype} run; ownership and marking are
+handled centrally.  Port statics live in the registered root
+tables and must tolerate staying registered while another target
+is active.
+
+@item
+@emph{Inserted passes.}  A secondary's @file{@var{port}-passes.def}
+passes are not woven into the pass list; if the port's code
+quality depends on them, that limitation must be acceptable for
+the intended use, or the weaving generalized first.
+
+@item
+@emph{Tools and testsuite.}  Build a reference cross compiler from
+the same sources for golden comparisons; add the port's tag to the
+@code{multi_target} effective-target checks; provide cross binutils
+or the @code{--with-mt-as-@var{tag}=} override where assembling is
+to be tested.
+
+@item
+@emph{Certification.}  Three gates, in order: a build without
+@option{--enable-multi-target} stays byte-identical; the
+multi-target build bootstraps with the port enabled; the port's
+output under selection is instruction-identical to the reference
+cross at @option{-O0} and @option{-O2} on representative input.
+@end enumerate
+
+@node Multi-target producer
+@section The blob contract and version two
+
+The interface between a target's blob and the rest of the compiler
+is deliberately narrow, so the way blobs are @emph{produced} can
+change without touching consumers:
+
+@itemize @bullet
+@item
+A blob exports only its descriptor surface; the @command{nm} audit
+enforces it.
+
+@item
+Descriptor fields use only core-header types; no per-target
+compile-time constant is visible to a consumer.
+@end itemize
+
+Version one --- the present producer --- runs the generators once
+per target and renames their outputs.  Version two makes the
+generators target-aware: a generator emits one merged,
+target-indexed table for all enabled targets in a single run.  The
+contract above makes the migration incremental: one generator's
+N-run rule can be swapped for a merged run while every other
+generator stays N-run, and neither consumers nor the registry
+change.  Per-target pattern elision through @command{gencondmd} is
+preserved either way.
