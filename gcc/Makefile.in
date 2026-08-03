@@ -3232,8 +3232,8 @@ $(multi_target_tags:%=mt-%/tm-preds.h): mt-%/tm-preds.h: \
   build/mt-%/genpreds$(build_exeext) mt-config-%.sh mt-%/stamp-directory
 	. ./mt-config-$*.sh; \
 	$(RUN_GEN) build/mt-$*/genpreds$(build_exeext) -h \
-	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
-	  > tmp-mt-$*-preds.h
+	  --mt-prefix=mt_$*_ $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file > tmp-mt-$*-preds.h
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-preds.h $@
 
 $(multi_target_tags:%=mt-%/tm-constrs.h): mt-%/tm-constrs.h: \
@@ -3515,7 +3515,8 @@ $(multi_target_tags:%=mt-%/s-opinit): mt-%/s-opinit: \
   mt-config-%.sh
 	. ./mt-config-$*.sh; \
 	$(RUN_GEN) build/mt-$*/genopinit$(build_exeext) \
-	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  --mt-prefix=mt_$*_ $(srcdir)/common.md \
+	  $(srcdir)/config/$$mt_md_file \
 	  mt-$*/insn-conditions.md -htmp-mt-$*-opinit.h \
 	  -ctmp-mt-$*-opinit.cc
 	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-opinit.h \
@@ -3814,6 +3815,58 @@ mt_attr_unit_objects = \
 	$(multi_target_tags:%=mt-%/insn-latencytab.o) \
 	$(multi_target_tags:%=mt-%/insn-automata.o)
 
+$(multi_target_tags:%=mt-%/insn-preds.cc): mt-%/insn-preds.cc: \
+  build/mt-%/genpreds$(build_exeext) mt-config-%.sh \
+  mt-%/stamp-directory
+	. ./mt-config-$*.sh; \
+	$(RUN_GEN) build/mt-$*/genpreds$(build_exeext) \
+	  $(srcdir)/common.md $(srcdir)/config/$$mt_md_file \
+	  > tmp-mt-$*-preds.cc
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-$*-preds.cc $@
+
+$(multi_target_tags:%=mt-%/insn-preds.o): mt-%/insn-preds.o: \
+  mt-%/insn-preds.cc mt-%/tm-preds.h $(CONFIG_H) tree-check.h \
+  all-tree.def gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+$(multi_target_tags:%=mt-%/insn-opinit.o): mt-%/insn-opinit.o: \
+  mt-%/insn-opinit.cc $(CONFIG_H) tree-check.h all-tree.def \
+  gtype-desc.h genrtl.h $(mt_target_code_prerequisites)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-$* $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+# The mode tables are union-indexed core-side data: the arrays are
+# sized by the union's NUM_MACHINE_MODES, so the unit compiles
+# against the union headers, staged under mt-union/ with the names
+# coretypes.h includes.  This directory is the seed of the core
+# header swap.
+mt-union/stamp-directory:
+	-test -d mt-union || mkdir mt-union
+	$(STAMP) $@
+
+mt-union/insn-modes.h: mt-insn-modes.h mt-union/stamp-directory
+	cp mt-insn-modes.h tmp-mt-union-modes.h
+	$(SHELL) $(srcdir)/../move-if-change tmp-mt-union-modes.h $@
+
+mt-union/insn-modes-inline.h: mt-insn-modes-inline.h \
+  mt-union/stamp-directory
+	cp mt-insn-modes-inline.h tmp-mt-union-modes-inline.h
+	$(SHELL) $(srcdir)/../move-if-change \
+	  tmp-mt-union-modes-inline.h $@
+
+$(multi_target_tags:%=mt-%/insn-modes-data.o): \
+  mt-%/insn-modes-data.o: mt-%/insn-modes-data.cc $(CONFIG_H) \
+  tree-check.h all-tree.def gtype-desc.h genrtl.h \
+  mt-union/insn-modes.h mt-union/insn-modes-inline.h
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) -I mt-union $(ALL_CPPFLAGS) \
+	  -o $@ $<
+
+mt_final_unit_objects = \
+	$(multi_target_tags:%=mt-%/insn-preds.o) \
+	$(multi_target_tags:%=mt-%/insn-opinit.o) \
+	$(multi_target_tags:%=mt-%/insn-modes-data.o)
+
 # The collision audit: with the rename macros in effect, the targets'
 # generated objects must export pairwise disjoint strong symbols.
 # Weak and vague-linkage definitions — inline and template
@@ -3821,7 +3874,8 @@ mt_attr_unit_objects = \
 # not collisions.
 .PHONY: mt-check-symbols
 mt-check-symbols: $(mt_insn_emit_objects) $(mt_insn_recog_objects) \
-  $(mt_insn_unit_objects) $(mt_attr_unit_objects)
+  $(mt_insn_unit_objects) $(mt_attr_unit_objects) \
+  $(mt_final_unit_objects)
 	@for mt_tag in $(multi_target_tags); do \
 	  $(NM) -g -P mt-$$mt_tag/*.o \
 	    | awk 'NF >= 3 && $$2 != "U" && $$2 !~ /^[WwVv]$$/ \

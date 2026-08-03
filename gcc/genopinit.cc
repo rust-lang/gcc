@@ -110,6 +110,13 @@ open_outfile (const char *file_name)
 static void
 handle_overloaded_code_for (FILE *file, overloaded_name *oname)
 {
+  if (mt_prefix)
+    fprintf (file,
+	     "#define maybe_code_for_%s %smaybe_code_for_%s\n"
+	     "#define code_for_%s %scode_for_%s\n",
+	     oname->name, mt_prefix, oname->name,
+	     oname->name, mt_prefix, oname->name);
+
   fprintf (file, "\nextern insn_code maybe_code_for_%s (", oname->name);
   for (unsigned int i = 0; i < oname->arg_types.length (); ++i)
     fprintf (file, "%s%s", i == 0 ? "" : ", ", oname->arg_types[i]);
@@ -134,6 +141,13 @@ handle_overloaded_code_for (FILE *file, overloaded_name *oname)
 static void
 handle_overloaded_gen (FILE *file, overloaded_name *oname)
 {
+  if (mt_prefix)
+    fprintf (file,
+	     "#define maybe_gen_%s %smaybe_gen_%s\n"
+	     "#define gen_%s %sgen_%s\n",
+	     oname->name, mt_prefix, oname->name,
+	     oname->name, mt_prefix, oname->name);
+
   unsigned HOST_WIDE_INT seen = 0;
   for (overloaded_instance *instance = oname->first_instance->next;
        instance; instance = instance->next)
@@ -224,6 +238,19 @@ main (int argc, const char **argv)
 
   fprintf (h_file, "#ifndef GCC_INSN_OPINIT_H\n");
   fprintf (h_file, "#define GCC_INSN_OPINIT_H 1\n");
+  if (mt_prefix)
+    fprintf (h_file,
+	     "#define init_all_optabs %sinit_all_optabs\n"
+	     "#define raw_optab_handler %sraw_optab_handler\n"
+	     "#define swap_optab_enable %sswap_optab_enable\n"
+	     "#define partial_vectors_supported_p "
+	     "%spartial_vectors_supported_p\n"
+	     "#define code_to_optab_ %scode_to_optab_\n"
+	     "#define optab_to_code_ %soptab_to_code_\n"
+	     "#define convlib_def %sconvlib_def\n"
+	     "#define normlib_def %snormlib_def\n",
+	     mt_prefix, mt_prefix, mt_prefix, mt_prefix,
+	     mt_prefix, mt_prefix, mt_prefix, mt_prefix);
 
   /* Emit the optab enumeration for the header file.  */
   fprintf (h_file, "enum optab_tag {\n");

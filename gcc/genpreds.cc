@@ -1574,6 +1574,7 @@ write_dependent_filter_helpers_h ()
     }
   printf ("}\n");
 
+  mt_prefix_define ("eval_dependent_filter", "");
   printf ("\n"
 	  "extern bool\n"
 	  "eval_dependent_filter (int id, unsigned int regno,\n"
@@ -1661,7 +1662,14 @@ write_tm_preds_h (void)
 #ifdef HAVE_MACHINE_MODES");
 
   FOR_ALL_PREDICATES (p)
-    printf ("extern bool %s (rtx, machine_mode);\n", p->name);
+    {
+      /* Only the md-defined predicates have a definition in
+	 insn-preds.cc; the default ones live in recog.cc and keep
+	 their names.  */
+      if (p->exp)
+	mt_prefix_define (p->name, "");
+      printf ("extern bool %s (rtx, machine_mode);\n", p->name);
+    }
 
   puts ("#endif /* HAVE_MACHINE_MODES */\n");
 
@@ -1671,13 +1679,25 @@ write_tm_preds_h (void)
 	  "  HARD_REG_SET register_filters[%d];\n",
 	  MAX (register_filters.length (), 1));
   printf ("};\n"
-	  "\n"
-	  "extern struct target_constraints default_target_constraints;\n"
-	  "#if SWITCHABLE_TARGET\n"
-	  "extern struct target_constraints *this_target_constraints;\n"
+	  "\n");
+  mt_prefix_define ("default_target_constraints", "");
+  printf ("extern struct target_constraints default_target_constraints;\n"
+	  "#if SWITCHABLE_TARGET\n");
+  /* Under !SWITCHABLE_TARGET this name is an object-like macro, so
+     the rename belongs inside the first branch.  */
+  mt_prefix_define ("this_target_constraints", "");
+  printf ("extern struct target_constraints *this_target_constraints;\n"
 	  "#else\n"
 	  "#define this_target_constraints (&default_target_constraints)\n"
 	  "#endif\n");
+
+  /* The constraint machinery insn-preds.cc defines.  */
+  mt_prefix_define ("lookup_constraint_1", "");
+  mt_prefix_define ("lookup_constraint_array", "");
+  mt_prefix_define ("reg_class_for_constraint_1", "");
+  mt_prefix_define ("constraint_satisfied_p_array", "");
+  mt_prefix_define ("insn_const_int_ok_for_constraint", "");
+  mt_prefix_define ("init_reg_class_start_regs", "");
 
   /* Print TEST_REGISTER_FILTER_BIT, which tests whether register REGNO
      is a valid start register for register filter ID.  */
