@@ -234,6 +234,10 @@ struct target_backend
      expand into allocate_struct_function; null when the target
      defines none.  */
   void (*x_override_abi_format) (const_tree);
+
+  /* INIT_EXPANDERS, the per-function expander state setup a target
+     may expand into init_emit; null when the target defines none.  */
+  void (*x_init_expanders) (void);
 };
 
 /* The descriptor of the configured target.  */

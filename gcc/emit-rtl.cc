@@ -41,6 +41,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree.h"
 #include "df.h"
 #include "tm_p.h"
+#include "target-backend.h"
 #include "stringpool.h"
 #include "insn-config.h"
 #include "regs.h"
@@ -6037,8 +6038,13 @@ init_emit (void)
   REGNO_POINTER_ALIGN (VIRTUAL_CFA_REGNUM) = BITS_PER_WORD;
 #endif
 
-#ifdef INIT_EXPANDERS
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_init_expanders != NULL)
+    this_target_backend->x_init_expanders ();
+#else
+# ifdef INIT_EXPANDERS
   INIT_EXPANDERS;
+# endif
 #endif
 }
 
@@ -6369,12 +6375,17 @@ init_emit_once (void)
 
   reg_attrs_htab = hash_table<reg_attr_hasher>::create_ggc (37);
 
-#ifdef INIT_EXPANDERS
   /* This is to initialize {init|mark|free}_machine_status before the first
      call to push_function_context_to.  This is needed by the Chill front
      end which calls push_function_context_to before the first call to
      init_function_start.  */
+#if ENABLE_MULTI_TARGET
+  if (this_target_backend->x_init_expanders != NULL)
+    this_target_backend->x_init_expanders ();
+#else
+# ifdef INIT_EXPANDERS
   INIT_EXPANDERS;
+# endif
 #endif
 
   /* Create the unique rtx's for certain rtx codes and operand values.  */

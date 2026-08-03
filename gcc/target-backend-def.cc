@@ -240,6 +240,16 @@ backend_override_abi_format (const_tree fndecl)
 }
 #endif
 
+/* INIT_EXPANDERS is the target's per-function expander state setup,
+   expanded into init_emit; captured when the target defines one.  */
+#ifdef INIT_EXPANDERS
+static void
+backend_init_expanders (void)
+{
+  INIT_EXPANDERS;
+}
+#endif
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -357,6 +367,12 @@ const struct target_backend MT_BACKEND_SYMBOL =
 
 #ifdef OVERRIDE_ABI_FORMAT
   backend_override_abi_format,
+#else
+  NULL,
+#endif
+
+#ifdef INIT_EXPANDERS
+  backend_init_expanders,
 #else
   NULL,
 #endif
