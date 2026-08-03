@@ -490,6 +490,66 @@ backend_init_cumulative_libcall_args (void *cum,
 #endif
 }
 
+/* The DWARF and debugger register maps, captured here where cfun,
+   INVALID_REGNUM and the rtx builders are visible.  */
+
+static int
+backend_dwarf_frame_registers (void)
+{
+  return DWARF_FRAME_REGISTERS;
+}
+
+static unsigned int
+backend_dwarf_frame_regnum (int regno)
+{
+  return DWARF_FRAME_REGNUM (regno);
+}
+
+static unsigned int
+backend_debugger_regno (int regno)
+{
+  return DEBUGGER_REGNO (regno);
+}
+
+static int
+backend_dwarf_frame_return_column (void)
+{
+  return DWARF_FRAME_RETURN_COLUMN;
+}
+
+static int
+backend_incoming_frame_sp_offset (void)
+{
+  return INCOMING_FRAME_SP_OFFSET;
+}
+
+static unsigned int
+backend_eh_return_data_regno (int n)
+{
+  return EH_RETURN_DATA_REGNO (n);
+}
+
+static rtx
+backend_incoming_return_addr_rtx (void)
+{
+#ifdef INCOMING_RETURN_ADDR_RTX
+  return INCOMING_RETURN_ADDR_RTX;
+#else
+  return NULL_RTX;
+#endif
+}
+
+static const struct mt_dwarf_ops backend_dwarf_ops =
+{
+  backend_dwarf_frame_registers,
+  backend_dwarf_frame_regnum,
+  backend_debugger_regno,
+  backend_dwarf_frame_return_column,
+  backend_incoming_frame_sp_offset,
+  backend_eh_return_data_regno,
+  backend_incoming_return_addr_rtx,
+};
+
 /* C++ gives a const object internal linkage unless it is declared
    extern first; the registry must see this symbol.  */
 extern const struct target_backend MT_BACKEND_SYMBOL;
@@ -635,4 +695,6 @@ const struct target_backend MT_BACKEND_SYMBOL =
   backend_init_cumulative_args,
   backend_init_cumulative_incoming_args,
   backend_init_cumulative_libcall_args,
+
+  &backend_dwarf_ops,
 };

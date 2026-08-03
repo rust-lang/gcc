@@ -264,6 +264,9 @@ struct target_backend
   void (*x_init_cumulative_args) (void *, tree, rtx, tree, int);
   void (*x_init_cumulative_incoming_args) (void *, tree, rtx, tree);
   void (*x_init_cumulative_libcall_args) (void *, int, rtx, int);
+
+  /* The DWARF and debugger register maps (register-tables.h).  */
+  const struct mt_dwarf_ops *dwarf_ops;
 };
 
 /* The descriptor of the configured target.  */

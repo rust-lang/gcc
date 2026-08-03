@@ -75,6 +75,21 @@ struct mt_eliminable_pair
   int to;
 };
 
+/* The DWARF and debugger register map entry points, captured in the
+   descriptor's context, where cfun and the rtx builders are
+   visible.  */
+
+struct mt_dwarf_ops
+{
+  int (*x_dwarf_frame_registers) (void);
+  unsigned int (*x_dwarf_frame_regnum) (int);
+  unsigned int (*x_debugger_regno) (int);
+  int (*x_dwarf_frame_return_column) (void);
+  int (*x_incoming_frame_sp_offset) (void);
+  unsigned int (*x_eh_return_data_regno) (int);
+  rtx (*x_incoming_return_addr_rtx) (void);
+};
+
 struct mt_register_tables
 {
   /* The target's own FIRST_PSEUDO_REGISTER and N_REG_CLASSES.  */

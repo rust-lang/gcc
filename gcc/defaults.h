@@ -435,7 +435,8 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
    MT_NATIVE_REGISTER_CONSTANTS.  */
 #if ENABLE_MULTI_TARGET && !defined (GENERATOR_FILE) \
   && !defined (IN_TARGET_CODE) \
-  && !defined (MT_NATIVE_REGISTER_CONSTANTS)
+  && !defined (MT_NATIVE_REGISTER_CONSTANTS) \
+  && !defined (MT_NATIVE_TARGET_SURFACE)
 extern unsigned int mt_first_pseudo_register;
 extern int mt_n_reg_classes;
 #undef FIRST_PSEUDO_REGISTER
@@ -523,6 +524,28 @@ extern const struct mt_target_scalars *mt_active_target_scalars;
   ((enum reg_class) mt_active_target_scalars->x_all_regs ())
 #define GENERAL_REGS \
   ((enum reg_class) mt_active_target_scalars->x_general_regs ())
+extern const struct mt_dwarf_ops *mt_active_dwarf_ops;
+#undef DWARF_FRAME_REGISTERS
+#define DWARF_FRAME_REGISTERS \
+  (mt_active_dwarf_ops->x_dwarf_frame_registers ())
+#undef DWARF_FRAME_REGNUM
+#define DWARF_FRAME_REGNUM(REG) \
+  (mt_active_dwarf_ops->x_dwarf_frame_regnum ((int) (REG)))
+#undef DEBUGGER_REGNO
+#define DEBUGGER_REGNO(REG) \
+  (mt_active_dwarf_ops->x_debugger_regno ((int) (REG)))
+#undef DWARF_FRAME_RETURN_COLUMN
+#define DWARF_FRAME_RETURN_COLUMN \
+  (mt_active_dwarf_ops->x_dwarf_frame_return_column ())
+#undef INCOMING_FRAME_SP_OFFSET
+#define INCOMING_FRAME_SP_OFFSET \
+  (mt_active_dwarf_ops->x_incoming_frame_sp_offset ())
+#undef EH_RETURN_DATA_REGNO
+#define EH_RETURN_DATA_REGNO(N) \
+  (mt_active_dwarf_ops->x_eh_return_data_regno ((int) (N)))
+#undef INCOMING_RETURN_ADDR_RTX
+#define INCOMING_RETURN_ADDR_RTX \
+  (mt_active_dwarf_ops->x_incoming_return_addr_rtx ())
 #undef Pmode
 #define Pmode \
   (scalar_int_mode ((scalar_int_mode::from_int) \
