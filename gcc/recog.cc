@@ -4712,7 +4712,9 @@ public:
 bool
 pass_split_before_regstack::gate (function *)
 {
-#if HAVE_ATTR_length && defined (STACK_REGS)
+#ifdef STACK_REGS
+  if (!HAVE_ATTR_length)
+    return false;
   /* If flow2 creates new instructions which need splitting
      and scheduling after reload is not done, they might not be
      split until final which doesn't allow splitting
@@ -4763,10 +4765,10 @@ public:
     {
       /* The placement of the splitting that we do for shorten_branches
 	 depends on whether regstack is used by the target or not.  */
-#if HAVE_ATTR_length && !defined (STACK_REGS)
-      return true;
-#else
+#ifdef STACK_REGS
       return false;
+#else
+      return HAVE_ATTR_length;
 #endif
     }
 

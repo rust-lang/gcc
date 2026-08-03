@@ -32,8 +32,14 @@ along with GCC; see the file COPYING3.  If not see
    underlying functions.  insn-attr.h defines some of the names as stub
    macros when the target lacks the corresponding attribute; the
    descriptor of such a target captures the same stubs, so those
-   definitions are simply dropped here.  */
+   definitions are simply dropped here.  The constant
+   HAVE_ATTR_* flags of the special attributes are likewise
+   captured by the descriptor.  */
 
+#undef HAVE_ATTR_length
+#undef HAVE_ATTR_enabled
+#undef HAVE_ATTR_preferred_for_size
+#undef HAVE_ATTR_preferred_for_speed
 #undef insn_default_length
 #undef insn_min_length
 #undef insn_variable_length_p
@@ -42,6 +48,12 @@ along with GCC; see the file COPYING3.  If not see
 #undef get_attr_preferred_for_size
 #undef get_attr_preferred_for_speed
 
+#define HAVE_ATTR_length (this_target_backend->attr_ops.x_have_attr_length)
+#define HAVE_ATTR_enabled (this_target_backend->attr_ops.x_have_attr_enabled)
+#define HAVE_ATTR_preferred_for_size \
+  (this_target_backend->attr_ops.x_have_attr_preferred_for_size)
+#define HAVE_ATTR_preferred_for_speed \
+  (this_target_backend->attr_ops.x_have_attr_preferred_for_speed)
 #define insn_default_length \
   (this_target_backend->attr_ops.x_insn_default_length)
 #define insn_min_length (this_target_backend->attr_ops.x_insn_min_length)

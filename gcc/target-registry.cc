@@ -78,6 +78,10 @@ const struct target_backend default_target_backend =
   init_all_optabs,
   raw_optab_handler,
   {
+    HAVE_ATTR_length,
+    HAVE_ATTR_enabled,
+    HAVE_ATTR_preferred_for_size,
+    HAVE_ATTR_preferred_for_speed,
     insn_default_length,
     insn_min_length,
     insn_variable_length_p,

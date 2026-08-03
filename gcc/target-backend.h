@@ -41,6 +41,13 @@ struct target_optabs;
 
 struct insn_attr_ops
 {
+  /* genattr's constant flags for the special attributes, which core
+     tests at run time.  */
+  bool x_have_attr_length;
+  bool x_have_attr_enabled;
+  bool x_have_attr_preferred_for_size;
+  bool x_have_attr_preferred_for_speed;
+
   /* Variable-length insn support (stub hooks when the target has no
      length attribute).  */
   int (*x_insn_default_length) (rtx_insn *);
