@@ -2029,6 +2029,30 @@ jit_langhook_type_promotes_to (tree type)
   return type;
 }
 
+static unsigned int
+jit_langhook_option_lang_mask (void)
+{
+  return CL_LibGCCJIT;
+}
+
+#undef LANG_HOOKS_OPTION_LANG_MASK
+#define LANG_HOOKS_OPTION_LANG_MASK jit_langhook_option_lang_mask
+
+static bool
+jit_langhook_handle_option (
+  size_t code ATTRIBUTE_UNUSED,
+  const char *arg ATTRIBUTE_UNUSED,
+  HOST_WIDE_INT value ATTRIBUTE_UNUSED,
+  int kind ATTRIBUTE_UNUSED,
+  location_t loc ATTRIBUTE_UNUSED,
+  const struct cl_option_handlers *handlers ATTRIBUTE_UNUSED)
+{
+  return true;
+}
+
+#undef LANG_HOOKS_HANDLE_OPTION
+#define LANG_HOOKS_HANDLE_OPTION jit_langhook_handle_option
+
 #undef LANG_HOOKS_EH_PERSONALITY
 #define LANG_HOOKS_EH_PERSONALITY jit_langhook_eh_personality
 
