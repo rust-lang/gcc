@@ -2029,6 +2029,46 @@ jit_langhook_type_promotes_to (tree type)
   return type;
 }
 
+/* Implementation of LANG_HOOKS_OPTION_LANG_MASK.
+
+   Without this, libgccjit has no language mask at all, so only Common and
+   Target options are accepted: everything else is rejected with
+   "command-line option '...' is valid for <languages> but not for
+   <nothing>".  The options that make sense for a client of libgccjit are
+   marked with the LibGCCJIT language in the relevant lang.opt.  */
+
+static unsigned int
+jit_langhook_option_lang_mask (void)
+{
+  return CL_LibGCCJIT;
+}
+
+#undef LANG_HOOKS_OPTION_LANG_MASK
+#define LANG_HOOKS_OPTION_LANG_MASK jit_langhook_option_lang_mask
+
+/* Implementation of LANG_HOOKS_HANDLE_OPTION.
+
+   Every option libgccjit accepts has a Var(...) in the .opt file, so by the
+   time this is called handle_option has already stored the value and there is
+   nothing language-specific left to do.  The hook still has to exist and
+   return true: the default lhd_handle_option returns false, which would make
+   read_cmdline_option report the option as unrecognized.  */
+
+static bool
+jit_langhook_handle_option (
+  size_t code ATTRIBUTE_UNUSED,
+  const char *arg ATTRIBUTE_UNUSED,
+  HOST_WIDE_INT value ATTRIBUTE_UNUSED,
+  int kind ATTRIBUTE_UNUSED,
+  location_t loc ATTRIBUTE_UNUSED,
+  const struct cl_option_handlers *handlers ATTRIBUTE_UNUSED)
+{
+  return true;
+}
+
+#undef LANG_HOOKS_HANDLE_OPTION
+#define LANG_HOOKS_HANDLE_OPTION jit_langhook_handle_option
+
 #undef LANG_HOOKS_EH_PERSONALITY
 #define LANG_HOOKS_EH_PERSONALITY jit_langhook_eh_personality
 

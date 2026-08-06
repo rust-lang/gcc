@@ -164,12 +164,17 @@ extern const struct cl_var cl_vars[];
 extern const char *const lang_names[];
 extern const unsigned int cl_lang_count;
 
-#define CL_PARAMS               (1U << 16) /* Fake entry.  Used to display --param info with --help.  */
-#define CL_WARNING		(1U << 17) /* Enables an (optional) warning message.  */
-#define CL_OPTIMIZATION		(1U << 18) /* Enables an (optional) optimization.  */
-#define CL_DRIVER		(1U << 19) /* Driver option.  */
-#define CL_TARGET		(1U << 20) /* Target-specific option.  */
-#define CL_COMMON		(1U << 21) /* Language-independent.  */
+/* Bits 0 to cl_lang_count - 1 are reserved for the languages declared by the
+   Language records in the .opt files; see CL_LANG_ALL in options.h.  When a
+   front end is added, every macro below has to be shifted up by one bit to
+   make room for it.  */
+
+#define CL_PARAMS               (1U << 17) /* Fake entry.  Used to display --param info with --help.  */
+#define CL_WARNING		(1U << 18) /* Enables an (optional) warning message.  */
+#define CL_OPTIMIZATION		(1U << 19) /* Enables an (optional) optimization.  */
+#define CL_DRIVER		(1U << 20) /* Driver option.  */
+#define CL_TARGET		(1U << 21) /* Target-specific option.  */
+#define CL_COMMON		(1U << 22) /* Language-independent.  */
 
 #define CL_MIN_OPTION_CLASS	CL_PARAMS
 #define CL_MAX_OPTION_CLASS	CL_COMMON
@@ -179,11 +184,22 @@ extern const unsigned int cl_lang_count;
    This distinction is important because --help will not list options
    which only have these higher bits set.  */
 
-#define CL_JOINED		(1U << 22) /* If takes joined argument.  */
-#define CL_SEPARATE		(1U << 23) /* If takes a separate argument.  */
-#define CL_UNDOCUMENTED		(1U << 24) /* Do not output with --help.  */
-#define CL_NO_DWARF_RECORD	(1U << 25) /* Do not add to producer string.  */
-#define CL_PCH_IGNORE		(1U << 26) /* Do compare state for pch.  */
+#define CL_JOINED		(1U << 23) /* If takes joined argument.  */
+#define CL_SEPARATE		(1U << 24) /* If takes a separate argument.  */
+#define CL_UNDOCUMENTED		(1U << 25) /* Do not output with --help.  */
+#define CL_NO_DWARF_RECORD	(1U << 26) /* Do not add to producer string.  */
+#define CL_PCH_IGNORE		(1U << 27) /* Do compare state for pch.  */
+
+/* The language bits must not collide with the option class and attribute bits
+   defined above; adding a Language record to a .opt file without shifting
+   those macros up would give a language the same bit as CL_PARAMS.
+   optc-gen.awk emits an equivalent #error into options.cc, but that only
+   covers the one generated file, so state the invariant here too, where the
+   bits are actually laid out.  CL_LANG_ALL comes from the generated
+   options.h, which a few users of this header include only afterwards.  */
+#ifdef CL_LANG_ALL
+STATIC_ASSERT ((CL_LANG_ALL & CL_MIN_OPTION_CLASS) == 0);
+#endif
 
 /* Flags for an enumerated option argument.  */
 #define CL_ENUM_CANONICAL	(1 << 0) /* Canonical for this value.  */
