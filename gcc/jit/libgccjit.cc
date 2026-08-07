@@ -701,6 +701,20 @@ gcc_jit_vector_type_get_num_units (gcc_jit_vector_type *vector_type)
 
 /* Public entrypoint.  See description in libgccjit.h.
 
+   After error-checking, this calls the trivial
+   gcc::jit::recording::memento::as_object method (a type is a
+   memento), in jit-recording.h.  */
+
+gcc_jit_object *
+gcc_jit_vector_type_as_object (gcc_jit_vector_type *vector_type)
+{
+  RETURN_NULL_IF_FAIL (vector_type, NULL, NULL, "NULL vector_type");
+
+  return static_cast <gcc_jit_object *> (vector_type->as_object ());
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
    After error-checking, the real work is done by the
    gcc::jit::recording::vector_type::get_element_type method, in
    jit-recording.cc.  */
@@ -822,6 +836,20 @@ gcc_jit_function_type_get_param_type (gcc_jit_function_type *function_type,
 			       function_type->get_debug_string (),
 			       num_params);
   return (gcc_jit_type *)function_type->get_param_types ()[index];
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, this calls the trivial
+   gcc::jit::recording::memento::as_object method (a type is a
+   memento), in jit-recording.h.  */
+
+gcc_jit_object *
+gcc_jit_function_type_as_object (gcc_jit_function_type *function_type)
+{
+  RETURN_NULL_IF_FAIL (function_type, NULL, NULL, "NULL function_type");
+
+  return static_cast <gcc_jit_object *> (function_type->as_object ());
 }
 
 /* Public entrypoint.  See description in libgccjit.h.
@@ -3227,6 +3255,20 @@ gcc_jit_region_add_block (gcc_jit_region *region, gcc_jit_block *block)
     block->get_debug_string ());
 
   region->add_block (block);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, this calls the trivial
+   gcc::jit::recording::memento::as_object method (a region is a
+   memento), in jit-recording.h.  */
+
+gcc_jit_object *
+gcc_jit_region_as_object (gcc_jit_region *region)
+{
+  RETURN_NULL_IF_FAIL (region, NULL, NULL, "NULL region");
+
+  return static_cast <gcc_jit_object *> (region->as_object ());
 }
 
 /* Public entrypoint.  See description in libgccjit.h.
