@@ -1610,6 +1610,14 @@ extern void
 gcc_jit_region_add_block (gcc_jit_region *region,
 			  gcc_jit_block *block);
 
+/* Upcasting from gcc_jit_region to object.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_55.
+*/
+
+extern gcc_jit_object *
+gcc_jit_region_as_object (gcc_jit_region *region);
+
 #define LIBGCCJIT_HAVE_REGION
 
 /* Clone blocks into out_clones.
@@ -2248,6 +2256,14 @@ extern gcc_jit_type *
 gcc_jit_function_type_get_param_type (gcc_jit_function_type *function_type,
 				size_t index);
 
+/* Upcasting from gcc_jit_function_type to object.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_55.
+*/
+
+extern gcc_jit_object *
+gcc_jit_function_type_as_object (gcc_jit_function_type *function_type);
+
 /* Return non-zero if the type is an integral.  */
 extern int
 gcc_jit_type_is_integral (gcc_jit_type *type);
@@ -2278,6 +2294,14 @@ gcc_jit_vector_type_get_num_units (gcc_jit_vector_type *vector_type);
 /* Given a vector type, return the type of its elements.  */
 extern gcc_jit_type *
 gcc_jit_vector_type_get_element_type (gcc_jit_vector_type *vector_type);
+
+/* Upcasting from gcc_jit_vector_type to object.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_55.
+*/
+
+extern gcc_jit_object *
+gcc_jit_vector_type_as_object (gcc_jit_vector_type *vector_type);
 
 /* Given a type, return the unqualified type, removing "const", "volatile"
  * and alignment qualifiers.  */
