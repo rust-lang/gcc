@@ -1201,8 +1201,27 @@ m68k_use_return_insn (void)
   return current_frame.offset == 0;
 }
 
-/* Emit RTL for the "epilogue" or "sibcall_epilogue" define_expand;
-   SIBCALL_P says which.
+/* Return the subset of the integer registers saved by the prologue that an
+   epilogue of kind KIND has to restore.  The EH_RETURN_DATA_REGNO save slots
+   are only filled in by the unwinder, so reloading them anywhere but on the
+   exception return path would clobber the function's return value.  */
+
+static unsigned int
+m68k_epilogue_reg_mask (enum m68k_epilogue_kind kind)
+{
+  unsigned int mask;
+  unsigned int i;
+
+  mask = current_frame.reg_mask;
+  if (crtl->calls_eh_return && kind != M68K_EPILOGUE_EH_RETURN)
+    for (i = 0; EH_RETURN_DATA_REGNO (i) != INVALID_REGNUM; i++)
+      mask &= ~(1u << (EH_RETURN_DATA_REGNO (i) - D0_REG));
+
+  return mask;
+}
+
+/* Emit RTL for the "epilogue", "sibcall_epilogue" or "eh_return_internal"
+   define_expand; KIND says which.
 
    The function epilogue should not depend on the current stack pointer!
    It should use the frame pointer only, if there is a frame pointer.
@@ -1210,12 +1229,25 @@ m68k_use_return_insn (void)
    omit stack adjustments before returning.  */
 
 void
-m68k_expand_epilogue (bool sibcall_p)
+m68k_expand_epilogue (enum m68k_epilogue_kind kind)
 {
   HOST_WIDE_INT fsize, fsize_with_regs;
   bool big, restore_from_sp;
+  unsigned int reg_mask, skipped_mask;
+  int reg_no;
+  HOST_WIDE_INT skipped_size;
+  bool post_increment_p;
 
   m68k_compute_frame_layout ();
+
+  reg_mask = m68k_epilogue_reg_mask (kind);
+  reg_no = popcount_hwi (reg_mask);
+
+  /* The skipped registers are the lowest numbered saved ones, so their slots
+     form a block at the bottom of the save area.  */
+  skipped_mask = current_frame.reg_mask & ~reg_mask;
+  gcc_assert ((skipped_mask & (skipped_mask + 1)) == 0);
+  skipped_size = (current_frame.reg_no - reg_no) * GET_MODE_SIZE (SImode);
 
   fsize = current_frame.size;
   big = false;
@@ -1243,7 +1275,7 @@ m68k_expand_epilogue (bool sibcall_p)
 
   if (current_frame.offset + fsize >= 0x8000
       && !restore_from_sp
-      && (current_frame.reg_mask || current_frame.fpu_mask))
+      && (reg_mask || current_frame.fpu_mask))
     {
       if (TARGET_COLDFIRE
 	  && (current_frame.reg_no >= MIN_MOVEM_REGS
@@ -1268,16 +1300,34 @@ m68k_expand_epilogue (bool sibcall_p)
 	}
     }
 
-  if (current_frame.reg_no < MIN_MOVEM_REGS)
+  /* ColdFire's movem cannot post-increment, so the prologue folded the save
+     area into the frame allocation and the epilogue addresses it directly.  */
+  post_increment_p = (restore_from_sp
+		      && !(TARGET_COLDFIRE
+			   && current_frame.reg_no >= MIN_MOVEM_REGS));
+
+  /* The skipped slots sit at the bottom of the save area, so step the stack
+     pointer past them before the post-increment reloads.  */
+  if (post_increment_p && skipped_size != 0)
+    {
+      if (reg_mask == 0 && current_frame.fpu_no == 0)
+	fsize_with_regs += skipped_size;
+      else
+	emit_insn (gen_addsi3 (stack_pointer_rtx, stack_pointer_rtx,
+			       GEN_INT (skipped_size)));
+    }
+
+  if (reg_no < MIN_MOVEM_REGS)
     {
       /* Restore each register separately in the same order moveml does.  */
       int i;
       HOST_WIDE_INT offset;
 
-      offset = current_frame.offset + fsize;
+      /* OFFSET is the position of the register within the save area.  */
+      offset = skipped_size;
       for (i = 0; i < 16; i++)
-        if (current_frame.reg_mask & (1 << i))
-          {
+	if (reg_mask & (1 << i))
+	  {
 	    rtx addr;
 
 	    if (big)
@@ -1285,36 +1335,38 @@ m68k_expand_epilogue (bool sibcall_p)
 		/* Generate the address -OFFSET(%fp,%a1.l).  */
 		addr = gen_rtx_REG (Pmode, A1_REG);
 		addr = gen_rtx_PLUS (Pmode, addr, frame_pointer_rtx);
-		addr = plus_constant (Pmode, addr, -offset);
+		addr = plus_constant (Pmode, addr,
+				      offset - (current_frame.offset + fsize));
 	      }
-	    else if (restore_from_sp)
+	    else if (post_increment_p)
 	      addr = gen_rtx_POST_INC (Pmode, stack_pointer_rtx);
+	    else if (restore_from_sp)
+	      addr = plus_constant (Pmode, stack_pointer_rtx, offset);
 	    else
-	      addr = plus_constant (Pmode, frame_pointer_rtx, -offset);
+	      addr = plus_constant (Pmode, frame_pointer_rtx,
+				    offset - (current_frame.offset + fsize));
 	    emit_move_insn (gen_rtx_REG (SImode, D0_REG + i),
 			    gen_frame_mem (SImode, addr));
-	    offset -= GET_MODE_SIZE (SImode);
+	    offset += GET_MODE_SIZE (SImode);
 	  }
     }
-  else if (current_frame.reg_mask)
+  else if (reg_mask)
     {
       if (big)
 	m68k_emit_movem (gen_rtx_PLUS (Pmode,
 				       gen_rtx_REG (Pmode, A1_REG),
 				       frame_pointer_rtx),
-			 -(current_frame.offset + fsize),
-			 current_frame.reg_no, D0_REG,
-			 current_frame.reg_mask, false, false);
+			 skipped_size - (current_frame.offset + fsize),
+			 reg_no, D0_REG, reg_mask, false, false);
       else if (restore_from_sp)
-	m68k_emit_movem (stack_pointer_rtx, 0,
-			 current_frame.reg_no, D0_REG,
-			 current_frame.reg_mask, false,
-			 !TARGET_COLDFIRE);
+	m68k_emit_movem (stack_pointer_rtx,
+			 post_increment_p ? 0 : skipped_size,
+			 reg_no, D0_REG, reg_mask, false,
+			 post_increment_p);
       else
 	m68k_emit_movem (frame_pointer_rtx,
-			 -(current_frame.offset + fsize),
-			 current_frame.reg_no, D0_REG,
-			 current_frame.reg_mask, false, false);
+			 skipped_size - (current_frame.offset + fsize),
+			 reg_no, D0_REG, reg_mask, false, false);
     }
 
   if (current_frame.fpu_no > 0)
@@ -1364,12 +1416,12 @@ m68k_expand_epilogue (bool sibcall_p)
 			   stack_pointer_rtx,
 			   GEN_INT (fsize_with_regs)));
 
-  if (crtl->calls_eh_return)
+  if (kind == M68K_EPILOGUE_EH_RETURN)
     emit_insn (gen_addsi3 (stack_pointer_rtx,
 			   stack_pointer_rtx,
 			   EH_RETURN_STACKADJ_RTX));
 
-  if (!sibcall_p)
+  if (kind != M68K_EPILOGUE_SIBCALL)
     emit_jump_insn (ret_rtx);
 }
 
