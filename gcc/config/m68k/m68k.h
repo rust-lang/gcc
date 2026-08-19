@@ -738,6 +738,16 @@ __transfer_from_trampoline ()					\
 
 #define EPILOGUE_USES(REGNO) m68k_epilogue_uses (REGNO)
 
+/* The kind of return an epilogue is expanded for.  Only the exception return
+   path restores the EH_RETURN_DATA_REGNO registers and applies the unwinder's
+   stack adjustment.  */
+enum m68k_epilogue_kind
+{
+  M68K_EPILOGUE_NORMAL,
+  M68K_EPILOGUE_SIBCALL,
+  M68K_EPILOGUE_EH_RETURN
+};
+
 /* Describe how we implement __builtin_eh_return.  */
 #define EH_RETURN_DATA_REGNO(N) \
   ((N) < 2 ? (N) : INVALID_REGNUM)
