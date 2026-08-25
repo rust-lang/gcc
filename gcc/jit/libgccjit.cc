@@ -5242,6 +5242,11 @@ gcc_jit_function_set_location (gcc_jit_function *func,
   func->set_loc (loc);
 }
 
+int gcc_jit_context_get_error_count (gcc_jit_context *ctxt)
+{
+  return ctxt->errors_occurred ();
+}
+
 bool
 gcc_jit_is_lto_supported ()
 {
