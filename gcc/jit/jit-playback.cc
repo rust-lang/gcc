@@ -695,6 +695,8 @@ const char* variable_attribute_to_string (gcc_jit_variable_attribute attr)
       return "section";
     case GCC_JIT_VARIABLE_ATTRIBUTE_RETAIN:
       return "retain";
+    case GCC_JIT_VARIABLE_ATTRIBUTE_COMMON:
+      return "common";
     case GCC_JIT_VARIABLE_ATTRIBUTE_MAX:
       return NULL;
   }
