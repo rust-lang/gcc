@@ -5981,6 +5981,7 @@ static const char * const gcc_jit_variable_attribute_enum_strings[] = {
   "GCC_JIT_VARIABLE_ATTRIBUTE_USED",
   "GCC_JIT_VARIABLE_ATTRIBUTE_SECTION",
   "GCC_JIT_VARIABLE_ATTRIBUTE_RETAIN",
+  "GCC_JIT_VARIABLE_ATTRIBUTE_COMMON",
 };
 
 void
