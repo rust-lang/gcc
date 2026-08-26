@@ -58,6 +58,7 @@ static tree handle_alias_attribute (tree *, tree, tree, int, bool *);
 static tree handle_always_inline_attribute (tree *, tree, tree, int,
 					    bool *);
 static tree handle_cold_attribute (tree *, tree, tree, int, bool *);
+static tree handle_common_attribute (tree *, tree, tree, int, bool *);
 static tree handle_const_attribute (tree *, tree, tree, int, bool *);
 static tree handle_fnspec_attribute (tree *, tree, tree, int, bool *);
 static tree handle_format_arg_attribute (tree *, tree, tree, int, bool *);
@@ -153,6 +154,13 @@ extern const struct attribute_spec::exclusions attr_cold_hot_exclusions[] =
   ATTR_EXCL (NULL, false, false, false)
 };
 
+static const struct attribute_spec::exclusions attr_common_exclusions[] =
+{
+  ATTR_EXCL ("common", true, true, true),
+  ATTR_EXCL ("nocommon", true, true, true),
+  ATTR_EXCL (NULL, false, false, false),
+};
+
 static const struct attribute_spec::exclusions attr_noinline_exclusions[] =
 {
   ATTR_EXCL ("always_inline", true, true, true),
@@ -201,6 +209,9 @@ static const attribute_spec jit_gnu_attributes[] =
   { "cold",		      0, 0, true,  false, false, false,
 			      handle_cold_attribute,
 			      attr_cold_hot_exclusions },
+  { "common",                 0, 0, true,  false, false, false,
+			      handle_common_attribute,
+	                      attr_common_exclusions },
   /* The same comments as for noreturn attributes apply to const ones.  */
   { "const",		      0, 0, true,  false, false, false,
 			      handle_const_attribute,
@@ -774,6 +785,24 @@ handle_cold_attribute (tree *node, tree name, tree ARG_UNUSED (args),
     {
       /* Attribute cold processing is done later with lookup_attribute.  */
     }
+  else
+    {
+      warning (OPT_Wattributes, "%qE attribute ignored", name);
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle a "common" attribute; arguments as in
+   struct attribute_spec.handler.  */
+
+static tree
+handle_common_attribute (tree *node, tree name, tree ARG_UNUSED (args),
+			 int ARG_UNUSED (flags), bool *no_add_attrs)
+{
+  if (VAR_P (*node))
+    DECL_COMMON (*node) = 1;
   else
     {
       warning (OPT_Wattributes, "%qE attribute ignored", name);
