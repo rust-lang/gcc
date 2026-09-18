@@ -2509,6 +2509,13 @@ extern void
 gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable,
 			      enum gcc_jit_variable_attribute attribute);
 
+/* Make the given function return its value in memory (through a hidden
+   pointer), even if the target ABI would normally return it in
+   registers.  This sets TREE_ADDRESSABLE on the FUNCTION_TYPE of the
+   function.  */
+extern void
+gcc_jit_function_set_indirect_return (gcc_jit_function *func);
+
 extern void
 gcc_jit_field_set_location (gcc_jit_field *field,
 			    gcc_jit_location *loc);
