@@ -1183,6 +1183,7 @@ public:
   int is_variadic () const { return m_is_variadic; }
 
   void set_indirect_return () { m_indirect_return = true; }
+  bool is_indirect_return () const { return m_indirect_return; }
 
   string * make_debug_string_with_ptr ();
 
