@@ -1182,6 +1182,8 @@ public:
   const vec<type *> &get_param_types () const { return m_param_types; }
   int is_variadic () const { return m_is_variadic; }
 
+  void set_indirect_return () { m_indirect_return = true; }
+
   string * make_debug_string_with_ptr ();
 
   void
@@ -1198,6 +1200,7 @@ private:
   auto_vec<type *> m_param_types;
   int m_is_variadic;
   bool m_is_target_builtin;
+  bool m_indirect_return;
 };
 
 class field : public memento
@@ -1681,6 +1684,14 @@ public:
 
   bool is_variadic () const { return m_is_variadic; }
 
+  void set_indirect_return ()
+  {
+    m_indirect_return = true;
+    if (m_fn_ptr_type)
+      m_fn_ptr_type->is_pointer ()->as_a_function_type ()
+	->set_indirect_return ();
+  }
+
   void write_to_dump (dump &d) final override;
 
   void validate ();
@@ -1713,6 +1724,7 @@ private:
   std::vector<std::pair<gcc_jit_fn_attribute, std::string>> m_string_attributes;
   std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> m_int_array_attributes;
   bool m_is_target_builtin;
+  bool m_indirect_return;
 
   friend class region;
 };
