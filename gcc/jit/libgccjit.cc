@@ -840,6 +840,32 @@ gcc_jit_function_type_get_param_type (gcc_jit_function_type *function_type,
 
 /* Public entrypoint.  See description in libgccjit.h.
 
+   After error-checking, the real work is done by the
+   gcc::jit::recording::function_type::set_indirect_return method, in
+   jit-recording.h.  */
+
+void
+gcc_jit_function_type_set_indirect_return (gcc_jit_function_type *function_type)
+{
+  RETURN_IF_FAIL (function_type, NULL, NULL, "NULL function_type");
+  function_type->set_indirect_return ();
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
+   gcc::jit::recording::function_type::is_indirect_return method, in
+   jit-recording.h.  */
+
+int
+gcc_jit_function_type_is_indirect_return (gcc_jit_function_type *function_type)
+{
+  RETURN_VAL_IF_FAIL (function_type, 0, NULL, NULL, "NULL function_type");
+  return function_type->is_indirect_return ();
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
    After error-checking, this calls the trivial
    gcc::jit::recording::memento::as_object method (a type is a
    memento), in jit-recording.h.  */
