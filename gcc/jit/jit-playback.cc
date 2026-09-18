@@ -562,7 +562,8 @@ playback::type *
 playback::context::
 new_function_type (type *return_type,
 		   const auto_vec<type *> *param_types,
-		   int is_variadic)
+		   int is_variadic,
+		   bool is_indirect_return)
 {
   int i;
   type *param_type;
@@ -583,6 +584,13 @@ new_function_type (type *return_type,
 					 param_types->length (),
 					 arg_types);
   free (arg_types);
+
+  if (is_indirect_return)
+    {
+      /* We need to create a copy since the function type is shared.  */
+      fn_type = build_distinct_type_copy (fn_type);
+      TREE_ADDRESSABLE (fn_type) = 1;
+    }
 
   return new type (fn_type);
 }
@@ -718,7 +726,8 @@ new_function (location *loc,
 	      const std::vector<std::pair<gcc_jit_fn_attribute,
 					  std::vector<int>>>
 					  &int_array_attributes,
-	      bool is_target_builtin)
+	      bool is_target_builtin,
+	      bool is_indirect_return)
 {
   int i;
   param *param;
@@ -738,6 +747,13 @@ new_function (location *loc,
     fn_type = build_function_type_array (return_type->as_tree (),
 					 params->length (), arg_types);
   free (arg_types);
+
+  if (is_indirect_return)
+    {
+      /* We need to create a copy since the function type is shared.  */
+      fn_type = build_distinct_type_copy (fn_type);
+      TREE_ADDRESSABLE (fn_type) = 1;
+    }
 
   /* FIXME: this uses input_location: */
   tree fndecl = build_fn_decl (name, fn_type);

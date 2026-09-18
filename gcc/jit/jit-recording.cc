@@ -3585,7 +3585,8 @@ recording::function_type::function_type (context *ctxt,
   m_return_type (return_type),
   m_param_types (),
   m_is_variadic (is_variadic),
-  m_is_target_builtin (is_target_builtin)
+  m_is_target_builtin (is_target_builtin),
+  m_indirect_return (false)
 {
   for (int i = 0; i< num_params; i++)
     m_param_types.safe_push (param_types[i]);
@@ -3663,7 +3664,8 @@ recording::function_type::replay_into (replayer *r)
 
   set_playback_obj (r->new_function_type (m_return_type->playback_type (),
 					  &param_types,
-					  m_is_variadic));
+					  m_is_variadic,
+					  m_indirect_return));
 }
 
 /* Special-casing for make_debug_string for get_pointer results for
@@ -4609,7 +4611,8 @@ recording::function::function (context *ctxt,
   m_attributes (),
   m_string_attributes (),
   m_int_array_attributes (),
-  m_is_target_builtin (is_target_builtin)
+  m_is_target_builtin (is_target_builtin),
+  m_indirect_return (false)
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -4672,7 +4675,8 @@ recording::function::replay_into (replayer *r)
 				     m_attributes,
 				     m_string_attributes,
 				     m_int_array_attributes,
-				     m_is_target_builtin));
+				     m_is_target_builtin,
+				     m_indirect_return));
 }
 
 /* Implementation of recording::memento::make_debug_string for
@@ -5193,6 +5197,8 @@ recording::function::get_address (recording::location *loc)
 				     param_types.address (),
 				     m_is_variadic,
 				     m_is_target_builtin);
+      if (m_indirect_return)
+	fn_type->set_indirect_return ();
       m_fn_ptr_type = fn_type->get_pointer ();
     }
   gcc_assert (m_fn_ptr_type);

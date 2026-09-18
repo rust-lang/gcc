@@ -4761,6 +4761,15 @@ gcc_jit_lvalue_add_attribute (gcc_jit_lvalue *variable,
   variable->add_attribute (attribute);
 }
 
+/* Public entrypoint.  See description in libgccjit.h.  */
+
+void
+gcc_jit_function_set_indirect_return (gcc_jit_function *func)
+{
+  RETURN_IF_FAIL (func, NULL, NULL, "NULL function");
+  func->set_indirect_return ();
+}
+
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
