@@ -2256,6 +2256,20 @@ extern gcc_jit_type *
 gcc_jit_function_type_get_param_type (gcc_jit_function_type *function_type,
 				size_t index);
 
+/* Given a function type, make functions of that type return their value
+   in memory (through a hidden pointer), even if the target ABI would
+   normally return it in registers, so that calls through a pointer to
+   that type use the same calling convention as direct calls to a
+   function on which gcc_jit_function_set_indirect_return was called.  */
+extern void
+gcc_jit_function_type_set_indirect_return (gcc_jit_function_type *function_type);
+
+/* Given a function type, return non-zero if functions of that type return
+   their value in memory (see
+   gcc_jit_function_type_set_indirect_return).  */
+extern int
+gcc_jit_function_type_is_indirect_return (gcc_jit_function_type *function_type);
+
 /* Upcasting from gcc_jit_function_type to object.
 
    This API entrypoint was added in LIBGCCJIT_ABI_55.

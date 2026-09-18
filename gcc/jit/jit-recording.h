@@ -1184,6 +1184,7 @@ public:
      TREE_ADDRESSABLE on the FUNCTION_TYPE at playback (see
      aggregate_value_p).  */
   void set_indirect_return () { m_indirect_return = true; }
+  bool is_indirect_return () const { return m_indirect_return; }
 
   string * make_debug_string_with_ptr ();
 
