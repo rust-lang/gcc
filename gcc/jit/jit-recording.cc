@@ -4612,7 +4612,8 @@ recording::function::function (context *ctxt,
   m_string_attributes (),
   m_int_array_attributes (),
   m_is_target_builtin (is_target_builtin),
-  m_indirect_return (false)
+  m_indirect_return (false),
+  m_named_return_value (NULL)
 {
   for (int i = 0; i< num_params; i++)
     {
@@ -7928,6 +7929,9 @@ recording::local::replay_into (replayer *r)
 
   if (m_alignment != 0)
     obj->set_alignment (m_alignment);
+
+  if (m_func->get_named_return_value () == this)
+    m_func->playback_function ()->set_named_return_value (obj);
 
   set_playback_obj (obj);
 }
