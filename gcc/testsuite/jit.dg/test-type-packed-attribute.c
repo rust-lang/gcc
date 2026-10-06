@@ -83,7 +83,7 @@ int size_packed() {
   /* Creating the `size_unpacked` function. */
   gcc_jit_function *size_unpacked =
     gcc_jit_context_new_function (ctxt, NULL,
-				  GCC_JIT_FUNCTION_INTERNAL,
+				  GCC_JIT_FUNCTION_EXPORTED,
 				  int_type,
 				  "size_unpacked",
 				  0, NULL,
@@ -99,7 +99,7 @@ int size_packed() {
   /* Creating the `size_packed` function. */
   gcc_jit_function *size_packed =
     gcc_jit_context_new_function (ctxt, NULL,
-	  GCC_JIT_FUNCTION_INTERNAL,
+	  GCC_JIT_FUNCTION_EXPORTED,
 	  int_type,
 	  "size_packed",
 	  0, NULL,
