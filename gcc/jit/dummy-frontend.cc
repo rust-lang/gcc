@@ -103,9 +103,14 @@ static const attribute_spec jit_gnu_attributes[] =
 {
   /* { name, min_len, max_len, decl_req, type_req, fn_type_req,
        affects_type_identity, handler, exclude } */
+  { "alias",		      1, 1, true,  false, false, false,
+			      handle_alias_attribute, NULL },
   { "aligned",                0, 1, false, false, false, false,
 			      handle_aligned_attribute,
 			      attr_aligned_exclusions },
+  { "always_inline",	      0, 0, true,  false, false, false,
+			      handle_always_inline_attribute,
+			      attr_always_inline_exclusions },
   { "cold",		      0, 0, true,  false, false, false,
 			      handle_cold_attribute,
 			      attr_cold_hot_exclusions },
