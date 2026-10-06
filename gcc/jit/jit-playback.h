@@ -607,6 +607,9 @@ public:
 	     const std::vector<std::pair<gcc_jit_variable_attribute,
 					 std::string>> &attributes);
 
+  void
+  set_named_return_value (lvalue *local);
+
   block*
   new_block (const char *name);
 

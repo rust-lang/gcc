@@ -1685,6 +1685,12 @@ public:
 
   bool is_variadic () const { return m_is_variadic; }
 
+  void set_named_return_value (lvalue *named_return_value)
+  {
+    m_named_return_value = named_return_value;
+  }
+  lvalue *get_named_return_value () const { return m_named_return_value; }
+
   void set_indirect_return ()
   {
     m_indirect_return = true;
@@ -1726,6 +1732,7 @@ private:
   std::vector<std::pair<gcc_jit_fn_attribute, std::vector<int>>> m_int_array_attributes;
   bool m_is_target_builtin;
   bool m_indirect_return;
+  lvalue *m_named_return_value;
 
   friend class region;
 };
