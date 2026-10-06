@@ -2525,6 +2525,10 @@ extern void
 gcc_jit_function_set_indirect_return (gcc_jit_function *func);
 
 extern void
+gcc_jit_function_set_named_return_value (gcc_jit_function *func,
+					 gcc_jit_lvalue *local);
+
+extern void
 gcc_jit_field_set_location (gcc_jit_field *field,
 			    gcc_jit_location *loc);
 extern void
