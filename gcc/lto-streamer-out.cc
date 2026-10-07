@@ -227,6 +227,12 @@ public:
 
   void produce_linemap_section ();
 
+  void reset ()
+  {
+    map_data_map.empty ();
+    orig_map_ids.release ();
+  }
+
 private:
   struct map_data
   {
@@ -401,6 +407,12 @@ location_output::produce_linemap_section ()
 location_output loc_output;
 
 } /* unnamed namespace */
+
+void
+lto_streamer_out_cc_finalize (void)
+{
+  loc_output.reset ();
+}
 
 /* Get a mapping index for LOC and stream it along with optional ancillary
    data.  */

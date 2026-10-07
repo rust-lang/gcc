@@ -40,6 +40,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "ira.h"
 #include "recog.h"
 #include "cgraph.h"
+#include "lto-streamer.h"
 #include "coverage.h"
 #include "diagnostic.h"
 #include "pretty-print-urlifier.h"
@@ -2462,6 +2463,7 @@ toplev::finalize (void)
   tree_cc_finalize ();
   reginfo_cc_finalize ();
   varasm_cc_finalize ();
+  lto_streamer_out_cc_finalize ();
 
   /* save_decoded_options uses opts_obstack, so these must
      be cleaned up together.  */
