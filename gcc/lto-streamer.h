@@ -938,6 +938,7 @@ extern void lto_output_toplevel_asms (lto_symtab_encoder_t);
 extern void produce_asm (struct output_block *ob);
 extern void lto_output ();
 extern void produce_asm_for_decls ();
+extern void lto_streamer_out_cc_finalize (void);
 void lto_register_linemap_for_output (size_t, unsigned);
 void lto_copy_linemaps ();
 void lto_output_decl_state_streams (struct output_block *,
