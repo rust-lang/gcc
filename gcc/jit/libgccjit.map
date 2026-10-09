@@ -467,3 +467,8 @@ LIBGCCJIT_ABI_59 {
   global:
     gcc_jit_function_set_named_return_value;
 } LIBGCCJIT_ABI_58;
+
+LIBGCCJIT_ABI_60 {
+  global:
+    gcc_jit_rvalue_set_bool_return_slot_optimization;
+} LIBGCCJIT_ABI_59;

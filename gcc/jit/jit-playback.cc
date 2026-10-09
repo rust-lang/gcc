@@ -1670,7 +1670,8 @@ playback::context::
 build_call (location *loc,
 	    tree fn_ptr,
 	    const auto_vec<rvalue *> *args,
-	    bool require_tail_call)
+	    bool require_tail_call,
+	    bool return_slot_optimization)
 {
   vec<tree, va_gc> *tree_args;
   vec_alloc (tree_args, args->length ());
@@ -1689,6 +1690,10 @@ build_call (location *loc,
 
   if (require_tail_call)
     CALL_EXPR_MUST_TAIL_CALL (call) = 1;
+
+  /* Do not do the return slot optimization if the value is in a register.  */
+  if (return_slot_optimization && !is_gimple_reg_type (return_type))
+    CALL_EXPR_RETURN_SLOT_OPT (call) = 1;
 
   return new rvalue (this, call);
 
@@ -1711,7 +1716,8 @@ playback::context::
 new_call (location *loc,
 	  function *func,
 	  const auto_vec<rvalue *> *args,
-	  bool require_tail_call)
+	  bool require_tail_call,
+	  bool return_slot_optimization)
 {
   tree fndecl;
 
@@ -1723,7 +1729,8 @@ new_call (location *loc,
 
   tree fn = build1 (ADDR_EXPR, build_pointer_type (fntype), fndecl);
 
-  return build_call (loc, fn, args, require_tail_call);
+  return build_call (loc, fn, args, require_tail_call,
+		     return_slot_optimization);
 }
 
 /* Construct a playback::rvalue instance (wrapping a tree) for a
@@ -1734,12 +1741,14 @@ playback::context::
 new_call_through_ptr (location *loc,
 		      rvalue *fn_ptr,
 		      const auto_vec<rvalue *> *args,
-		      bool require_tail_call)
+		      bool require_tail_call,
+		      bool return_slot_optimization)
 {
   gcc_assert (fn_ptr);
   tree t_fn_ptr = fn_ptr->as_tree ();
 
-  return build_call (loc, t_fn_ptr, args, require_tail_call);
+  return build_call (loc, t_fn_ptr, args, require_tail_call,
+		     return_slot_optimization);
 }
 
 /* Construct a tree for a cast.  */
