@@ -2528,6 +2528,11 @@ extern void
 gcc_jit_function_set_named_return_value (gcc_jit_function *func,
 					 gcc_jit_lvalue *local);
 
+/* Enable the caller-side of the return value optimization.  */
+extern void
+gcc_jit_rvalue_set_bool_return_slot_optimization (gcc_jit_rvalue *call,
+						  int return_slot_optimization);
+
 extern void
 gcc_jit_field_set_location (gcc_jit_field *field,
 			    gcc_jit_location *loc);

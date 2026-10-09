@@ -7218,7 +7218,8 @@ recording::base_call::base_call (context *ctxt,
 				 rvalue **args)
 : rvalue (ctxt, loc, type_),
   m_args (),
-  m_require_tail_call (0)
+  m_require_tail_call (0),
+  m_return_slot_optimization (0)
 {
   for (int i = 0; i< numargs; i++)
     m_args.safe_push (args[i]);
@@ -7235,6 +7236,13 @@ recording::base_call::write_reproducer_tail_call (reproducer &r,
     {
       r.write ("  gcc_jit_rvalue_set_bool_require_tail_call (%s,  /* gcc_jit_rvalue *call*/\n"
 	       "                                             %i); /* int require_tail_call*/\n",
+	       id,
+	       1);
+    }
+  if (m_return_slot_optimization)
+    {
+      r.write ("  gcc_jit_rvalue_set_bool_return_slot_optimization (%s,  /* gcc_jit_rvalue *call*/\n"
+	       "                                                    %i); /* int return_slot_optimization*/\n",
 	       id,
 	       1);
     }
@@ -7268,7 +7276,8 @@ recording::call::replay_into (replayer *r)
   set_playback_obj (r->new_call (playback_location (r, m_loc),
 				 m_func->playback_function (),
 				 &playback_args,
-				 m_require_tail_call));
+				 m_require_tail_call,
+				 m_return_slot_optimization));
 }
 
 /* Implementation of pure virtual hook recording::rvalue::visit_children
@@ -7356,7 +7365,8 @@ recording::call_through_ptr::replay_into (replayer *r)
   set_playback_obj (r->new_call_through_ptr (playback_location (r, m_loc),
 					     m_fn_ptr->playback_rvalue (),
 					     &playback_args,
-					     m_require_tail_call));
+					     m_require_tail_call,
+					     m_return_slot_optimization));
 }
 
 /* Implementation of pure virtual hook recording::rvalue::visit_children

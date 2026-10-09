@@ -2501,12 +2501,18 @@ class base_call : public rvalue
     m_require_tail_call = require_tail_call;
   }
 
+  void set_return_slot_optimization (bool return_slot_optimization)
+  {
+    m_return_slot_optimization = return_slot_optimization;
+  }
+
  protected:
   void write_reproducer_tail_call (reproducer &r, const char *id);
 
  protected:
   auto_vec<rvalue *> m_args;
   bool m_require_tail_call;
+  bool m_return_slot_optimization;
 };
 
 class call : public base_call
@@ -2537,6 +2543,7 @@ public:
     call *c = new call (m_ctxt, m_loc, m_func, args.length (),
 			args.address ());
     c->set_require_tail_call (m_require_tail_call);
+    c->set_return_slot_optimization (m_return_slot_optimization);
     m_ctxt->record (c);
     return c;
   }
@@ -2575,6 +2582,7 @@ public:
 			      cloner.clone_rvalue (m_fn_ptr),
 			      args.length (), args.address ());
     c->set_require_tail_call (m_require_tail_call);
+    c->set_return_slot_optimization (m_return_slot_optimization);
     m_ctxt->record (c);
     return c;
   }
