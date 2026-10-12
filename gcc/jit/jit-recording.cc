@@ -1238,6 +1238,24 @@ recording::context::new_rvalue_from_vector (location *loc,
   return result;
 }
 
+/* Create a recording::memento_of_new_array_from_bytes instance and add
+   it to this context's list of mementos.
+
+   Implements the post-error-checking part of
+   gcc_jit_context_new_array_from_bytes.  */
+
+recording::rvalue *
+recording::context::new_array_from_bytes (location *loc,
+					  type *type,
+					  const unsigned char *bytes,
+					  size_t num_bytes)
+{
+  recording::rvalue *result
+    = new memento_of_new_array_from_bytes (this, loc, type, bytes, num_bytes);
+  record (result);
+  return result;
+}
+
 recording::rvalue *
 recording::context::new_rvalue_vector_perm (location *loc,
 			  rvalue *elements1,
@@ -6401,6 +6419,105 @@ recording::memento_of_new_string_literal::write_reproducer (reproducer &r)
     id,
     r.get_identifier (get_context ()),
     m_value->get_debug_string ());
+}
+
+/* The implementation of class
+   gcc::jit::recording::memento_of_new_array_from_bytes.  */
+
+/* The constructor for
+   gcc::jit::recording::memento_of_new_array_from_bytes.  */
+
+recording::memento_of_new_array_from_bytes::
+memento_of_new_array_from_bytes (context *ctxt,
+				 location *loc,
+				 type *type,
+				 const unsigned char *bytes,
+				 size_t num_bytes)
+: rvalue (ctxt, loc, type),
+  m_bytes (num_bytes)
+{
+  if (num_bytes)
+    {
+      m_bytes.quick_grow (num_bytes);
+      memcpy (m_bytes.address (), bytes, num_bytes);
+    }
+}
+
+/* Implementation of pure virtual hook recording::memento::replay_into
+   for recording::memento_of_new_array_from_bytes.  */
+
+void
+recording::memento_of_new_array_from_bytes::replay_into (replayer *r)
+{
+  set_playback_obj (r->new_array_from_bytes (playback_location (r, m_loc),
+					     m_type->playback_type (),
+					     m_bytes.address (),
+					     m_bytes.length ()));
+}
+
+/* Implementation of recording::memento::make_debug_string for
+   arrays built from bytes: render them as an escaped C string literal.  */
+
+recording::string *
+recording::memento_of_new_array_from_bytes::make_debug_string ()
+{
+  pretty_printer pp;
+  pp_character (&pp, '"');
+  unsigned index;
+  unsigned char byte;
+  FOR_EACH_VEC_ELT (m_bytes, index, byte)
+    switch (byte)
+      {
+      case '"':
+      case '\\':
+	pp_character (&pp, '\\');
+	pp_character (&pp, byte);
+	break;
+      case '\n':
+	pp_string (&pp, "\\n");
+	break;
+      case '\t':
+	pp_string (&pp, "\\t");
+	break;
+      default:
+	if (ISPRINT (byte))
+	  pp_character (&pp, byte);
+	else
+	  pp_scalar (&pp, "\\%03o", byte);
+	break;
+      }
+  pp_character (&pp, '"');
+  return m_ctxt->new_string (pp_formatted_text (&pp), true);
+}
+
+/* Implementation of recording::memento::write_reproducer for arrays
+   built from bytes.  */
+
+void
+recording::memento_of_new_array_from_bytes::write_reproducer (reproducer &r)
+{
+  const char *id = r.make_identifier (this, "rvalue");
+  const char *bytes_id = r.make_tmp_identifier ("bytes_for", this);
+  r.write ("  static const unsigned char %s[%u] = {",
+	   bytes_id,
+	   m_bytes.length () ? m_bytes.length () : 1);
+  unsigned i;
+  unsigned char c;
+  FOR_EACH_VEC_ELT (m_bytes, i, c)
+    r.write ("%s0x%02x", i % 16 ? ", " : "\n    ", c);
+  r.write ("};\n");
+  r.write ("  gcc_jit_rvalue *%s =\n"
+	   "    gcc_jit_context_new_array_from_bytes (%s, /* gcc_jit_context *ctxt */\n"
+	   "                                          %s, /* gcc_jit_location *loc */\n"
+	   "                                          %s, /* gcc_jit_type *array_type */\n"
+	   "                                          %s, /* const void *bytes */\n"
+	   "                                          %u); /* size_t num_bytes */\n",
+	   id,
+	   r.get_identifier (get_context ()),
+	   r.get_identifier (m_loc),
+	   r.get_identifier_as_type (m_type),
+	   bytes_id,
+	   m_bytes.length ());
 }
 
 /* The implementation of class

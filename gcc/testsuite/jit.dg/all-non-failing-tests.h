@@ -69,6 +69,13 @@
 #undef create_code
 #undef verify_code
 
+/* test-array-from-bytes.c */
+#define create_code create_code_array_from_bytes
+#define verify_code verify_code_array_from_bytes
+#include "test-array-from-bytes.c"
+#undef create_code
+#undef verify_code
+
 /* test-arrays.c */
 #define create_code create_code_arrays
 #define verify_code verify_code_arrays
@@ -554,6 +561,9 @@ const struct testcase testcases[] = {
   {"array_as_pointer",
    create_code_array_as_pointer,
    verify_code_array_as_pointer},
+  {"array_from_bytes",
+   create_code_array_from_bytes,
+   verify_code_array_from_bytes},
   {"arrays",
    create_code_arrays,
    verify_code_arrays},
