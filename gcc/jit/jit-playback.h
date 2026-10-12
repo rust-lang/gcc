@@ -196,6 +196,12 @@ public:
 			  const auto_vec<rvalue *> &elements);
 
   rvalue *
+  new_array_from_bytes (location *loc,
+			type *type,
+			const unsigned char *bytes,
+			size_t num_bytes);
+
+  rvalue *
   new_rvalue_vector_perm (location *loc,
 			  rvalue* elements1,
 			  rvalue* elements2,

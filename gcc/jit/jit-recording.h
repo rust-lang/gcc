@@ -200,6 +200,12 @@ public:
 			  rvalue **elements);
 
   rvalue *
+  new_array_from_bytes (location *loc,
+			type *type,
+			const unsigned char *bytes,
+			size_t num_bytes);
+
+  rvalue *
   new_rvalue_vector_perm (location *loc,
 			  rvalue *elements1,
 			  rvalue *elements2,
@@ -2124,6 +2130,37 @@ private:
 private:
   function *m_function;
   function *m_personality_function;
+};
+
+class memento_of_new_array_from_bytes : public rvalue
+{
+public:
+  memento_of_new_array_from_bytes (context *ctxt,
+				   location *loc,
+				   type *type,
+				   const unsigned char *bytes,
+				   size_t num_bytes);
+
+  void replay_into (replayer *r) final override;
+
+  void visit_children (rvalue_visitor *) final override {}
+
+  bool is_constant () const final override { return true; }
+
+private:
+  string * make_debug_string () final override;
+  void write_reproducer (reproducer &r) final override;
+  enum precedence get_precedence () const final override
+  {
+    return PRECEDENCE_PRIMARY;
+  }
+
+public:
+  /* A constant should not be cloned.  */
+  rvalue *clone_rvalue (block_cloner &) final override { return this; }
+
+private:
+  auto_vec<unsigned char> m_bytes;
 };
 
 class memento_of_new_rvalue_from_vector : public rvalue
