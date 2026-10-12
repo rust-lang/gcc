@@ -1355,6 +1355,25 @@ new_string_literal (const char *value)
   return new rvalue (this, t_addr);
 }
 
+/* Construct a playback::rvalue instance (wrapping a STRING_CST) for an
+   array of 1-byte integers initialized from raw bytes.  */
+
+playback::rvalue *
+playback::context::
+new_array_from_bytes (location *,
+		      type *type,
+		      const unsigned char *bytes,
+		      size_t num_bytes)
+{
+  /* Compare with c-family/c-common.cc: braced_list_to_string.  The bytes
+     may contain NULs and are not NUL-terminated: the length of the
+     STRING_CST is exactly the size of the array type.  */
+  tree t_str = ::build_string (num_bytes, (const char *) bytes);
+  TREE_TYPE (t_str) = type->as_tree ();
+
+  return new rvalue (this, t_str);
+}
+
 /* Construct a playback::rvalue instance (wrapping a tree) for a
    vector.  */
 

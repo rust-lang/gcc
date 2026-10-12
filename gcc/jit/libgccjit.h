@@ -2533,6 +2533,31 @@ extern void
 gcc_jit_rvalue_set_bool_return_slot_optimization (gcc_jit_rvalue *call,
 						  int return_slot_optimization);
 
+/* Build a constant array rvalue from a run of raw bytes.
+
+   "array_type" must be an array type (optionally qualified, e.g. const)
+   whose element type is a 1-byte integer type (e.g. char, unsigned char,
+   int8_t, uint8_t), and
+   "num_bytes" must match its number of elements.  The bytes are copied;
+   they may contain NUL bytes and don't need to be NUL-terminated.
+
+   Unlike an array constructor of integer constants, the result is a
+   string-like type so the generated assembly can be placed in a mergeable
+   string section.
+
+   This API entrypoint was added in LIBGCCJIT_ABI_61; you can test for its
+   presence using
+     #ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_array_from_bytes
+*/
+extern gcc_jit_rvalue *
+gcc_jit_context_new_array_from_bytes (gcc_jit_context *ctxt,
+				      gcc_jit_location *loc,
+				      gcc_jit_type *array_type,
+				      const void *bytes,
+				      size_t num_bytes);
+
+#define LIBGCCJIT_HAVE_gcc_jit_context_new_array_from_bytes
+
 extern void
 gcc_jit_field_set_location (gcc_jit_field *field,
 			    gcc_jit_location *loc);
