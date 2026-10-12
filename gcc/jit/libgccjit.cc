@@ -4894,6 +4894,66 @@ gcc_jit_function_get_address (gcc_jit_function *fn,
 /* Public entrypoint.  See description in libgccjit.h.
 
    After error-checking, the real work is done by the
+   gcc::jit::recording::context::new_array_from_bytes method, in
+   jit-recording.cc.  */
+
+gcc_jit_rvalue *
+gcc_jit_context_new_array_from_bytes (gcc_jit_context *ctxt,
+				      gcc_jit_location *loc,
+				      gcc_jit_type *array_type,
+				      const void *bytes,
+				      size_t num_bytes)
+{
+  RETURN_NULL_IF_FAIL (ctxt, NULL, loc, "NULL ctxt");
+  JIT_LOG_FUNC (ctxt->get_logger ());
+
+  RETURN_NULL_IF_FAIL (array_type, ctxt, loc, "NULL array_type");
+
+  /* "array_type" must be an array type, possibly qualified (e.g. const):
+     strip the qualifiers to validate it.  */
+  gcc::jit::recording::type *unqualified_type = array_type;
+  while (unqualified_type->unqualified () != unqualified_type)
+    unqualified_type = unqualified_type->unqualified ();
+  gcc::jit::recording::array_type *as_array_type
+    = unqualified_type->dyn_cast_array_type ();
+  RETURN_NULL_IF_FAIL_PRINTF1 (as_array_type, ctxt, loc,
+			       "%s is not an array type",
+			       array_type->get_debug_string ());
+
+  /* Its elements must be 1-byte integers.  */
+  gcc::jit::recording::type *element_type
+    = as_array_type->is_array ();
+  RETURN_NULL_IF_FAIL_PRINTF2 (
+    element_type->is_int () && element_type->get_size () == 1,
+    ctxt, loc,
+    "element type of %s is not a 1-byte integer type: %s",
+    array_type->get_debug_string (),
+    element_type->get_debug_string ());
+
+  RETURN_NULL_IF_FAIL_PRINTF2 (
+    num_bytes == as_array_type->num_elements (), ctxt, loc,
+    "num_bytes (%zu) != number of elements of %s",
+    num_bytes, array_type->get_debug_string ());
+
+  /* We call `build_string` later on with this content which takes an
+     `unsigned int` for the length... and stores it into an `int`. So we
+     need to ensure that `num_bytes` is always smaller than `INT_MAX`.  */
+  RETURN_NULL_IF_FAIL (num_bytes < INT_MAX, ctxt, loc,
+		       "num_bytes should be smaller than INT_MAX");
+
+  /* "bytes" can only be NULL if there are no bytes.  */
+  RETURN_NULL_IF_FAIL (bytes || num_bytes == 0, ctxt, loc, "NULL bytes");
+
+  return (gcc_jit_rvalue *)ctxt->new_array_from_bytes
+    (loc,
+     array_type,
+     (const unsigned char *)bytes,
+     num_bytes);
+}
+
+/* Public entrypoint.  See description in libgccjit.h.
+
+   After error-checking, the real work is done by the
    gcc::jit::recording::context::new_rvalue_from_vector method, in
    jit-recording.cc.  */
 
