@@ -11580,6 +11580,12 @@ keys added by this hook are made available at compile time by calling
 get_target_info.
 @end deftypefn
 
+@deftypefn {JIT Target Hook} void TARGET_JIT_INIT_BUILTINS (void)
+Register the target-specific builtin functions that need to be registered
+manually, like arm_neon.h intrinsics. The builtins added by this hook are
+made available by calling gcc_jit_context_get_target_builtin_function.
+@end deftypefn
+
 @node Named Address Spaces
 @section Adding support for named address spaces
 @cindex named address spaces

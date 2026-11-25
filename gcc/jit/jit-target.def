@@ -38,5 +38,13 @@ get_target_info.",
  void, (void),
  hook_void_void)
 
+DEFHOOK
+(jit_init_builtins,
+ "Register the target-specific builtin functions that need to be registered\n\
+manually, like arm_neon.h intrinsics. The builtins added by this hook are\n\
+made available by calling gcc_jit_context_get_target_builtin_function.",
+ void, (void),
+ hook_void_void)
+
 /* Close the 'struct gcc_targetdm' definition.  */
 HOOK_VECTOR_END (C90_EMPTY_HACK)

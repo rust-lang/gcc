@@ -4263,15 +4263,15 @@ register_svprfop ()
 						      "svprfop", &values);
 }
 
-static bool arm_neon_h_handled = false;
+static GTY(()) bool arm_neon_h_handled = false;
 
-static bool arm_sve_h_handled = false;
+static GTY(()) bool arm_sve_h_handled = false;
 static location_t arm_sve_h_location;
 
-static bool arm_sme_h_handled = false;
+static GTY(()) bool arm_sme_h_handled = false;
 static location_t arm_sme_h_location;
 
-static bool arm_neon_sve_bridge_h_handled = false;
+static GTY(()) bool arm_neon_sve_bridge_h_handled = false;
 static location_t arm_neon_sve_bridge_h_location;
 
 /* Implement #pragma GCC aarch64 "arm_neon.h".  */
