@@ -892,6 +892,7 @@ jit_langhook_init (void)
   mpfr_set_default_prec (256);
 
   targetm.init_builtins ();
+  targetjitm.jit_init_builtins ();
 
   return true;
 }

@@ -23,6 +23,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "target.h"
 #include "tm.h"
+#include "tm_p.h"
 #include "tm_jit.h"
 #include <sys/auxv.h>
 #include "jit/jit-target.h"
@@ -67,4 +68,10 @@ if (AARCH64_HAVE_ISA (IDENT)) jit_add_target_info_space ("target_feature", NAME,
 #define AARCH64_ARCH(NAME, CORE, ARCH_IDENT, ARCH_REV, FLAGS) \
 if (AARCH64_HAVE_ISA (ARCH_IDENT)) jit_add_target_info ("target_feature", NAME);
 #include "aarch64-arches.def"
+}
+
+void
+aarch64_jit_init_builtins (void)
+{
+  aarch64_acle::handle_arm_neon_h (false);
 }

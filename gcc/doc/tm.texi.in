@@ -7362,6 +7362,8 @@ floating-point support; they are not included in this mechanism.
 
 @hook TARGET_JIT_REGISTER_CPU_TARGET_INFO
 
+@hook TARGET_JIT_INIT_BUILTINS
+
 @node Named Address Spaces
 @section Adding support for named address spaces
 @cindex named address spaces

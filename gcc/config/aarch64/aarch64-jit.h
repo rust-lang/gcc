@@ -17,6 +17,8 @@ along with GCC; see the file COPYING3.  If not see
 
 /* Defined in aarch64-jit.cc.  */
 extern void aarch64_jit_register_target_info (void);
+extern void aarch64_jit_init_builtins (void);
 
 /* Target hooks for jit language.  */
 #define TARGET_JIT_REGISTER_CPU_TARGET_INFO aarch64_jit_register_target_info
+#define TARGET_JIT_INIT_BUILTINS aarch64_jit_init_builtins
