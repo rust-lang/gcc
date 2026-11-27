@@ -81,6 +81,8 @@ extern rtx assemble_trampoline_template (void);
 
 extern void switch_to_comdat_section (section *, tree);
 
+extern int name_needs_quotes (const char *);
+
 extern void varasm_cc_finalize ();
 
 #endif  // GCC_VARASM_H

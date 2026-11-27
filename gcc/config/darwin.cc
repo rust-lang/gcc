@@ -262,17 +262,6 @@ darwin_init_sections (void)
     darwin_sections[picbase_thunk_section] = text_section;
 }
 
-int
-name_needs_quotes (const char *name)
-{
-  int c;
-  while ((c = *name++) != '\0')
-    if (! ISIDNUM (c)
-	  && c != '.' && c != '$' && c != '_' )
-      return 1;
-  return 0;
-}
-
 DEBUG_FUNCTION void
 dump_machopic_symref_flags (FILE *dump, rtx sym_ref)
 {

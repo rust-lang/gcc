@@ -1803,7 +1803,7 @@ ix86_asm_output_function_label (FILE *out_file, const char *fname,
 void
 ix86_asm_output_labelref (FILE *file, const char *prefix, const char *label)
 {
-  if (ASSEMBLER_DIALECT == ASM_ATT)
+  if (ASSEMBLER_DIALECT == ASM_ATT && !name_needs_quotes (label))
     fprintf (file, "%s%s", prefix, label);
   else
     fprintf (file, "\"%s%s\"", prefix, label);

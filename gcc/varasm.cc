@@ -9070,6 +9070,17 @@ handle_vtv_comdat_section (section *sect, const_tree decl ATTRIBUTE_UNUSED)
   switch_to_comdat_section(sect, DECL_NAME (decl));
 }
 
+int
+name_needs_quotes (const char *name)
+{
+  int c;
+  while ((c = *name++) != '\0')
+    if (! ISIDNUM (c)
+	  && c != '.' && c != '$' && c != '_' )
+      return 1;
+  return 0;
+}
+
 void
 varasm_cc_finalize ()
 {
