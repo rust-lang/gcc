@@ -21,7 +21,6 @@ along with GCC; see the file COPYING3.  If not see
 #define CONFIG_DARWIN_PROTOS_H
 
 extern void darwin_init_sections (void);
-extern int name_needs_quotes (const char *);
 
 extern void machopic_validate_stub_or_non_lazy_ptr (const char *);
 

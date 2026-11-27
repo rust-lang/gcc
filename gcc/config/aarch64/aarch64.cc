@@ -14567,7 +14567,10 @@ aarch64_preferred_reload_class (rtx x, reg_class_t regclass)
 void
 aarch64_asm_output_labelref (FILE* f, const char *name)
 {
-  asm_fprintf (f, "%U%s", name);
+  if (name_needs_quotes (name))
+    asm_fprintf (f, "\"%U%s\"", name);
+  else
+    asm_fprintf (f, "%U%s", name);
 }
 
 static void
